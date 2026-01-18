@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Documentation
+    url: https://github.com/aaron777collins/RecursiveManager/blob/main/README.md
+    about: Check the README and planning documents first
+  - name: Planning Documents
+    url: https://github.com/aaron777collins/RecursiveManager/blob/main/COMPREHENSIVE_PLAN.md
+    about: Review the comprehensive plan and implementation phases
