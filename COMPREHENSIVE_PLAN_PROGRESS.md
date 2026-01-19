@@ -92,7 +92,7 @@ RecursiveManager is a hierarchical AI agent system with:
 ##### Core File I/O
 
 - [x] Task 1.2.1: Implement atomicWrite() with temp file + rename pattern
-- [ ] Task 1.2.2: Implement createBackup() with timestamped backups
+- [x] Task 1.2.2: Implement createBackup() with timestamped backups
 - [ ] Task 1.2.3: Implement backup retention/cleanup (7-day policy)
 - [ ] Task 1.2.4: Create directory permission handling (0o755)
 - [ ] Task 1.2.5: Implement disk space checking (EC-5.1: Disk Full)
@@ -532,6 +532,88 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.2.2: Implement createBackup() with timestamped backups ✅
+
+**Summary**: Implemented file backup functionality with timestamped copies, both async and sync variants, comprehensive error handling, and 21 passing unit tests covering all edge cases.
+
+**What Was Implemented**:
+
+- ✅ Extended `packages/common/src/file-io.ts` module with backup functionality
+  - `createBackup()` - Async timestamped backup creation
+  - `createBackupSync()` - Synchronous version for edge cases
+  - `BackupError` - Custom error class with detailed context
+  - `BackupOptions` - Type-safe configuration interface
+  - `defaultTimestampFormat()` - ISO 8601 filesystem-safe format (YYYY-MM-DDTHH-mm-ss-SSS)
+- ✅ Backup algorithm features:
+  - Creates timestamped copy of file with format: `filename.YYYY-MM-DDTHH-mm-ss-SSS.ext`
+  - Returns null if source file doesn't exist (graceful handling)
+  - Preserves original file permissions by default
+  - Supports custom backup directory (with auto-creation)
+  - Supports custom timestamp format function
+  - Handles both text and binary files correctly
+- ✅ Configuration options:
+  - `backupDir` - Custom backup directory (default: same as original)
+  - `createDirs` - Auto-create backup directory (default: true)
+  - `timestampFormat` - Custom timestamp function (default: ISO 8601)
+  - `mode` - Override file permissions (default: preserve original)
+- ✅ Exported from `@recursive-manager/common` package
+  - Added to package index with proper TypeScript types
+  - Available for use in all other packages
+- ✅ Comprehensive test suite (21 tests, all passing)
+  - Basic functionality (create backup, non-existent files, preserve extensions)
+  - Backup directory options (default, custom, auto-create, createDirs=false)
+  - File permissions (preserve original, custom mode)
+  - Custom timestamp formats
+  - Multiple backups with different timestamps
+  - Binary file support
+  - Error handling (BackupError, descriptive messages, original error preserved)
+  - Synchronous variant (all core functionality)
+
+**Files Created/Modified**:
+
+1. `packages/common/src/file-io.ts` - Extended with 201 lines of backup code (total 396 lines)
+2. `packages/common/src/__tests__/backup.test.ts` (341 lines) - Comprehensive tests
+3. `packages/common/src/index.ts` - Updated exports to include backup functions
+
+**Testing Results**:
+
+- ✅ 21/21 backup tests passing
+- ✅ 45/45 total tests passing in common package
+- ✅ All tests complete in ~5 seconds
+- ✅ ESLint and Prettier pass
+- ✅ TypeScript compilation successful
+- ✅ Test coverage includes:
+  - Basic backup creation and filename formatting
+  - Non-existent file handling (returns null)
+  - File extension preservation
+  - Binary file support
+  - Custom backup directories
+  - Automatic directory creation
+  - Permission preservation and custom modes
+  - Custom timestamp formats
+  - Multiple sequential backups
+  - Error scenarios with descriptive BackupError
+  - Both async and sync variants
+
+**Key Design Decisions**:
+
+1. **Timestamped naming**: Uses ISO 8601 format with hyphens (filesystem-safe)
+2. **Graceful failure**: Returns null if source doesn't exist (not an error)
+3. **Permission preservation**: Default preserves original file permissions
+4. **Custom format support**: Allows user-defined timestamp functions
+5. **Same directory default**: Backups in same dir by default, but configurable
+6. **Sync variant provided**: For edge cases like process exit handlers
+
+**Impact**:
+
+This is the second utility in Phase 1.2 (File System Layer). It provides the foundation for pre-write backups that will protect against data corruption. All future file modification operations in the system can use `createBackup()` before writing to ensure files can be recovered if something goes wrong.
+
+**Next Task**: Task 1.2.3 - Implement backup retention/cleanup (7-day policy)
+
+---
+
+## Previous Completions
 
 ### Task 1.2.1: Implement atomicWrite() with temp file + rename pattern ✅
 

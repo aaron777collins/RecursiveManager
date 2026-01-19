@@ -190,3 +190,206 @@ export function atomicWriteSync(
     );
   }
 }
+
+/**
+ * Options for backup operations
+ */
+export interface BackupOptions {
+  /**
+   * Directory to store backups (default: same directory as original file)
+   */
+  backupDir?: string;
+
+  /**
+   * Whether to create backup directory if it doesn't exist (default: true)
+   */
+  createDirs?: boolean;
+
+  /**
+   * Custom timestamp format (default: ISO 8601 format YYYY-MM-DDTHH-mm-ss-SSS)
+   */
+  timestampFormat?: (date: Date) => string;
+
+  /**
+   * File permissions for the backup file (default: same as original)
+   */
+  mode?: number;
+}
+
+/**
+ * Error thrown when backup operations fail
+ */
+export class BackupError extends Error {
+  constructor(
+    message: string,
+    public readonly originalError?: Error,
+    public readonly sourcePath?: string,
+    public readonly backupPath?: string
+  ) {
+    super(message);
+    this.name = 'BackupError';
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, BackupError);
+    }
+  }
+}
+
+/**
+ * Default timestamp format for backups: YYYY-MM-DDTHH-mm-ss-SSS
+ * Uses ISO 8601 format with hyphens instead of colons (filesystem-safe)
+ *
+ * @param date - Date to format
+ * @returns Formatted timestamp string
+ */
+function defaultTimestampFormat(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+  const milliseconds = String(date.getMilliseconds()).padStart(3, '0');
+
+  return `${year}-${month}-${day}T${hours}-${minutes}-${seconds}-${milliseconds}`;
+}
+
+/**
+ * Create a timestamped backup of a file
+ *
+ * This function creates a copy of the file with a timestamp appended to its name.
+ * If the file doesn't exist, the function returns null without error.
+ *
+ * Backup naming pattern:
+ * - Original: /path/to/config.json
+ * - Backup: /path/to/backups/config.2026-01-18T14-30-45-123.json
+ *
+ * @param filePath - Path to the file to backup
+ * @param options - Backup options
+ * @returns Path to the created backup, or null if source file doesn't exist
+ * @throws BackupError if the backup operation fails
+ *
+ * @example
+ * ```typescript
+ * // Create backup in default location (same directory)
+ * const backupPath = await createBackup('/path/to/config.json');
+ *
+ * // Create backup in specific directory
+ * const backupPath = await createBackup('/path/to/config.json', {
+ *   backupDir: '/path/to/backups'
+ * });
+ * ```
+ */
+export async function createBackup(
+  filePath: string,
+  options: BackupOptions = {}
+): Promise<string | null> {
+  const { createDirs = true, timestampFormat = defaultTimestampFormat } = options;
+
+  const absolutePath = path.resolve(filePath);
+
+  // Check if source file exists
+  try {
+    await fs.access(absolutePath);
+  } catch {
+    // File doesn't exist - return null without error
+    return null;
+  }
+
+  const dir = path.dirname(absolutePath);
+  const ext = path.extname(absolutePath);
+  const basename = path.basename(absolutePath, ext);
+
+  // Determine backup directory
+  const backupDir = options.backupDir ? path.resolve(options.backupDir) : dir;
+
+  // Generate timestamped backup filename
+  const timestamp = timestampFormat(new Date());
+  const backupFilename = `${basename}.${timestamp}${ext}`;
+  const backupPath = path.join(backupDir, backupFilename);
+
+  try {
+    // Create backup directory if needed
+    if (createDirs) {
+      await fs.mkdir(backupDir, { recursive: true, mode: 0o755 });
+    }
+
+    // Get original file stats to preserve permissions
+    const stats = await fs.stat(absolutePath);
+    const mode = options.mode ?? stats.mode;
+
+    // Copy file to backup location
+    await fs.copyFile(absolutePath, backupPath);
+
+    // Set permissions on backup file
+    await fs.chmod(backupPath, mode);
+
+    return backupPath;
+  } catch (error) {
+    const err = error as Error;
+    throw new BackupError(
+      `Failed to create backup of ${absolutePath}: ${err.message}`,
+      err,
+      absolutePath,
+      backupPath
+    );
+  }
+}
+
+/**
+ * Synchronous version of createBackup for cases where async is not possible
+ *
+ * @param filePath - Path to the file to backup
+ * @param options - Backup options
+ * @returns Path to the created backup, or null if source file doesn't exist
+ * @throws BackupError if the backup operation fails
+ */
+export function createBackupSync(filePath: string, options: BackupOptions = {}): string | null {
+  const { createDirs = true, timestampFormat = defaultTimestampFormat } = options;
+
+  const absolutePath = path.resolve(filePath);
+
+  // Check if source file exists
+  if (!fsSync.existsSync(absolutePath)) {
+    return null;
+  }
+
+  const dir = path.dirname(absolutePath);
+  const ext = path.extname(absolutePath);
+  const basename = path.basename(absolutePath, ext);
+
+  // Determine backup directory
+  const backupDir = options.backupDir ? path.resolve(options.backupDir) : dir;
+
+  // Generate timestamped backup filename
+  const timestamp = timestampFormat(new Date());
+  const backupFilename = `${basename}.${timestamp}${ext}`;
+  const backupPath = path.join(backupDir, backupFilename);
+
+  try {
+    // Create backup directory if needed
+    if (createDirs) {
+      fsSync.mkdirSync(backupDir, { recursive: true, mode: 0o755 });
+    }
+
+    // Get original file stats to preserve permissions
+    const stats = fsSync.statSync(absolutePath);
+    const mode = options.mode ?? stats.mode;
+
+    // Copy file to backup location
+    fsSync.copyFileSync(absolutePath, backupPath);
+
+    // Set permissions on backup file
+    fsSync.chmodSync(backupPath, mode);
+
+    return backupPath;
+  } catch (error) {
+    const err = error as Error;
+    throw new BackupError(
+      `Failed to create backup of ${absolutePath}: ${err.message}`,
+      err,
+      absolutePath,
+      backupPath
+    );
+  }
+}

@@ -8,4 +8,13 @@
 export const VERSION = '0.1.0';
 
 // File I/O utilities (Phase 1.2)
-export { atomicWrite, atomicWriteSync, AtomicWriteError, type AtomicWriteOptions } from './file-io';
+export {
+  atomicWrite,
+  atomicWriteSync,
+  AtomicWriteError,
+  type AtomicWriteOptions,
+  createBackup,
+  createBackupSync,
+  BackupError,
+  type BackupOptions,
+} from './file-io';
