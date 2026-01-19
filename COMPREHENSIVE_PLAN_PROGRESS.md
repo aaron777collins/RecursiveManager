@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 20:02:32 EST
+Last Updated: 2026-01-18 20:08:41 EST
 
 ## Status
 
@@ -95,7 +95,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 1.2.2: Implement createBackup() with timestamped backups
 - [x] Task 1.2.3: Implement backup retention/cleanup (7-day policy)
 - [x] Task 1.2.4: Create directory permission handling (0o755)
-- [ ] Task 1.2.5: Implement disk space checking (EC-5.1: Disk Full)
+- [x] Task 1.2.5: Implement disk space checking (EC-5.1: Disk Full)
 
 ##### Path Resolution
 
@@ -532,6 +532,121 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.2.5: Implement disk space checking (EC-5.1: Disk Full) ✅
+
+**Summary**: Implemented comprehensive disk space checking utilities with async and sync variants, supporting disk space info retrieval, sufficiency checks, and enforcement. Addresses Edge Case EC-5.1 (Disk Full) from edge case documentation.
+
+**What Was Implemented**:
+
+- ✅ Created `packages/common/src/disk-space.ts` module (421 lines)
+  - `getDiskSpace()` / `getDiskSpaceSync()` - Get disk space information for a path
+  - `checkDiskSpace()` / `checkDiskSpaceSync()` - Check if sufficient space exists
+  - `ensureSufficientDiskSpace()` / `ensureSufficientDiskSpaceSync()` - Enforce space requirements
+  - `formatBytes()` - Format bytes as human-readable strings (e.g., "1.43 GB")
+  - `DiskSpaceError` - Custom error class with detailed context
+  - `DEFAULT_MIN_FREE_SPACE_BYTES` constant (100MB)
+  - `DEFAULT_MIN_FREE_PERCENT` constant (5%)
+- ✅ Type-safe interfaces:
+  - `DiskSpaceInfo` - Complete disk space information (total, free, available, used, percentages)
+  - `CheckDiskSpaceOptions` - Configuration for minimum space requirements
+  - `DiskSpaceSufficiencyResult` - Result of sufficiency check with detailed reason
+- ✅ Key features:
+  - Cross-platform support using Node.js `statfs` (Linux, macOS, Windows)
+  - Dual safety checks: minimum free bytes AND minimum free percentage
+  - Default minimums: 100MB or 5% free space after operation
+  - Configurable minimums for custom requirements
+  - Returns detailed information on why space is insufficient
+  - Calculates space remaining after hypothetical operation
+  - Both async and sync variants for all operations
+  - Addresses EC-5.1: Disk Full from edge case documentation
+- ✅ Safety features:
+  - Checks available space for current user (not just total free space)
+  - Verifies enough space for operation AND minimum free space after
+  - Provides missing bytes count when insufficient
+  - Clear error messages with formatted byte sizes
+- ✅ Exported from `@recursive-manager/common` package
+  - Added to package index with proper TypeScript types
+  - Available for use in all other packages
+- ✅ Comprehensive test suite (40 tests, all passing)
+  - Basic disk space info retrieval (async and sync)
+  - Path resolution (relative to absolute)
+  - Error handling for invalid paths
+  - Sufficiency checking with various thresholds
+  - Default minimum enforcement (100MB, 5%)
+  - Custom minimum bytes and percentage options
+  - Insufficient space detection and reporting
+  - Ensure functions (throw on insufficient space)
+  - Byte formatting (B, KB, MB, GB, TB, PB)
+  - DiskSpaceError class behavior
+  - Constants export verification
+  - Integration scenarios (complete workflows, error messages, edge cases)
+
+**Files Created/Modified**:
+
+1. `packages/common/src/disk-space.ts` (421 lines) - Implementation
+2. `packages/common/src/__tests__/disk-space.test.ts` (452 lines) - Comprehensive tests
+3. `packages/common/src/index.ts` - Updated exports to include disk space utilities
+
+**Testing Results**:
+
+- ✅ 40/40 disk space tests passing
+- ✅ 140/140 total tests passing in common package (100 previous + 40 new)
+- ✅ All tests complete in ~7 seconds
+- ✅ ESLint passes (fixed toMatchObject issues by using typeof checks)
+- ✅ Prettier formatting passes
+- ✅ TypeScript compilation successful
+- ✅ Test coverage includes:
+  - All core functions (get, check, ensure)
+  - Both async and sync variants
+  - Default and custom minimum thresholds
+  - Error scenarios (invalid paths, insufficient space)
+  - Byte formatting utilities
+  - Integration workflows (complete disk check operations)
+
+**Key Design Decisions**:
+
+1. **Dual safety checks**: Requires both minimum bytes AND minimum percentage after operation
+2. **Default thresholds**: 100MB or 5% free space (whichever is more restrictive)
+3. **User-available space**: Uses `bavail` (available to user) not `bfree` (total free)
+4. **Detailed error reporting**: Includes missing bytes, current available, and clear reason
+5. **Human-readable formatting**: Automatically formats byte sizes for error messages
+6. **Cross-platform**: Uses Node.js `statfs` which works on Linux, macOS, and Windows
+7. **No early return**: Checks all constraints to provide most specific error reason
+
+**Edge Case Coverage**:
+
+This implementation directly addresses **EC-5.1: Disk Full** from EDGE_CASES_AND_CONTINGENCIES.md:
+
+- ✅ Check disk space before creating backups or large files
+- ✅ Provide clear error messages when disk is full
+- ✅ Support configurable minimum free space thresholds
+- ✅ Graceful handling of disk full scenarios
+- ✅ Documentation on disk space requirements
+
+**Impact**:
+
+This is the fifth utility in Phase 1.2 (File System Layer). It provides critical protection against disk full errors. The system can now check available disk space before operations and enforce minimum free space policies. This will be used in:
+
+- Backup creation (ensure space for backup files)
+- Atomic writes (ensure space for temp files)
+- Task workspace operations
+- Log file rotation
+- Any file creation operations
+
+**Integration Points**:
+
+Will be used by:
+
+- Task 1.2.2: createBackup() - check space before creating backups
+- Task 1.2.1: atomicWrite() - check space before writing files
+- Task 2.2: Agent lifecycle - check space when creating agent directories
+- Task 2.3: Task management - check space before creating task files
+- All future file operations throughout the system
+
+**Next Task**: Task 1.2.6 - Implement agent directory sharding logic (hex prefix)
+
+---
 
 ### Task 1.2.4: Create directory permission handling (0o755) ✅
 

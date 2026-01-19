@@ -42,3 +42,20 @@ export {
   type DirectoryPermissionOptions,
   type PermissionCheckResult,
 } from './directory-permissions';
+
+// Disk space utilities (Phase 1.2)
+export {
+  getDiskSpace,
+  getDiskSpaceSync,
+  checkDiskSpace,
+  checkDiskSpaceSync,
+  ensureSufficientDiskSpace,
+  ensureSufficientDiskSpaceSync,
+  formatBytes,
+  DiskSpaceError,
+  DEFAULT_MIN_FREE_SPACE_BYTES,
+  DEFAULT_MIN_FREE_PERCENT,
+  type DiskSpaceInfo,
+  type CheckDiskSpaceOptions,
+  type DiskSpaceSufficiencyResult,
+} from './disk-space';
