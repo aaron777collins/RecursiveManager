@@ -24,3 +24,21 @@ export {
   DEFAULT_RETENTION_DAYS,
   DEFAULT_RETENTION_MS,
 } from './file-io';
+
+// Directory permission utilities (Phase 1.2)
+export {
+  checkDirectoryPermissions,
+  checkDirectoryPermissionsSync,
+  ensureDirectoryPermissions,
+  ensureDirectoryPermissionsSync,
+  setDirectoryPermissions,
+  setDirectoryPermissionsSync,
+  getDirectoryPermissions,
+  getDirectoryPermissionsSync,
+  validateDirectoryPermissions,
+  validateDirectoryPermissionsSync,
+  PermissionError,
+  DEFAULT_DIRECTORY_MODE,
+  type DirectoryPermissionOptions,
+  type PermissionCheckResult,
+} from './directory-permissions';

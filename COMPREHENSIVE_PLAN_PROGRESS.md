@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 19:55:28 EST
+Last Updated: 2026-01-18 20:02:32 EST
 
 ## Status
 
@@ -94,7 +94,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 1.2.1: Implement atomicWrite() with temp file + rename pattern
 - [x] Task 1.2.2: Implement createBackup() with timestamped backups
 - [x] Task 1.2.3: Implement backup retention/cleanup (7-day policy)
-- [ ] Task 1.2.4: Create directory permission handling (0o755)
+- [x] Task 1.2.4: Create directory permission handling (0o755)
 - [ ] Task 1.2.5: Implement disk space checking (EC-5.1: Disk Full)
 
 ##### Path Resolution
@@ -532,6 +532,115 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.2.4: Create directory permission handling (0o755) ✅
+
+**Summary**: Implemented comprehensive directory permission handling utilities with async and sync variants, supporting permission checking, setting, and validation for all agent directories and workspaces. Addresses Edge Case EC-5.3 (Permission Errors).
+
+**What Was Implemented**:
+
+- ✅ Created `packages/common/src/directory-permissions.ts` module (610 lines)
+  - `checkDirectoryPermissions()` / `checkDirectoryPermissionsSync()` - Verify read/write access
+  - `ensureDirectoryPermissions()` / `ensureDirectoryPermissionsSync()` - Create directories with proper permissions
+  - `setDirectoryPermissions()` / `setDirectoryPermissionsSync()` - Update existing directory permissions
+  - `getDirectoryPermissions()` / `getDirectoryPermissionsSync()` - Retrieve permission information
+  - `validateDirectoryPermissions()` / `validateDirectoryPermissionsSync()` - Validate directory permissions
+  - `PermissionError` - Custom error class with detailed context
+  - `DEFAULT_DIRECTORY_MODE` constant (0o755)
+- ✅ Type-safe interfaces:
+  - `DirectoryPermissionOptions` - Configuration for directory creation and permission operations
+  - `PermissionCheckResult` - Detailed permission information (readable, writable, executable, mode, owner, group)
+- ✅ Key features:
+  - Default permissions: 0o755 (drwxr-xr-x) - owner has full access, group/others can read and execute
+  - Recursive directory creation with proper permissions
+  - Optional ownership setting (setOwnership flag)
+  - Path resolution to absolute paths
+  - Graceful error handling with descriptive messages
+  - Both async and sync variants for all operations
+  - Addresses EC-5.3: Permission Errors from edge case documentation
+- ✅ Permission operations:
+  - Check if directory has read/write permissions
+  - Ensure directory exists with correct permissions (create if needed)
+  - Set/update permissions on existing directories
+  - Get detailed permission information (mode, ownership, accessibility)
+  - Validate permissions match requirements
+- ✅ Exported from `@recursive-manager/common` package
+  - Added to package index with proper TypeScript types
+  - Available for use in all other packages
+- ✅ Comprehensive test suite (37 tests, all passing)
+  - Basic permission checking (async and sync)
+  - Directory creation with default and custom permissions
+  - Recursive directory creation
+  - Permission updates on existing directories
+  - Ownership handling (graceful failure)
+  - Permission retrieval and validation
+  - Error handling (non-existent directories, files vs directories)
+  - PermissionError class behavior
+  - Integration scenarios (complete workflows, agent initialization, permission recovery)
+  - All edge cases covered
+
+**Files Created/Modified**:
+
+1. `packages/common/src/directory-permissions.ts` (610 lines) - Implementation
+2. `packages/common/src/__tests__/directory-permissions.test.ts` (406 lines) - Comprehensive tests
+3. `packages/common/src/index.ts` - Updated exports to include directory permission utilities
+
+**Testing Results**:
+
+- ✅ 37/37 directory permission tests passing
+- ✅ 100/100 total tests passing in common package (63 previous + 37 new)
+- ✅ All tests complete in ~6 seconds
+- ✅ ESLint passes
+- ✅ Prettier formatting passes
+- ✅ TypeScript compilation successful
+- ✅ Test coverage includes:
+  - All core functions (check, ensure, set, get, validate)
+  - Both async and sync variants
+  - Default and custom permission modes
+  - Recursive directory creation
+  - Ownership handling
+  - Error scenarios (non-existent paths, wrong file types)
+  - Integration workflows (agent directory setup, permission recovery)
+
+**Key Design Decisions**:
+
+1. **Default 0o755 permissions**: Balances security with accessibility for agent workspaces
+2. **Ownership handling**: Best-effort approach with warnings (doesn't fail if can't set ownership)
+3. **Permission masking**: Extracts permission bits (0o777) from file mode, excluding file type bits
+4. **Path resolution**: All paths resolved to absolute paths for consistency
+5. **Graceful validation**: `validateDirectoryPermissions()` returns boolean instead of throwing
+6. **Directory-only operations**: All functions verify path is a directory, not a file
+
+**Edge Case Coverage**:
+
+This implementation directly addresses **EC-5.3: Permission Errors** from EDGE_CASES_AND_CONTINGENCIES.md:
+
+- ✅ Check directory permissions during initialization
+- ✅ Provide clear error messages for permission issues
+- ✅ Support setting ownership to current process user
+- ✅ Graceful handling of permission errors
+- ✅ Documentation on required permissions
+
+**Impact**:
+
+This is the fourth utility in Phase 1.2 (File System Layer). It provides the foundation for all directory operations in the system, ensuring:
+
+- All agent directories are created with correct permissions (0o755)
+- System can detect and recover from permission issues
+- Consistent permission handling across all directory creation operations
+- Future tasks (path resolution, agent directory creation) can use these utilities
+
+**Integration Points**:
+
+Will be used by:
+
+- Task 1.2.6-1.2.9: Path resolution utilities
+- Task 2.2.6: Agent directory structure creation
+- All future directory creation operations throughout the system
+
+**Next Task**: Task 1.2.5 - Implement disk space checking (EC-5.1: Disk Full)
+
+---
 
 ### Task 1.2.3: Implement backup retention/cleanup (7-day policy) ✅
 
