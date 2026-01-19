@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 07:12:00 EST
+Last Updated: 2026-01-19 12:00:00 EST
 
 ## Status
 
@@ -378,7 +378,7 @@ RecursiveManager is a hierarchical AI agent system with:
 #### Phase 3.2: Claude Code Adapter (Primary) (4-5 days)
 
 - [x] Task 3.2.1: Implement ClaudeCodeAdapter class
-- [ ] Task 3.2.2: Implement executeAgent() wrapping Claude Code CLI
+- [x] Task 3.2.2: Implement executeAgent() wrapping Claude Code CLI
 - [ ] Task 3.2.3: Create prompt template system
 - [ ] Task 3.2.4: Implement buildContinuousPrompt(agent, task)
 - [ ] Task 3.2.5: Implement buildReactivePrompt(agent, messages)
@@ -7532,3 +7532,75 @@ Created comprehensive test suite covering:
 - The TypeScript code is syntactically correct and follows existing patterns
 - Types align with architecture specifications in IMPLEMENTATION_PHASES.md and docs/
 - Ready for next phase: implementing AdapterRegistry
+
+---
+
+## Completed This Iteration (2026-01-19 Task 3.2.2)
+
+**Task**: Implement executeAgent() wrapping Claude Code CLI
+
+**Summary**: Implemented the core execution logic for the ClaudeCodeAdapter that wraps the Claude Code CLI and handles agent execution.
+
+**Changes Made**:
+
+1. **executeInternal() Implementation** (`packages/adapters/src/adapters/claude-code/index.ts`):
+   - Implemented actual CLI process spawning using `execa`
+   - Added proper argument formatting for `--print`, `--output-format json`, and `--no-session-persistence`
+   - Configured working directory and environment variables for non-interactive execution
+   - Added encoding: 'utf8' to ensure stdout/stderr are strings instead of Buffers
+
+2. **buildSimplePrompt() Helper**:
+   - Created basic prompt builder that formats execution context into a prompt
+   - Handles both continuous mode (with tasks) and reactive mode (with messages)
+   - Uses AgentConfig identity properties (displayName and role)
+   - Placeholder implementation that will be enhanced in tasks 3.2.3-3.2.6
+
+3. **parseExecutionResult() Helper**:
+   - Parses CLI output (JSON or plain text) into ExecutionResult
+   - Handles non-zero exit codes as errors
+   - Extracts metadata (API calls, cost, files created/modified)
+   - Uses heuristics to estimate tasks completed and messages processed
+   - Properly typed with ClaudeCodeOutput interface to avoid `any` types
+
+4. **executeWithTimeout() Refinement**:
+   - Simplified to leverage execa's built-in timeout handling
+   - Properly detects and handles timeout errors from execa
+   - Returns structured error results with proper error codes
+
+**TypeScript & Linting**:
+- Fixed all TypeScript type errors
+- Fixed all ESLint issues
+- All tests pass (113 tests)
+- Build succeeds with no errors
+
+**Test Results**:
+```
+Test Suites: 4 passed, 4 total
+Tests:       113 passed, 113 total
+```
+
+**Key Implementation Details**:
+- Uses execa library for robust process spawning with timeout support
+- Timeout defaults to 60 minutes (configurable via options)
+- Timeout is enforced by execa, which sends SIGTERM then SIGKILL if needed
+- Health check verifies CLI is available before execution
+- Handles both successful and failed executions with structured results
+- JSON output parsing with fallback to plain text
+
+**Alignment with Edge Cases**:
+- ✅ EC-6.2: Framework Timeout - Handled via execa timeout with SIGTERM/SIGKILL
+- ✅ Framework health check before execution prevents EC-6.1 issues
+- ✅ Error handling for CLI failures with detailed error information
+
+**Next Tasks**:
+- Task 3.2.3: Create prompt template system
+- Task 3.2.4: Implement buildContinuousPrompt(agent, task)
+- Task 3.2.5: Implement buildReactivePrompt(agent, messages)
+- Task 3.2.6: Implement buildMultiPerspectivePrompt(question, perspectives)
+- Task 3.2.7: Implement execution context preparation (load files, tasks, messages)
+- Task 3.2.8: Implement result parsing from Claude Code output (enhance current basic version)
+
+**Notes**:
+- Current prompt building is basic and will be replaced by proper template system in 3.2.3-3.2.6
+- Result parsing is heuristic-based and will be enhanced in 3.2.8 with structured output parsing
+- The implementation provides a solid foundation for upcoming prompt and parsing enhancements

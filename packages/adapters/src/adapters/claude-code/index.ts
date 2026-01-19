@@ -235,60 +235,36 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
   ): Promise<ExecutionResult> {
     const startTime = Date.now();
 
-    return new Promise<ExecutionResult>((resolve) => {
-      let completed = false;
-      // Process tracking and killing will be implemented in Task 3.2.2
-      // when we actually spawn the Claude Code CLI process
+    // Note: The timeout is now handled by execa's built-in timeout option
+    // in executeInternal(). Execa will automatically kill the process with
+    // SIGTERM and then SIGKILL if it doesn't exit gracefully.
+    // This provides more robust timeout handling than manual process tracking.
 
-      // Set up timeout
-      const timer = setTimeout(() => {
-        if (!completed) {
-          completed = true;
-          this.logDebug(`Agent ${agentId} execution timed out after ${this.timeout}ms`);
+    // We keep this wrapper for potential future enhancements like:
+    // - Multi-step execution with inter-step timeouts
+    // - Custom cleanup logic before/after execution
+    // - Progress tracking and partial result handling
 
-          // Process killing will be implemented in Task 3.2.2
-          // Kill the process if it's still running
-          // if (process && !process.killed) {
-          //   process.kill('SIGTERM');
-          //   setTimeout(() => {
-          //     if (process && !process.killed) {
-          //       process.kill('SIGKILL');
-          //     }
-          //   }, 5000); // Force kill after 5 seconds
-          // }
+    try {
+      return await this.executeInternal(agentId, mode, context);
+    } catch (error) {
+      // Handle timeout errors from execa
+      if (error && typeof error === 'object' && 'timedOut' in error && error.timedOut) {
+        this.logDebug(`Agent ${agentId} execution timed out after ${this.timeout}ms`);
+        return this.createErrorResult(
+          startTime,
+          `Execution timed out after ${this.timeout / 1000} seconds`,
+          error instanceof Error ? error.stack : undefined
+        );
+      }
 
-          resolve(
-            this.createErrorResult(
-              startTime,
-              `Execution timed out after ${this.timeout / 1000} seconds`
-            )
-          );
-        }
-      }, this.timeout);
-
-      // Execute the agent
-      this.executeInternal(agentId, mode, context)
-        .then((result) => {
-          if (!completed) {
-            completed = true;
-            clearTimeout(timer);
-            resolve(result);
-          }
-        })
-        .catch((error) => {
-          if (!completed) {
-            completed = true;
-            clearTimeout(timer);
-            resolve(
-              this.createErrorResult(
-                startTime,
-                error instanceof Error ? error.message : 'Execution failed',
-                error instanceof Error ? error.stack : undefined
-              )
-            );
-          }
-        });
-    });
+      // Handle other execution errors
+      return this.createErrorResult(
+        startTime,
+        error instanceof Error ? error.message : 'Execution failed',
+        error instanceof Error ? error.stack : undefined
+      );
+    }
   }
 
   /**
@@ -296,33 +272,182 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
    *
    * @private
    */
-  private executeInternal(
+  private async executeInternal(
     agentId: string,
     mode: ExecutionMode,
     context: ExecutionContext
   ): Promise<ExecutionResult> {
     const startTime = Date.now();
 
-    // For now, return a placeholder result
-    // This will be fully implemented in subsequent tasks:
-    // - Task 3.2.2: executeAgent() implementation
-    // - Task 3.2.3-6: Prompt template system
-    // - Task 3.2.7: Execution context preparation
-    // - Task 3.2.8: Result parsing
+    try {
+      // Build a simple prompt (will be enhanced in tasks 3.2.3-3.2.6)
+      const prompt = this.buildSimplePrompt(agentId, mode, context);
 
-    // Placeholder implementation that returns success
-    return Promise.resolve({
+      // Prepare CLI arguments
+      const args = [
+        '--print', // Non-interactive mode
+        '--output-format',
+        'json', // Machine-readable output
+        '--no-session-persistence', // Don't save session to disk
+      ];
+
+      // Add working directory if different from workspace
+      if (context.workingDir !== context.workspaceDir) {
+        // Note: Claude Code doesn't have a --cwd flag, so we'll use cwd option in execa
+        this.logDebug(`Setting working directory to: ${context.workingDir}`);
+      }
+
+      // Add the prompt as the final argument
+      args.push(prompt);
+
+      this.logDebug(`Executing Claude Code CLI with args:`, args);
+
+      // Execute Claude Code CLI
+      const result = await execa(this.cliPath, args, {
+        cwd: context.workingDir,
+        timeout: this.timeout,
+        reject: false, // Don't throw on non-zero exit codes
+        encoding: 'utf8', // Ensure stdout/stderr are strings, not Buffers
+        env: {
+          ...process.env,
+          // Ensure no interactive prompts
+          CI: '1',
+        },
+      });
+
+      this.logDebug(`CLI execution completed with exit code: ${result.exitCode}`);
+
+      // Parse the result
+      return this.parseExecutionResult(result, startTime, mode, context);
+    } catch (error) {
+      this.logDebug('CLI execution failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Build a simple prompt for the agent
+   * This is a basic implementation - will be enhanced in tasks 3.2.3-3.2.6
+   *
+   * @private
+   */
+  private buildSimplePrompt(
+    _agentId: string,
+    mode: ExecutionMode,
+    context: ExecutionContext
+  ): string {
+    const { config, activeTasks, messages } = context;
+
+    let prompt = `You are ${config.identity.displayName}, an AI agent in the RecursiveManager system.\n\n`;
+    prompt += `Your role: ${config.identity.role}\n\n`;
+
+    if (mode === 'continuous' && activeTasks.length > 0) {
+      prompt += `You have ${activeTasks.length} active task(s) to work on:\n\n`;
+      activeTasks.forEach((task, index) => {
+        prompt += `${index + 1}. [${task.priority}] ${task.title}\n`;
+        prompt += `   Status: ${task.status}\n`;
+        prompt += `   Description: ${task.description}\n\n`;
+      });
+      prompt += `Please work on the highest priority pending task. `;
+      prompt += `Update task status as you progress, and mark as completed when done.\n`;
+    } else if (mode === 'reactive' && messages.length > 0) {
+      prompt += `You have ${messages.length} unread message(s):\n\n`;
+      messages.forEach((msg, index) => {
+        prompt += `${index + 1}. From: ${msg.from} (${msg.channel})\n`;
+        prompt += `   ${msg.content}\n\n`;
+      });
+      prompt += `Please respond to these messages appropriately.\n`;
+    } else {
+      prompt += `No active tasks or messages. Please check your workspace and report your status.\n`;
+    }
+
+    return prompt;
+  }
+
+  /**
+   * Parse execution result from Claude Code CLI output
+   *
+   * @private
+   */
+  private parseExecutionResult(
+    cliResult: { exitCode: number; stdout: string; stderr: string },
+    startTime: number,
+    mode: ExecutionMode,
+    context: ExecutionContext
+  ): ExecutionResult {
+    const duration = Date.now() - startTime;
+    const { exitCode, stdout, stderr } = cliResult;
+
+    // Check for execution failure
+    if (exitCode !== 0) {
+      return {
+        success: false,
+        duration,
+        tasksCompleted: 0,
+        messagesProcessed: 0,
+        errors: [
+          {
+            message: `Claude Code CLI exited with code ${exitCode}`,
+            stack: stderr,
+            code: `EXIT_CODE_${exitCode}`,
+          },
+        ],
+        metadata: {
+          output: stdout,
+        },
+      };
+    }
+
+    // Try to parse JSON output
+    interface ClaudeCodeOutput {
+      text?: string;
+      apiCallCount?: number;
+      costUSD?: number;
+      filesCreated?: string[];
+      filesModified?: string[];
+    }
+
+    let parsedOutput: ClaudeCodeOutput;
+    try {
+      parsedOutput = JSON.parse(stdout) as ClaudeCodeOutput;
+    } catch (error) {
+      // If JSON parsing fails, treat output as plain text
+      this.logDebug('Failed to parse JSON output, treating as plain text');
+      parsedOutput = { text: stdout };
+    }
+
+    // Extract metadata from parsed output
+    // Claude Code JSON output structure may vary, so we handle different formats
+    const metadata: ExecutionResult['metadata'] = {
+      output: typeof parsedOutput === 'string' ? parsedOutput : stdout,
+      apiCallCount: parsedOutput.apiCallCount ?? 0,
+      costUSD: parsedOutput.costUSD ?? 0,
+      filesCreated: parsedOutput.filesCreated ?? [],
+      filesModified: parsedOutput.filesModified ?? [],
+    };
+
+    // Estimate tasks completed and messages processed
+    // This is a heuristic until we have better result parsing (Task 3.2.8)
+    let tasksCompleted = 0;
+    let messagesProcessed = 0;
+
+    if (mode === 'continuous') {
+      // Check if any tasks were mentioned as completed in output
+      const completedMatches = stdout.match(/task.*completed/gi) || [];
+      tasksCompleted = Math.min(completedMatches.length, context.activeTasks.length);
+    } else if (mode === 'reactive') {
+      // Assume all messages were processed if execution succeeded
+      messagesProcessed = context.messages.length;
+    }
+
+    return {
       success: true,
-      duration: Date.now() - startTime,
-      tasksCompleted: 0,
-      messagesProcessed: mode === 'reactive' ? context.messages.length : 0,
+      duration,
+      tasksCompleted,
+      messagesProcessed,
       errors: [],
-      metadata: {
-        output: `Placeholder execution for agent ${agentId} in ${mode} mode`,
-        apiCallCount: 0,
-        costUSD: 0,
-      },
-    });
+      metadata,
+    };
   }
 
   /**
