@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 22:12:51 EST
+Last Updated: 2026-01-18 22:25:27 EST
 
 ## Status
 
@@ -146,7 +146,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 1.3.5: Create agents table with indexes (status, reporting_to, created_at)
 - [x] Task 1.3.6: Create tasks table with version field and indexes (agent_status, parent, delegated)
 - [x] Task 1.3.7: Create messages table with indexes (to_unread, timestamp, channel)
-- [ ] Task 1.3.8: Create schedules table with indexes (agent, next_execution, enabled)
+- [x] Task 1.3.8: Create schedules table with indexes (agent, next_execution, enabled)
 - [ ] Task 1.3.9: Create audit_log table with indexes (timestamp, agent, action)
 - [ ] Task 1.3.10: Create org_hierarchy materialized view with indexes
 
@@ -532,6 +532,56 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.3.8: Create schedules table with indexes ✅
+
+**Summary**: Implemented the fourth database schema migration to create the `schedules` table with comprehensive indexes for efficient schedule querying and execution. This table stores scheduling configuration metadata for agent execution, supporting multiple trigger types: continuous (run when tasks pending), cron (time-based), and reactive (event-driven).
+
+**What Was Implemented**:
+
+1. **Migration File** (`packages/common/src/db/migrations/004_create_schedules_table.ts`):
+   - Created migration version 4 with complete schedules table schema
+   - Table includes 12 columns:
+     - Core fields: id (PRIMARY KEY), agent_id (REFERENCES agents), trigger_type, description
+     - Cron trigger fields: cron_expression, timezone (default 'UTC'), next_execution_at
+     - Continuous trigger fields: minimum_interval_seconds, only_when_tasks_pending (default 1/true)
+     - Status fields: enabled (default 1/true), last_triggered_at
+     - System fields: created_at, updated_at (auto-generated timestamps)
+   - Three indexes for query optimization:
+     - `idx_schedules_agent`: For querying all schedules for a specific agent
+     - `idx_schedules_next_execution`: Critical for scheduler to find schedules ready to execute
+     - `idx_schedules_enabled`: For filtering active schedules
+   - Foreign key constraint:
+     - `agent_id` → `agents(id)`: Schedule ownership
+   - Default values:
+     - timezone: 'UTC'
+     - only_when_tasks_pending: 1 (true, using INTEGER for boolean)
+     - enabled: 1 (true)
+     - created_at: CURRENT_TIMESTAMP
+     - updated_at: CURRENT_TIMESTAMP
+   - Complete rollback support (down migration)
+
+2. **Migration Registry Update** (`packages/common/src/db/migrations/index.ts`):
+   - Added `migration004` import
+   - Added `migration004` to the `allMigrations` array
+   - Maintained sequential version numbering (1→2→3→4)
+
+3. **Validation**:
+   - ✅ Build passes: TypeScript compilation successful
+   - ✅ All tests pass (627 tests across all packages)
+   - ✅ Migration properly exported and accessible from registry
+   - ✅ Schema matches specification in FILE_STRUCTURE_SPEC.md
+
+**Design Decisions**:
+
+- Used INTEGER for boolean fields (only_when_tasks_pending, enabled) following SQLite best practices
+- Index on next_execution_at is critical for scheduler performance when finding schedules to execute
+- Composite scheduling support: single table handles multiple trigger types (continuous, cron, reactive)
+- Database table stores metadata while full schedule configuration lives in agent's schedule.json file
+- Timezone support defaults to UTC for consistency across distributed systems
+- Updated_at field enables tracking schedule configuration changes over time
+
+---
 
 ### Task 1.3.7: Create messages table with indexes ✅
 

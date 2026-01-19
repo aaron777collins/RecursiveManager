@@ -12,6 +12,7 @@ import { Migration } from '../migrations';
 import { migration001 } from './001_create_agents_table';
 import { migration002 } from './002_create_tasks_table';
 import { migration003 } from './003_create_messages_table';
+import { migration004 } from './004_create_schedules_table';
 
 /**
  * All available migrations in order
@@ -19,7 +20,7 @@ import { migration003 } from './003_create_messages_table';
  * IMPORTANT: Always add new migrations at the end of this array
  * with incrementing version numbers.
  */
-export const allMigrations: Migration[] = [migration001, migration002, migration003];
+export const allMigrations: Migration[] = [migration001, migration002, migration003, migration004];
 
 /**
  * Get all available migrations
