@@ -32,6 +32,10 @@ import {
   AgentRecord,
   createMessage,
   MessageInput,
+  getActiveTasks,
+  delegateTask,
+  updateTaskStatus,
+  TaskRecord,
 } from '@recursive-manager/common';
 import { auditLog, AuditAction } from '@recursive-manager/common';
 import { loadAgentConfig } from '../config';
@@ -434,28 +438,155 @@ async function handleAbandonedTasks(
 ): Promise<{ reassigned: number; archived: number }> {
   const logger = createAgentLogger(agentId);
 
-  // TODO: This will be fully implemented when task management is complete (Phase 2.3)
-  // For now, we just log that tasks need to be handled
-  logger.info('Handling abandoned tasks', {
-    agentId,
-    note: 'Full task handling will be implemented in Phase 2.3',
-  });
+  logger.info('Handling abandoned tasks for fired agent', { agentId });
 
   // Get the fired agent to find their manager
   const agent = getAgent(db, agentId);
   if (!agent) {
+    logger.warn('Cannot handle abandoned tasks: agent not found', { agentId });
     return { reassigned: 0, archived: 0 };
   }
 
-  // Placeholder for future implementation
-  // When task queries are available:
-  // 1. Get all active tasks for the agent
-  // 2. If agent.reporting_to exists, reassign tasks to manager
-  // 3. Otherwise, archive the tasks
-  // 4. Update task database records
-  // 5. Move task files to appropriate directories
+  // Get all active tasks (pending, in-progress, blocked) for this agent
+  const activeTasks = getActiveTasks(db, agentId);
 
-  return { reassigned: 0, archived: 0 };
+  if (activeTasks.length === 0) {
+    logger.info('No active tasks to handle', { agentId });
+    return { reassigned: 0, archived: 0 };
+  }
+
+  logger.info('Found active tasks to handle', {
+    agentId,
+    taskCount: activeTasks.length
+  });
+
+  let reassigned = 0;
+  let archived = 0;
+
+  // Strategy: If agent has a manager, reassign tasks to manager
+  // Otherwise, archive the tasks
+  if (agent.reporting_to) {
+    logger.info('Reassigning tasks to manager', {
+      agentId,
+      managerId: agent.reporting_to,
+      taskCount: activeTasks.length,
+    });
+
+    // Reassign each task to the manager
+    for (const task of activeTasks) {
+      try {
+        // Use delegateTask to properly reassign with all validations
+        // Note: delegateTask validates that target is a subordinate,
+        // but manager is actually the *parent*, so we need to update directly
+        // Actually, we'll update the task's agent_id and delegated_to fields
+
+        // For now, we'll update the task status to indicate it needs reassignment
+        // The manager will see these tasks in their task list
+        updateTaskStatus(
+          db,
+          task.id,
+          'pending', // Reset to pending for manager to pick up
+          task.version,
+          {
+            note: `Task reassigned from fired agent ${agentId}`,
+            reassignedFrom: agentId,
+            reassignedTo: agent.reporting_to,
+            reassignedAt: new Date().toISOString(),
+          }
+        );
+
+        // Update the task's agent assignment
+        db.prepare(
+          `UPDATE tasks
+           SET agent_id = ?,
+               delegated_to = NULL,
+               updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?`
+        ).run(agent.reporting_to, task.id);
+
+        // Audit log the reassignment
+        auditLog(db, {
+          action: AuditAction.TASK_DELEGATE,
+          agentId: agent.reporting_to,
+          targetAgentId: agentId,
+          taskId: task.id,
+          details: {
+            reason: 'Agent fired - tasks reassigned to manager',
+            from: agentId,
+            to: agent.reporting_to,
+          },
+        });
+
+        reassigned++;
+        logger.debug('Task reassigned to manager', {
+          taskId: task.id,
+          from: agentId,
+          to: agent.reporting_to,
+        });
+      } catch (error) {
+        logger.error('Failed to reassign task', {
+          taskId: task.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        // Continue with other tasks even if one fails
+      }
+    }
+  } else {
+    logger.info('Archiving tasks (no manager to reassign to)', {
+      agentId,
+      taskCount: activeTasks.length,
+    });
+
+    // Archive tasks if agent has no manager
+    for (const task of activeTasks) {
+      try {
+        // Update task status to archived
+        updateTaskStatus(
+          db,
+          task.id,
+          'archived',
+          task.version,
+          {
+            note: `Task archived because agent ${agentId} was fired with no manager`,
+            archivedFrom: agentId,
+            archivedAt: new Date().toISOString(),
+          }
+        );
+
+        // Audit log the archival
+        auditLog(db, {
+          action: AuditAction.TASK_UPDATED,
+          agentId,
+          taskId: task.id,
+          details: {
+            reason: 'Agent fired without manager',
+            status: 'archived',
+          },
+        });
+
+        archived++;
+        logger.debug('Task archived', {
+          taskId: task.id,
+          agentId,
+        });
+      } catch (error) {
+        logger.error('Failed to archive task', {
+          taskId: task.id,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        // Continue with other tasks even if one fails
+      }
+    }
+  }
+
+  logger.info('Completed handling abandoned tasks', {
+    agentId,
+    reassigned,
+    archived,
+    total: activeTasks.length,
+  });
+
+  return { reassigned, archived };
 }
 
 /**
