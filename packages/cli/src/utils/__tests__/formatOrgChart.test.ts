@@ -128,11 +128,12 @@ describe('formatOrgChart', () => {
 
     it('should show creation dates when requested', () => {
       const orgChart: OrgChartEntry[] = [
-        createMockEntry({ display_name: 'CEO', created_at: '2026-01-19T00:00:00Z' }, 0),
+        createMockEntry({ display_name: 'CEO', created_at: '2026-01-19T12:00:00Z' }, 0),
       ];
 
       const result = formatAsTree(orgChart, { useColor: false, showCreatedAt: true });
-      expect(result).toContain('[1/19/2026]');
+      // Use regex to match any valid date format since toLocaleDateString() is locale-dependent
+      expect(result).toMatch(/\[.*19.*2026.*\]|\[.*1\/19\/2026.*\]/);
     });
 
     it('should show statistics when requested', () => {
@@ -170,9 +171,9 @@ describe('formatOrgChart', () => {
 
     it('should format with proper indentation', () => {
       const orgChart: OrgChartEntry[] = [
-        createMockEntry({ display_name: 'CEO' }, 0),
-        createMockEntry({ display_name: 'CTO' }, 1),
-        createMockEntry({ display_name: 'Dev' }, 2),
+        createMockEntry({ display_name: 'CEO', role: 'CEO' }, 0),
+        createMockEntry({ display_name: 'CTO', role: 'CTO' }, 1),
+        createMockEntry({ display_name: 'Dev', role: 'Dev' }, 2),
       ];
 
       const result = formatAsIndented(orgChart, { useColor: false, showStatus: false });

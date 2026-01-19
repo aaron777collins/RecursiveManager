@@ -49,35 +49,34 @@ describe('notifyTaskCompletion', () => {
 
     // Create test agents: root (CEO) -> manager -> subordinate
     rootAgentId = createAgent(db, {
-      name: 'CEO',
+      id: 'root-agent-id',
+      displayName: 'CEO',
       role: 'CEO',
-      managerId: null,
+      reportingTo: null,
+      createdBy: 'test',
+      mainGoal: 'Lead organization',
+      configPath: path.join(testDir, 'root.json'),
     }).id;
 
     managerAgentId = createAgent(db, {
-      name: 'Manager',
+      id: 'manager-agent-id',
+      displayName: 'Manager',
       role: 'Manager',
-      managerId: rootAgentId,
+      reportingTo: rootAgentId,
+      createdBy: 'test',
+      mainGoal: 'Manage team',
+      configPath: path.join(testDir, 'manager.json'),
     }).id;
 
     subordinateAgentId = createAgent(db, {
-      name: 'Subordinate',
+      id: 'subordinate-agent-id',
+      displayName: 'Subordinate',
       role: 'Worker',
-      managerId: managerAgentId,
+      reportingTo: managerAgentId,
+      createdBy: 'test',
+      mainGoal: 'Complete tasks',
+      configPath: path.join(testDir, 'subordinate.json'),
     }).id;
-
-    // Create org hierarchy relationships
-    db.prepare(
-      `INSERT INTO org_hierarchy (agent_id, ancestor_id, depth) VALUES (?, ?, ?)`
-    ).run(managerAgentId, rootAgentId, 1);
-
-    db.prepare(
-      `INSERT INTO org_hierarchy (agent_id, ancestor_id, depth) VALUES (?, ?, ?)`
-    ).run(subordinateAgentId, managerAgentId, 1);
-
-    db.prepare(
-      `INSERT INTO org_hierarchy (agent_id, ancestor_id, depth) VALUES (?, ?, ?)`
-    ).run(subordinateAgentId, rootAgentId, 2);
 
     // Create default agent configs with notifications enabled
     const rootConfig: AgentConfig = {

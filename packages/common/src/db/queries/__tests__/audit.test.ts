@@ -359,13 +359,13 @@ describe('Audit Query API', () => {
 
       // Verify timestamps are in descending order
       for (let i = 0; i < events.length - 1; i++) {
-        expect(events[i].timestamp >= events[i + 1].timestamp).toBe(true);
+        expect(events[i]?.timestamp! >= events[i + 1]?.timestamp!).toBe(true);
       }
 
       // First event should be the latest (13:00)
-      expect(events[0].timestamp).toBe('2026-01-01T13:00:00.000Z');
+      expect(events[0]?.timestamp).toBe('2026-01-01T13:00:00.000Z');
       // Last event should be the earliest (09:00)
-      expect(events[events.length - 1].timestamp).toBe('2026-01-01T09:00:00.000Z');
+      expect(events[events.length - 1]?.timestamp).toBe('2026-01-01T09:00:00.000Z');
     });
 
     it('should return empty array when no events match filter', () => {
@@ -402,7 +402,7 @@ describe('Audit Query API', () => {
       const events = getRecentAuditEvents(db, 'agent-001', 10);
 
       for (let i = 0; i < events.length - 1; i++) {
-        expect(events[i].timestamp >= events[i + 1].timestamp).toBe(true);
+        expect(events[i]?.timestamp! >= events[i + 1]?.timestamp!).toBe(true);
       }
     });
 

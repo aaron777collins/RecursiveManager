@@ -8,7 +8,7 @@
 import { ScheduleManager } from '../ScheduleManager';
 import type { Database } from 'better-sqlite3';
 import SqliteDatabase from 'better-sqlite3';
-import { runMigrations } from '@recursive-manager/common';
+import { runMigrations, allMigrations } from '@recursive-manager/common';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -23,7 +23,7 @@ describe('ScheduleManager', () => {
     db = new SqliteDatabase(testDbPath);
 
     // Apply migrations
-    await runMigrations(db);
+    await runMigrations(db, allMigrations);
 
     // Create schedule manager
     scheduleManager = new ScheduleManager(db);

@@ -365,7 +365,7 @@ describe('Task Query API', () => {
     // Task 2.3.23: Circular dependency prevention tests
     it('should create task with blockedBy dependencies', () => {
       // Create task A
-      const taskA = createTask(db, {
+      createTask(db, {
         id: 'task-a',
         agentId: 'agent-001',
         title: 'Task A',

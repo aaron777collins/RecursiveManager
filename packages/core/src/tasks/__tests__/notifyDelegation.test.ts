@@ -233,10 +233,6 @@ describe('notifyTaskDelegation', () => {
         parentTask.id
       );
 
-      const updatedTask = db
-        .prepare('SELECT * FROM tasks WHERE id = ?')
-        .get(parentTask.id) as any;
-
       // Delegate task
       const delegatedTask = delegateTask(db, parentTask.id, delegatedAgentId);
 

@@ -526,7 +526,7 @@ describe('PID Manager', () => {
 
       const pids = await listActivePids({ baseDir: testDir });
       expect(pids.length).toBe(1);
-      expect(pids[0].processName).toBe('daemon-1');
+      expect(pids[0]?.processName).toBe('daemon-1');
     });
 
     it('should create PID directory if it does not exist', async () => {
@@ -546,7 +546,7 @@ describe('PID Manager', () => {
 
       const pids = await listActivePids({ baseDir: testDir });
       expect(pids.length).toBe(1);
-      expect(pids[0].processName).toBe('daemon-1');
+      expect(pids[0]?.processName).toBe('daemon-1');
     });
   });
 
