@@ -81,6 +81,8 @@ export class ExecutionOrchestrator {
   private readonly database: DatabasePool;
   private readonly maxExecutionTime: number;
   private readonly maxAnalysisTime: number;
+  /** Track currently executing agents to prevent concurrent executions */
+  private readonly executingAgents: Set<string> = new Set();
 
   constructor(options: ExecutionOrchestratorOptions) {
     this.adapterRegistry = options.adapterRegistry;
@@ -101,6 +103,9 @@ export class ExecutionOrchestrator {
   async executeContinuous(agentId: string): Promise<ExecutionResult> {
     const logger = createAgentLogger(agentId);
     logger.info('Starting continuous execution', { agentId });
+
+    // Acquire lock to prevent concurrent execution
+    this.acquireLock(agentId);
 
     const startTime = Date.now();
 
@@ -199,6 +204,9 @@ export class ExecutionOrchestrator {
       });
 
       throw error;
+    } finally {
+      // Always release lock, even on error
+      this.releaseLock(agentId);
     }
   }
 
@@ -223,6 +231,9 @@ export class ExecutionOrchestrator {
       triggerType: trigger.type,
       messageId: trigger.messageId,
     });
+
+    // Acquire lock to prevent concurrent execution
+    this.acquireLock(agentId);
 
     const startTime = Date.now();
 
@@ -325,6 +336,9 @@ export class ExecutionOrchestrator {
       });
 
       throw error;
+    } finally {
+      // Always release lock, even on error
+      this.releaseLock(agentId);
     }
   }
 
@@ -661,6 +675,45 @@ export class ExecutionOrchestrator {
         )
       ),
     ]);
+  }
+
+  /**
+   * Acquire execution lock for an agent
+   *
+   * Prevents concurrent executions of the same agent by checking if the agent
+   * is already executing and adding it to the executing set if not.
+   *
+   * @param agentId - Agent identifier to lock
+   * @throws ExecutionError if agent is already executing
+   */
+  private acquireLock(agentId: string): void {
+    if (this.executingAgents.has(agentId)) {
+      throw new ExecutionError(
+        `Agent ${agentId} is already executing. Concurrent executions are not allowed.`
+      );
+    }
+    this.executingAgents.add(agentId);
+  }
+
+  /**
+   * Release execution lock for an agent
+   *
+   * Removes the agent from the executing set, allowing future executions.
+   *
+   * @param agentId - Agent identifier to unlock
+   */
+  private releaseLock(agentId: string): void {
+    this.executingAgents.delete(agentId);
+  }
+
+  /**
+   * Check if an agent is currently executing
+   *
+   * @param agentId - Agent identifier to check
+   * @returns True if agent is currently executing
+   */
+  isExecuting(agentId: string): boolean {
+    return this.executingAgents.has(agentId);
   }
 }
 

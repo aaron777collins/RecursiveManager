@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 08:13:44 EST
+Last Updated: 2026-01-19 08:21:00 EST
 
 ## Status
 
@@ -545,7 +545,7 @@ Created a comprehensive error scenario test suite with 48 new test cases coverin
 - [x] Task 3.3.8: Add execution tracking (counts, duration, success/failure)
 - [x] Task 3.3.9: Update agent metadata after each execution
 - [x] Task 3.3.10: Handle analysis timeouts (EC-8.2) with safe defaults
-- [ ] Task 3.3.11: Prevent concurrent executions of same agent
+- [x] Task 3.3.11: Prevent concurrent executions of same agent
 - [ ] Task 3.3.12: Unit tests for context loading
 - [ ] Task 3.3.13: Integration tests for continuous execution
 - [ ] Task 3.3.14: Integration tests for reactive execution
@@ -8307,3 +8307,53 @@ Task 3.2.11 is now complete. The fallback infrastructure is in place and tested.
 - Task 3.2.12: Integration tests with real Claude Code CLI
 - Task 3.2.13: Tests for timeout handling
 - Task 3.2.14: Tests for error scenarios
+
+---
+
+## Completed This Iteration
+
+**Task 3.3.11: Prevent concurrent executions of same agent**
+
+**Summary:**
+Implemented in-memory lock tracking in ExecutionOrchestrator to prevent concurrent executions of the same agent. This addresses edge case EC-7.1 (Two continuous instances running).
+
+**Implementation Details:**
+
+1. **Added tracking mechanism** (packages/core/src/execution/index.ts:85):
+   - `private readonly executingAgents: Set<string>` - Tracks currently executing agents
+
+2. **Lock management methods**:
+   - `acquireLock(agentId: string)` - Throws ExecutionError if agent already executing
+   - `releaseLock(agentId: string)` - Removes agent from executing set
+   - `isExecuting(agentId: string): boolean` - Public method to check execution status
+
+3. **Integration**:
+   - `executeContinuous()` - Acquires lock at start, releases in finally block
+   - `executeReactive()` - Acquires lock at start, releases in finally block
+   - Ensures locks are released on both success and error paths
+
+**Files Modified:**
+- `packages/core/src/execution/index.ts` (+44 lines)
+
+**Benefits:**
+- Prevents race conditions from multiple simultaneous executions
+- Protects against concurrent continuous + reactive execution
+- Thread-safe within a single process (in-memory Set)
+- Zero external dependencies (no async-mutex needed for this simple case)
+
+**Limitations:**
+- Only prevents concurrency within the same process
+- Does not protect against multiple scheduler processes (Phase 3.4 will add distributed locking)
+
+**Verification:**
+- ✅ TypeScript compilation successful
+- ✅ Code compiles to dist/execution/index.js
+- ✅ Public API exposed correctly (isExecuting method)
+- ✅ Private methods properly encapsulated
+
+**Next Steps:**
+
+Task 3.3.11 is complete. The orchestrator now prevents concurrent executions of the same agent within a process. Next tasks:
+- Task 3.3.12: Unit tests for context loading
+- Task 3.3.13: Integration tests for continuous execution
+- Task 3.3.14: Integration tests for reactive execution
