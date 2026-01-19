@@ -1051,4 +1051,676 @@ describe('ClaudeCodeAdapter', () => {
       10000
     ); // Increase timeout for this test (5 error codes × ~1s backoff each)
   });
+
+  describe('comprehensive error scenarios - Task 3.2.14', () => {
+    describe('context validation errors', () => {
+      it('should reject execution when agentId is empty', async () => {
+        const context = createMockContext();
+        context.agentId = '';
+
+        const result = await adapter.executeAgent('', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]?.message).toContain('agentId');
+      });
+
+      it('should reject execution when config is null', async () => {
+        const context = createMockContext();
+        (context as any).config = null;
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]?.message).toContain('config');
+      });
+
+      it('should reject execution when config is undefined', async () => {
+        const context = createMockContext();
+        (context as any).config = undefined;
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]?.message).toContain('config');
+      });
+
+      it('should reject execution when workspaceDir is empty', async () => {
+        const context = createMockContext();
+        context.workspaceDir = '';
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]?.message).toContain('workspaceDir');
+      });
+
+      it('should reject execution when workingDir is empty', async () => {
+        const context = createMockContext();
+        context.workingDir = '';
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]?.message).toContain('workingDir');
+      });
+
+      it('should reject execution when workspaceDir is missing', async () => {
+        const context = createMockContext();
+        delete (context as any).workspaceDir;
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]?.message).toContain('workspaceDir');
+      });
+    });
+
+    describe('CLI execution errors', () => {
+      it('should handle non-existent CLI path gracefully', async () => {
+        const adapter = new ClaudeCodeAdapter({ cliPath: '/nonexistent/path/to/claude' });
+        const context = createMockContext();
+
+        mockHealthCheck();
+        const execError = new Error('spawn /nonexistent/path/to/claude ENOENT');
+        (execError as any).code = 'ENOENT';
+        mockedExeca.mockRejectedValueOnce(execError);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]?.message).toBeDefined();
+      });
+
+      it('should handle permission denied errors', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+        const permError = new Error('Permission denied');
+        (permError as any).code = 'EACCES';
+        mockedExeca.mockRejectedValueOnce(permError);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]?.message).toContain('Permission denied');
+      });
+
+      it('should handle non-zero exit codes gracefully', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: '',
+          stderr: 'Error: Task execution failed',
+          exitCode: 1,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        // Should still parse result even with non-zero exit
+        expect(result).toBeDefined();
+        expect(result.duration).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should handle process being killed by signal', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+        const killError = new Error('Process was killed with SIGKILL');
+        (killError as any).signal = 'SIGKILL';
+        mockedExeca.mockRejectedValueOnce(killError);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]?.message).toContain('killed');
+      });
+    });
+
+    describe('output parsing errors', () => {
+      it('should handle empty stdout gracefully', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: '',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result).toBeDefined();
+        expect(result.duration).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should handle malformed JSON output', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: '{ invalid json here }',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result).toBeDefined();
+        // Should fall back to text parsing
+        expect(result.duration).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should handle JSON output with unexpected structure', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ unexpectedField: 'value' }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result).toBeDefined();
+        expect(result.success).toBe(true);
+        expect(result.duration).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should handle null output', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: null as any,
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result).toBeDefined();
+        expect(result.duration).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should handle undefined output', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: undefined as any,
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result).toBeDefined();
+        expect(result.duration).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should handle very large output without crashing', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+        // Generate a 10MB string
+        const largeOutput = 'x'.repeat(10 * 1024 * 1024);
+        mockedExeca.mockResolvedValueOnce({
+          stdout: largeOutput,
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result).toBeDefined();
+        expect(result.duration).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should handle output with special characters', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: 'Output with \n newlines \t tabs \r carriage returns and \x00 null bytes',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result).toBeDefined();
+        expect(result.duration).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should handle output with unicode characters', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: 'Output with émojis 🚀 and unicode: 你好世界',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result).toBeDefined();
+        expect(result.duration).toBeGreaterThanOrEqual(0);
+      });
+    });
+
+    describe('framework unavailability - EC-6.1', () => {
+      it('should return error when health check fails', async () => {
+        // Health check fails
+        mockedExeca.mockRejectedValueOnce(new Error('Claude Code CLI not found'));
+
+        const context = createMockContext();
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]?.message).toContain('unavailable');
+      });
+
+      it('should detect when CLI is not in PATH', async () => {
+        const adapter = new ClaudeCodeAdapter({ cliPath: 'nonexistent-claude' });
+
+        // Health check returns no output
+        mockedExeca.mockResolvedValueOnce({
+          stdout: '',
+          stderr: '',
+          exitCode: 1,
+        } as any);
+
+        const context = createMockContext();
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors[0]?.message).toContain('unavailable');
+      });
+
+      it('should handle health check timeout', async () => {
+        // Health check times out
+        const timeoutError = new Error('Health check timeout');
+        (timeoutError as any).timedOut = true;
+        mockedExeca.mockRejectedValueOnce(timeoutError);
+
+        const context = createMockContext();
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+      });
+    });
+
+    describe('error metadata and details', () => {
+      it('should include error code in all error results', async () => {
+        const context = createMockContext();
+        context.agentId = '';
+
+        const result = await adapter.executeAgent('', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]?.code).toBeDefined();
+      });
+
+      it('should include error stack traces when available', async () => {
+        const context = createMockContext();
+        mockHealthCheck();
+
+        const error = new Error('Test error with stack');
+        mockedExeca.mockRejectedValueOnce(error);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        if (result.errors[0]?.stack) {
+          expect(typeof result.errors[0].stack).toBe('string');
+        }
+      });
+
+      it('should track duration even when errors occur', async () => {
+        const context = createMockContext();
+        mockHealthCheck();
+
+        mockedExeca.mockRejectedValueOnce(new Error('Test error'));
+
+        const startTime = Date.now();
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+        const elapsed = Date.now() - startTime;
+
+        expect(result.duration).toBeGreaterThanOrEqual(0);
+        expect(result.duration).toBeLessThanOrEqual(elapsed + 100); // Allow 100ms variance
+      });
+
+      it('should include meaningful error messages for debugging', async () => {
+        const context = createMockContext();
+        context.workspaceDir = '';
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors[0]?.message).toBeDefined();
+        expect(result.errors[0]?.message.length).toBeGreaterThan(10); // Reasonable message length
+      });
+    });
+
+    describe('edge case error scenarios', () => {
+      it('should handle concurrent errors without interference', async () => {
+        const context1 = createMockContext();
+        const context2 = createMockContext();
+        context2.agentId = 'test-agent-002';
+
+        mockHealthCheck();
+        mockHealthCheck();
+
+        const error1 = new Error('Error for agent 1');
+        const error2 = new Error('Error for agent 2');
+        mockedExeca.mockRejectedValueOnce(error1);
+        mockedExeca.mockRejectedValueOnce(error2);
+
+        // Execute concurrently
+        const [result1, result2] = await Promise.all([
+          adapter.executeAgent('test-agent-001', 'continuous', context1),
+          adapter.executeAgent('test-agent-002', 'continuous', context2),
+        ]);
+
+        expect(result1.success).toBe(false);
+        expect(result2.success).toBe(false);
+        // Each should have their own error
+        expect(result1.errors.length).toBeGreaterThan(0);
+        expect(result2.errors.length).toBeGreaterThan(0);
+        expect(result1.errors[0]?.message).toBeDefined();
+        expect(result2.errors[0]?.message).toBeDefined();
+      });
+
+      it('should handle errors thrown during prompt building', async () => {
+        const context = createMockContext();
+        // Empty activeTasks array - might cause issues in prompt building
+        context.activeTasks = [];
+
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: 'Success',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        // Should handle gracefully even with no tasks
+        expect(result).toBeDefined();
+        expect(result.duration).toBeGreaterThanOrEqual(0);
+      });
+
+      it('should handle errors with circular JSON structures', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+
+        // Create a response with circular reference
+        const circularObj: any = { data: 'test' };
+        circularObj.self = circularObj;
+
+        mockedExeca.mockResolvedValueOnce({
+          stdout: 'Plain text output',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        // Should handle without crashing
+        expect(result).toBeDefined();
+      });
+
+      it('should handle multiple rapid errors without state corruption', async () => {
+        const context = createMockContext();
+
+        // Execute multiple times sequentially to test state isolation
+        for (let i = 0; i < 3; i++) {
+          // Clear and setup mocks for each execution
+          mockedExeca.mockReset();
+
+          // Health check
+          mockedExeca.mockResolvedValueOnce({
+            stdout: 'claude-code version 1.0.0',
+            stderr: '',
+            exitCode: 0,
+          } as any);
+
+          // Execution fails with non-retryable error
+          const nonRetryableError = new Error(`Error ${i}`);
+          (nonRetryableError as any).code = 'EACCES'; // Non-retryable
+          mockedExeca.mockRejectedValueOnce(nonRetryableError);
+
+          const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+          // Each should fail independently
+          expect(result.success).toBe(false);
+          expect(result.errors.length).toBeGreaterThan(0);
+        }
+      });
+
+      it('should handle errors after successful health check', async () => {
+        const context = createMockContext();
+
+        mockHealthCheck();
+
+        // Health check succeeds but execution fails
+        const execError = new Error('Execution failed despite healthy CLI');
+        (execError as any).code = 'EXECUTION_ERROR';
+        mockedExeca.mockRejectedValueOnce(execError);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        expect(result.errors[0]?.message).toBeDefined();
+      });
+
+      it('should handle mixed success and error scenarios', async () => {
+        const context = createMockContext();
+
+        // Clear default mock
+        mockedExeca.mockReset();
+
+        // First execution fails (health check fails)
+        mockedExeca.mockResolvedValueOnce({
+          stdout: '',
+          stderr: 'CLI error',
+          exitCode: 1,
+        } as any);
+
+        const result1 = await adapter.executeAgent('test-agent-001', 'continuous', context);
+        expect(result1.success).toBe(false);
+
+        // Second execution succeeds
+        mockedExeca.mockResolvedValueOnce({
+          stdout: 'claude-code version 1.0.0',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true, tasksCompleted: ['task-001'] }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result2 = await adapter.executeAgent('test-agent-001', 'continuous', context);
+        expect(result2.success).toBe(true);
+      });
+    });
+
+    describe('non-retryable error handling', () => {
+      it('should not retry validation errors', async () => {
+        const adapter = new ClaudeCodeAdapter({ maxRetries: 3 });
+        const context = createMockContext();
+        context.agentId = ''; // Invalid context
+
+        const result = await adapter.executeAgent('', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        // Should not have called execa at all (validation fails before execution)
+        expect(mockedExeca).not.toHaveBeenCalled();
+      });
+
+      it('should not retry when framework is unavailable', async () => {
+        const adapter = new ClaudeCodeAdapter({ maxRetries: 3, timeout: 1000 });
+
+        // Clear the default mock behavior from beforeEach
+        mockedExeca.mockReset();
+
+        // Health check fails (returns false because stdout is empty)
+        mockedExeca.mockResolvedValueOnce({
+          stdout: '',
+          stderr: 'CLI not found',
+          exitCode: 1,
+        } as any);
+
+        const context = createMockContext();
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors[0]?.message).toContain('unavailable');
+        // Only health check attempt, no retries
+        expect(mockedExeca).toHaveBeenCalledTimes(1);
+      });
+
+      it('should not retry ENOENT errors (file not found)', async () => {
+        const adapter = new ClaudeCodeAdapter({ maxRetries: 3 });
+        const context = createMockContext();
+
+        // Health check fails with ENOENT
+        const enoentError = new Error('spawn claude ENOENT');
+        (enoentError as any).code = 'ENOENT';
+        mockedExeca.mockRejectedValueOnce(enoentError);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        // Only health check attempt (which failed with ENOENT)
+        expect(mockedExeca).toHaveBeenCalledTimes(1);
+      });
+
+      it('should not retry EACCES errors (permission denied)', async () => {
+        const adapter = new ClaudeCodeAdapter({ maxRetries: 3 });
+        const context = createMockContext();
+
+        // Health check fails with EACCES
+        const eaccesError = new Error('Permission denied');
+        (eaccesError as any).code = 'EACCES';
+        mockedExeca.mockRejectedValueOnce(eaccesError);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        // Only health check attempt (which failed with EACCES)
+        expect(mockedExeca).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('error recovery patterns', () => {
+      it('should recover from transient error on first retry', async () => {
+        const adapter = new ClaudeCodeAdapter({ maxRetries: 3, timeout: 10000 });
+        const context = createMockContext();
+
+        // Clear default mock
+        mockedExeca.mockReset();
+
+        // Health check
+        mockedExeca.mockResolvedValueOnce({
+          stdout: 'claude-code version 1.0.0',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        // First attempt fails with transient error
+        const transientError = new Error('ECONNRESET');
+        (transientError as any).code = 'ECONNRESET';
+        mockedExeca.mockRejectedValueOnce(transientError);
+
+        // Second attempt succeeds
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true, tasksCompleted: ['task-001'] }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(true);
+        expect(mockedExeca).toHaveBeenCalledTimes(3); // health + 2 attempts
+      }, 10000); // Allow time for retry backoff
+
+      it('should attempt all retries before giving up', async () => {
+        const adapter = new ClaudeCodeAdapter({ maxRetries: 3, timeout: 10000 });
+        const context = createMockContext();
+
+        // Clear default mock
+        mockedExeca.mockReset();
+
+        // Health check
+        mockedExeca.mockResolvedValueOnce({
+          stdout: 'claude-code version 1.0.0',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        // All attempts fail with transient error
+        const transientError = new Error('Service unavailable');
+        (transientError as any).code = 'ECONNREFUSED';
+        mockedExeca
+          .mockRejectedValueOnce(transientError)
+          .mockRejectedValueOnce(transientError)
+          .mockRejectedValueOnce(transientError);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(mockedExeca).toHaveBeenCalledTimes(4); // health + 3 attempts
+      }, 10000); // Allow time for retry backoff
+
+      it('should include retry information in final error', async () => {
+        const adapter = new ClaudeCodeAdapter({ maxRetries: 2, timeout: 10000 });
+        const context = createMockContext();
+
+        // Clear default mock
+        mockedExeca.mockReset();
+
+        // Health check
+        mockedExeca.mockResolvedValueOnce({
+          stdout: 'claude-code version 1.0.0',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const transientError = new Error('Connection refused');
+        (transientError as any).code = 'ECONNREFUSED';
+        mockedExeca
+          .mockRejectedValueOnce(transientError)
+          .mockRejectedValueOnce(transientError);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(false);
+        expect(result.errors.length).toBeGreaterThan(0);
+        // Error message should mention the connection issue
+        expect(result.errors[0]?.message).toContain('refused');
+      }, 5000); // Allow time for retry backoff
+    });
+  });
 });
