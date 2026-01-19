@@ -609,6 +609,284 @@ describe('ClaudeCodeAdapter', () => {
   });
 
   /**
+   * Test Suite: Timeout Handling (Task 3.2.13)
+   */
+  describe('Timeout Handling', () => {
+    it('should respect configured timeout duration', async () => {
+      const timeoutAdapter = new ClaudeCodeAdapter({
+        timeout: 2000, // 2 seconds
+        debug: false,
+      });
+
+      const context = createMockContext();
+      mockHealthCheck();
+
+      // Mock a long-running execution that will timeout
+      const timeoutError = new Error('Command timed out after 2000ms');
+      (timeoutError as any).timedOut = true;
+      mockedExeca.mockRejectedValueOnce(timeoutError);
+
+      const startTime = Date.now();
+      const result = await timeoutAdapter.executeAgent('test-agent-001', 'continuous', context);
+      const duration = Date.now() - startTime;
+
+      // Should fail due to timeout
+      expect(result.success).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors[0]?.message).toContain('timed out');
+
+      // Should complete quickly (not hang)
+      expect(duration).toBeLessThan(5000);
+    });
+
+    it('should handle timeout with timedOut flag from execa', async () => {
+      const context = createMockContext();
+      mockHealthCheck();
+
+      const timeoutError = new Error('Process execution timed out');
+      (timeoutError as any).timedOut = true;
+      mockedExeca.mockRejectedValueOnce(timeoutError);
+
+      const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+      expect(result.success).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+      expect(result.errors[0]?.message).toContain('timed out');
+    });
+
+    it('should not retry on timeout errors', async () => {
+      const retryAdapter = new ClaudeCodeAdapter({
+        maxRetries: 3,
+        timeout: 1000,
+        debug: false,
+      });
+
+      const context = createMockContext();
+      mockHealthCheck();
+
+      const timeoutError = new Error('Execution timeout');
+      (timeoutError as any).timedOut = true;
+      mockedExeca.mockRejectedValueOnce(timeoutError);
+
+      const result = await retryAdapter.executeAgent('test-agent-001', 'continuous', context);
+
+      expect(result.success).toBe(false);
+      expect(result.errors[0]?.message).toContain('timed out');
+
+      // Should only attempt once (health check + 1 execution, no retries)
+      expect(mockedExeca).toHaveBeenCalledTimes(2);
+    });
+
+    it('should include timeout duration in error message', async () => {
+      const timeoutAdapter = new ClaudeCodeAdapter({
+        timeout: 5000, // 5 seconds
+        debug: false,
+      });
+
+      const context = createMockContext();
+      mockHealthCheck();
+
+      const timeoutError = new Error('Timeout after 5000ms');
+      (timeoutError as any).timedOut = true;
+      mockedExeca.mockRejectedValueOnce(timeoutError);
+
+      const result = await timeoutAdapter.executeAgent('test-agent-001', 'continuous', context);
+
+      expect(result.success).toBe(false);
+      expect(result.errors[0]?.message).toMatch(/timed out after \d+ seconds/);
+    });
+
+    it('should handle zero or very short timeouts', async () => {
+      const shortTimeoutAdapter = new ClaudeCodeAdapter({
+        timeout: 100, // 100ms - very short
+        debug: false,
+      });
+
+      const context = createMockContext();
+      mockHealthCheck();
+
+      const timeoutError = new Error('Timeout');
+      (timeoutError as any).timedOut = true;
+      mockedExeca.mockRejectedValueOnce(timeoutError);
+
+      const result = await shortTimeoutAdapter.executeAgent('test-agent-001', 'continuous', context);
+
+      expect(result.success).toBe(false);
+      expect(result.errors.length).toBeGreaterThan(0);
+    });
+
+    it('should complete successfully if execution finishes before timeout', async () => {
+      const generousAdapter = new ClaudeCodeAdapter({
+        timeout: 60000, // 60 seconds - generous timeout
+        debug: false,
+      });
+
+      const context = createMockContext();
+      mockHealthCheck();
+
+      // Mock successful fast execution
+      mockedExeca.mockResolvedValueOnce({
+        stdout: JSON.stringify({
+          success: true,
+          tasksCompleted: ['task-001'],
+          duration: 1000,
+        }),
+        stderr: '',
+        exitCode: 0,
+      } as any);
+
+      const startTime = Date.now();
+      const result = await generousAdapter.executeAgent('test-agent-001', 'continuous', context);
+      const duration = Date.now() - startTime;
+
+      expect(result.success).toBe(true);
+      expect(duration).toBeLessThan(10000); // Should complete quickly
+    });
+
+    it('should pass timeout option to execa', async () => {
+      const customTimeoutAdapter = new ClaudeCodeAdapter({
+        timeout: 30000, // 30 seconds
+        debug: false,
+      });
+
+      const context = createMockContext();
+      mockHealthCheck();
+
+      mockedExeca.mockResolvedValueOnce({
+        stdout: JSON.stringify({ success: true }),
+        stderr: '',
+        exitCode: 0,
+      } as any);
+
+      await customTimeoutAdapter.executeAgent('test-agent-001', 'continuous', context);
+
+      // Verify execa was called with correct timeout option
+      expect(mockedExeca).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(Array),
+        expect.objectContaining({
+          timeout: 30000,
+        })
+      );
+    });
+
+    it('should track execution duration even on timeout', async () => {
+      const context = createMockContext();
+      mockHealthCheck();
+
+      const timeoutError = new Error('Timed out');
+      (timeoutError as any).timedOut = true;
+      mockedExeca.mockRejectedValueOnce(timeoutError);
+
+      const startTime = Date.now();
+      const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+      const actualDuration = Date.now() - startTime;
+
+      // Result should have duration field
+      expect(typeof result.duration).toBe('number');
+      expect(result.duration).toBeGreaterThanOrEqual(0);
+
+      // Duration should be reasonable compared to actual time
+      expect(result.duration).toBeLessThanOrEqual(actualDuration + 100);
+    });
+
+    it('should include stack trace in timeout errors when available', async () => {
+      const context = createMockContext();
+      mockHealthCheck();
+
+      const timeoutError = new Error('Execution timeout');
+      (timeoutError as any).timedOut = true;
+      timeoutError.stack = 'Error: Execution timeout\n    at execClaudeCode (adapter.ts:123)\n';
+      mockedExeca.mockRejectedValueOnce(timeoutError);
+
+      const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+      expect(result.success).toBe(false);
+      if (result.errors[0]?.stack) {
+        expect(typeof result.errors[0].stack).toBe('string');
+        expect(result.errors[0].stack.length).toBeGreaterThan(0);
+      }
+    });
+
+    it('should handle timeout in both continuous and reactive modes', async () => {
+      const timeoutAdapter = new ClaudeCodeAdapter({
+        timeout: 1000,
+        debug: false,
+      });
+
+      const timeoutError = new Error('Timeout');
+      (timeoutError as any).timedOut = true;
+
+      // Test continuous mode
+      const continuousContext = createMockContext();
+      continuousContext.mode = 'continuous';
+      mockHealthCheck();
+      mockedExeca.mockRejectedValueOnce(timeoutError);
+
+      const continuousResult = await timeoutAdapter.executeAgent(
+        'test-agent-001',
+        'continuous',
+        continuousContext
+      );
+
+      expect(continuousResult.success).toBe(false);
+      expect(continuousResult.errors[0]?.message).toContain('timed out');
+
+      // Test reactive mode
+      const reactiveContext = createMockContext();
+      reactiveContext.mode = 'reactive';
+      reactiveContext.messages = [
+        {
+          id: 'msg-001',
+          from: 'user',
+          to: 'test-agent-001',
+          content: 'Test',
+          channel: 'internal',
+          timestamp: new Date().toISOString(),
+          read: false,
+        },
+      ];
+      mockHealthCheck();
+      mockedExeca.mockRejectedValueOnce(timeoutError);
+
+      const reactiveResult = await timeoutAdapter.executeAgent(
+        'test-agent-001',
+        'reactive',
+        reactiveContext
+      );
+
+      expect(reactiveResult.success).toBe(false);
+      expect(reactiveResult.errors[0]?.message).toContain('timed out');
+    });
+
+    it('should use default timeout of 60 minutes when not specified', async () => {
+      const defaultAdapter = new ClaudeCodeAdapter();
+
+      const context = createMockContext();
+      mockHealthCheck();
+      mockedExeca.mockResolvedValueOnce({
+        stdout: JSON.stringify({ success: true }),
+        stderr: '',
+        exitCode: 0,
+      } as any);
+
+      await defaultAdapter.executeAgent('test-agent-001', 'continuous', context);
+
+      // Should use default 60 minute timeout (3600000ms)
+      // Check the second call (first is health check)
+      expect(mockedExeca).toHaveBeenCalledTimes(2); // health + execution
+      expect(mockedExeca).toHaveBeenNthCalledWith(
+        2, // Second call is the actual execution
+        expect.any(String),
+        expect.any(Array),
+        expect.objectContaining({
+          timeout: 60 * 60 * 1000,
+        })
+      );
+    });
+  });
+
+  /**
    * Test Suite: Retry Logic (Task 3.2.10)
    */
   describe('Retry Logic', () => {
