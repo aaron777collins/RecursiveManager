@@ -355,30 +355,24 @@ export class ExecutionOrchestrator {
       // Execute multi-perspective analysis with timeout
       const decision = await this.executeWithTimeout(
         async () => {
-          // TODO: Implement actual multi-perspective analysis
-          // For now, return a simple decision structure
-          // This will be fully implemented when Phase 3.3.5-3.3.6 are tackled
+          // TODO: Implement actual sub-agent spawning for perspectives
+          // For now, simulate perspective results for synthesis testing
+          // Full sub-agent integration will be implemented in future phases
 
-          // Placeholder implementation
+          // Placeholder: simulate perspective analysis results
           const perspectiveResults = perspectives.map((perspective) => ({
             perspective,
-            response: `Analysis from ${perspective} perspective: [To be implemented]`,
+            response: `Analysis from ${perspective} perspective: [Sub-agent integration pending]`,
             confidence: 0.7,
           }));
 
-          const decision: Decision = {
-            recommendation: 'Decision synthesis to be implemented in Phase 3.3.6',
-            confidence: 0.5,
-            perspectives,
-            perspectiveResults,
-            rationale:
-              'Multi-perspective analysis placeholder - full implementation pending',
-            warnings: [
-              'This is a placeholder implementation. Full multi-perspective analysis will be implemented in Phase 3.3.5-3.3.6',
-            ],
-          };
+          // Synthesize decision from multiple perspective results (EC-8.1)
+          const synthesizedDecision = this.synthesizeDecision(
+            question,
+            perspectiveResults
+          );
 
-          return decision;
+          return synthesizedDecision;
         },
         this.maxAnalysisTime,
         'Multi-perspective analysis timeout'
@@ -414,6 +408,234 @@ export class ExecutionOrchestrator {
         ],
       };
     }
+  }
+
+  /**
+   * Synthesize decision from multiple perspective results (EC-8.1)
+   *
+   * Implements decision synthesis rules:
+   * 1. Any strong rejection (confidence > 0.8) => reject
+   * 2. Majority positive => approve
+   * 3. Check for conditional recommendations
+   * 4. No clear consensus => flag for review
+   *
+   * @param _question - The question being analyzed (reserved for future use)
+   * @param perspectiveResults - Results from each perspective
+   * @returns Synthesized decision
+   */
+  private synthesizeDecision(
+    _question: string,
+    perspectiveResults: Array<{
+      perspective: string;
+      response: string;
+      confidence: number;
+    }>
+  ): Decision {
+    const logger = createAgentLogger('decision-synthesis');
+
+    // Extract recommendations and sentiments from perspective responses
+    const analyzedResults = perspectiveResults.map((result) => {
+      const response = result.response.toLowerCase();
+
+      // Classify recommendation type based on keywords
+      let recommendation: 'approve' | 'reject' | 'conditional' | 'neutral' =
+        'neutral';
+
+      if (
+        response.includes('approve') ||
+        response.includes('recommend') ||
+        response.includes('proceed') ||
+        response.includes('yes')
+      ) {
+        recommendation = 'approve';
+      } else if (
+        response.includes('reject') ||
+        response.includes('deny') ||
+        response.includes("don't") ||
+        response.includes('no') ||
+        response.includes('against')
+      ) {
+        recommendation = 'reject';
+      } else if (
+        response.includes('conditional') ||
+        response.includes('with conditions') ||
+        response.includes('if') ||
+        response.includes('provided that')
+      ) {
+        recommendation = 'conditional';
+      }
+
+      return {
+        ...result,
+        recommendation,
+      };
+    });
+
+    logger.info('Analyzed perspective recommendations', {
+      approvals: analyzedResults.filter((r) => r.recommendation === 'approve')
+        .length,
+      rejections: analyzedResults.filter((r) => r.recommendation === 'reject')
+        .length,
+      conditionals: analyzedResults.filter(
+        (r) => r.recommendation === 'conditional'
+      ).length,
+      neutrals: analyzedResults.filter((r) => r.recommendation === 'neutral')
+        .length,
+    });
+
+    const warnings: string[] = [];
+
+    // Rule 1: Any strong rejection (confidence > 0.8) => reject
+    const strongRejection = analyzedResults.find(
+      (r) => r.recommendation === 'reject' && r.confidence > 0.8
+    );
+
+    if (strongRejection) {
+      logger.info('Strong rejection found', {
+        perspective: strongRejection.perspective,
+        confidence: strongRejection.confidence,
+      });
+
+      return {
+        recommendation: 'reject',
+        confidence: strongRejection.confidence,
+        perspectives: perspectiveResults.map((r) => r.perspective),
+        perspectiveResults,
+        rationale: `Strong rejection from ${strongRejection.perspective} perspective (confidence: ${strongRejection.confidence}). ${strongRejection.response}`,
+        warnings: [
+          `High-confidence rejection from ${strongRejection.perspective} perspective`,
+        ],
+      };
+    }
+
+    // Rule 2: Majority approve => approve
+    const approvals = analyzedResults.filter(
+      (r) => r.recommendation === 'approve'
+    );
+    const rejections = analyzedResults.filter(
+      (r) => r.recommendation === 'reject'
+    );
+    const conditionals = analyzedResults.filter(
+      (r) => r.recommendation === 'conditional'
+    );
+    const neutrals = analyzedResults.filter(
+      (r) => r.recommendation === 'neutral'
+    );
+
+    const totalResponses = analyzedResults.length;
+    const majorityThreshold = totalResponses / 2;
+
+    if (approvals.length > majorityThreshold) {
+      // Calculate average confidence from approvals
+      const avgConfidence =
+        approvals.reduce((sum, r) => sum + r.confidence, 0) / approvals.length;
+
+      logger.info('Majority approval', {
+        approvals: approvals.length,
+        total: totalResponses,
+        confidence: avgConfidence,
+      });
+
+      if (rejections.length > 0) {
+        warnings.push(
+          `${rejections.length} perspective(s) recommended rejection: ${rejections.map((r) => r.perspective).join(', ')}`
+        );
+      }
+
+      return {
+        recommendation: 'approve',
+        confidence: Math.min(avgConfidence, 0.95), // Cap at 0.95 to indicate uncertainty
+        perspectives: perspectiveResults.map((r) => r.perspective),
+        perspectiveResults,
+        rationale: `Majority approval from ${approvals.length} of ${totalResponses} perspectives. Average confidence: ${avgConfidence.toFixed(2)}`,
+        warnings: warnings.length > 0 ? warnings : undefined,
+      };
+    }
+
+    // Rule 3: Conditionals => approve with conditions
+    if (conditionals.length > 0) {
+      const avgConfidence =
+        conditionals.reduce((sum, r) => sum + r.confidence, 0) /
+        conditionals.length;
+
+      logger.info('Conditional approval', {
+        conditionals: conditionals.length,
+        confidence: avgConfidence,
+      });
+
+      warnings.push(
+        `Conditional approval requires careful consideration of constraints`
+      );
+
+      return {
+        recommendation: 'conditional',
+        confidence: avgConfidence * 0.9, // Reduce confidence for conditional decisions
+        perspectives: perspectiveResults.map((r) => r.perspective),
+        perspectiveResults,
+        rationale: `${conditionals.length} perspective(s) recommend conditional approval. Review conditions from: ${conditionals.map((r) => r.perspective).join(', ')}`,
+        warnings,
+      };
+    }
+
+    // Rule 4: No clear consensus or majority neutral => escalate/review
+    if (
+      neutrals.length > majorityThreshold ||
+      (approvals.length === rejections.length && approvals.length > 0)
+    ) {
+      logger.info('No clear consensus', {
+        approvals: approvals.length,
+        rejections: rejections.length,
+        neutrals: neutrals.length,
+      });
+
+      warnings.push('No clear consensus from perspectives');
+      warnings.push('Human review recommended before proceeding');
+
+      return {
+        recommendation: 'review_required',
+        confidence: 0.4, // Low confidence when no consensus
+        perspectives: perspectiveResults.map((r) => r.perspective),
+        perspectiveResults,
+        rationale: `No clear consensus reached. Approvals: ${approvals.length}, Rejections: ${rejections.length}, Neutrals: ${neutrals.length}, Conditionals: ${conditionals.length}. Human review recommended.`,
+        warnings,
+      };
+    }
+
+    // Fallback: More rejections than approvals => reject
+    if (rejections.length > approvals.length) {
+      const avgConfidence =
+        rejections.reduce((sum, r) => sum + r.confidence, 0) /
+        rejections.length;
+
+      logger.info('Majority rejection', {
+        rejections: rejections.length,
+        total: totalResponses,
+        confidence: avgConfidence,
+      });
+
+      return {
+        recommendation: 'reject',
+        confidence: avgConfidence,
+        perspectives: perspectiveResults.map((r) => r.perspective),
+        perspectiveResults,
+        rationale: `Majority rejection from ${rejections.length} of ${totalResponses} perspectives. Average confidence: ${avgConfidence.toFixed(2)}`,
+      };
+    }
+
+    // Final fallback: uncertain decision
+    logger.warn('Unable to determine clear decision', {
+      results: analyzedResults,
+    });
+
+    return {
+      recommendation: 'uncertain',
+      confidence: 0.3,
+      perspectives: perspectiveResults.map((r) => r.perspective),
+      perspectiveResults,
+      rationale:
+        'Unable to synthesize a clear decision from perspectives. Manual review recommended.',
+      warnings: ['Decision synthesis inconclusive', 'Manual review required'],
+    };
   }
 
   /**
