@@ -17,6 +17,9 @@
   },
   "license": "MIT",
   "author": "",
+  "bin": {
+    "recursive-manager": "./packages/cli/dist/cli.js"
+  },
   "workspaces": [
     "packages/*",
     "docs"
