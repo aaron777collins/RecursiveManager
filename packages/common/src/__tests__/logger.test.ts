@@ -463,7 +463,14 @@ describe('Logger Module', () => {
 
       logger.info('Merge test', { taskId: 'task-123' });
 
-      await waitForFile();
+      // Get the underlying Winston logger and wait for it to finish writing
+      const winstonLogger = (logger as any).getWinstonLogger();
+
+      // Wait for all transports to finish writing
+      await new Promise<void>((resolve) => {
+        winstonLogger.on('finish', resolve);
+        winstonLogger.end();
+      });
 
       const content = fs.readFileSync(tempFile, 'utf-8');
       const parsed = JSON.parse(content.trim().split('\n')[0] as string);
@@ -510,7 +517,14 @@ describe('Logger Module', () => {
       logger.info('Line 2');
       logger.info('Line 3');
 
-      await waitForFile();
+      // Get the underlying Winston logger and wait for it to finish writing
+      const winstonLogger = (logger as any).getWinstonLogger();
+
+      // Wait for all transports to finish writing
+      await new Promise<void>((resolve) => {
+        winstonLogger.on('finish', resolve);
+        winstonLogger.end();
+      });
 
       const content = fs.readFileSync(tempFile, 'utf-8');
       const lines = content.trim().split('\n');
@@ -930,31 +944,24 @@ describe('Logger Module', () => {
 
       logger.info('Rotation write test');
 
-      // Get the underlying Winston logger
-      const winstonLogger = (logger as any).getWinstonLogger();
+      // DailyRotateFile transport doesn't always respect finish/end events
+      // So we poll for the file to appear with a reasonable timeout
+      const maxWaitTime = 2000; // 2 seconds
+      const pollInterval = 50; // 50ms
+      const startTime = Date.now();
 
-      // Wait for the transport to write - DailyRotateFile needs more time
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('Timeout waiting for log write'));
-        }, 5000);
+      let files: string[] = [];
+      let logFiles: string[] = [];
 
-        // Listen for the 'logged' event on the transport
-        const transport = winstonLogger.transports[0];
-        if (transport) {
-          transport.once('logged', () => {
-            clearTimeout(timeout);
-            // Give it a bit more time to flush to disk
-            setTimeout(resolve, 100);
-          });
-        } else {
-          clearTimeout(timeout);
-          resolve();
+      while (Date.now() - startTime < maxWaitTime) {
+        files = fs.readdirSync(testDir);
+        logFiles = files.filter((f) => f.startsWith('write-test'));
+        if (logFiles.length > 0) {
+          break;
         }
-      });
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      }
 
-      const files = fs.readdirSync(testDir);
-      const logFiles = files.filter((f) => f.startsWith('write-test'));
       expect(logFiles.length).toBeGreaterThan(0);
     });
 
