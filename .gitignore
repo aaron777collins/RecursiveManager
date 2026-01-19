@@ -20,6 +20,8 @@ coverage/
 .env.development.local
 .env.test.local
 .env.production.local
+.env.*
+!.env.example
 
 # Logs
 logs/
@@ -65,3 +67,11 @@ backups/
 tmp/
 temp/
 *.tmp
+
+# Documentation
+site/
+.mkdocs_cache/
+
+# Version history
+.recursive_manager_version_history
+.recursive_manager_backup/

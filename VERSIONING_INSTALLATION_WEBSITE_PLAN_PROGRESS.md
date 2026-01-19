@@ -35,7 +35,7 @@ IN_PROGRESS
 
 ### Phase 5: Package Structure Updates
 - [x] 5.1 Update root package.json scripts
-- [ ] 5.2 Add .gitignore entries
+- [x] 5.2 Add .gitignore entries
 - [ ] 5.3 Create .env.example
 
 ### Phase 6: README Updates
@@ -141,7 +141,7 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 5.1: Updated root package.json scripts
+- Task 5.2: Added .gitignore entries
 
 ## Notes
 
@@ -333,3 +333,17 @@ IN_PROGRESS
   - Added postinstall script to run husky install for git hooks
   - Verified scripts work correctly with npm run version test
   - All scripts follow npm best practices
+
+### Iteration 18 (2026-01-19)
+- Task 5.2: Added .gitignore entries
+  - Added documentation build artifacts to .gitignore:
+    - site/ (MkDocs build output directory)
+    - .mkdocs_cache/ (MkDocs cache directory)
+  - Added version history files to .gitignore:
+    - .recursive_manager_version_history (version history tracking file)
+    - .recursive_manager_backup/ (backup directory for updates)
+  - Enhanced environment variable patterns:
+    - Added .env.* to catch all env variants
+    - Added !.env.example exception to ensure example file is tracked
+  - All entries follow existing .gitignore formatting conventions
+  - Changes prevent generated documentation and update artifacts from being committed
