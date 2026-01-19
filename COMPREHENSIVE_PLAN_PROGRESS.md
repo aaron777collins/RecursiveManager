@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 20:41:32 EST
+Last Updated: 2026-01-18 20:45:24 EST
 
 ## Status
 
@@ -110,7 +110,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 1.2.11: Define schedule.schema.json (mode, continuous, timeBased, reactive, pauseConditions)
 - [x] Task 1.2.12: Define task.schema.json (task, hierarchy, delegation, progress, context, execution)
 - [x] Task 1.2.13: Define message.schema.json (frontmatter fields)
-- [ ] Task 1.2.14: Define metadata.schema.json (runtime, statistics, health, budget)
+- [x] Task 1.2.14: Define metadata.schema.json (runtime, statistics, health, budget)
 - [ ] Task 1.2.15: Define subordinates.schema.json (subordinates array, summary)
 
 ##### Schema Validation
@@ -590,6 +590,85 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - Created: `packages/common/src/schemas/message.schema.json`
 - Updated: `packages/common/dist/schemas/message.schema.json` (via build)
+
+---
+
+### Task 1.2.14: Define metadata.schema.json ✅
+
+**Summary**: Created comprehensive JSON Schema for agent runtime metadata and statistics. Includes runtime execution state, performance statistics, health monitoring, and budget tracking (hiring, execution, and resource usage). Schema enables comprehensive agent lifecycle tracking and resource management.
+
+**What Was Implemented**:
+
+- ✅ Created `packages/common/src/schemas/metadata.schema.json` (8.3KB, 248 lines)
+  - Complete JSON Schema Draft-07 definition
+  - Schema ID: https://recursivemanager.dev/schemas/metadata.schema.json
+  - Title and description metadata
+- ✅ Required top-level sections defined:
+  - `version` - Semantic version pattern (e.g., "1.0.0")
+  - `runtime` - Runtime execution state and tracking
+  - `statistics` - Aggregated performance metrics and counters
+  - `health` - Agent health monitoring and issue tracking
+  - `budget` - Resource limits and usage tracking
+- ✅ Runtime section properties:
+  - `status` - Agent status enum (active, paused, idle, error, terminated)
+  - `lastExecutionAt` - ISO 8601 timestamp of last execution
+  - `lastExecutionDuration` - Duration in seconds (integer, min 0)
+  - `lastExecutionType` - Trigger type enum (continuous, reactive, cron, manual, null)
+  - `lastExecutionResult` - Result enum (success, failure, error, timeout, null)
+  - `nextScheduledExecution` - ISO 8601 timestamp (nullable)
+- ✅ Statistics section properties:
+  - `totalExecutions` - Total execution count (min 0, default 0)
+  - `successfulExecutions` - Successful execution count (min 0, default 0)
+  - `failedExecutions` - Failed execution count (min 0, default 0)
+  - `totalRuntimeMinutes` - Cumulative runtime in minutes (min 0, default 0)
+  - `averageExecutionMinutes` - Average execution duration (number, min 0, default 0)
+  - `tasksCompleted` - Completed task count (min 0, default 0)
+  - `tasksActive` - Active task count (min 0, default 0)
+  - `messagesSent` - Messages sent count (min 0, default 0)
+  - `messagesReceived` - Messages received count (min 0, default 0)
+  - `subordinatesHired` - Subordinates hired count (min 0, default 0)
+  - `subordinatesFired` - Subordinates fired count (min 0, default 0)
+- ✅ Health section properties:
+  - `overallHealth` - Health status enum (healthy, warning, critical, unknown)
+  - `lastHealthCheck` - ISO 8601 timestamp of last health check (nullable)
+  - `issues` - Array of critical issues (default empty array)
+  - `warnings` - Array of non-critical warnings (default empty array)
+- ✅ Budget section properties:
+  - `hiringBudget` - Subordinate hiring budget tracking
+    - `initial` - Initial hiring budget (min 0, default 0)
+    - `remaining` - Remaining hiring slots (min 0, default 0)
+    - `used` - Used hiring slots (min 0, default 0)
+  - `executionBudget` - Daily execution limits
+    - `maxExecutionsPerDay` - Maximum allowed per day (min 1, default 100)
+    - `usedToday` - Executions used today (min 0, default 0)
+    - `remainingToday` - Executions remaining today (min 0, default 100)
+  - `resourceUsage` - Workspace storage tracking
+    - `workspaceMB` - Current usage in MB (number, min 0, default 0)
+    - `quotaMB` - Total quota in MB (integer, min 0, default 1024)
+    - `percentUsed` - Percentage used (number, 0-100, default 0)
+
+**Validation & Integration**:
+
+- ✅ Build successful: `npm run build` - TypeScript compilation passed
+- ✅ Schema copied to dist: `packages/common/dist/schemas/metadata.schema.json` (8.3KB)
+- ✅ JSON validation passed: Schema is valid JSON
+- ✅ ISO 8601 date-time format validation for all timestamps
+- ✅ Enum constraints for status, executionType, executionResult, overallHealth
+- ✅ Integer constraints with min/max bounds where applicable
+- ✅ No additional properties allowed (strict validation)
+
+**Alignment with Planning Documents**:
+
+- Schema matches FILE_STRUCTURE_SPEC.md specifications for metadata.json (Section 5, lines 391-449)
+- Supports runtime state tracking for execution monitoring
+- Includes health monitoring for agent observability
+- Tracks budget consumption (hiring, execution, resources) as per edge cases
+- Ready for integration with core orchestrator and scheduler
+
+**Files Created**:
+
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/schemas/metadata.schema.json` (248 lines)
+- `/home/ubuntu/repos/RecursiveManager/packages/common/dist/schemas/metadata.schema.json` (via build)
 
 ---
 
