@@ -607,4 +607,170 @@ describe('ClaudeCodeAdapter', () => {
       });
     });
   });
+
+  /**
+   * Test Suite: Retry Logic (Task 3.2.10)
+   */
+  describe('Retry Logic', () => {
+    it('should retry on transient network errors', async () => {
+      const adapter = new ClaudeCodeAdapter({ maxRetries: 3, debug: false });
+      const context = createMockContext();
+
+      // Mock health check (success)
+      mockHealthCheck();
+
+      // First attempt fails with ECONNRESET
+      const networkError = new Error('Connection reset');
+      (networkError as any).code = 'ECONNRESET';
+      mockedExeca.mockRejectedValueOnce(networkError);
+
+      // Second attempt succeeds
+      mockedExeca.mockResolvedValueOnce({
+        stdout: JSON.stringify({
+          success: true,
+          completed: ['task-001'],
+          duration: 1000,
+        }),
+        stderr: '',
+        exitCode: 0,
+      } as any);
+
+      const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+      expect(result.success).toBe(true);
+      expect(mockedExeca).toHaveBeenCalledTimes(3); // 1 health check + 2 execution attempts
+    });
+
+    it('should retry on rate limit errors', async () => {
+      const adapter = new ClaudeCodeAdapter({ maxRetries: 3, debug: false });
+      const context = createMockContext();
+
+      mockHealthCheck();
+
+      // First attempt fails with rate limit
+      const rateLimitError = new Error('Rate limit exceeded: too many requests');
+      mockedExeca.mockRejectedValueOnce(rateLimitError);
+
+      // Second attempt succeeds
+      mockedExeca.mockResolvedValueOnce({
+        stdout: JSON.stringify({ success: true, duration: 1000 }),
+        stderr: '',
+        exitCode: 0,
+      } as any);
+
+      const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+      expect(result.success).toBe(true);
+      expect(mockedExeca).toHaveBeenCalledTimes(3); // health + 2 attempts
+    });
+
+    it('should not retry on non-retryable errors', async () => {
+      const adapter = new ClaudeCodeAdapter({ maxRetries: 3, debug: false });
+      const context = createMockContext();
+
+      mockHealthCheck();
+
+      // Fail with a non-retryable error
+      const nonRetryableError = new Error('Invalid syntax in prompt');
+      mockedExeca.mockRejectedValueOnce(nonRetryableError);
+
+      const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+      expect(result.success).toBe(false);
+      expect(result.errors[0]?.message).toContain('Invalid syntax');
+      expect(mockedExeca).toHaveBeenCalledTimes(2); // health + 1 attempt only
+    });
+
+    it('should fail after max retries on persistent transient errors', async () => {
+      const adapter = new ClaudeCodeAdapter({ maxRetries: 3, debug: false });
+      const context = createMockContext();
+
+      mockHealthCheck();
+
+      // All attempts fail with network error
+      const networkError = new Error('Connection refused');
+      (networkError as any).code = 'ECONNREFUSED';
+      mockedExeca.mockRejectedValue(networkError);
+
+      const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+      expect(result.success).toBe(false);
+      expect(result.errors[0]?.message).toContain('Connection refused');
+      expect(mockedExeca).toHaveBeenCalledTimes(4); // health + 3 attempts
+    });
+
+    it('should not retry on timeout errors', async () => {
+      const adapter = new ClaudeCodeAdapter({ maxRetries: 3, timeout: 1000, debug: false });
+      const context = createMockContext();
+
+      mockHealthCheck();
+
+      // Timeout error from execa
+      const timeoutError = new Error('Command timed out');
+      (timeoutError as any).timedOut = true;
+      mockedExeca.mockRejectedValueOnce(timeoutError);
+
+      const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+      expect(result.success).toBe(false);
+      expect(result.errors[0]?.message).toContain('timed out');
+      expect(mockedExeca).toHaveBeenCalledTimes(2); // health + 1 attempt only (no retry)
+    });
+
+    it('should apply exponential backoff between retries', async () => {
+      const adapter = new ClaudeCodeAdapter({ maxRetries: 3, debug: false });
+      const context = createMockContext();
+
+      mockHealthCheck();
+
+      const startTime = Date.now();
+
+      // All attempts fail with transient error
+      const networkError = new Error('Service unavailable (503)');
+      mockedExeca
+        .mockRejectedValueOnce(networkError)
+        .mockRejectedValueOnce(networkError)
+        .mockRejectedValueOnce(networkError);
+
+      const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+      const duration = Date.now() - startTime;
+
+      expect(result.success).toBe(false);
+      // With exponential backoff: 0ms + 1000ms + 2000ms = at least 3000ms
+      expect(duration).toBeGreaterThanOrEqual(3000);
+      expect(mockedExeca).toHaveBeenCalledTimes(4); // health + 3 attempts
+    });
+
+    it(
+      'should identify various transient error codes',
+      async () => {
+        const adapter = new ClaudeCodeAdapter({ maxRetries: 2, debug: false });
+        const context = createMockContext();
+
+      const transientCodes = ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'EAGAIN', 'EBUSY'];
+
+      for (const code of transientCodes) {
+        jest.clearAllMocks();
+        mockHealthCheck();
+
+        const error = new Error(`Network error: ${code}`);
+        (error as any).code = code;
+        mockedExeca.mockRejectedValueOnce(error);
+
+        // Second attempt succeeds
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true, duration: 100 }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(true);
+        expect(mockedExeca).toHaveBeenCalledTimes(3); // health + 2 attempts
+      }
+      },
+      10000
+    ); // Increase timeout for this test (5 error codes × ~1s backoff each)
+  });
 });

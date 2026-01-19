@@ -48,8 +48,7 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
   private readonly cliPath: string;
   private readonly timeout: number;
   private readonly debug: boolean;
-  // maxRetries reserved for future use in Task 3.2.10 (retry logic)
-  // private readonly maxRetries: number;
+  private readonly maxRetries: number;
 
   /**
    * Create a new Claude Code adapter
@@ -59,8 +58,7 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
     this.cliPath = options.cliPath || 'claude';
     this.timeout = options.timeout || 60 * 60 * 1000; // 60 minutes default
     this.debug = options.debug || false;
-    // maxRetries will be used in Task 3.2.10 (retry logic)
-    // this.maxRetries = options.maxRetries || 3;
+    this.maxRetries = options.maxRetries || 3;
     this.version = this.detectVersion();
   }
 
@@ -228,7 +226,13 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
   }
 
   /**
-   * Execute agent with timeout protection
+   * Execute agent with timeout protection and retry logic
+   *
+   * Implements exponential backoff for transient errors:
+   * - Attempt 1: immediate
+   * - Attempt 2: 1s delay
+   * - Attempt 3: 2s delay
+   * - Attempt 4: 4s delay
    *
    * @private
    */
@@ -238,37 +242,62 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
     context: ExecutionContext
   ): Promise<ExecutionResult> {
     const startTime = Date.now();
+    let lastError: any;
+    let attempt = 0;
 
-    // Note: The timeout is now handled by execa's built-in timeout option
-    // in executeInternal(). Execa will automatically kill the process with
-    // SIGTERM and then SIGKILL if it doesn't exit gracefully.
-    // This provides more robust timeout handling than manual process tracking.
-
-    // We keep this wrapper for potential future enhancements like:
-    // - Multi-step execution with inter-step timeouts
-    // - Custom cleanup logic before/after execution
-    // - Progress tracking and partial result handling
-
-    try {
-      return await this.executeInternal(agentId, mode, context);
-    } catch (error) {
-      // Handle timeout errors from execa
-      if (error && typeof error === 'object' && 'timedOut' in error && error.timedOut) {
-        this.logDebug(`Agent ${agentId} execution timed out after ${this.timeout}ms`);
-        return this.createErrorResult(
-          startTime,
-          `Execution timed out after ${this.timeout / 1000} seconds`,
-          error instanceof Error ? error.stack : undefined
+    // Retry loop with exponential backoff
+    while (attempt < this.maxRetries) {
+      try {
+        this.logDebug(
+          `Executing agent ${agentId} (attempt ${attempt + 1}/${this.maxRetries})`
         );
-      }
+        return await this.executeInternal(agentId, mode, context);
+      } catch (error) {
+        lastError = error;
+        attempt++;
 
-      // Handle other execution errors
-      return this.createErrorResult(
-        startTime,
-        error instanceof Error ? error.message : 'Execution failed',
-        error instanceof Error ? error.stack : undefined
-      );
+        // Handle timeout errors from execa (not retryable)
+        if (error && typeof error === 'object' && 'timedOut' in error && error.timedOut) {
+          this.logDebug(`Agent ${agentId} execution timed out after ${this.timeout}ms`);
+          return this.createErrorResult(
+            startTime,
+            `Execution timed out after ${this.timeout / 1000} seconds`,
+            error instanceof Error ? error.stack : undefined
+          );
+        }
+
+        // Check if error is retryable
+        const isRetryable = this.isRetryableError(error);
+
+        if (!isRetryable || attempt >= this.maxRetries) {
+          // Non-retryable error or max retries reached
+          this.logDebug(
+            `Agent ${agentId} execution failed: ${isRetryable ? 'max retries reached' : 'non-retryable error'}`
+          );
+          return this.createErrorResult(
+            startTime,
+            error instanceof Error ? error.message : 'Execution failed',
+            error instanceof Error ? error.stack : undefined
+          );
+        }
+
+        // Calculate exponential backoff delay
+        const backoffMs = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
+        this.logDebug(
+          `Transient error encountered, retrying after ${backoffMs}ms (attempt ${attempt}/${this.maxRetries})`
+        );
+
+        // Wait before retry
+        await this.sleep(backoffMs);
+      }
     }
+
+    // Should never reach here due to the loop logic, but satisfy TypeScript
+    return this.createErrorResult(
+      startTime,
+      lastError instanceof Error ? lastError.message : 'Execution failed after all retries',
+      lastError instanceof Error ? lastError.stack : undefined
+    );
   }
 
   /**
@@ -763,6 +792,70 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
     } catch (error) {
       return 'unknown';
     }
+  }
+
+  /**
+   * Check if an error is retryable (transient)
+   *
+   * Transient errors include:
+   * - Network errors (ECONNREFUSED, ECONNRESET, ETIMEDOUT)
+   * - Temporary resource unavailability (EAGAIN, EBUSY)
+   * - Rate limiting errors
+   *
+   * @private
+   */
+  private isRetryableError(error: any): boolean {
+    if (!error) {
+      return false;
+    }
+
+    // Check error code for common transient errors
+    const retryableCodes = new Set([
+      'ECONNREFUSED', // Connection refused
+      'ECONNRESET', // Connection reset
+      'ETIMEDOUT', // Connection timeout
+      'ENOTFOUND', // DNS lookup failed
+      'ENETUNREACH', // Network unreachable
+      'EAGAIN', // Resource temporarily unavailable
+      'EBUSY', // Resource busy
+      'EPIPE', // Broken pipe
+      'EAI_AGAIN', // Temporary DNS failure
+    ]);
+
+    if (error.code && retryableCodes.has(error.code)) {
+      return true;
+    }
+
+    // Check for rate limiting errors in message
+    const errorMessage = error.message?.toLowerCase() || '';
+    if (
+      errorMessage.includes('rate limit') ||
+      errorMessage.includes('too many requests') ||
+      errorMessage.includes('429')
+    ) {
+      return true;
+    }
+
+    // Check for temporary service unavailability
+    if (
+      errorMessage.includes('service unavailable') ||
+      errorMessage.includes('503') ||
+      errorMessage.includes('temporarily unavailable')
+    ) {
+      return true;
+    }
+
+    // Not a retryable error
+    return false;
+  }
+
+  /**
+   * Sleep for a specified duration
+   *
+   * @private
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**

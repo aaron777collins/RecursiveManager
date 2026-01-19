@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 17:45:00 EST
+Last Updated: 2026-01-19 19:30:00 EST
 
 ## Status
 
@@ -385,8 +385,8 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 3.2.6: Implement buildMultiPerspectivePrompt(question, perspectives)
 - [x] Task 3.2.7: Implement execution context preparation (load files, tasks, messages)
 - [x] Task 3.2.8: Implement result parsing from Claude Code output
-- [ ] Task 3.2.9: Add timeout protection (EC-6.2) - default 60 minutes
-- [ ] Task 3.2.10: Add error handling and retry logic
+- [x] Task 3.2.9: Add timeout protection (EC-6.2) - default 60 minutes
+- [x] Task 3.2.10: Add error handling and retry logic
 - [ ] Task 3.2.11: Handle framework unavailability (EC-6.1) with fallback
 - [ ] Task 3.2.12: Integration tests with real Claude Code CLI
 - [ ] Task 3.2.13: Tests for timeout handling
@@ -7986,3 +7986,81 @@ Tests:       167 passed, 167 total
 - Proper TypeScript null-safety throughout
 - Ready for integration with execution orchestrator
 
+
+---
+
+## Latest Completion (2026-01-19 19:30:00 EST)
+
+### Task 3.2.10: Add error handling and retry logic ✅
+
+**Implementation Summary:**
+
+1. **Retry Configuration**:
+   - Added `maxRetries` option to `ClaudeCodeAdapterOptions` (default: 3)
+   - Stored as private readonly field in adapter class
+   - Configurable per adapter instance
+
+2. **Retry Logic with Exponential Backoff** (executeWithTimeout method):
+   - Implements retry loop with exponential backoff for transient errors
+   - Backoff calculation: `Math.min(1000 * Math.pow(2, attempt - 1), 5000)`
+   - Retry sequence: 0ms → 1000ms → 2000ms → 4000ms (capped at 5000ms)
+   - Exits immediately on non-retryable errors (timeout, validation errors)
+   - Tracks attempt count and logs retry attempts with debug messages
+
+3. **Transient Error Detection** (isRetryableError method):
+   - **Network errors**: ECONNREFUSED, ECONNRESET, ETIMEDOUT, ENOTFOUND, ENETUNREACH, EPIPE, EAI_AGAIN
+   - **Resource errors**: EAGAIN, EBUSY
+   - **Rate limiting**: Detects "rate limit", "too many requests", "429" in error messages
+   - **Service unavailability**: Detects "service unavailable", "503", "temporarily unavailable"
+   - Returns false for timeout errors (not retryable)
+   - Returns false for validation errors and other permanent failures
+
+4. **Sleep Helper** (sleep method):
+   - Simple promise-based sleep implementation
+   - Used for exponential backoff delays between retries
+
+5. **Error Handling Flow**:
+   - Health check → Execute → Catch error → Check if timeout (exit) → Check if retryable
+   - If retryable and attempts < maxRetries: sleep with backoff, retry
+   - If not retryable or max retries reached: return error result
+   - All errors converted to ExecutionResult with error details
+
+**Test Coverage** (7 new tests, all passing):
+- ✅ Retry on transient network errors (ECONNRESET)
+- ✅ Retry on rate limit errors
+- ✅ No retry on non-retryable errors (validation, syntax errors)
+- ✅ Fail after max retries on persistent transient errors
+- ✅ No retry on timeout errors (immediate failure)
+- ✅ Exponential backoff timing verification (3+ seconds for 3 attempts)
+- ✅ Multiple transient error codes (ECONNRESET, ETIMEDOUT, ENOTFOUND, EAGAIN, EBUSY)
+
+**Files Modified:**
+- `packages/adapters/src/adapters/claude-code/index.ts`:
+  - Uncommented maxRetries field and initialization (+2 lines)
+  - Enhanced executeWithTimeout() with retry loop (+42 lines)
+  - Added isRetryableError() helper method (+53 lines)
+  - Added sleep() helper method (+7 lines)
+- `packages/adapters/src/adapters/claude-code/__tests__/ClaudeCodeAdapter.test.ts`:
+  - Added "Retry Logic" test suite with 7 comprehensive tests (+162 lines)
+
+**Test Results:**
+```
+PASS adapters src/adapters/claude-code/__tests__/ClaudeCodeAdapter.test.ts
+Test Suites: 6 passed, 6 total
+Tests:       55 passed, 55 total
+Time:        15.889 s
+```
+
+**Edge Cases Addressed:**
+- EC-6.2: Timeout handling (already implemented, confirmed not retryable)
+- Transient network failures (ECONNREFUSED, ECONNRESET, ETIMEDOUT, etc.)
+- Rate limiting with automatic backoff
+- Service unavailability (503 errors)
+- Non-retryable errors handled correctly (no unnecessary retries)
+
+**Implementation Notes:**
+- Follows the same exponential backoff pattern as SQLite retry logic (EC-7.2) documented in EDGE_CASES_AND_CONTINGENCIES.md
+- Timeout errors explicitly excluded from retry logic (as per EC-6.2)
+- Debug logging for retry attempts when debug mode enabled
+- Max backoff capped at 5 seconds to prevent excessive delays
+- All retries logged with attempt number for observability
