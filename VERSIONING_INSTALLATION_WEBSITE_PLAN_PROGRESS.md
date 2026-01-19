@@ -31,7 +31,7 @@ IN_PROGRESS
 
 ### Phase 4: CI/CD Automation
 - [x] 4.1 Create docs.yml GitHub Actions workflow
-- [ ] 4.2 Create release.yml GitHub Actions workflow
+- [x] 4.2 Create release.yml GitHub Actions workflow
 
 ### Phase 5: Package Structure Updates
 - [ ] 5.1 Update root package.json scripts
@@ -141,7 +141,7 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 4.1: Created docs.yml GitHub Actions workflow for documentation deployment
+- Task 4.2: Created release.yml GitHub Actions workflow for automated release management
 
 ## Notes
 
@@ -304,3 +304,22 @@ IN_PROGRESS
   - Verified documentation builds successfully with mkdocs build --strict
   - Workflow follows GitHub Actions best practices
   - Ready for GitHub Pages deployment when workflow runs
+
+### Iteration 16 (2026-01-19)
+- Task 4.2: Created release.yml GitHub Actions workflow
+  - Created .github/workflows/release.yml for automated release management
+  - Configured workflow to trigger on version tags (v*)
+  - Set up proper permissions (contents: write for creating releases)
+  - Implemented version extraction from git tag
+  - Added changelog extraction using awk to parse CHANGELOG.md format
+  - Extracts release notes for specific version from Keep a Changelog format
+  - Configured release creation using softprops/action-gh-release@v1
+  - Release includes:
+    - Version number in title (RecursiveManager v{version})
+    - Extracted changelog content from CHANGELOG.md
+    - Installation instructions with one-liner
+    - Update instructions using recursive-manager update command
+  - Configured as non-draft, non-prerelease by default
+  - Added verification step to confirm release creation
+  - Follows GitHub Actions best practices
+  - Ready to create releases when tags are pushed
