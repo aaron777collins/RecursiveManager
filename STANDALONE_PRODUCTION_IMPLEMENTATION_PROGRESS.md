@@ -159,7 +159,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 1.3: Fix any remaining test failures in core package
 - [x] 1.4: Fix any remaining test failures in CLI package
 - [x] 1.5: Fix any remaining test failures in adapters package
-- [ ] 1.6: Fix any remaining test failures in scheduler package
+- [x] 1.6: Fix any remaining test failures in scheduler package
 - [ ] 1.7: Run ESLint and fix all errors (plan says 6 errors)
 - [ ] 1.8: Verify 100% test pass rate
 - [ ] 1.9: Build all packages (npm run build)
@@ -467,7 +467,7 @@ When build mode begins, it should:
 
 ## Completed This Iteration
 
-- Task 1.5: Fixed all remaining test failures in adapters package (253/253 tests passing)
+- Task 1.6: Verified scheduler package tests - no failures found (25/25 tests passing)
 
 ## Notes
 
@@ -652,6 +652,20 @@ Fixed all 8 failing tests in CLI package by correcting test code to match actual
 
 **Status: ALL CLI PACKAGE TESTS NOW PASSING**
 
+### Task 1.6 Summary (COMPLETE)
+
+**Scheduler Package Test Status:**
+
+Ran full test suite for scheduler package:
+- Result: ALL 25 tests passing ✅
+- Test suites: 2/2 passed
+- No failures found
+- Files tested:
+  - src/__tests__/index.test.ts
+  - src/__tests__/ScheduleManager.test.ts
+
+**Status: SCHEDULER PACKAGE TESTS ALREADY PASSING - NO FIXES NEEDED**
+
 ### Next Task
 
-Task 1.5: Fix any remaining test failures in adapters package
+Task 1.7: Run ESLint and fix all errors (plan says 6 errors)
