@@ -104,6 +104,10 @@ export interface CommunicationChannels {
   notifyOnDelegation?: boolean;
   /** Whether to notify on escalation */
   notifyOnEscalation?: boolean;
+  /** Whether to notify on task completion (for managers) */
+  notifyOnCompletion?: boolean;
+  /** Whether to notify when involved in a task deadlock */
+  notifyOnDeadlock?: boolean;
 }
 
 /**

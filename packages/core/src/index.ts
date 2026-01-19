@@ -41,3 +41,12 @@ export {
 
 // Task Archival (Phase 2.3)
 export { archiveOldTasks, compressOldArchives, getCompletedTasks } from './tasks/archiveTask';
+
+// Deadlock Monitoring and Alerts (Task 2.3.22)
+export {
+  notifyDeadlock,
+  type NotifyDeadlockOptions,
+  monitorDeadlocks,
+  type MonitorDeadlocksOptions,
+  type MonitorDeadlocksResult,
+} from './tasks';

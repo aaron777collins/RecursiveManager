@@ -28,3 +28,14 @@ export {
   getCompletedTasks,
   compressOldArchives,
 } from './archiveTask';
+
+export {
+  notifyDeadlock,
+  NotifyDeadlockOptions,
+} from './notifyDeadlock';
+
+export {
+  monitorDeadlocks,
+  MonitorDeadlocksOptions,
+  MonitorDeadlocksResult,
+} from './monitorDeadlocks';

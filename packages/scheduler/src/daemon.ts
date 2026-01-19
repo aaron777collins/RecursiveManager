@@ -9,7 +9,7 @@
  */
 
 import { getDatabase } from '@recursive-manager/common';
-import { archiveOldTasks, compressOldArchives } from '@recursive-manager/core';
+import { archiveOldTasks, compressOldArchives, monitorDeadlocks } from '@recursive-manager/core';
 import { ScheduleManager } from './ScheduleManager';
 import type { ScheduleRecord } from './ScheduleManager';
 import * as winston from 'winston';
@@ -69,6 +69,38 @@ const JOB_EXECUTORS: Record<string, JobExecutor> = {
       });
     } catch (error) {
       logger.error('Task archival job failed', {
+        scheduleId: schedule.id,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      throw error;
+    }
+  },
+
+  'Monitor for task deadlocks and send alerts': async (schedule) => {
+    const db = getDatabase();
+    logger.info('Starting deadlock monitoring job', { scheduleId: schedule.id });
+
+    try {
+      // Check all blocked tasks for deadlocks
+      const result = await monitorDeadlocks(db);
+      logger.info('Deadlock monitoring completed', {
+        scheduleId: schedule.id,
+        deadlocksDetected: result.deadlocksDetected,
+        notificationsSent: result.notificationsSent,
+        deadlockedTaskIds: result.deadlockedTaskIds,
+      });
+
+      // Log details if deadlocks were found
+      if (result.deadlocksDetected > 0) {
+        logger.warn('Task deadlocks detected', {
+          scheduleId: schedule.id,
+          deadlocksDetected: result.deadlocksDetected,
+          cycles: result.cycles,
+        });
+      }
+    } catch (error) {
+      logger.error('Deadlock monitoring job failed', {
         scheduleId: schedule.id,
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
@@ -188,8 +220,13 @@ async function main(): Promise<void> {
 
     // Register the daily archival job if not already registered
     logger.info('Registering daily archival job...');
-    const scheduleId = scheduleManager.registerDailyArchivalJob('system');
-    logger.info('Daily archival job registered', { scheduleId });
+    const archivalScheduleId = scheduleManager.registerDailyArchivalJob('system');
+    logger.info('Daily archival job registered', { scheduleId: archivalScheduleId });
+
+    // Register the deadlock monitoring job if not already registered
+    logger.info('Registering deadlock monitoring job...');
+    const deadlockScheduleId = scheduleManager.registerDeadlockMonitoringJob('system');
+    logger.info('Deadlock monitoring job registered', { scheduleId: deadlockScheduleId });
 
     // Start the scheduler loop
     await schedulerLoop();

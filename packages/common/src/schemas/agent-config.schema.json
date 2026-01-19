@@ -240,6 +240,26 @@
           "description": "How often to send status updates",
           "enum": ["never", "daily", "weekly", "on-completion"],
           "default": "daily"
+        },
+        "notifyOnDelegation": {
+          "type": "boolean",
+          "description": "Whether to receive notifications when tasks are delegated to this agent",
+          "default": true
+        },
+        "notifyOnEscalation": {
+          "type": "boolean",
+          "description": "Whether to receive notifications when subordinates escalate issues",
+          "default": true
+        },
+        "notifyOnCompletion": {
+          "type": "boolean",
+          "description": "Whether to receive notifications when subordinates complete tasks (for managers)",
+          "default": true
+        },
+        "notifyOnDeadlock": {
+          "type": "boolean",
+          "description": "Whether to receive notifications when tasks are involved in a deadlock",
+          "default": true
         }
       },
       "default": {

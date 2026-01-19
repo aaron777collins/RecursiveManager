@@ -365,4 +365,47 @@ export class ScheduleManager {
       enabled: true,
     });
   }
+
+  /**
+   * Register the deadlock monitoring job (Task 2.3.22)
+   *
+   * Creates a schedule that runs hourly to check for task deadlocks and send alerts.
+   * If a schedule with the same description already exists, it will not create a duplicate.
+   *
+   * @param agentId - The agent ID (typically 'system')
+   * @returns The schedule ID (existing or newly created)
+   *
+   * @example
+   * ```typescript
+   * const manager = new ScheduleManager(db);
+   * const scheduleId = manager.registerDeadlockMonitoringJob('system');
+   * console.log(`Deadlock monitoring job registered with ID: ${scheduleId}`);
+   * ```
+   */
+  registerDeadlockMonitoringJob(agentId: string = 'system'): string {
+    const description = 'Monitor for task deadlocks and send alerts';
+
+    // Check if a schedule with this description already exists for this agent
+    const existing = this.db
+      .prepare(
+        `
+      SELECT id FROM schedules
+      WHERE agent_id = ? AND description = ?
+    `
+      )
+      .get(agentId, description) as { id: string } | undefined;
+
+    if (existing) {
+      return existing.id;
+    }
+
+    // Create new schedule: hourly at minute 0
+    return this.createCronSchedule({
+      agentId,
+      description,
+      cronExpression: '0 * * * *',
+      timezone: 'UTC',
+      enabled: true,
+    });
+  }
 }

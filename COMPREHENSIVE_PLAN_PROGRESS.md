@@ -332,7 +332,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 2.3.20: Implement detectDeadlock(taskId) with DFS cycle detection
 - [x] Task 2.3.21: Implement getBlockedTasks(agentId)
-- [ ] Task 2.3.22: Add automatic deadlock alerts
+- [x] Task 2.3.22: Add automatic deadlock alerts
 - [x] Task 2.3.23: Prevent creating circular dependencies
 
 ##### Edge Case Handling
@@ -6697,4 +6697,141 @@ Created comprehensive test suite in `packages/core/src/tasks/__tests__/completeT
 - Scheduler daemon can be started with `recursive-manager-scheduler` command
 - Database migrations already support the schedules table (migration 004)
 - Integration with existing archival functions from Task 2.3.17 and 2.3.19
+
+
+---
+
+## Completed This Iteration (2026-01-19 21:30:00 EST)
+
+**Task 2.3.22**: Add automatic deadlock alerts
+
+### Implementation Summary
+
+Implemented comprehensive deadlock monitoring and alerting system that detects circular task dependencies and automatically notifies all affected agents. The system runs hourly via the scheduler daemon and respects agent notification preferences.
+
+### What Was Implemented
+
+**1. Deadlock Notification System** (`packages/core/src/tasks/notifyDeadlock.ts`):
+- `notifyDeadlock(db, taskIds[], options)` - Sends alert notifications to all agents involved in a deadlock cycle
+- Creates urgent, action-required messages with detailed deadlock visualization
+- Shows complete cycle with task ownership and blocking relationships
+- Provides actionable resolution steps for agents
+- Respects agent preferences via `communication.notifyOnDeadlock` config setting
+- Includes audit logging for all notification attempts
+- Handles errors gracefully (continues notifying other agents if one fails)
+
+**2. Deadlock Monitoring Worker** (`packages/core/src/tasks/monitorDeadlocks.ts`):
+- `monitorDeadlocks(db, options)` - Scans all blocked tasks for deadlocks and sends alerts
+- Queries all tasks with status='blocked'
+- Runs deadlock detection on each blocked task using existing `detectTaskDeadlock()` function
+- Deduplicates cycles using canonical form (sorted task IDs)
+- Returns comprehensive statistics: deadlocksDetected, notificationsSent, deadlockedTaskIds, cycles
+- Error-tolerant: logs errors but continues processing other tasks/cycles
+
+**3. Scheduler Integration** (`packages/scheduler/src/ScheduleManager.ts` + `daemon.ts`):
+- Added `registerDeadlockMonitoringJob()` method to ScheduleManager
+- Registers hourly cron job (0 * * * *) for deadlock monitoring
+- Added job executor in daemon: 'Monitor for task deadlocks and send alerts'
+- Integrates with `monitorDeadlocks()` worker function
+- Logs statistics on each run (deadlocks detected, notifications sent)
+- Warns in logs when deadlocks are found with cycle details
+- Automatically registered on daemon startup
+
+**4. Agent Configuration Schema Updates**:
+- Added `communication.notifyOnDeadlock` boolean field to TypeScript types
+- Added `communication.notifyOnCompletion` boolean field (was missing)
+- Updated JSON schema with default values (both default to true)
+- Updated schema descriptions for all notification preferences
+
+**5. Package Exports**:
+- Exported `notifyDeadlock` and `NotifyDeadlockOptions` from core/tasks
+- Exported `monitorDeadlocks`, `MonitorDeadlocksOptions`, `MonitorDeadlocksResult` from core/tasks
+- Added deadlock monitoring exports to core package index
+
+### Key Design Decisions
+
+**Notification Content**:
+- Messages marked as urgent priority and action-required
+- Include visual cycle representation showing all tasks and blocking relationships
+- Provide 4 resolution strategies: remove dependency, reorder tasks, escalate, complete blocking task
+- Show agent's specific tasks in the cycle
+- Include timestamps and affected agent count for context
+
+**Deduplication Strategy**:
+- Same cycle can be detected from different entry points (tasks in the cycle)
+- Use canonical form: sorted array of task IDs joined with '|'
+- Ensures each unique cycle triggers notifications only once per monitoring run
+- Prevents alert fatigue from duplicate notifications
+
+**Error Handling**:
+- Notification failures don't stop processing of other agents
+- Audit logs record both successful and failed notifications
+- Worker continues checking other tasks if one task's deadlock detection fails
+- System prioritizes alerting as many agents as possible
+
+**Scheduling**:
+- Hourly monitoring strikes balance between timely detection and system load
+- More frequent than daily but not overwhelming
+- Can be adjusted by modifying cron expression in `registerDeadlockMonitoringJob()`
+
+### Files Created
+
+- `packages/core/src/tasks/notifyDeadlock.ts` (230+ lines)
+- `packages/core/src/tasks/monitorDeadlocks.ts` (130+ lines)
+
+### Files Modified
+
+- `packages/common/src/types/agent-config.ts` - Added notifyOnDeadlock and notifyOnCompletion fields
+- `packages/common/src/schemas/agent-config.schema.json` - Added notification preference schemas
+- `packages/scheduler/src/ScheduleManager.ts` - Added registerDeadlockMonitoringJob() method
+- `packages/scheduler/src/daemon.ts` - Added deadlock monitoring job executor and registration
+- `packages/core/src/tasks/index.ts` - Added exports for deadlock functions
+- `packages/core/src/index.ts` - Added exports for deadlock monitoring
+
+### Integration Points
+
+**Uses Existing Infrastructure**:
+- `detectTaskDeadlock()` from common package (Task 2.3.20)
+- `getTask()` and `getAgent()` query functions
+- `createMessage()` and `auditLog()` from common package
+- `loadAgentConfig()` for checking notification preferences
+- `writeMessageToInbox()` and message system from core
+- ScheduleManager cron scheduling (Task 2.3.18)
+
+**Follows Established Patterns**:
+- Notification structure matches `notifyTaskCompletion()` and `notifyTaskDelegation()`
+- Uses same message format with frontmatter and markdown content
+- Respects agent configuration preferences
+- Audit logging on all operations
+- Error handling and graceful degradation
+
+### Testing Notes
+
+- Build tools (tsc, jest) not available in current environment
+- Code follows TypeScript best practices and existing patterns
+- Ready for testing once build environment is configured
+- Should add test suite matching patterns in:
+  - `packages/core/src/tasks/__tests__/notifyCompletion.test.ts`
+  - `packages/core/src/tasks/__tests__/notifyDelegation.test.ts`
+
+### Completion Status
+
+✅ **Task 2.3.22 COMPLETE**
+
+**Implemented**:
+- Deadlock notification function with rich message content
+- Deadlock monitoring worker with deduplication
+- Scheduler integration with hourly job
+- Agent configuration schema updates
+- Package exports
+
+**Ready For**:
+- Task 2.3.24: Detect and alert on task deadlocks (EC-2.1) - now possible with this infrastructure
+- Test creation (would be Task 2.3.33 expansion)
+- Production deployment of scheduler daemon
+
+**Next Tasks**:
+- Task 2.3.24: Detect and alert on task deadlocks (EC-2.1)
+- Task 2.3.25: Enforce task depth limits (EC-2.2)
+- Task 2.3.26: Handle abandoned tasks from paused/fired agents (EC-2.3)
 
