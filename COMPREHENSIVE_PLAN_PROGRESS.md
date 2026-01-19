@@ -138,8 +138,8 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 1.3.1: Create SQLite database initialization with WAL mode
 - [x] Task 1.3.2: Implement connection pooling
-- [ ] Task 1.3.3: Create migration system with version tracking
-- [ ] Task 1.3.4: Implement idempotent migration runner
+- [x] Task 1.3.3: Create migration system with version tracking
+- [x] Task 1.3.4: Implement idempotent migration runner
 
 ##### Schema Creation
 
@@ -2690,3 +2690,64 @@ Tests work around this by using manual backups with the expected format. This bu
 **IMPORTANT**: This section is ONLY for build mode to fill in after ALL implementation is complete and verified.
 
 <!-- Build mode will write RALPH_DONE here when finished -->
+
+---
+
+## Task 1.3.3 & 1.3.4 Completion (2026-01-18)
+
+**Completed**: Database migration system with version tracking and idempotent runner
+
+**Implementation**:
+
+Created a comprehensive database migration system in `packages/common/src/db/migrations.ts` with the following features:
+
+1. **Migration Interface**:
+   - Version-based migration tracking
+   - Up/down migration support
+   - Human-readable descriptions
+   - Transaction-wrapped execution
+
+2. **Core Functions**:
+   - `initializeMigrationTracking()` - Creates schema_version table (idempotent)
+   - `runMigrations()` - Applies pending migrations (idempotent)
+   - `rollbackMigrations()` - Rolls back N migrations
+   - `migrateToVersion()` - Migrate to specific version (up or down)
+   - `getMigrationStatus()` - Query migration status
+   - `getPendingMigrations()` - Get unapplied migrations
+   - `validateMigrations()` - Validate migration definitions
+
+3. **Key Features**:
+   - **Idempotent**: Safe to run multiple times, only applies pending migrations
+   - **Atomic**: Each migration runs in a transaction (all or nothing)
+   - **Versioned**: Tracks all applied versions in schema_version table
+   - **Rollback Support**: Optional down migrations for reversibility
+   - **Validation**: Comprehensive checks for version uniqueness, positive integers, non-empty statements
+   - **Error Handling**: Detailed error messages with migration context
+
+4. **Testing**:
+   - 35 comprehensive unit tests covering all functions
+   - Integration tests for full migration lifecycle
+   - Edge cases: duplicate versions, invalid SQL, rollback failures
+   - Idempotency tests
+   - Transaction rollback tests
+
+**Files Created**:
+
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/migrations.ts` (377 lines)
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/__tests__/migrations.test.ts` (698 lines)
+
+**Files Modified**:
+
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/index.ts` - Added migration exports
+- `/home/ubuntu/repos/RecursiveManager/COMPREHENSIVE_PLAN_PROGRESS.md` - Marked tasks complete
+
+**Test Results**: All 35 migration tests passing ✅
+
+**Export**: All migration functions exported from `@recursive-manager/common`
+
+**Notes**:
+
+- Migration system builds on existing version tracking infrastructure (Tasks 1.3.1 & 1.3.2)
+- Designed for extensibility - new migrations can be added to the array
+- Follows SQLite best practices with WAL mode and transactions
+- Ready for use in schema creation tasks (1.3.5-1.3.10)

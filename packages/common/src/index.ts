@@ -145,3 +145,16 @@ export {
   type DatabaseOptions,
   type DatabaseConnection,
 } from './db';
+
+// Database Migrations (Phase 1.3)
+export {
+  initializeMigrationTracking,
+  getMigrationStatus,
+  getPendingMigrations,
+  runMigrations,
+  rollbackMigrations,
+  validateMigrations,
+  migrateToVersion,
+  type Migration,
+  type MigrationStatus,
+} from './db/migrations';
