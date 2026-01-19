@@ -19,7 +19,6 @@ import Database from 'better-sqlite3';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
-  AgentConfig,
   PathOptions,
   getAgentDirectory,
   createAgentLogger,
@@ -852,7 +851,7 @@ export async function fireAgent(
     logger.debug('Agent validated for firing', {
       agentId,
       currentStatus: agent.status,
-      managerId: agent.reporting_to,
+      managerId: agent.reporting_to ?? undefined,
     });
 
     // STEP 2: HANDLE ORPHANED SUBORDINATES
@@ -1027,7 +1026,7 @@ export async function fireAgent(
       filesArchived,
     };
 
-    logger.info('Agent fire completed successfully', result);
+    logger.info('Agent fire completed successfully', { result });
 
     return result;
   } catch (err) {

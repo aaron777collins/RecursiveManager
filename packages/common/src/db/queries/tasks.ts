@@ -629,3 +629,125 @@ export function getBlockedTasks(db: Database.Database, agentId: string): TaskRec
   const results = query.all(agentId) as TaskRecord[];
   return results;
 }
+
+/**
+ * Update task progress with optimistic locking
+ *
+ * This function updates a task's percent_complete field while preventing race conditions using
+ * optimistic locking. The version field is used to detect concurrent modifications.
+ *
+ * **Optimistic Locking**:
+ * - The function accepts the current version number
+ * - The UPDATE only succeeds if the database version matches
+ * - If no rows are updated, it means another process modified the task
+ * - The version is automatically incremented on successful update
+ *
+ * **Progress Validation**:
+ * - Progress must be between 0 and 100 (inclusive)
+ * - Progress is clamped to valid range if needed
+ *
+ * @param db - Database instance
+ * @param id - Task ID to update
+ * @param percentComplete - New progress value (0-100)
+ * @param version - Current version number (for optimistic locking)
+ * @returns The updated task record
+ * @throws Error if task not found or version mismatch (concurrent modification)
+ *
+ * @example
+ * ```typescript
+ * // Fetch task with current version
+ * const task = getTask(db, 'task-001');
+ * if (!task) throw new Error('Task not found');
+ *
+ * // Update progress with optimistic locking
+ * try {
+ *   const updated = updateTaskProgress(db, task.id, 75, task.version);
+ *   console.log(`Task progress updated to ${updated.percent_complete}%`);
+ * } catch (error) {
+ *   console.error('Concurrent modification detected');
+ *   // Re-fetch task and retry if needed
+ * }
+ * ```
+ */
+export function updateTaskProgress(
+  db: Database.Database,
+  id: string,
+  percentComplete: number,
+  version: number
+): TaskRecord {
+  // First, verify the task exists
+  const currentTask = getTask(db, id);
+  if (!currentTask) {
+    throw new Error(`Task not found: ${id}`);
+  }
+
+  // Validate and clamp progress to 0-100 range
+  const clampedProgress = Math.max(0, Math.min(100, percentComplete));
+
+  // Prepare the UPDATE statement with optimistic locking
+  // Only update if the version matches (prevents race conditions)
+  const updateStmt = db.prepare(`
+    UPDATE tasks
+    SET
+      percent_complete = ?,
+      version = version + 1
+    WHERE id = ? AND version = ?
+  `);
+
+  try {
+    // Execute the update
+    const result = updateStmt.run(clampedProgress, id, version);
+
+    // Check if any rows were updated
+    if (result.changes === 0) {
+      // No rows updated means either:
+      // 1. Task doesn't exist (but we checked this above)
+      // 2. Version mismatch (concurrent modification)
+      throw new Error(
+        `Failed to update task ${id}: version mismatch. ` +
+          `Expected version ${version}, but task was modified by another process. ` +
+          `Please re-fetch the task and retry the operation.`
+      );
+    }
+
+    // Retrieve and return the updated task
+    const updatedTask = getTask(db, id);
+    if (!updatedTask) {
+      throw new Error(`Failed to retrieve updated task: ${id}`);
+    }
+
+    // Audit log successful task progress update
+    auditLog(db, {
+      agentId: currentTask.agent_id,
+      action: AuditAction.TASK_UPDATE,
+      targetAgentId: currentTask.agent_id,
+      success: true,
+      details: {
+        taskId: id,
+        title: currentTask.title,
+        previousProgress: currentTask.percent_complete,
+        newProgress: clampedProgress,
+        previousVersion: version,
+        newVersion: updatedTask.version,
+      },
+    });
+
+    return updatedTask;
+  } catch (error) {
+    // Audit log failed task progress update
+    auditLog(db, {
+      agentId: currentTask.agent_id,
+      action: AuditAction.TASK_UPDATE,
+      targetAgentId: currentTask.agent_id,
+      success: false,
+      details: {
+        taskId: id,
+        title: currentTask.title,
+        attemptedProgress: clampedProgress,
+        currentProgress: currentTask.percent_complete,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
+    throw error;
+  }
+}

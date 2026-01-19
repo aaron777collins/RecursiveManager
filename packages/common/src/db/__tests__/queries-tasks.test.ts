@@ -21,6 +21,7 @@ import {
   createTask,
   getTask,
   updateTaskStatus,
+  updateTaskProgress,
   getActiveTasks,
   detectTaskDeadlock,
   getBlockedTasks,
@@ -1625,6 +1626,137 @@ describe('Task Query API', () => {
       expect(auditEvents).toHaveLength(1);
       expect(auditEvents[0]!.success).toBe(0);
       const details = JSON.parse(auditEvents[0]!.details!);
+      expect(details.error).toContain('version mismatch');
+    });
+  });
+
+  describe('updateTaskProgress()', () => {
+    it('should update task progress with optimistic locking', () => {
+      // Create a task
+      const task = createTask(db, {
+        id: 'task-001',
+        agentId: 'agent-001',
+        title: 'Implement feature',
+        priority: 'high',
+        taskPath: 'Implement feature',
+      });
+
+      expect(task.percent_complete).toBe(0);
+      expect(task.version).toBe(0);
+
+      // Update progress to 50%
+      const updated1 = updateTaskProgress(db, task.id, 50, task.version);
+      expect(updated1.percent_complete).toBe(50);
+      expect(updated1.version).toBe(1);
+
+      // Update progress to 100%
+      const updated2 = updateTaskProgress(db, updated1.id, 100, updated1.version);
+      expect(updated2.percent_complete).toBe(100);
+      expect(updated2.version).toBe(2);
+    });
+
+    it('should clamp progress to 0-100 range', () => {
+      const task = createTask(db, {
+        id: 'task-002',
+        agentId: 'agent-001',
+        title: 'Test task',
+        taskPath: 'Test task',
+      });
+
+      // Try to set progress > 100
+      const updated1 = updateTaskProgress(db, task.id, 150, task.version);
+      expect(updated1.percent_complete).toBe(100);
+
+      // Try to set progress < 0
+      const updated2 = updateTaskProgress(db, updated1.id, -50, updated1.version);
+      expect(updated2.percent_complete).toBe(0);
+    });
+
+    it('should throw error for non-existent task', () => {
+      expect(() => updateTaskProgress(db, 'non-existent', 50, 0)).toThrow(
+        'Task not found: non-existent'
+      );
+    });
+
+    it('should throw error on version mismatch (concurrent modification)', () => {
+      const task = createTask(db, {
+        id: 'task-003',
+        agentId: 'agent-001',
+        title: 'Concurrent task',
+        taskPath: 'Concurrent task',
+      });
+
+      // Simulate concurrent modification by using wrong version
+      expect(() => updateTaskProgress(db, task.id, 50, 999)).toThrow('version mismatch');
+
+      // Task should remain unchanged
+      const unchanged = getTask(db, task.id);
+      expect(unchanged?.percent_complete).toBe(0);
+      expect(unchanged?.version).toBe(0);
+    });
+
+    it('should log successful progress update to audit log', () => {
+      const task = createTask(db, {
+        id: 'task-004',
+        agentId: 'agent-001',
+        title: 'Audited task',
+        taskPath: 'Audited task',
+      });
+
+      updateTaskProgress(db, task.id, 75, task.version);
+
+      // Query audit log for successful TASK_UPDATE
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.TASK_UPDATE,
+        agentId: 'agent-001',
+        success: true,
+      });
+
+      const progressUpdate = auditEvents.find((e) => {
+        const details = JSON.parse(e.details!);
+        return details.taskId === 'task-004' && details.newProgress === 75;
+      });
+
+      expect(progressUpdate).toBeDefined();
+      expect(progressUpdate!.success).toBe(1);
+      const details = JSON.parse(progressUpdate!.details!);
+      expect(details.previousProgress).toBe(0);
+      expect(details.newProgress).toBe(75);
+      expect(details.previousVersion).toBe(0);
+      expect(details.newVersion).toBe(1);
+    });
+
+    it('should log failed progress update to audit log', () => {
+      const task = createTask(db, {
+        id: 'task-005',
+        agentId: 'agent-001',
+        title: 'Failed update task',
+        taskPath: 'Failed update task',
+      });
+
+      // Try to update with wrong version
+      try {
+        updateTaskProgress(db, task.id, 50, 999);
+        expect(true).toBe(false); // Should not reach here
+      } catch (error) {
+        expect(error).toBeDefined();
+      }
+
+      // Query audit log for failed TASK_UPDATE
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.TASK_UPDATE,
+        agentId: 'agent-001',
+        success: false,
+      });
+
+      const failedUpdate = auditEvents.find((e) => {
+        const details = JSON.parse(e.details!);
+        return details.taskId === 'task-005' && details.attemptedProgress === 50;
+      });
+
+      expect(failedUpdate).toBeDefined();
+      expect(failedUpdate!.success).toBe(0);
+      const details = JSON.parse(failedUpdate!.details!);
       expect(details.error).toContain('version mismatch');
     });
   });
