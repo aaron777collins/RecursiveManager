@@ -24,6 +24,7 @@ import {
   getOrgChart,
   CreateAgentInput,
 } from '../queries';
+import { queryAuditLog, AuditAction } from '../queries/audit';
 
 describe('Agent Query API', () => {
   let dbPath: string;
@@ -435,6 +436,204 @@ describe('Agent Query API', () => {
     it('should return empty array for empty database', () => {
       const orgChart = getOrgChart(db);
       expect(orgChart).toHaveLength(0);
+    });
+  });
+
+  describe('Audit Logging Integration', () => {
+    it('should log HIRE action when creating an agent', () => {
+      const input: CreateAgentInput = {
+        id: 'ceo-001',
+        role: 'CEO',
+        displayName: 'Alice CEO',
+        createdBy: null,
+        reportingTo: null,
+        mainGoal: 'Lead the organization',
+        configPath: '/data/agents/ce/ceo-001/config.json',
+      };
+
+      createAgent(db, input);
+
+      // Query audit log for HIRE action
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.HIRE,
+        targetAgentId: 'ceo-001',
+      });
+
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]!.action).toBe(AuditAction.HIRE);
+      expect(auditEvents[0]!.target_agent_id).toBe('ceo-001');
+      expect(auditEvents[0]!.success).toBe(1); // SQLite boolean as 1
+      expect(auditEvents[0]!.agent_id).toBeNull(); // No creator for CEO
+
+      // Verify details
+      const details = JSON.parse(auditEvents[0]!.details!);
+      expect(details.role).toBe('CEO');
+      expect(details.displayName).toBe('Alice CEO');
+    });
+
+    it('should log HIRE action with creator when creating subordinate', () => {
+      // Create CEO first
+      createAgent(db, {
+        id: 'ceo-001',
+        role: 'CEO',
+        displayName: 'Alice CEO',
+        createdBy: null,
+        reportingTo: null,
+        mainGoal: 'Lead the organization',
+        configPath: '/data/agents/ce/ceo-001/config.json',
+      });
+
+      // Create CTO under CEO
+      createAgent(db, {
+        id: 'cto-001',
+        role: 'CTO',
+        displayName: 'Bob CTO',
+        createdBy: 'ceo-001',
+        reportingTo: 'ceo-001',
+        mainGoal: 'Manage technology',
+        configPath: '/data/agents/ct/cto-001/config.json',
+      });
+
+      // Query audit log for CTO hire
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.HIRE,
+        targetAgentId: 'cto-001',
+      });
+
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]!.agent_id).toBe('ceo-001'); // Created by CEO
+      expect(auditEvents[0]!.target_agent_id).toBe('cto-001');
+      expect(auditEvents[0]!.success).toBe(1);
+    });
+
+    it('should log PAUSE action when agent is paused', () => {
+      // Create agent
+      createAgent(db, {
+        id: 'ceo-001',
+        role: 'CEO',
+        displayName: 'Alice CEO',
+        createdBy: null,
+        reportingTo: null,
+        mainGoal: 'Lead the organization',
+        configPath: '/data/agents/ce/ceo-001/config.json',
+      });
+
+      // Pause the agent
+      updateAgent(db, 'ceo-001', { status: 'paused' });
+
+      // Query audit log for PAUSE action
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.PAUSE,
+        targetAgentId: 'ceo-001',
+      });
+
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]!.action).toBe(AuditAction.PAUSE);
+      expect(auditEvents[0]!.success).toBe(1);
+
+      // Verify details
+      const details = JSON.parse(auditEvents[0]!.details!);
+      expect(details.previousStatus).toBe('active');
+      expect(details.updates.status).toBe('paused');
+    });
+
+    it('should log RESUME action when agent is resumed', () => {
+      // Create and pause agent
+      createAgent(db, {
+        id: 'ceo-001',
+        role: 'CEO',
+        displayName: 'Alice CEO',
+        createdBy: null,
+        reportingTo: null,
+        mainGoal: 'Lead the organization',
+        configPath: '/data/agents/ce/ceo-001/config.json',
+      });
+      updateAgent(db, 'ceo-001', { status: 'paused' });
+
+      // Resume the agent
+      updateAgent(db, 'ceo-001', { status: 'active' });
+
+      // Query audit log for RESUME action
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.RESUME,
+        targetAgentId: 'ceo-001',
+      });
+
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]!.action).toBe(AuditAction.RESUME);
+      expect(auditEvents[0]!.success).toBe(1);
+
+      // Verify details
+      const details = JSON.parse(auditEvents[0]!.details!);
+      expect(details.previousStatus).toBe('paused');
+      expect(details.updates.status).toBe('active');
+    });
+
+    it('should log CONFIG_UPDATE action for non-status updates', () => {
+      // Create agent
+      createAgent(db, {
+        id: 'ceo-001',
+        role: 'CEO',
+        displayName: 'Alice CEO',
+        createdBy: null,
+        reportingTo: null,
+        mainGoal: 'Lead the organization',
+        configPath: '/data/agents/ce/ceo-001/config.json',
+      });
+
+      // Update non-status field
+      updateAgent(db, 'ceo-001', { displayName: 'Alice CEO Updated' });
+
+      // Query audit log for CONFIG_UPDATE action
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.CONFIG_UPDATE,
+        targetAgentId: 'ceo-001',
+      });
+
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]!.action).toBe(AuditAction.CONFIG_UPDATE);
+      expect(auditEvents[0]!.success).toBe(1);
+
+      // Verify details
+      const details = JSON.parse(auditEvents[0]!.details!);
+      expect(details.updates.displayName).toBe('Alice CEO Updated');
+    });
+
+    it('should log failed HIRE action on error', () => {
+      // Try to create duplicate agent - this will cause a UNIQUE constraint violation
+      const input: CreateAgentInput = {
+        id: 'ceo-001',
+        role: 'CEO',
+        displayName: 'Alice CEO',
+        createdBy: null,
+        reportingTo: null,
+        mainGoal: 'Lead the organization',
+        configPath: '/data/agents/ce/ceo-001/config.json',
+      };
+
+      // Create first time - should succeed
+      createAgent(db, input);
+
+      // Try to create again with same ID - should fail
+      try {
+        createAgent(db, input);
+        // Should not reach here
+        expect(true).toBe(false);
+      } catch (error) {
+        // Expected to fail
+        expect(error).toBeDefined();
+      }
+
+      // Query audit log for failed HIRE
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.HIRE,
+        targetAgentId: 'ceo-001',
+        success: false,
+      });
+
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]!.success).toBe(0); // SQLite boolean as 0
+      expect(auditEvents[0]!.details).toContain('error');
     });
   });
 });

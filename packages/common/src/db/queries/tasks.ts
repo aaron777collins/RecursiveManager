@@ -15,6 +15,7 @@ import Database from 'better-sqlite3';
 import { TaskRecord, CreateTaskInput, TaskStatus } from './types';
 import { TASK_MAX_DEPTH } from '../constants';
 import { getAgent } from './agents';
+import { auditLog, AuditAction } from './audit';
 
 /**
  * Get a task by ID
@@ -187,16 +188,47 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
     }
   });
 
-  // Run the transaction
-  transaction();
+  try {
+    // Run the transaction
+    transaction();
 
-  // Retrieve and return the created task
-  const task = getTask(db, input.id);
-  if (!task) {
-    throw new Error(`Failed to retrieve created task: ${input.id}`);
+    // Retrieve and return the created task
+    const task = getTask(db, input.id);
+    if (!task) {
+      throw new Error(`Failed to retrieve created task: ${input.id}`);
+    }
+
+    // Audit log successful task creation
+    auditLog(db, {
+      agentId: input.agentId,
+      action: AuditAction.TASK_CREATE,
+      targetAgentId: input.agentId,
+      success: true,
+      details: {
+        taskId: input.id,
+        title: input.title,
+        priority: input.priority,
+        parentTaskId: input.parentTaskId,
+        depth,
+      },
+    });
+
+    return task;
+  } catch (error) {
+    // Audit log failed task creation
+    auditLog(db, {
+      agentId: input.agentId,
+      action: AuditAction.TASK_CREATE,
+      targetAgentId: input.agentId,
+      success: false,
+      details: {
+        taskId: input.id,
+        title: input.title,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
+    throw error;
   }
-
-  return task;
 }
 
 /**
@@ -272,37 +304,74 @@ export function updateTaskStatus(
     WHERE id = ? AND version = ?
   `);
 
-  // Execute the update
-  const result = updateStmt.run(
-    status,
-    status, // for started_at CASE
-    now, // for started_at value
-    status, // for completed_at CASE (completed)
-    now, // for completed_at value
-    status, // for completed_at CASE (not completed)
-    id,
-    version
-  );
-
-  // Check if any rows were updated
-  if (result.changes === 0) {
-    // No rows updated means either:
-    // 1. Task doesn't exist (but we checked this above)
-    // 2. Version mismatch (concurrent modification)
-    throw new Error(
-      `Failed to update task ${id}: version mismatch. ` +
-        `Expected version ${version}, but task was modified by another process. ` +
-        `Please re-fetch the task and retry the operation.`
+  try {
+    // Execute the update
+    const result = updateStmt.run(
+      status,
+      status, // for started_at CASE
+      now, // for started_at value
+      status, // for completed_at CASE (completed)
+      now, // for completed_at value
+      status, // for completed_at CASE (not completed)
+      id,
+      version
     );
-  }
 
-  // Retrieve and return the updated task
-  const updatedTask = getTask(db, id);
-  if (!updatedTask) {
-    throw new Error(`Failed to retrieve updated task: ${id}`);
-  }
+    // Check if any rows were updated
+    if (result.changes === 0) {
+      // No rows updated means either:
+      // 1. Task doesn't exist (but we checked this above)
+      // 2. Version mismatch (concurrent modification)
+      throw new Error(
+        `Failed to update task ${id}: version mismatch. ` +
+          `Expected version ${version}, but task was modified by another process. ` +
+          `Please re-fetch the task and retry the operation.`
+      );
+    }
 
-  return updatedTask;
+    // Retrieve and return the updated task
+    const updatedTask = getTask(db, id);
+    if (!updatedTask) {
+      throw new Error(`Failed to retrieve updated task: ${id}`);
+    }
+
+    // Determine audit action based on status
+    const auditAction = status === 'completed' ? AuditAction.TASK_COMPLETE : AuditAction.TASK_UPDATE;
+
+    // Audit log successful task status update
+    auditLog(db, {
+      agentId: currentTask.agent_id,
+      action: auditAction,
+      targetAgentId: currentTask.agent_id,
+      success: true,
+      details: {
+        taskId: id,
+        title: currentTask.title,
+        previousStatus: currentTask.status,
+        newStatus: status,
+        previousVersion: version,
+        newVersion: updatedTask.version,
+      },
+    });
+
+    return updatedTask;
+  } catch (error) {
+    // Audit log failed task status update
+    auditLog(db, {
+      agentId: currentTask.agent_id,
+      action: AuditAction.TASK_UPDATE,
+      targetAgentId: currentTask.agent_id,
+      success: false,
+      details: {
+        taskId: id,
+        title: currentTask.title,
+        attemptedStatus: status,
+        currentStatus: currentTask.status,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
+    throw error;
+  }
 }
 
 /**

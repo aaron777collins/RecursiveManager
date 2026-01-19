@@ -27,6 +27,7 @@ import {
   CreateTaskInput,
 } from '../queries';
 import { TASK_MAX_DEPTH } from '../constants';
+import { queryAuditLog, AuditAction } from '../queries/audit';
 
 describe('Task Query API', () => {
   let dbPath: string;
@@ -1467,6 +1468,164 @@ describe('Task Query API', () => {
 
       expect(parentTask2?.depth).toBe(0);
       expect(childTask2?.depth).toBe(1);
+    });
+  });
+
+  describe('Audit Logging Integration', () => {
+    it('should log TASK_CREATE action when creating a task', () => {
+      const input: CreateTaskInput = {
+        id: 'task-001',
+        agentId: 'agent-001',
+        title: 'Implement feature',
+        priority: 'high',
+        taskPath: 'Implement feature',
+      };
+
+      createTask(db, input);
+
+      // Query audit log for TASK_CREATE action
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.TASK_CREATE,
+        agentId: 'agent-001',
+      });
+
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]!.action).toBe(AuditAction.TASK_CREATE);
+      expect(auditEvents[0]!.agent_id).toBe('agent-001');
+      expect(auditEvents[0]!.success).toBe(1);
+
+      // Verify details
+      const details = JSON.parse(auditEvents[0]!.details!);
+      expect(details.taskId).toBe('task-001');
+      expect(details.title).toBe('Implement feature');
+      expect(details.priority).toBe('high');
+      expect(details.depth).toBe(0);
+    });
+
+    it('should log TASK_UPDATE action when updating task status', () => {
+      const task = createTask(db, {
+        id: 'task-001',
+        agentId: 'agent-001',
+        title: 'Implement feature',
+        priority: 'high',
+        taskPath: 'Implement feature',
+      });
+
+      // Update task status
+      updateTaskStatus(db, task.id, 'in-progress', task.version);
+
+      // Query audit log for TASK_UPDATE action
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.TASK_UPDATE,
+        agentId: 'agent-001',
+      });
+
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]!.action).toBe(AuditAction.TASK_UPDATE);
+      expect(auditEvents[0]!.success).toBe(1);
+
+      // Verify details
+      const details = JSON.parse(auditEvents[0]!.details!);
+      expect(details.previousStatus).toBe('pending');
+      expect(details.newStatus).toBe('in-progress');
+    });
+
+    it('should log TASK_COMPLETE action when completing a task', () => {
+      const task = createTask(db, {
+        id: 'task-001',
+        agentId: 'agent-001',
+        title: 'Implement feature',
+        priority: 'high',
+        taskPath: 'Implement feature',
+      });
+
+      // Update to in-progress first
+      const inProgressTask = updateTaskStatus(db, task.id, 'in-progress', task.version);
+
+      // Complete the task
+      updateTaskStatus(db, inProgressTask.id, 'completed', inProgressTask.version);
+
+      // Query audit log for TASK_COMPLETE action
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.TASK_COMPLETE,
+        agentId: 'agent-001',
+      });
+
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]!.action).toBe(AuditAction.TASK_COMPLETE);
+      expect(auditEvents[0]!.success).toBe(1);
+
+      // Verify details
+      const details = JSON.parse(auditEvents[0]!.details!);
+      expect(details.previousStatus).toBe('in-progress');
+      expect(details.newStatus).toBe('completed');
+    });
+
+    it('should log failed TASK_CREATE action on error', () => {
+      // Try to create duplicate task - this will cause a UNIQUE constraint violation
+      const input: CreateTaskInput = {
+        id: 'task-001',
+        agentId: 'agent-001',
+        title: 'Implement feature',
+        priority: 'high',
+        taskPath: 'Implement feature',
+      };
+
+      // Create first time - should succeed
+      createTask(db, input);
+
+      // Try to create again with same ID - should fail during transaction
+      try {
+        createTask(db, input);
+        // Should not reach here
+        expect(true).toBe(false);
+      } catch (error) {
+        // Expected to fail
+        expect(error).toBeDefined();
+      }
+
+      // Query audit log for failed TASK_CREATE
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.TASK_CREATE,
+        agentId: 'agent-001',
+        success: false,
+      });
+
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]!.success).toBe(0);
+      expect(auditEvents[0]!.details).toContain('error');
+    });
+
+    it('should log failed TASK_UPDATE action on version mismatch', () => {
+      const task = createTask(db, {
+        id: 'task-001',
+        agentId: 'agent-001',
+        title: 'Implement feature',
+        priority: 'high',
+        taskPath: 'Implement feature',
+      });
+
+      // Try to update with wrong version (simulating concurrent modification)
+      try {
+        updateTaskStatus(db, task.id, 'in-progress', 999); // Wrong version
+        // Should not reach here
+        expect(true).toBe(false);
+      } catch (error) {
+        // Expected to fail
+        expect(error).toBeDefined();
+      }
+
+      // Query audit log for failed TASK_UPDATE
+      const auditEvents = queryAuditLog(db, {
+        action: AuditAction.TASK_UPDATE,
+        agentId: 'agent-001',
+        success: false,
+      });
+
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]!.success).toBe(0);
+      const details = JSON.parse(auditEvents[0]!.details!);
+      expect(details.error).toContain('version mismatch');
     });
   });
 });

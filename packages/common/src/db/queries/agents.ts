@@ -12,6 +12,7 @@
 
 import Database from 'better-sqlite3';
 import { AgentRecord, CreateAgentInput, UpdateAgentInput, OrgHierarchyRecord } from './types';
+import { auditLog, AuditAction } from './audit';
 
 /**
  * Create a new agent in the database and update org_hierarchy
@@ -104,16 +105,46 @@ export function createAgent(db: Database.Database, input: CreateAgentInput): Age
     }
   });
 
-  // Run the transaction
-  transaction();
+  try {
+    // Run the transaction
+    transaction();
 
-  // Retrieve and return the created agent
-  const agent = getAgent(db, input.id);
-  if (!agent) {
-    throw new Error(`Failed to retrieve created agent: ${input.id}`);
+    // Retrieve and return the created agent
+    const agent = getAgent(db, input.id);
+    if (!agent) {
+      throw new Error(`Failed to retrieve created agent: ${input.id}`);
+    }
+
+    // Audit log successful agent creation
+    auditLog(db, {
+      agentId: input.createdBy,
+      action: AuditAction.HIRE,
+      targetAgentId: input.id,
+      success: true,
+      details: {
+        role: input.role,
+        displayName: input.displayName,
+        reportingTo: input.reportingTo,
+        mainGoal: input.mainGoal,
+      },
+    });
+
+    return agent;
+  } catch (error) {
+    // Audit log failed agent creation
+    auditLog(db, {
+      agentId: input.createdBy,
+      action: AuditAction.HIRE,
+      targetAgentId: input.id,
+      success: false,
+      details: {
+        role: input.role,
+        displayName: input.displayName,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
+    throw error;
   }
-
-  return agent;
 }
 
 /**
@@ -179,6 +210,12 @@ export function updateAgent(
   id: string,
   updates: UpdateAgentInput
 ): AgentRecord | null {
+  // Get current agent for audit logging comparison
+  const currentAgent = getAgent(db, id);
+  if (!currentAgent) {
+    return null;
+  }
+
   // Build dynamic UPDATE query based on provided fields
   const fields: string[] = [];
   const values: unknown[] = [];
@@ -220,7 +257,7 @@ export function updateAgent(
 
   // If no fields to update, return current agent
   if (fields.length === 0) {
-    return getAgent(db, id);
+    return currentAgent;
   }
 
   // Add ID to values for WHERE clause
@@ -233,15 +270,60 @@ export function updateAgent(
     WHERE id = ?
   `);
 
-  const result = query.run(...values);
+  try {
+    const result = query.run(...values);
 
-  // If no rows were updated, agent doesn't exist
-  if (result.changes === 0) {
-    return null;
+    // If no rows were updated, agent doesn't exist
+    if (result.changes === 0) {
+      return null;
+    }
+
+    // Determine audit action based on status change
+    let auditAction: string = AuditAction.CONFIG_UPDATE;
+    if (updates.status !== undefined && updates.status !== currentAgent.status) {
+      switch (updates.status) {
+        case 'paused':
+          auditAction = AuditAction.PAUSE;
+          break;
+        case 'active':
+          auditAction = AuditAction.RESUME;
+          break;
+        case 'fired':
+          auditAction = AuditAction.FIRE;
+          break;
+        default:
+          auditAction = AuditAction.CONFIG_UPDATE;
+      }
+    }
+
+    // Audit log successful agent update
+    auditLog(db, {
+      agentId: null, // TODO: Pass acting agent ID when available
+      action: auditAction,
+      targetAgentId: id,
+      success: true,
+      details: {
+        updates,
+        previousStatus: currentAgent.status,
+      },
+    });
+
+    // Return updated agent
+    return getAgent(db, id);
+  } catch (error) {
+    // Audit log failed agent update
+    auditLog(db, {
+      agentId: null, // TODO: Pass acting agent ID when available
+      action: AuditAction.CONFIG_UPDATE,
+      targetAgentId: id,
+      success: false,
+      details: {
+        updates,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
+    throw error;
   }
-
-  // Return updated agent
-  return getAgent(db, id);
 }
 
 /**
