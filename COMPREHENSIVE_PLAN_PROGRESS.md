@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 22:07:00 EST
+Last Updated: 2026-01-18 22:12:51 EST
 
 ## Status
 
@@ -144,7 +144,7 @@ RecursiveManager is a hierarchical AI agent system with:
 ##### Schema Creation
 
 - [x] Task 1.3.5: Create agents table with indexes (status, reporting_to, created_at)
-- [ ] Task 1.3.6: Create tasks table with version field and indexes (agent_status, parent, delegated)
+- [x] Task 1.3.6: Create tasks table with version field and indexes (agent_status, parent, delegated)
 - [ ] Task 1.3.7: Create messages table with indexes (to_unread, timestamp, channel)
 - [ ] Task 1.3.8: Create schedules table with indexes (agent, next_execution, enabled)
 - [ ] Task 1.3.9: Create audit_log table with indexes (timestamp, agent, action)
@@ -532,6 +532,77 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.3.6: Create tasks table with version field and indexes ✅
+
+**Summary**: Implemented the second database schema migration to create the `tasks` table with optimistic locking support (version field) and comprehensive indexes for efficient querying. This table is essential for tracking task hierarchy, delegation, progress, and blocking relationships.
+
+**What Was Implemented**:
+
+1. **Migration File** (`packages/common/src/db/migrations/002_create_tasks_table.ts`):
+   - Created migration version 2 with complete tasks table schema
+   - Table includes 19 columns:
+     - Core fields: id, agent_id, title, status, priority, created_at, started_at, completed_at
+     - Hierarchy fields: parent_task_id, depth
+     - Progress fields: percent_complete, subtasks_completed, subtasks_total
+     - Delegation fields: delegated_to, delegated_at
+     - Blocking fields: blocked_by (JSON array), blocked_since
+     - System fields: task_path, version (for optimistic locking)
+   - Four indexes for query optimization (prefixed with table name to avoid conflicts):
+     - `idx_tasks_agent_status`: Composite index for agent+status queries
+     - `idx_tasks_status`: For filtering by task status
+     - `idx_tasks_parent`: For hierarchical queries (finding subtasks)
+     - `idx_tasks_delegated`: For delegation queries
+   - Foreign key constraints:
+     - `agent_id` → `agents(id)`: Task ownership
+     - `parent_task_id` → `tasks(id)`: Task hierarchy (self-referential)
+     - `delegated_to` → `agents(id)`: Task delegation
+   - Complete rollback support (down migration)
+
+2. **Migration Registry Update** (`packages/common/src/db/migrations/index.ts`):
+   - Added `migration002` to the registry
+   - Maintained sequential version numbering
+
+3. **Comprehensive Test Suite** (`packages/common/src/db/__tests__/002_tasks_table.test.ts`):
+   - **Schema validation tests**: Verify all 19 columns created correctly
+   - **Index creation tests**: Confirm all four indexes exist with correct names
+   - **Data insertion tests**: Validate inserting valid task data
+   - **Constraint tests**: Verify NOT NULL and PRIMARY KEY constraints
+   - **Foreign key tests**:
+     - Verify agent_id foreign key enforcement
+     - Validate self-referential parent_task_id relationship
+     - Confirm delegated_to foreign key works
+   - **Optimistic locking tests**: Verify version field prevents race conditions
+   - **JSON storage tests**: Confirm blocked_by stores JSON arrays correctly
+   - **Idempotency tests**: Confirm safe to run migration multiple times
+   - **Rollback tests**: Verify down migration properly removes table and indexes
+   - **Index performance tests**: Confirm all indexes are used in query plans
+   - **All 19 tests passing** ✅
+
+**Files Created**:
+
+- `/packages/common/src/db/migrations/002_create_tasks_table.ts` (89 lines)
+- `/packages/common/src/db/__tests__/002_tasks_table.test.ts` (702 lines)
+
+**Files Modified**:
+
+- `/packages/common/src/db/migrations/index.ts`: Added migration002 import and registration
+
+**Verification**:
+
+- Build successful: All TypeScript compiles without errors ✅
+- Tests passing: 19/19 tests pass ✅
+- Full test suite: 608/610 tests pass (2 pre-existing flaky disk-space tests unrelated to this task)
+- Migration system validated: Both migrations work together correctly
+
+**Key Design Decisions**:
+
+1. **Version field**: Added for optimistic locking to prevent race conditions when multiple agents update the same task
+2. **Index naming**: Prefixed all indexes with `idx_tasks_` to avoid naming conflicts with other tables (learned from initial test failure)
+3. **blocked_by as TEXT**: Stores JSON array of task IDs for flexible blocking relationships
+4. **Composite index**: `idx_tasks_agent_status` optimizes the common query pattern of "find tasks for agent X with status Y"
+
+---
 
 ### Task 1.3.5: Create agents table with indexes ✅
 
