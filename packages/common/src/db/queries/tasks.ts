@@ -139,6 +139,106 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
     depth = parentTask.depth + 1;
   }
 
+  // Step 2.5: Validate blocked_by dependencies and prevent circular dependencies (Task 2.3.23)
+  const blockedBy = input.blockedBy ?? [];
+  if (blockedBy.length > 0) {
+    // Validate all blocker tasks exist
+    for (const blockerTaskId of blockedBy) {
+      const blockerTask = getTask(db, blockerTaskId);
+      if (!blockerTask) {
+        throw new Error(`Blocker task not found: ${blockerTaskId}`);
+      }
+
+      // Check if the blocker task is already completed or archived
+      // (If so, it's not actually blocking anything)
+      if (blockerTask.status === 'completed' || blockerTask.status === 'archived') {
+        throw new Error(
+          `Cannot block on task "${blockerTask.title}" (${blockerTaskId}): task is already ${blockerTask.status}. ` +
+          `Remove this task from the blockedBy list.`
+        );
+      }
+    }
+
+    // Check for circular dependencies by simulating the addition of this task
+    // We need to check if any of the blocker tasks are (transitively) blocked by this task
+    // Since the task doesn't exist yet, we check if adding this dependency would create a cycle
+    for (const blockerTaskId of blockedBy) {
+      // Get the blocker task
+      const blockerTask = getTask(db, blockerTaskId)!; // We know it exists from validation above
+
+      // Check if the blocker task has any dependencies
+      let blockerDeps: string[] = [];
+      try {
+        blockerDeps = JSON.parse(blockerTask.blocked_by) as string[];
+      } catch {
+        blockerDeps = [];
+      }
+
+      // If the blocker is blocked by this task (which we're creating), that would be a direct cycle
+      if (blockerDeps.includes(taskId)) {
+        throw new Error(
+          `Cannot create task: circular dependency detected. ` +
+          `Task "${input.title}" would be blocked by "${blockerTask.title}" (${blockerTaskId}), ` +
+          `but "${blockerTask.title}" is already blocked by task ID "${taskId}".`
+        );
+      }
+
+      // Check for indirect cycles: if the blocker is blocked by something that's transitively blocked by taskId
+      // We use DFS to detect cycles in the would-be dependency graph
+      const visited = new Set<string>();
+      const path = new Set<string>([taskId]); // Start with this task in the path
+
+      function hasCycle(currentTaskId: string): boolean {
+        if (path.has(currentTaskId)) {
+          // Found a cycle!
+          return true;
+        }
+
+        if (visited.has(currentTaskId)) {
+          // Already explored this path, no cycle
+          return false;
+        }
+
+        visited.add(currentTaskId);
+        path.add(currentTaskId);
+
+        // Get the task's dependencies
+        const currentTask = getTask(db, currentTaskId);
+        if (!currentTask) {
+          // Task doesn't exist, can't have dependencies
+          path.delete(currentTaskId);
+          return false;
+        }
+
+        let deps: string[] = [];
+        try {
+          deps = JSON.parse(currentTask.blocked_by) as string[];
+        } catch {
+          deps = [];
+        }
+
+        // Check each dependency for cycles
+        for (const depId of deps) {
+          if (hasCycle(depId)) {
+            return true;
+          }
+        }
+
+        path.delete(currentTaskId);
+        return false;
+      }
+
+      // Check if this blocker task (or its transitive dependencies) would create a cycle
+      if (hasCycle(blockerTaskId)) {
+        throw new Error(
+          `Cannot create task: circular dependency detected. ` +
+          `Creating task "${input.title}" (${taskId}) with blocker "${blockerTask.title}" (${blockerTaskId}) ` +
+          `would create a circular dependency chain.`
+        );
+      }
+    }
+  }
+
   // Step 3: Prepare statements
   const insertTask = db.prepare(`
     INSERT INTO tasks (
@@ -164,7 +264,7 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
       last_updated,
       last_executed,
       execution_count
-    ) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, 0, 0, 0, ?, NULL, '[]', NULL, ?, 0, ?, NULL, 0)
+    ) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, 0, 0, 0, ?, NULL, ?, ?, ?, 0, ?, NULL, 0)
   `);
 
   const updateParentSubtaskCount = db.prepare(`
@@ -178,17 +278,24 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
     const now = new Date().toISOString();
     const priority = input.priority ?? 'medium';
 
+    // Determine initial status and blocked_by based on dependencies (Task 2.3.23)
+    const initialStatus = blockedBy.length > 0 ? 'blocked' : 'pending';
+    const blockedByJson = JSON.stringify(blockedBy);
+    const blockedSince = blockedBy.length > 0 ? now : null;
+
     // Insert task record
     insertTask.run(
       taskId,
       input.agentId,
       input.title,
-      'pending', // default status
+      initialStatus,
       priority,
       now,
       input.parentTaskId ?? null,
       depth,
       input.delegatedTo ?? null,
+      blockedByJson,
+      blockedSince,
       input.taskPath,
       now // last_updated (Task 2.3.8)
     );

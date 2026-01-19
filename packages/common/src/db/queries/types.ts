@@ -124,4 +124,5 @@ export interface CreateTaskInput {
   parentTaskId?: string | null;
   delegatedTo?: string | null;
   taskPath: string;
+  blockedBy?: string[]; // Task IDs that must be completed before this task can start (Task 2.3.23)
 }
