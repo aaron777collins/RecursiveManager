@@ -113,9 +113,9 @@ describe('notifyDeadlock', () => {
       },
     });
 
-    await saveAgentConfig(agentA, createDefaultConfig(agentA, 'Agent A'), testDir);
-    await saveAgentConfig(agentB, createDefaultConfig(agentB, 'Agent B'), testDir);
-    await saveAgentConfig(agentC, createDefaultConfig(agentC, 'Agent C'), testDir);
+    await saveAgentConfig(agentA, createDefaultConfig(agentA, 'Agent A'), { baseDir: testDir });
+    await saveAgentConfig(agentB, createDefaultConfig(agentB, 'Agent B'), { baseDir: testDir });
+    await saveAgentConfig(agentC, createDefaultConfig(agentC, 'Agent C'), { baseDir: testDir });
   });
 
   afterEach(async () => {

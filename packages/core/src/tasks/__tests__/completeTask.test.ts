@@ -57,9 +57,9 @@ describe('completeTaskWithFiles', () => {
         role: 'Developer',
         displayName: 'Test Agent',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Test prompt',
-        schedule: { mode: 'manual' },
+        createdBy: 'test',
+        mainGoal: 'Test work',
+        configPath: path.join(testDir, 'test-agent.json'),
       });
 
       // Create a task
@@ -108,9 +108,9 @@ describe('completeTaskWithFiles', () => {
         role: 'Developer',
         displayName: 'Test Agent',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Test prompt',
-        schedule: { mode: 'manual' },
+        createdBy: 'test',
+        mainGoal: 'Test work',
+        configPath: path.join(testDir, 'test-agent.json'),
       });
 
       // Create parent task
@@ -169,9 +169,9 @@ describe('completeTaskWithFiles', () => {
         role: 'Developer',
         displayName: 'Test Agent',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Test prompt',
-        schedule: { mode: 'manual' },
+        createdBy: 'test',
+        mainGoal: 'Test work',
+        configPath: path.join(testDir, 'test-agent.json'),
       });
 
       // Create a task
@@ -204,9 +204,9 @@ describe('completeTaskWithFiles', () => {
         role: 'Developer',
         displayName: 'Test Agent',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Test prompt',
-        schedule: { mode: 'manual' },
+        createdBy: 'test',
+        mainGoal: 'Test work',
+        configPath: path.join(testDir, 'test-agent.json'),
       });
 
       // Create a task

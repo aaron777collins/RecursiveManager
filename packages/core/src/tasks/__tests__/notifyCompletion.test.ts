@@ -201,7 +201,7 @@ describe('notifyTaskCompletion', () => {
       expect(message?.thread_id).toBe(`task-${task.id}`);
 
       // Verify message file was written to manager's inbox
-      const inboxPath = getInboxPath(managerAgentId, testDir);
+      const inboxPath = getInboxPath(managerAgentId, { baseDir: testDir });
       const unreadPath = path.join(inboxPath, 'unread', `${messageId}.md`);
       expect(fs.existsSync(unreadPath)).toBe(true);
 
@@ -238,7 +238,7 @@ describe('notifyTaskCompletion', () => {
       const messageId = await notifyTaskCompletion(db, completedTask, { dataDir: testDir });
 
       // Read message file
-      const inboxPath = getInboxPath(managerAgentId, testDir);
+      const inboxPath = getInboxPath(managerAgentId, { baseDir: testDir });
       const unreadPath = path.join(inboxPath, 'unread', `${messageId}.md`);
       const messageContent = fs.readFileSync(unreadPath, 'utf-8');
 
@@ -270,7 +270,7 @@ describe('notifyTaskCompletion', () => {
       const messageId = await notifyTaskCompletion(db, completedTask, { dataDir: testDir });
 
       // Read message file
-      const inboxPath = getInboxPath(managerAgentId, testDir);
+      const inboxPath = getInboxPath(managerAgentId, { baseDir: testDir });
       const unreadPath = path.join(inboxPath, 'unread', `${messageId}.md`);
       const messageContent = fs.readFileSync(unreadPath, 'utf-8');
 
@@ -561,7 +561,7 @@ describe('notifyTaskCompletion', () => {
       const completedTask = dbCompleteTask(db, task.id, task.version);
       const messageId = await notifyTaskCompletion(db, completedTask, { dataDir: testDir });
 
-      const inboxPath = getInboxPath(managerAgentId, testDir);
+      const inboxPath = getInboxPath(managerAgentId, { baseDir: testDir });
       const unreadPath = path.join(inboxPath, 'unread', `${messageId}.md`);
       const messageContent = fs.readFileSync(unreadPath, 'utf-8');
 

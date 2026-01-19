@@ -26,7 +26,7 @@ import {
 import { fireAgent } from '../../lifecycle/fireAgent';
 import { saveAgentConfig } from '../../config';
 import { AgentConfig } from '@recursive-manager/common';
-import { archiveTasks } from '../archiveTask';
+import { archiveOldTasks } from '../archiveTask';
 import { monitorDeadlocks } from '../monitorDeadlocks';
 
 describe('Edge Case Integration Tests (Task 2.3.35)', () => {

@@ -46,10 +46,10 @@ describe('monitorDeadlocks', () => {
     testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'monitor-deadlock-test-'));
 
     // Create test agents
-    agentA = createAgent(db, { name: 'Agent A', role: 'Worker', managerId: null }).id;
-    agentB = createAgent(db, { name: 'Agent B', role: 'Worker', managerId: null }).id;
-    agentC = createAgent(db, { name: 'Agent C', role: 'Worker', managerId: null }).id;
-    agentD = createAgent(db, { name: 'Agent D', role: 'Worker', managerId: null }).id;
+    agentA = createAgent(db, { id: 'agent-a', role: 'Worker', displayName: 'Agent A', createdBy: 'test', reportingTo: null, mainGoal: 'Test work', configPath: path.join(testDir, 'agent-a.json') }).id;
+    agentB = createAgent(db, { id: 'agent-b', role: 'Worker', displayName: 'Agent B', createdBy: 'test', reportingTo: null, mainGoal: 'Test work', configPath: path.join(testDir, 'agent-b.json') }).id;
+    agentC = createAgent(db, { id: 'agent-c', role: 'Worker', displayName: 'Agent C', createdBy: 'test', reportingTo: null, mainGoal: 'Test work', configPath: path.join(testDir, 'agent-c.json') }).id;
+    agentD = createAgent(db, { id: 'agent-d', role: 'Worker', displayName: 'Agent D', createdBy: 'test', reportingTo: null, mainGoal: 'Test work', configPath: path.join(testDir, 'agent-d.json') }).id;
 
     // Create default agent configs with notifications enabled
     const createDefaultConfig = (agentId: string, role: string): AgentConfig => ({

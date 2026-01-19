@@ -14,7 +14,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as tar from 'tar';
 import { archiveOldTasks, compressOldArchives } from '../archiveTask';
-import { initializeDatabase, createTask, completeTask, createAgent, runMigrations, allMigrations } from '@recursive-manager/common';
+import { createTask, completeTask, createAgent, runMigrations, allMigrations } from '@recursive-manager/common';
 
 describe('Task Archival - Integration Tests', () => {
   let db: Database.Database;

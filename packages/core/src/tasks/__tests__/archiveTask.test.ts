@@ -15,8 +15,8 @@ import {
   completeTask,
   createAgent,
   runMigrations,
+  allMigrations,
 } from '@recursive-manager/common';
-import { allMigrations } from '@recursive-manager/common/dist/db/migrations';
 
 const gunzip = promisify(zlib.gunzip);
 

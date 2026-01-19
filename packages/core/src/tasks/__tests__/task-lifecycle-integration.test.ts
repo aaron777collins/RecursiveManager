@@ -75,9 +75,9 @@ describe('Task Lifecycle Integration Tests', () => {
         role: 'Engineering Manager',
         displayName: 'Test Manager',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Manage engineering team',
-        schedule: { mode: 'manual' },
+        createdBy: null,
+        mainGoal: 'Manage engineering team',
+        configPath: '/agents/manager-001/config.json',
       });
 
       // STEP 1: CREATE - Create task in pending state
@@ -85,7 +85,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-lifecycle-001',
         agentId: 'manager-001',
         title: 'Implement user authentication',
-        description: 'Build JWT-based auth system',
+        taskPath: '/manager-001/Implement user authentication',
         priority: 'high',
       });
 
@@ -95,10 +95,9 @@ describe('Task Lifecycle Integration Tests', () => {
       expect(task.depth).toBe(0);
 
       // Create task directory structure
-      await createTaskDirectory(db, {
-        taskId: task.id,
+      await createTaskDirectory({
         agentId: 'manager-001',
-        taskStatus: 'pending',
+        task: task,
       });
 
       // Verify directory created
@@ -148,10 +147,7 @@ describe('Task Lifecycle Integration Tests', () => {
       );
 
       // Run archival process
-      const archivedCount = await archiveOldTasks(db, {
-        retentionDays: 7,
-        dryRun: false,
-      });
+      const archivedCount = await archiveOldTasks(db, 7);
 
       // Verify task was archived
       expect(archivedCount).toBe(1);
@@ -186,9 +182,9 @@ describe('Task Lifecycle Integration Tests', () => {
         role: 'Engineering Manager',
         displayName: 'Test Manager',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Manage engineering team',
-        schedule: { mode: 'manual' },
+        createdBy: null,
+        mainGoal: 'Manage engineering team',
+        configPath: '/agents/manager-002/config.json',
       });
 
       createAgent(db, {
@@ -196,9 +192,9 @@ describe('Task Lifecycle Integration Tests', () => {
         role: 'Developer',
         displayName: 'Test Developer',
         reportingTo: 'manager-002',
-        framework: 'claude-code',
-        systemPrompt: 'Write code',
-        schedule: { mode: 'manual' },
+        createdBy: null,
+        mainGoal: 'Write code',
+        configPath: '/agents/developer-001/config.json',
       });
 
       // Create a task for the manager
@@ -206,15 +202,14 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-manager-001',
         agentId: 'manager-002',
         title: 'Build new feature',
-        description: 'Implement feature X',
+        taskPath: '/manager-002/Build new feature',
         priority: 'high',
       });
 
       // Create task directory
-      await createTaskDirectory(db, {
-        taskId: managerTask.id,
+      await createTaskDirectory({
         agentId: 'manager-002',
-        taskStatus: 'pending',
+        task: managerTask,
       });
 
       // STEP 1: DELEGATE - Manager delegates to subordinate
@@ -229,7 +224,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-subtask-001',
         agentId: 'developer-001',
         title: 'Implement API endpoint',
-        description: 'Build the backend API',
+        taskPath: '/manager-002/Build new feature/Implement API endpoint',
         priority: 'high',
         parentTaskId: managerTask.id,
       });
@@ -239,10 +234,9 @@ describe('Task Lifecycle Integration Tests', () => {
       expect(subtask.depth).toBe(1); // Child is depth 1
 
       // Create subtask directory
-      await createTaskDirectory(db, {
-        taskId: subtask.id,
+      await createTaskDirectory({
         agentId: 'developer-001',
-        taskStatus: 'pending',
+        task: subtask,
       });
 
       // STEP 3: COMPLETE SUBTASK - Developer completes subtask
@@ -255,7 +249,7 @@ describe('Task Lifecycle Integration Tests', () => {
 
       // Verify parent task progress updated (EC-2.5)
       const updatedParent = getTask(db, managerTask.id);
-      expect(updatedParent?.progress).toBeGreaterThan(0);
+      expect(updatedParent?.percent_complete).toBeGreaterThan(0);
     });
 
     it('should enforce optimistic locking throughout lifecycle', async () => {
@@ -265,15 +259,16 @@ describe('Task Lifecycle Integration Tests', () => {
         role: 'Developer',
         displayName: 'Lock Test Agent',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Test locking',
-        schedule: { mode: 'manual' },
+        createdBy: null,
+        mainGoal: 'Test locking',
+        configPath: '/agents/lock-agent/config.json',
       });
 
       const task = createTask(db, {
         id: 'task-lock-001',
         agentId: 'lock-agent',
         title: 'Test locking',
+        taskPath: '/lock-agent/Test locking',
         priority: 'medium',
       });
 
@@ -301,9 +296,9 @@ describe('Task Lifecycle Integration Tests', () => {
         role: 'Manager',
         displayName: 'Parent Agent',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Manage tasks',
-        schedule: { mode: 'manual' },
+        createdBy: null,
+        mainGoal: 'Manage tasks',
+        configPath: '/agents/parent-agent/config.json',
       });
 
       // Create parent task
@@ -311,13 +306,13 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-parent-001',
         agentId: 'parent-agent',
         title: 'Parent Task',
+        taskPath: '/parent-agent/Parent Task',
         priority: 'high',
       });
 
-      await createTaskDirectory(db, {
-        taskId: parentTask.id,
+      await createTaskDirectory({
         agentId: 'parent-agent',
-        taskStatus: 'pending',
+        task: parentTask,
       });
 
       // Create 3 child tasks
@@ -325,6 +320,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-child-001',
         agentId: 'parent-agent',
         title: 'Child Task 1',
+        taskPath: '/parent-agent/Parent Task/Child Task 1',
         priority: 'medium',
         parentTaskId: parentTask.id,
       });
@@ -333,6 +329,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-child-002',
         agentId: 'parent-agent',
         title: 'Child Task 2',
+        taskPath: '/parent-agent/Parent Task/Child Task 2',
         priority: 'medium',
         parentTaskId: parentTask.id,
       });
@@ -341,16 +338,16 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-child-003',
         agentId: 'parent-agent',
         title: 'Child Task 3',
+        taskPath: '/parent-agent/Parent Task/Child Task 3',
         priority: 'medium',
         parentTaskId: parentTask.id,
       });
 
       // Create directories for children
       for (const child of [child1, child2, child3]) {
-        await createTaskDirectory(db, {
-          taskId: child.id,
+        await createTaskDirectory({
           agentId: 'parent-agent',
-          taskStatus: 'pending',
+          task: child,
         });
       }
 
@@ -360,7 +357,7 @@ describe('Task Lifecycle Integration Tests', () => {
 
       // Verify parent progress updated
       let parent = getTask(db, parentTask.id);
-      expect(parent?.progress).toBeCloseTo(33.33, 1); // 1 of 3 = ~33%
+      expect(parent?.percent_complete).toBeCloseTo(33.33, 1); // 1 of 3 = ~33%
 
       // Complete second child
       const child2InProgress = updateTaskStatus(db, child2.id, 'in-progress', child2.version);
@@ -368,7 +365,7 @@ describe('Task Lifecycle Integration Tests', () => {
 
       // Verify parent progress updated
       parent = getTask(db, parentTask.id);
-      expect(parent?.progress).toBeCloseTo(66.67, 1); // 2 of 3 = ~67%
+      expect(parent?.percent_complete).toBeCloseTo(66.67, 1); // 2 of 3 = ~67%
 
       // Complete third child
       const child3InProgress = updateTaskStatus(db, child3.id, 'in-progress', child3.version);
@@ -376,7 +373,7 @@ describe('Task Lifecycle Integration Tests', () => {
 
       // Verify parent progress updated
       parent = getTask(db, parentTask.id);
-      expect(parent?.progress).toBe(100); // 3 of 3 = 100%
+      expect(parent?.percent_complete).toBe(100); // 3 of 3 = 100%
     });
 
     it('should maintain file system consistency during status transitions', async () => {
@@ -386,23 +383,23 @@ describe('Task Lifecycle Integration Tests', () => {
         role: 'Developer',
         displayName: 'File System Test Agent',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Test file operations',
-        schedule: { mode: 'manual' },
+        createdBy: null,
+        mainGoal: 'Test file operations',
+        configPath: '/agents/fs-agent/config.json',
       });
 
       const task = createTask(db, {
         id: 'task-fs-001',
         agentId: 'fs-agent',
         title: 'File System Test',
+        taskPath: '/fs-agent/File System Test',
         priority: 'medium',
       });
 
       // Create initial directory
-      await createTaskDirectory(db, {
-        taskId: task.id,
+      await createTaskDirectory({
         agentId: 'fs-agent',
-        taskStatus: 'pending',
+        task: task,
       });
 
       const pendingPath = getTaskPath('fs-agent', task.id, 'pending');
@@ -459,22 +456,22 @@ describe('Task Lifecycle Integration Tests', () => {
         role: 'Developer',
         displayName: 'Orphan Agent',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Test orphan tasks',
-        schedule: { mode: 'manual' },
+        createdBy: null,
+        mainGoal: 'Test orphan tasks',
+        configPath: '/agents/orphan-agent/config.json',
       });
 
       const task = createTask(db, {
         id: 'task-orphan-001',
         agentId: 'orphan-agent',
         title: 'Orphan Task',
+        taskPath: '/orphan-agent/Orphan Task',
         priority: 'low',
       });
 
-      await createTaskDirectory(db, {
-        taskId: task.id,
+      await createTaskDirectory({
         agentId: 'orphan-agent',
-        taskStatus: 'pending',
+        task: task,
       });
 
       // Should not throw when completing task with no parent
@@ -491,22 +488,22 @@ describe('Task Lifecycle Integration Tests', () => {
         role: 'Developer',
         displayName: 'Recent Agent',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Test recent tasks',
-        schedule: { mode: 'manual' },
+        createdBy: null,
+        mainGoal: 'Test recent tasks',
+        configPath: '/agents/recent-agent/config.json',
       });
 
       const task = createTask(db, {
         id: 'task-recent-001',
         agentId: 'recent-agent',
         title: 'Recent Task',
+        taskPath: '/recent-agent/Recent Task',
         priority: 'low',
       });
 
-      await createTaskDirectory(db, {
-        taskId: task.id,
+      await createTaskDirectory({
         agentId: 'recent-agent',
-        taskStatus: 'pending',
+        task: task,
       });
 
       // Complete task (completed_at = now)
@@ -514,10 +511,7 @@ describe('Task Lifecycle Integration Tests', () => {
       await completeTaskWithFiles(db, task.id, inProgress.version);
 
       // Try to archive with 7-day retention
-      const archivedCount = await archiveOldTasks(db, {
-        retentionDays: 7,
-        dryRun: false,
-      });
+      const archivedCount = await archiveOldTasks(db, 7);
 
       // Should not archive recent task
       expect(archivedCount).toBe(0);
@@ -536,9 +530,9 @@ describe('Task Lifecycle Integration Tests', () => {
         role: 'Developer',
         displayName: 'Agent A',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Test deadlock',
-        schedule: { mode: 'manual' },
+        createdBy: null,
+        mainGoal: 'Test deadlock',
+        configPath: '/agents/deadlock-agent-a/config.json',
       });
 
       const agentB = createAgent(db, {
@@ -546,9 +540,9 @@ describe('Task Lifecycle Integration Tests', () => {
         role: 'Developer',
         displayName: 'Agent B',
         reportingTo: null,
-        framework: 'claude-code',
-        systemPrompt: 'Test deadlock',
-        schedule: { mode: 'manual' },
+        createdBy: null,
+        mainGoal: 'Test deadlock',
+        configPath: '/agents/deadlock-agent-b/config.json',
       });
 
       // Create agent configs with deadlock notifications enabled
@@ -572,7 +566,7 @@ describe('Task Lifecycle Integration Tests', () => {
         },
         framework: {
           primary: 'claude-code',
-          fallbacks: [],
+          fallback: 'none',
         },
         communication: {
           notifyOnCompletion: true,
@@ -598,6 +592,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-deadlock-a',
         agentId: agentA.id,
         title: 'Task A',
+        taskPath: '/deadlock-agent-a/Task A',
         description: 'Task A blocks on B',
         priority: 'high',
         status: 'blocked',
@@ -607,6 +602,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-deadlock-b',
         agentId: agentB.id,
         title: 'Task B',
+        taskPath: '/deadlock-agent-b/Task B',
         description: 'Task B blocks on A',
         priority: 'high',
         status: 'blocked',
@@ -670,9 +666,9 @@ describe('Task Lifecycle Integration Tests', () => {
           role: 'Developer',
           displayName: `Agent ${id}`,
           reportingTo: null,
-          framework: 'claude-code',
-          systemPrompt: 'Test monitoring',
-          schedule: { mode: 'manual' },
+          createdBy: null,
+          mainGoal: 'Test monitoring',
+          configPath: `/agents/${id}/config.json`,
         })
       );
 
@@ -697,7 +693,7 @@ describe('Task Lifecycle Integration Tests', () => {
         },
         framework: {
           primary: 'claude-code',
-          fallbacks: [],
+          fallback: 'none',
         },
         communication: {
           notifyOnCompletion: true,
@@ -724,6 +720,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-monitor-a',
         agentId: agents[0]!.id,
         title: 'Task A',
+        taskPath: '/monitor-a/Task A',
         priority: 'high',
         status: 'blocked',
       });
@@ -732,6 +729,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-monitor-b',
         agentId: agents[1]!.id,
         title: 'Task B',
+        taskPath: '/monitor-b/Task B',
         priority: 'high',
         status: 'blocked',
       });
@@ -750,6 +748,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-monitor-c',
         agentId: agents[2]!.id,
         title: 'Task C',
+        taskPath: '/monitor-c/Task C',
         priority: 'high',
         status: 'blocked',
       });
@@ -758,6 +757,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-monitor-d',
         agentId: agents[3]!.id,
         title: 'Task D',
+        taskPath: '/monitor-d/Task D',
         priority: 'high',
         status: 'blocked',
       });
@@ -776,6 +776,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-monitor-e',
         agentId: agents[0]!.id,
         title: 'Task E',
+        taskPath: '/monitor-a/Task E',
         priority: 'low',
         status: 'blocked',
       });
@@ -817,9 +818,9 @@ describe('Task Lifecycle Integration Tests', () => {
           role: 'Developer',
           displayName: `Agent ${id}`,
           reportingTo: null,
-          framework: 'claude-code',
-          systemPrompt: 'Test three-way deadlock',
-          schedule: { mode: 'manual' },
+          createdBy: null,
+          mainGoal: 'Test three-way deadlock',
+          configPath: `/agents/${id}/config.json`,
         })
       );
 
@@ -844,7 +845,7 @@ describe('Task Lifecycle Integration Tests', () => {
         },
         framework: {
           primary: 'claude-code',
-          fallbacks: [],
+          fallback: 'none',
         },
         communication: {
           notifyOnCompletion: true,
@@ -871,6 +872,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-three-a',
         agentId: agents[0]!.id,
         title: 'Task A',
+        taskPath: '/three-a/Task A',
         priority: 'high',
         status: 'blocked',
       });
@@ -879,6 +881,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-three-b',
         agentId: agents[1]!.id,
         title: 'Task B',
+        taskPath: '/three-b/Task B',
         priority: 'high',
         status: 'blocked',
       });
@@ -887,6 +890,7 @@ describe('Task Lifecycle Integration Tests', () => {
         id: 'task-three-c',
         agentId: agents[2]!.id,
         title: 'Task C',
+        taskPath: '/three-c/Task C',
         priority: 'high',
         status: 'blocked',
       });

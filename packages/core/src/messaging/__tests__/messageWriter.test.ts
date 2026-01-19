@@ -41,8 +41,8 @@ describe('Message Writer', () => {
 
       expect(parts).toHaveLength(3);
       expect(parts[0]).toBe('msg');
-      expect(parseInt(parts[1])).toBeGreaterThan(0);
-      expect(parts[2]).toHaveLength(6);
+      expect(parseInt(parts[1] ?? '0')).toBeGreaterThan(0);
+      expect(parts[2] ?? '').toHaveLength(6);
     });
   });
 
