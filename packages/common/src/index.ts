@@ -245,3 +245,20 @@ export {
 
 // Config Loader (Phase 2.1 - moved from core to resolve circular dependency)
 export { loadAgentConfig, ConfigLoadError } from './config-loader';
+
+// PID Manager (Phase 3.4)
+export {
+  acquirePidLock,
+  removePidFileSync,
+  isProcessRunningByPid,
+  isProcessRunning,
+  readPidFile,
+  writePidFile,
+  removePidFile,
+  listActivePids,
+  getPidDirectory,
+  getPidFilePath,
+  PidError,
+  type PidInfo,
+  type PidOptions,
+} from './pid-manager';

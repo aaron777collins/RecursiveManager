@@ -6,9 +6,10 @@
  * It handles cron-based scheduling for periodic tasks like archiving old tasks.
  *
  * Implements Task 2.3.18: Schedule daily archival job (tasks > 7 days old)
+ * Implements Task 3.4.7: Add process tracking (PID files) - EC-7.1 prevention
  */
 
-import { getDatabase } from '@recursive-manager/common';
+import { getDatabase, acquirePidLock, removePidFileSync } from '@recursive-manager/common';
 import { archiveOldTasks, compressOldArchives, monitorDeadlocks } from '@recursive-manager/core';
 import { ScheduleManager } from './ScheduleManager';
 import type { ScheduleRecord } from './ScheduleManager';
@@ -213,7 +214,14 @@ async function schedulerLoop(): Promise<void> {
  * Main entry point
  */
 async function main(): Promise<void> {
+  let releasePidLock: (() => Promise<void>) | null = null;
+
   try {
+    // Acquire PID lock to prevent duplicate instances (EC-7.1)
+    logger.info('Acquiring PID lock for scheduler daemon...');
+    releasePidLock = await acquirePidLock('scheduler-daemon');
+    logger.info('PID lock acquired successfully');
+
     // Ensure database is initialized
     const db = getDatabase();
     const scheduleManager = new ScheduleManager(db);
@@ -235,6 +243,18 @@ async function main(): Promise<void> {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });
+
+    // Release PID lock if acquired
+    if (releasePidLock) {
+      try {
+        await releasePidLock();
+      } catch (cleanupError) {
+        logger.error('Failed to release PID lock during error cleanup', {
+          error: cleanupError instanceof Error ? cleanupError.message : String(cleanupError),
+        });
+      }
+    }
+
     process.exit(1);
   }
 }
@@ -242,12 +262,22 @@ async function main(): Promise<void> {
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('Received SIGTERM, shutting down gracefully...');
+  // Synchronously remove PID file before exit
+  removePidFileSync('scheduler-daemon');
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   logger.info('Received SIGINT, shutting down gracefully...');
+  // Synchronously remove PID file before exit
+  removePidFileSync('scheduler-daemon');
   process.exit(0);
+});
+
+// Handle unexpected exits
+process.on('exit', () => {
+  // Synchronously remove PID file on any exit
+  removePidFileSync('scheduler-daemon');
 });
 
 // Start the daemon
