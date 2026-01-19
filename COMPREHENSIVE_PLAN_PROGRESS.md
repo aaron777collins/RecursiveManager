@@ -230,10 +230,10 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 2.1.5: Add config validation with detailed error messages
 - [x] Task 2.1.6: Implement corrupt config recovery (EC-5.2) using backups
 - [x] Task 2.1.7: Unit tests for config validation (valid/invalid inputs)
-- [ ] Task 2.1.8: Integration tests for config loading + saving
-- [ ] Task 2.1.9: Tests for default generation and merging
+- [x] Task 2.1.8: Integration tests for config loading + saving
+- [x] Task 2.1.9: Tests for default generation and merging
 
-**Completion Criteria**: Config CRUD working, validation robust, corruption handled
+**Completion Criteria**: Config CRUD working, validation robust, corruption handled ✅ COMPLETE
 
 ---
 
