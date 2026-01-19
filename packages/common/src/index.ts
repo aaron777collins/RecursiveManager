@@ -213,3 +213,15 @@ export {
   type LoggerOptions,
   type AgentHierarchyContext,
 } from './logger';
+
+// Types (Phase 2.1)
+export {
+  type AgentConfig,
+  type AgentIdentity,
+  type AgentGoal,
+  type AgentPermissions,
+  type AgentFramework,
+  type CommunicationChannels,
+  type AgentBehavior,
+  type AgentMetadata,
+} from './types/agent-config';

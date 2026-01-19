@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 00:34:00 EST
+Last Updated: 2026-01-19 00:45:00 EST
 
 ## Status
 
@@ -223,7 +223,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 #### Phase 2.1: Agent Configuration & Validation (2-3 days)
 
-- [ ] Task 2.1.1: Implement loadAgentConfig(agentId) reading from file + validation
+- [x] Task 2.1.1: Implement loadAgentConfig(agentId) reading from file + validation
 - [ ] Task 2.1.2: Implement saveAgentConfig(agentId, config) with atomic write + backup
 - [ ] Task 2.1.3: Implement generateDefaultConfig(role, goal) with sensible defaults
 - [ ] Task 2.1.4: Implement mergeConfigs(base, override) with proper precedence
@@ -4352,3 +4352,73 @@ Successfully integrated audit logging into all critical database operations for 
 
 **Next Task**: Task 1.4.12 - Unit tests for log output format
 
+
+
+---
+
+## Completed This Iteration (Task 2.1.1)
+
+**Task 2.1.1: Implement loadAgentConfig(agentId) reading from file + validation**
+
+### What Was Implemented
+
+1. **TypeScript Type Definitions** (`packages/common/src/types/agent-config.ts`):
+   - Created comprehensive TypeScript interfaces matching agent-config.schema.json
+   - Defined types: AgentConfig, AgentIdentity, AgentGoal, AgentPermissions, AgentFramework, CommunicationChannels, AgentBehavior, AgentMetadata
+   - All types properly documented with JSDoc comments
+   - Types align with schema structure for proper validation
+
+2. **loadAgentConfig Function** (`packages/core/src/config/index.ts`):
+   - Implements complete configuration loading with 6 steps:
+     1. Resolves configuration file path using getConfigPath()
+     2. Checks file existence
+     3. Loads content with automatic corruption recovery via safeLoad()
+     4. Parses JSON with error handling
+     5. Validates against schema using validateAgentConfigStrict()
+     6. Returns typed configuration object
+   - Custom ConfigLoadError class for domain-specific errors
+   - Comprehensive error handling for all failure modes
+   - Integration with logging system for debugging
+   - Full TypeScript type safety
+
+3. **Comprehensive Test Suite** (`packages/core/src/__tests__/loadAgentConfig.test.ts`):
+   - 16 test cases covering all scenarios:
+     - ✓ Valid configuration loading
+     - ✓ Configuration with optional fields
+     - ✓ Missing file handling
+     - ✓ AgentId included in errors
+     - ✓ Corrupted file recovery from backup
+     - ✓ Error when no backup available
+     - ✓ Invalid JSON handling
+     - ✓ Empty file handling
+     - ✓ Missing required fields validation
+     - ✓ Invalid field types validation
+     - ✓ Invalid version format validation
+     - ✓ Invalid agentId pattern validation
+     - ✓ Extra unknown fields rejection
+     - ✓ Null optional fields handling
+     - ✓ Special characters in agent IDs
+     - ✓ Custom path options support
+
+**Test Results**: 16/16 tests passing ✓
+
+### Key Features
+
+- **Robust Error Handling**: Distinguishes between file not found, corruption, invalid JSON, and schema validation errors
+- **Automatic Recovery**: Uses safeLoad() to automatically recover from corrupted files via backups
+- **Type Safety**: Full TypeScript type checking with proper interfaces
+- **Schema Validation**: Strict validation against JSON schema with detailed error messages
+- **Logging Integration**: Debug and error logging for troubleshooting
+- **Flexible Options**: Supports custom base directory for testing and flexibility
+
+### Files Modified
+
+- Created: `packages/common/src/types/agent-config.ts`
+- Modified: `packages/common/src/index.ts` (exported new types)
+- Created: `packages/core/src/config/index.ts`
+- Modified: `packages/core/src/index.ts` (exported loadAgentConfig)
+- Created: `packages/core/src/__tests__/loadAgentConfig.test.ts`
+
+### Next Task
+
+Task 2.1.2: Implement saveAgentConfig(agentId, config) with atomic write + backup
