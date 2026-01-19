@@ -131,3 +131,17 @@ export {
   type RecoveryResult,
   type RecoveryOptions,
 } from './file-recovery';
+
+// Database (Phase 1.3)
+export {
+  initializeDatabase,
+  getDatabaseVersion,
+  setDatabaseVersion,
+  checkDatabaseIntegrity,
+  backupDatabase,
+  optimizeDatabase,
+  transaction,
+  DatabasePool,
+  type DatabaseOptions,
+  type DatabaseConnection,
+} from './db';
