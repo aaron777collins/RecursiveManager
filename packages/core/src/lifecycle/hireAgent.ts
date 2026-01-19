@@ -15,6 +15,7 @@
 
 import Database from 'better-sqlite3';
 import * as fs from 'fs/promises';
+import * as path from 'path';
 import {
   AgentConfig,
   PathOptions,
@@ -26,7 +27,7 @@ import {
   createAgentLogger,
   safeLoad,
 } from '@recursive-manager/common';
-import { createAgent, AgentRecord } from '@recursive-manager/common';
+import { createAgent, AgentRecord, createSnapshot } from '@recursive-manager/common';
 import { saveAgentConfig } from '../config';
 import { validateHireStrict } from './validateHire';
 
@@ -557,6 +558,38 @@ export async function hireAgent(
           message: 'Manual registry update may be required',
         });
       }
+    }
+
+    // STEP 5: CREATE SNAPSHOT (for rollback capability)
+    try {
+      const baseDir = options.baseDir || path.join(require('os').homedir(), '.recursive-manager');
+      const snapshotsDir = path.join(baseDir, 'snapshots');
+
+      logger.info('Creating database snapshot after hiring agent', {
+        agentId,
+        managerId: managerId ?? undefined,
+      });
+
+      await createSnapshot(db, snapshotsDir, {
+        reason: `Agent hired: ${agentId} (${config.identity.role})`,
+        agentId,
+      });
+
+      logger.info('Database snapshot created successfully', {
+        agentId,
+      });
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error('Failed to create database snapshot', {
+        agentId,
+        error: error.message,
+      });
+      // Note: We don't throw here because snapshot creation is non-critical
+      // The agent was successfully created; snapshot failure shouldn't fail the operation
+      logger.warn('Agent hired successfully but snapshot creation failed', {
+        agentId,
+        message: 'Snapshot creation failed but agent is functional',
+      });
     }
 
     // SUCCESS

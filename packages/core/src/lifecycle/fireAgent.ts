@@ -34,6 +34,7 @@ import {
   MessageInput,
   getActiveTasks,
   updateTaskStatus,
+  createSnapshot,
 } from '@recursive-manager/common';
 import { auditLog, AuditAction } from '@recursive-manager/common';
 import { loadAgentConfig } from '../config';
@@ -1137,6 +1138,38 @@ export async function fireAgent(
         error: (err as Error).message,
       });
       // Don't throw - archival failure is non-critical
+    }
+
+    // STEP 8: CREATE SNAPSHOT (for rollback capability)
+    try {
+      const baseDir = options.baseDir || path.join(require('os').homedir(), '.recursive-manager');
+      const snapshotsDir = path.join(baseDir, 'snapshots');
+
+      logger.info('Creating database snapshot after firing agent', {
+        agentId,
+        strategy,
+      });
+
+      await createSnapshot(db, snapshotsDir, {
+        reason: `Agent fired: ${agentId} (strategy: ${strategy})`,
+        agentId,
+      });
+
+      logger.info('Database snapshot created successfully', {
+        agentId,
+      });
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error('Failed to create database snapshot', {
+        agentId,
+        error: error.message,
+      });
+      // Note: We don't throw here because snapshot creation is non-critical
+      // The agent was successfully fired; snapshot failure shouldn't fail the operation
+      logger.warn('Agent fired successfully but snapshot creation failed', {
+        agentId,
+        message: 'Snapshot creation failed but agent is fired',
+      });
     }
 
     // SUCCESS

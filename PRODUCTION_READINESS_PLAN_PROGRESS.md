@@ -71,8 +71,8 @@ IN_PROGRESS
 - [x] Implement rollback command with snapshot selection
 - [x] Implement --history flag to list available snapshots
 - [x] Add snapshot validation and pre-rollback backup
-- [ ] Integrate snapshot creation in hireAgent lifecycle
-- [ ] Integrate snapshot creation in fireAgent lifecycle
+- [x] Integrate snapshot creation in hireAgent lifecycle
+- [x] Integrate snapshot creation in fireAgent lifecycle
 - [ ] Write integration tests for rollback
 
 #### 2.6 CLI Infrastructure
@@ -221,6 +221,26 @@ IN_PROGRESS
 - [ ] Verify all GitHub Actions workflows passing on master branch
 
 ## Completed This Iteration
+
+**Iteration 12: Integrate Snapshot Creation in Lifecycle Functions**
+- Integrated snapshot creation in hireAgent lifecycle (packages/core/src/lifecycle/hireAgent.ts)
+  - Added createSnapshot import from @recursive-manager/common
+  - Added STEP 5 after agent is successfully hired and parent updates complete
+  - Creates snapshot with reason: "Agent hired: {agentId} ({role})"
+  - Non-critical failure handling: logs warning but doesn't fail the hire operation
+  - Uses baseDir from PathOptions to locate snapshots directory
+- Integrated snapshot creation in fireAgent lifecycle (packages/core/src/lifecycle/fireAgent.ts)
+  - Added createSnapshot import from @recursive-manager/common
+  - Added STEP 8 after all fire operations complete (status update, orphan handling, task reassignment, archival)
+  - Creates snapshot with reason: "Agent fired: {agentId} (strategy: {strategy})"
+  - Non-critical failure handling: logs warning but doesn't fail the fire operation
+  - Uses baseDir from PathOptions to locate snapshots directory
+- Verified TypeScript compilation successful with no errors
+- Verified snapshot tests still pass (29 tests passing in packages/common/src/db/__tests__/snapshot.test.ts)
+- Database snapshots now created automatically for major hierarchy changes (hire and fire)
+- Provides rollback capability to restore database state before agent lifecycle changes
+- Phase 2.5 (Implement rollback Command) - 8/9 tasks complete (lifecycle integration done)
+- Only remaining task: Write integration tests for rollback command
 
 **Iteration 11: Implement Rollback CLI Command**
 - Created packages/cli/src/commands/rollback.ts with full rollback functionality
