@@ -318,8 +318,9 @@ export function queryAuditLog(
 
   // Build LIMIT/OFFSET clause
   let limitClause = '';
-  if (filter.limit !== undefined) {
-    limitClause = `LIMIT ${filter.limit}`;
+  if (filter.limit !== undefined || filter.offset !== undefined) {
+    // Default limit to -1 (no limit in SQLite) if only offset is provided
+    limitClause = `LIMIT ${filter.limit ?? -1}`;
     if (filter.offset !== undefined) {
       limitClause += ` OFFSET ${filter.offset}`;
     }
@@ -452,9 +453,9 @@ export function getAuditStats(
 
   return {
     totalEvents: counts.total,
-    successCount: counts.success_count,
-    failureCount: counts.failure_count,
-    successRate: counts.total > 0 ? Math.round((counts.success_count / counts.total) * 100) : 0,
+    successCount: counts.success_count || 0,
+    failureCount: counts.failure_count || 0,
+    successRate: counts.total > 0 ? Math.round(((counts.success_count || 0) / counts.total) * 100) : 0,
     actionCounts,
   };
 }

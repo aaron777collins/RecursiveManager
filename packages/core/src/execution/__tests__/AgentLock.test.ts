@@ -197,9 +197,9 @@ describe('AgentLock', () => {
 
   describe('tryAcquire()', () => {
     describe('non-blocking behavior', () => {
-      it('should acquire lock when unlocked', () => {
+      it('should acquire lock when unlocked', async () => {
         const agentId = 'agent-1';
-        const release = lock.tryAcquire(agentId);
+        const release = await lock.tryAcquire(agentId);
 
         expect(release).toBeInstanceOf(Function);
         expect(lock.isLocked(agentId)).toBe(true);
@@ -224,7 +224,7 @@ describe('AgentLock', () => {
         expect(lock.isLocked(agentId)).toBe(false);
 
         // Now tryAcquire should succeed
-        const release3 = lock.tryAcquire(agentId);
+        const release3 = await lock.tryAcquire(agentId);
         expect(release3).toBeInstanceOf(Function);
         expect(lock.isLocked(agentId)).toBe(true);
         release3!();

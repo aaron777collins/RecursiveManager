@@ -13,23 +13,27 @@ import {
   getCompletedTasks,
   compressOldArchives,
 } from '../archiveTask';
-import { initializeDatabase, createTask, completeTask } from '@recursive-manager/common';
-import { createAgent } from '../../lifecycle/hireAgent';
+import { initializeDatabase, createTask, completeTask, createAgent, runMigrations } from '@recursive-manager/common';
+import { allMigrations } from '@recursive-manager/common/dist/db/migrations';
 
 const gunzip = promisify(zlib.gunzip);
 
 describe('archiveOldTasks', () => {
   let db: Database.Database;
   let tempDir: string;
+  let dbPath: string;
 
   beforeEach(async () => {
     // Create a temporary database
-    db = new Database(':memory:');
-    initializeDatabase(db);
-
-    // Create a temporary directory for agent files
     tempDir = path.join('/tmp', `test-archive-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
+
+    dbPath = path.join(tempDir, 'test.db');
+    const connection = initializeDatabase({ path: dbPath });
+    db = connection.db;
+
+    // Run migrations
+    runMigrations(db, allMigrations);
   });
 
   afterEach(async () => {
@@ -68,7 +72,7 @@ describe('archiveOldTasks', () => {
     });
 
     // Complete the task
-    const completedTask1 = completeTask(db, task1.id, task1.version);
+    void completeTask(db, task1.id, task1.version);
 
     // Manually update the completed_at timestamp to 10 days ago
     const tenDaysAgo = new Date();
@@ -87,7 +91,7 @@ describe('archiveOldTasks', () => {
       taskPath: 'Recent completed task',
     });
 
-    const completedTask2 = completeTask(db, task2.id, task2.version);
+    void completeTask(db, task2.id, task2.version);
 
     // Manually update the completed_at timestamp to 2 days ago
     const twoDaysAgo = new Date();
@@ -119,7 +123,7 @@ describe('archiveOldTasks', () => {
 
   it('should handle empty result set gracefully', async () => {
     // Create a test agent with no tasks
-    const agent = await createAgent(
+    void await createAgent(
       db,
       {
         id: 'test-agent-empty',
@@ -242,15 +246,20 @@ describe('archiveOldTasks', () => {
 describe('getCompletedTasks', () => {
   let db: Database.Database;
   let tempDir: string;
+  let dbPath: string;
 
   beforeEach(async () => {
-    // Create a temporary database
-    db = new Database(':memory:');
-    initializeDatabase(db);
-
-    // Create a temporary directory for agent files
+    // Create a temporary directory
     tempDir = path.join('/tmp', `test-completed-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
+
+    // Create a temporary database
+    dbPath = path.join(tempDir, 'test.db');
+    const connection = initializeDatabase({ path: dbPath });
+    db = connection.db;
+
+    // Run migrations
+    runMigrations(db, allMigrations);
   });
 
   afterEach(async () => {
@@ -452,15 +461,20 @@ describe('getCompletedTasks', () => {
 describe('compressOldArchives', () => {
   let db: Database.Database;
   let tempDir: string;
+  let dbPath: string;
 
   beforeEach(async () => {
-    // Create a temporary database
-    db = new Database(':memory:');
-    initializeDatabase(db);
-
     // Create a temporary directory for agent files
     tempDir = path.join('/tmp', `test-compress-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
+
+    // Create a temporary database
+    dbPath = path.join(tempDir, 'test.db');
+    const connection = initializeDatabase({ path: dbPath });
+    db = connection.db;
+
+    // Run migrations
+    runMigrations(db, allMigrations);
 
     // Set AGENTS_BASE_DIR for testing
     process.env.AGENTS_BASE_DIR = tempDir;

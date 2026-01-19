@@ -138,7 +138,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
     dbPool = {
       getConnection: () => db,
       close: () => db.close(),
-    } as DatabasePool;
+    } as unknown as DatabasePool;
 
     testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'concurrent-exec-test-'));
     process.env.RECURSIVE_MANAGER_DATA_DIR = testDir;
@@ -393,7 +393,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       const runningStatus = await Promise.all(
         processes.map((name) => isProcessRunningByPid(name))
       );
-      expect(runningStatus.every((status) => status === true)).toBe(true);
+      expect(runningStatus.every((status) => status !== null)).toBe(true);
 
       // Clean up
       await Promise.all(processes.map((name) => removePidFile(name)));
@@ -458,7 +458,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       adapterRegistry.register(mockAdapter);
 
       orchestrator = new ExecutionOrchestrator({
-        adapterRegistry,
+        adapterRegistry: adapterRegistry as any,
         database: dbPool,
         maxExecutionTime: 5 * 60 * 1000,
       });
@@ -645,7 +645,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       adapterRegistry.register(mockAdapter);
 
       orchestrator = new ExecutionOrchestrator({
-        adapterRegistry,
+        adapterRegistry: adapterRegistry as any,
         database: dbPool,
         maxExecutionTime: 5 * 60 * 1000,
       });
@@ -698,7 +698,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       const executions = agentIds.map(async (agentId, index) => {
         const release = await agentLock.acquire(agentId);
         try {
-          expect(await isProcessRunningByPid(processNames[index])).toBe(true);
+          expect(await isProcessRunningByPid(processNames[index]!)).not.toBeNull();
           await new Promise((resolve) => setTimeout(resolve, 20));
           return { agentId, success: true };
         } finally {
@@ -707,7 +707,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       });
 
       const results = await Promise.all(
-        executions.map((exec) => pool.execute(agentIds[0], () => exec))
+        executions.map((exec) => pool.execute(agentIds[0]!, () => exec))
       );
 
       expect(results).toHaveLength(3);
@@ -720,7 +720,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       const runningStatus = await Promise.all(
         processNames.map((name) => isProcessRunningByPid(name))
       );
-      expect(runningStatus.every((status) => status === false)).toBe(true);
+      expect(runningStatus.every((status) => status === null)).toBe(true);
     });
 
     it('should maintain queue integrity under concurrent pressure', async () => {
@@ -763,8 +763,8 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
 
       // Verify FIFO ordering: agent-1 and agent-2 start first
       const starts = executionLog.filter((e) => e.event === 'start');
-      expect(starts[0].agent).toBe('agent-1');
-      expect(starts[1].agent).toBe('agent-2');
+      expect(starts[0]?.agent).toBe('agent-1');
+      expect(starts[1]?.agent).toBe('agent-2');
     });
   });
 });

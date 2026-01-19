@@ -16,7 +16,6 @@ import { hireAgent, HireAgentError } from '../lifecycle/hireAgent';
 import { HireValidationError } from '../lifecycle/validateHire';
 import { generateDefaultConfig } from '../config';
 import {
-  createAgent,
   getAgent,
   runMigrations,
   allMigrations,
