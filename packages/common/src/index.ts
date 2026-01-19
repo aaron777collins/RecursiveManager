@@ -59,3 +59,24 @@ export {
   type CheckDiskSpaceOptions,
   type DiskSpaceSufficiencyResult,
 } from './disk-space';
+
+// Path utilities (Phase 1.2)
+export {
+  DEFAULT_BASE_DIR,
+  PathError,
+  getAgentShard,
+  getAgentDirectory,
+  getTaskPath,
+  getInboxPath,
+  getOutboxPath,
+  getWorkspacePath,
+  getSubordinatesPath,
+  getConfigPath,
+  getSchedulePath,
+  getMetadataPath,
+  getLogsDirectory,
+  getAgentLogPath,
+  getDatabasePath,
+  getBackupsDirectory,
+  type PathOptions,
+} from './path-utils';

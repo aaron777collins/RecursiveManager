@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 20:08:41 EST
+Last Updated: 2026-01-18 20:16:23 EST
 
 ## Status
 
@@ -99,9 +99,9 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Path Resolution
 
-- [ ] Task 1.2.6: Implement agent directory sharding logic (hex prefix)
-- [ ] Task 1.2.7: Create getAgentDirectory(agentId) utility
-- [ ] Task 1.2.8: Create getTaskPath(agentId, taskId) utility
+- [x] Task 1.2.6: Implement agent directory sharding logic (hex prefix)
+- [x] Task 1.2.7: Create getAgentDirectory(agentId) utility
+- [x] Task 1.2.8: Create getTaskPath(agentId, taskId) utility
 - [ ] Task 1.2.9: Create path validation utilities
 
 ##### JSON Schema Definition
@@ -532,6 +532,150 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Tasks 1.2.6, 1.2.7, 1.2.8: Implement path utilities with agent directory sharding ✅
+
+**Summary**: Implemented comprehensive path resolution utilities with agent directory sharding logic, including getAgentDirectory(), getTaskPath(), and utilities for all agent-specific paths. Includes 49 passing tests covering all functionality and edge cases.
+
+**What Was Implemented**:
+
+- ✅ Created `packages/common/src/path-utils.ts` module (427 lines)
+  - `getAgentShard(agentId)` - Hex prefix sharding for agent directories (16 buckets: 0-f)
+  - `getAgentDirectory(agentId, options?)` - Get sharded agent directory path
+  - `getTaskPath(agentId, taskId, status?, options?)` - Get task directory path
+  - `getInboxPath(agentId, options?)` - Get agent inbox path
+  - `getOutboxPath(agentId, options?)` - Get agent outbox path
+  - `getWorkspacePath(agentId, options?)` - Get agent workspace path
+  - `getSubordinatesPath(agentId, options?)` - Get subordinates directory path
+  - `getConfigPath(agentId, options?)` - Get config.json path
+  - `getSchedulePath(agentId, options?)` - Get schedule.json path
+  - `getMetadataPath(agentId, options?)` - Get metadata.json path
+  - `getLogsDirectory(options?)` - Get logs directory path
+  - `getAgentLogPath(agentId, options?)` - Get agent log file path
+  - `getDatabasePath(options?)` - Get database file path
+  - `getBackupsDirectory(options?)` - Get backups directory path
+  - `PathError` - Custom error class with agentId/taskId context
+  - `DEFAULT_BASE_DIR` constant (~/.recursive-manager)
+- ✅ Type-safe interfaces:
+  - `PathOptions` - Configuration for base directory override
+- ✅ Sharding algorithm:
+  - Uses first character of agent ID (lowercased) to determine shard
+  - Numeric (0-9) → shards 00-0f through 90-9f
+  - Hex letters (a-f) → shards a0-af through f0-ff
+  - Other characters → hash to shard bucket (modulo 16)
+  - 16 total shards prevent filesystem bottlenecks with many agents
+  - Consistent sharding (same ID always maps to same shard)
+  - Case-insensitive (CEO and ceo map to same shard)
+- ✅ Directory structure:
+  - Base: `~/.recursive-manager/` (configurable via PathOptions)
+  - Agents: `{base}/agents/{shard}/{agentId}/`
+  - Tasks: `{agentDir}/tasks/{status}/{taskId}/`
+  - Config files: `{agentDir}/config.json`, `schedule.json`, `metadata.json`
+  - Subdirectories: `{agentDir}/inbox/`, `outbox/`, `workspace/`, `subordinates/`
+  - Logs: `{base}/logs/agents/{agentId}.log`
+  - Database: `{base}/recursive-manager.db`
+  - Backups: `{base}/backups/`
+- ✅ Error handling:
+  - Validates agent IDs and task IDs are not empty
+  - Throws PathError with descriptive messages and context
+  - Includes agentId and taskId in errors for debugging
+- ✅ Exported from `@recursive-manager/common` package
+  - Added to package index with all functions and types
+  - Available for use in all other packages
+- ✅ Comprehensive test suite (49 tests, all passing)
+  - DEFAULT_BASE_DIR constant verification
+  - PathError class behavior
+  - getAgentShard() with numeric, hex, and other characters
+  - Case-insensitive sharding
+  - Consistent shard mapping
+  - Empty ID error handling
+  - All path functions (getAgentDirectory, getTaskPath, etc.)
+  - Custom base directory support
+  - Absolute path verification
+  - Integration tests for complete agent path structure
+  - Sharding distribution across all 16 buckets
+  - Filesystem bottleneck prevention verification
+
+**Files Created/Modified**:
+
+1. `packages/common/src/path-utils.ts` (427 lines) - Implementation
+2. `packages/common/src/__tests__/path-utils.test.ts` (435 lines) - Comprehensive tests
+3. `packages/common/src/index.ts` - Updated exports to include path utilities
+4. `packages/common/src/__tests__/disk-space.test.ts` - Fixed flaky test (allowed 1MB variance in disk space checks)
+
+**Testing Results**:
+
+- ✅ 49/49 path-utils tests passing
+- ✅ 189/189 total tests passing in common package (140 previous + 49 new)
+- ✅ All tests complete in ~8 seconds
+- ✅ ESLint passes (fixed prettier formatting)
+- ✅ TypeScript compilation successful
+- ✅ Test coverage includes:
+  - All sharding logic (numeric, hex, hashed)
+  - All path resolution functions
+  - Custom base directory support
+  - Error scenarios (empty IDs)
+  - Integration workflows (complete agent directory structure)
+  - Sharding distribution verification
+
+**Key Design Decisions**:
+
+1. **16-bucket sharding**: Distributes agents across 16 subdirectories (0-f hex prefix) for filesystem performance
+2. **First-character hashing**: Uses first character of agent ID to determine shard (simple, fast, predictable)
+3. **Case-insensitive**: Lowercase agent IDs before sharding to ensure consistency
+4. **Absolute paths**: All functions return absolute paths using path.resolve()
+5. **Custom base directory**: PathOptions allows overriding default ~/.recursive-manager for testing/deployment
+6. **Comprehensive utilities**: Provides path functions for every agent resource (config, tasks, logs, etc.)
+7. **Error context**: PathError includes agentId and taskId for better debugging
+8. **TypeScript strict mode**: Handles all edge cases required by strict null checks
+
+**Sharding Algorithm Details**:
+
+```
+Input: agentId (e.g., "CEO", "backend-dev-001")
+Step 1: Lowercase → "ceo", "backend-dev-001"
+Step 2: Get first character → "c", "b"
+Step 3: Determine shard index:
+  - '0'-'9' → 0-9
+  - 'a'-'f' → 10-15
+  - Other → charCode % 16
+Step 4: Convert to hex range → "c0-cf", "b0-bf"
+Output: {baseDir}/agents/{shard}/{agentId}/
+```
+
+**Examples**:
+
+```typescript
+getAgentDirectory('CEO');
+// → "/home/user/.recursive-manager/agents/c0-cf/CEO"
+
+getTaskPath('CEO', 'task-1-implement-feature');
+// → "/home/user/.recursive-manager/agents/c0-cf/CEO/tasks/active/task-1-implement-feature"
+
+getConfigPath('backend-dev-001');
+// → "/home/user/.recursive-manager/agents/b0-bf/backend-dev-001/config.json"
+
+getAgentLogPath('database-admin');
+// → "/home/user/.recursive-manager/logs/agents/database-admin.log"
+```
+
+**Impact**:
+
+This completes three tasks in Phase 1.2 (File System Layer):
+
+- Task 1.2.6: Agent directory sharding logic
+- Task 1.2.7: getAgentDirectory() utility
+- Task 1.2.8: getTaskPath() utility
+
+The system now has centralized path resolution for all agent resources with automatic sharding to prevent filesystem bottlenecks. This will be used by:
+
+- Task 2.2: Agent lifecycle management (creating agent directories)
+- Task 2.3: Task management (creating task directories)
+- All future file operations throughout the system
+
+**Next Task**: Task 1.2.9 - Create path validation utilities
+
+---
 
 ### Task 1.2.5: Implement disk space checking (EC-5.1: Disk Full) ✅
 

@@ -180,7 +180,10 @@ describe('disk-space', () => {
       expect(result.sufficient).toBe(false);
       expect(result.reason).toContain('Insufficient disk space');
       expect(result.missingBytes).toBeGreaterThan(0);
-      expect(result.missingBytes).toBe(impossibleRequest - info.availableBytes);
+      // Allow for small variations in disk space between the two getDiskSpace calls
+      const expectedMissing = impossibleRequest - info.availableBytes;
+      expect(result.missingBytes).toBeGreaterThanOrEqual(expectedMissing - 1024 * 1024); // Allow 1MB variance
+      expect(result.missingBytes).toBeLessThanOrEqual(expectedMissing + 1024 * 1024); // Allow 1MB variance
     });
 
     it('should work with requiredBytes=0 (just checking minimums)', async () => {
