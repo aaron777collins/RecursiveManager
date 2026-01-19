@@ -108,7 +108,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 1.2.10: Define agent-config.schema.json (identity, goal, permissions, framework, communication, behavior, metadata)
 - [x] Task 1.2.11: Define schedule.schema.json (mode, continuous, timeBased, reactive, pauseConditions)
-- [ ] Task 1.2.12: Define task.schema.json (task, hierarchy, delegation, progress, context, execution)
+- [x] Task 1.2.12: Define task.schema.json (task, hierarchy, delegation, progress, context, execution)
 - [ ] Task 1.2.13: Define message.schema.json (frontmatter fields)
 - [ ] Task 1.2.14: Define metadata.schema.json (runtime, statistics, health, budget)
 - [ ] Task 1.2.15: Define subordinates.schema.json (subordinates array, summary)
@@ -532,6 +532,93 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.2.12: Define task.schema.json ✅
+
+**Summary**: Created comprehensive JSON Schema for task context and metadata with full validation rules. Includes task identification, hierarchical relationships, delegation tracking, progress monitoring, context information, and execution metadata. Schema supports nested task hierarchies with depth limits, delegation supervision levels, blocking detection, and execution history tracking.
+
+**What Was Implemented**:
+
+- ✅ Created `packages/common/src/schemas/task.schema.json` (8.9KB, 280 lines)
+  - Complete JSON Schema Draft-07 definition
+  - Schema ID: https://recursivemanager.dev/schemas/task.schema.json
+  - Title and description metadata
+- ✅ Required top-level sections defined:
+  - `version` - Semantic version pattern (e.g., "1.0.0")
+  - `task` - Basic task metadata (id, title, status, priority, timestamps)
+  - `hierarchy` - Hierarchical relationships (parent, children, depth, maxDepth)
+  - `delegation` - Delegation tracking (delegatedTo, supervisionLevel, reportingFrequency)
+  - `progress` - Progress monitoring (percentComplete, subtasks, blockedBy)
+  - `context` - Context information (relatedFiles, dependencies, notes)
+  - `execution` - Execution metadata (executionCount, timeSpent, failures)
+- ✅ Task section properties:
+  - `id` - Pattern validated task ID (format: task-{number}-{slug})
+  - `title` - Task title/name (required, min length 1)
+  - `description` - Detailed task description (optional)
+  - `status` - Status enum (pending, in-progress, blocked, completed, archived)
+  - `priority` - Priority enum (low, medium, high, urgent)
+  - `createdAt` - ISO 8601 creation timestamp (required)
+  - `startedAt`, `completedAt`, `estimatedCompletionAt` - Optional timestamps
+- ✅ Hierarchy section properties:
+  - `parentTask` - Parent task ID reference (null for root tasks)
+  - `childTasks` - Array of child task IDs
+  - `depth` - Current nesting depth (0 for root, min 0)
+  - `maxDepth` - Maximum nesting depth (default 5, prevents infinite recursion)
+- ✅ Delegation section properties:
+  - `delegatedTo` - Agent ID (null if not delegated)
+  - `delegatedAt` - ISO 8601 delegation timestamp
+  - `delegatedBy` - Agent ID who delegated
+  - `supervisionLevel` - Enum (minimal, moderate, strict)
+  - `reportingFrequency` - Enum (never, daily, weekly, on-completion)
+- ✅ Progress section properties:
+  - `percentComplete` - Integer 0-100 (default 0)
+  - `subtasksCompleted`, `subtasksTotal` - Subtask counters
+  - `lastUpdate` - ISO 8601 timestamp
+  - `blockedBy` - Array of blocking task IDs
+  - `blockedSince` - ISO 8601 timestamp (null if not blocked)
+  - `blockReason` - Reason for blocking (optional)
+- ✅ Context section properties:
+  - `relatedFiles` - Array of file paths
+  - `externalDependencies` - Array of external dependency strings
+  - `notes` - Free-form notes (default empty string)
+  - `tags` - Array of categorization tags
+- ✅ Execution section properties:
+  - `lastExecutionId` - Pattern validated execution ID (exec-{alphanumeric})
+  - `executionCount` - Total attempts (min 0, default 0)
+  - `totalTimeSpentMinutes` - Cumulative time (min 0, default 0)
+  - `failureCount` - Failed attempts (min 0, default 0)
+  - `lastFailureReason` - Failure description (null if no failures)
+  - `lastSuccessAt` - ISO 8601 timestamp of last success
+
+**Validation & Integration**:
+
+- ✅ Build successful: `npm run build` - TypeScript compilation passed
+- ✅ Schema copied to dist: `packages/common/dist/schemas/task.schema.json`
+- ✅ Linting passed: `npm run lint` - All ESLint checks passed
+- ✅ Tests passed: All existing test suites passed
+- ✅ Pattern validation: Task IDs follow `^task-[0-9]+-[a-zA-Z0-9-]+$`
+- ✅ Execution IDs follow `^exec-[a-zA-Z0-9]+$`
+- ✅ ISO 8601 date-time format validation for all timestamps
+- ✅ Enum constraints for status, priority, supervisionLevel, reportingFrequency
+- ✅ Integer constraints with min/max bounds where applicable
+- ✅ Array validation for childTasks, blockedBy, relatedFiles, externalDependencies, tags
+- ✅ Schema designed to align with SQLite tasks table structure
+
+**Design Decisions**:
+
+1. **Hierarchical Support**: Full support for nested task hierarchies with depth tracking and maximum depth limits to prevent infinite recursion
+2. **Delegation Tracking**: Complete delegation metadata to support supervisor-subordinate task relationships
+3. **Blocking Detection**: Array-based blocking relationships with timestamps to identify task deadlocks
+4. **Execution History**: Comprehensive execution tracking for debugging and performance analysis
+5. **Pattern Validation**: Strict ID patterns ensure consistency across the system
+6. **Flexibility**: Optional fields allow gradual population as task progresses
+7. **Database Alignment**: Schema mirrors the SQLite tasks table for consistency
+
+**Files Created**:
+
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/schemas/task.schema.json` (280 lines)
+
+---
 
 ### Task 1.2.11: Define schedule.schema.json ✅
 
