@@ -16,7 +16,7 @@ IN_PROGRESS
 
 ### Phase 2: Installation System
 - [x] 2.1 Create install.sh script
-- [ ] 2.2 Create uninstall.sh script
+- [x] 2.2 Create uninstall.sh script
 - [ ] 2.3 Update package.json with bin entry
 - [ ] 2.4 Create CLI package structure
 
@@ -91,6 +91,23 @@ IN_PROGRESS
   - Handles existing installations with confirmation
   - Made script executable (chmod +x)
   - Tested help output successfully
+
+### Iteration 6 (2026-01-19)
+- Task 2.2: Created uninstall.sh script in scripts/
+  - Implemented removal of installation directory
+  - Added shell alias cleanup for bash, zsh, and fish shells
+  - Created backup system before removal
+  - Added optional data and configuration removal (--remove-data flag)
+  - Supports options: --headless, --install-dir, --remove-data, --skip-backup
+  - Interactive mode with confirmation prompts
+  - Colored output in interactive mode
+  - Preserves data by default, only removes on explicit --remove-data flag
+  - Backs up version history and data directories before removal
+  - Made script executable (chmod +x)
+  - Tested help output successfully
+
+## Completed This Iteration
+- Task 2.2: Created uninstall.sh script
 
 ## Notes
 
