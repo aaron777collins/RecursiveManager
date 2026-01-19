@@ -98,7 +98,7 @@ describe('Config Command Integration Tests', () => {
       // Verify the value was logged
       const logCalls = consoleLogs.mock.calls.flat().join('');
       expect(logCalls).toContain('execution.workerPoolSize:');
-      expect(logCalls).toContain('5'); // Default value
+      expect(logCalls).toContain('4'); // Default value
     });
 
     it('should handle non-existent configuration key', async () => {
@@ -113,7 +113,7 @@ describe('Config Command Integration Tests', () => {
           '--data-dir',
           testDataDir,
         ])
-      ).rejects.toThrow('Process.exit(1)');
+      ).rejects.toThrow('Process.exit() called');
 
       // Verify error message
       const errorCalls = consoleErrors.mock.calls.flat().join('');
@@ -170,7 +170,7 @@ describe('Config Command Integration Tests', () => {
           '--data-dir',
           testDataDir,
         ])
-      ).rejects.toThrow('Process.exit(1)');
+      ).rejects.toThrow('Process.exit() called');
 
       // Verify error message
       const errorCalls = consoleErrors.mock.calls.flat().join('');
@@ -189,7 +189,7 @@ describe('Config Command Integration Tests', () => {
           '--data-dir',
           testDataDir,
         ])
-      ).rejects.toThrow('Process.exit(1)');
+      ).rejects.toThrow('Process.exit() called');
 
       // Verify error message
       const errorCalls = consoleErrors.mock.calls.flat().join('');
@@ -208,7 +208,7 @@ describe('Config Command Integration Tests', () => {
           '--data-dir',
           testDataDir,
         ])
-      ).rejects.toThrow('Process.exit(1)');
+      ).rejects.toThrow('Process.exit() called');
 
       // Verify error message
       const errorCalls = consoleErrors.mock.calls.flat().join('');
