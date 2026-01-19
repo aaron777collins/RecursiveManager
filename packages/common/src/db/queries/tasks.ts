@@ -142,6 +142,14 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
   // Step 2.5: Validate blocked_by dependencies and prevent circular dependencies (Task 2.3.23)
   const blockedBy = input.blockedBy ?? [];
   if (blockedBy.length > 0) {
+    // Check for self-reference first (before checking if task exists)
+    if (blockedBy.includes(taskId)) {
+      throw new Error(
+        `Cannot create task: circular dependency detected. ` +
+        `Task "${input.title}" (${taskId}) cannot be blocked by itself.`
+      );
+    }
+
     // Validate all blocker tasks exist
     for (const blockerTaskId of blockedBy) {
       const blockerTask = getTask(db, blockerTaskId);
@@ -186,27 +194,25 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
       // Check for indirect cycles: if the blocker is blocked by something that's transitively blocked by taskId
       // We use DFS to detect cycles in the would-be dependency graph
       const visited = new Set<string>();
-      const path = new Set<string>([taskId]); // Start with this task in the path
 
       function hasCycle(currentTaskId: string): boolean {
-        if (path.has(currentTaskId)) {
-          // Found a cycle!
+        // Only flag as cycle if we've found our way back to the NEW task being created
+        if (currentTaskId === taskId) {
+          // Found a cycle that involves the new task!
           return true;
         }
 
         if (visited.has(currentTaskId)) {
-          // Already explored this path, no cycle
+          // Already explored this path, no cycle involving the new task
           return false;
         }
 
         visited.add(currentTaskId);
-        path.add(currentTaskId);
 
         // Get the task's dependencies
         const currentTask = getTask(db, currentTaskId);
         if (!currentTask) {
           // Task doesn't exist, can't have dependencies
-          path.delete(currentTaskId);
           return false;
         }
 
@@ -224,7 +230,6 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
           }
         }
 
-        path.delete(currentTaskId);
         return false;
       }
 
@@ -474,6 +479,11 @@ export function updateTaskStatus(
         newVersion: updatedTask.version,
       },
     });
+
+    // Update parent task progress if this task has a parent and status changed to completed (Task 2.3.14)
+    if (status === 'completed' && currentTask.parent_task_id) {
+      updateParentTaskProgress(db, currentTask.parent_task_id);
+    }
 
     return updatedTask;
   } catch (error) {

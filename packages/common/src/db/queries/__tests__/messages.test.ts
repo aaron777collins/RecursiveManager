@@ -17,6 +17,7 @@ import {
   MessageInput,
 } from '../messages';
 import { runMigrations } from '../../migrations';
+import { allMigrations } from '../../migrations/index';
 
 describe('Message Query Functions', () => {
   let db: Database.Database;
@@ -32,16 +33,17 @@ describe('Message Query Functions', () => {
     db = new Database(dbPath);
 
     // Run migrations
-    await runMigrations(db);
+    await runMigrations(db, allMigrations);
 
     // Insert test agents for foreign key constraints
+    const now = new Date().toISOString();
     db.prepare(`
-      INSERT INTO agents (id, role, display_name, status, created_by, reporting_to, main_goal, config_path)
+      INSERT INTO agents (id, role, display_name, status, created_by, reporting_to, main_goal, config_path, created_at)
       VALUES
-        ('agent-001', 'CEO', 'Test CEO', 'active', NULL, NULL, 'Lead company', '/data/agents/a/agent-001/config.json'),
-        ('agent-002', 'CTO', 'Test CTO', 'active', 'agent-001', 'agent-001', 'Lead tech', '/data/agents/a/agent-002/config.json'),
-        ('system', 'System', 'System', 'active', NULL, NULL, 'System operations', '/data/agents/s/system/config.json')
-    `).run();
+        ('agent-001', 'CEO', 'Test CEO', 'active', NULL, NULL, 'Lead company', '/data/agents/a/agent-001/config.json', ?),
+        ('agent-002', 'CTO', 'Test CTO', 'active', 'agent-001', 'agent-001', 'Lead tech', '/data/agents/a/agent-002/config.json', ?),
+        ('system', 'System', 'System', 'active', NULL, NULL, 'System operations', '/data/agents/s/system/config.json', ?)
+    `).run(now, now, now);
   });
 
   afterEach(() => {
@@ -76,6 +78,18 @@ describe('Message Query Functions', () => {
     });
 
     it('should create a message with optional fields', () => {
+      // Create msg-001 first for foreign key reference
+      createMessage(db, {
+        id: 'msg-001',
+        from_agent_id: 'agent-001',
+        to_agent_id: 'agent-002',
+        timestamp: '2026-01-19T09:00:00Z',
+        priority: 'high',
+        channel: 'slack',
+        action_required: true,
+        message_path: 'inbox/unread/msg-001.md',
+      });
+
       const messageInput: MessageInput = {
         id: 'msg-002',
         from_agent_id: 'system',
@@ -195,7 +209,7 @@ describe('Message Query Functions', () => {
       const messages = getMessages(db, { agentId: 'agent-002' });
 
       expect(messages).toHaveLength(3);
-      expect(messages[0].id).toBe('msg-003'); // Most recent first
+      expect(messages[0]!.id).toBe('msg-003'); // Most recent first
     });
 
     it('should filter unread messages only', () => {
@@ -215,7 +229,7 @@ describe('Message Query Functions', () => {
       });
 
       expect(messages).toHaveLength(1);
-      expect(messages[0].id).toBe('msg-003');
+      expect(messages[0]!.id).toBe('msg-003');
     });
 
     it('should filter by priority', () => {
@@ -225,7 +239,7 @@ describe('Message Query Functions', () => {
       });
 
       expect(messages).toHaveLength(1);
-      expect(messages[0].id).toBe('msg-001');
+      expect(messages[0]!.id).toBe('msg-001');
     });
 
     it('should filter action required only', () => {
@@ -235,7 +249,7 @@ describe('Message Query Functions', () => {
       });
 
       expect(messages).toHaveLength(1);
-      expect(messages[0].id).toBe('msg-001');
+      expect(messages[0]!.id).toBe('msg-001');
     });
 
     it('should support limit and offset', () => {
@@ -246,7 +260,7 @@ describe('Message Query Functions', () => {
       });
 
       expect(messages).toHaveLength(2);
-      expect(messages[0].id).toBe('msg-002');
+      expect(messages[0]!.id).toBe('msg-002');
     });
   });
 

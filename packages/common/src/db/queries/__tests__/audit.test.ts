@@ -37,6 +37,17 @@ describe('Audit Query API', () => {
     db = new Database(testDbPath);
     db.pragma('journal_mode = WAL');
     runMigrations(db, [migration001, migration005]);
+
+    // Insert test agents for foreign key constraints
+    const now = new Date().toISOString();
+    db.prepare(`
+      INSERT INTO agents (id, role, display_name, status, created_by, reporting_to, main_goal, config_path, created_at)
+      VALUES
+        ('ceo-001', 'CEO', 'Test CEO', 'active', NULL, NULL, 'Lead company', '/data/agents/c/ceo-001/config.json', ?),
+        ('cto-001', 'CTO', 'Test CTO', 'active', 'ceo-001', 'ceo-001', 'Lead tech', '/data/agents/c/cto-001/config.json', ?),
+        ('agent-001', 'Worker', 'Test Worker', 'active', 'ceo-001', 'ceo-001', 'Work', '/data/agents/a/agent-001/config.json', ?),
+        ('worker-005', 'Worker', 'Test Worker 5', 'active', 'ceo-001', 'ceo-001', 'Work', '/data/agents/w/worker-005/config.json', ?)
+    `).run(now, now, now, now);
   });
 
   afterEach(() => {
