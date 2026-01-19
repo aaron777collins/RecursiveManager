@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 02:15:00 EST
+Last Updated: 2026-01-19 04:30:00 EST
 
 ## Status
 
@@ -4717,3 +4717,87 @@ Comprehensive test suite with 31 tests covering:
 ### Next Task
 
 Task 2.1.4: Implement mergeConfigs(base, override) with proper precedence
+
+---
+
+## Completed This Iteration (2026-01-19 04:30:00 EST)
+
+### Tasks 2.1.8 & 2.1.9: Integration Tests for Config Workflow ✅
+
+**Summary**: Implemented comprehensive end-to-end integration tests for the complete config lifecycle (generate → merge → save → load), completing Phase 2.1 (Agent Configuration & Validation).
+
+**What Was Implemented**:
+
+1. **Integration Test File** (`packages/core/src/__tests__/configIntegration.test.ts`):
+   - 12 comprehensive integration tests (421 lines)
+   - 4 test suites covering different aspects of the workflow
+   
+2. **Test Coverage Areas**:
+
+   **Generate → Merge → Save → Load Roundtrip (3 tests)**:
+   - Full workflow with minimal overrides - validates basic roundtrip integrity
+   - Nested object merging - tests complex nested objects (goals, permissions) preserve correctly
+   - Multiple sequential merges - tests chaining multiple mergeConfigs calls before save
+
+   **Real-World Use Case Scenarios (3 tests)**:
+   - Template-based agent creation - create multiple agents from a base template with customizations
+   - Dynamic config updates - simulate iterative updates to agent config over time
+   - Promotion workflow - junior developer promoted to senior with new permissions and goals
+
+   **Edge Cases and Error Handling (4 tests)**:
+   - Empty overrides in merge workflow
+   - Null values in merge workflow (e.g., making agent independent)
+   - Validation at each step of workflow (generate, merge, save, load)
+   - Framework configuration in workflow (custom framework settings)
+
+   **Performance and Reliability (2 tests)**:
+   - Rapid generate-merge-save-load cycles (5 agents created quickly)
+   - Data integrity through multiple updates (10 sequential updates)
+
+3. **Key Features Validated**:
+   - **End-to-end workflow integrity**: All steps work together correctly
+   - **Schema validation**: Configs validate at every step
+   - **Business logic validation**: Hiring permissions consistency enforced
+   - **Deep object merging**: Nested objects merge correctly
+   - **Data persistence**: Save/load cycle preserves all data
+   - **Sequential updates**: Multiple updates maintain integrity
+   - **Template patterns**: Agents can be created from templates
+   - **Real-world scenarios**: Tests mirror actual usage patterns
+
+4. **Test Results**:
+   - ✅ All 12 integration tests passing
+   - ✅ Full roundtrip integrity verified
+   - ✅ All validation rules working correctly
+   - ✅ Real-world workflows validated
+
+**Files Created/Modified**:
+- Created: `packages/core/src/__tests__/configIntegration.test.ts` (421 lines)
+- Modified: `COMPREHENSIVE_PLAN_PROGRESS.md` (marked tasks 2.1.8 & 2.1.9 complete)
+
+**Technical Details**:
+- Uses temporary directories for test isolation (mkdtempSync)
+- Proper cleanup after each test (rmSync in afterEach)
+- Tests business validation rules (canHire requires maxSubordinates > 0)
+- Tests real-world patterns (templates, updates, promotions)
+- Validates schema and business logic at each step
+- Tests rapid operations for reliability
+- Tests data integrity through multiple updates
+
+**Phase 2.1 Status**: ✅ **COMPLETE**
+All 9 tasks in Phase 2.1 (Agent Configuration & Validation) are now complete:
+- Task 2.1.1: loadAgentConfig ✅
+- Task 2.1.2: saveAgentConfig ✅
+- Task 2.1.3: generateDefaultConfig ✅
+- Task 2.1.4: mergeConfigs ✅
+- Task 2.1.5: Config validation with detailed error messages ✅
+- Task 2.1.6: Corrupt config recovery ✅
+- Task 2.1.7: Unit tests for config validation ✅
+- Task 2.1.8: Integration tests for config loading + saving ✅
+- Task 2.1.9: Tests for default generation and merging ✅
+
+**Completion Criteria Met**: Config CRUD working, validation robust, corruption handled
+
+### Next Phase
+
+Task 2.2.1: Begin Phase 2.2 (Agent Lifecycle Management) - Implement validateHire() checking budget, rate limits, cycles
+
