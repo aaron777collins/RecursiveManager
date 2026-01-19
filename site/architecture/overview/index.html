@@ -746,10 +746,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-cli-tool" class="md-nav__link">
+  <a href="#1-cli-tool-cli" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. CLI Tool
+        1. CLI Tool (cli/)
       
     </span>
   </a>
@@ -757,10 +757,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-scheduler-daemon" class="md-nav__link">
+  <a href="#2-scheduler-daemon-scheduler" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Scheduler Daemon
+        2. Scheduler Daemon (scheduler/)
       
     </span>
   </a>
@@ -768,10 +768,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-core-orchestrator" class="md-nav__link">
+  <a href="#3-core-orchestrator-core" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Core Orchestrator
+        3. Core Orchestrator (core/)
       
     </span>
   </a>
@@ -779,10 +779,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#4-framework-adapters" class="md-nav__link">
+  <a href="#4-framework-adapters-adapters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Framework Adapters
+        4. Framework Adapters (adapters/)
       
     </span>
   </a>
@@ -790,10 +790,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#5-messaging-layer" class="md-nav__link">
+  <a href="#5-messaging-layer-messaging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Messaging Layer
+        5. Messaging Layer (messaging/)
       
     </span>
   </a>
@@ -806,22 +806,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#data-flow" class="md-nav__link">
+  <a href="#architectural-principles" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Data Flow
+        Architectural Principles
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Data Flow">
+    <nav class="md-nav" aria-label="Architectural Principles">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#agent-execution-flow" class="md-nav__link">
+  <a href="#1-modularity" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Agent Execution Flow
+        1. Modularity
       
     </span>
   </a>
@@ -829,10 +829,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#task-delegation-flow" class="md-nav__link">
+  <a href="#2-separation-of-concerns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Task Delegation Flow
+        2. Separation of Concerns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-dependency-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Dependency Injection
       
     </span>
   </a>
@@ -845,22 +856,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#storage-model" class="md-nav__link">
+  <a href="#scalability-considerations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Storage Model
+        Scalability Considerations
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Storage Model">
+    <nav class="md-nav" aria-label="Scalability Considerations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#hybrid-storage-strategy" class="md-nav__link">
+  <a href="#file-system-limits" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Hybrid Storage Strategy
+        File System Limits
       
     </span>
   </a>
@@ -868,10 +879,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#file-system-structure" class="md-nav__link">
+  <a href="#concurrent-execution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        File System Structure
+        Concurrent Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduler-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scheduler Performance
       
     </span>
   </a>
@@ -884,22 +906,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#design-principles" class="md-nav__link">
+  <a href="#key-architectural-decisions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Design Principles
+        Key Architectural Decisions
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Design Principles">
+    <nav class="md-nav" aria-label="Key Architectural Decisions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-quality-over-cost" class="md-nav__link">
+  <a href="#decision-1-file-based-vs-database-state" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Quality Over Cost
+        Decision 1: File-Based vs Database State
       
     </span>
   </a>
@@ -907,10 +929,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-stateless-execution" class="md-nav__link">
+  <a href="#decision-2-monorepo-vs-multi-repo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Stateless Execution
+        Decision 2: Monorepo vs Multi-Repo
       
     </span>
   </a>
@@ -918,32 +940,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-transparency" class="md-nav__link">
+  <a href="#decision-3-synchronous-vs-asynchronous-execution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Transparency
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-modularity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Modularity
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-resilience" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Resilience
+        Decision 3: Synchronous vs Asynchronous Execution
       
     </span>
   </a>
@@ -956,18 +956,56 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
+  <a href="#resilience-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Key Features
+        Resilience Patterns
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Key Features">
+    <nav class="md-nav" aria-label="Resilience Patterns">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#pattern-1-circuit-breaker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern 1: Circuit Breaker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-2-retry-with-exponential-backoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern 2: Retry with Exponential Backoff
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-3-graceful-degradation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern 3: Graceful Degradation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#multi-perspective-analysis" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -976,13 +1014,26 @@
     </span>
   </a>
   
-</li>
+    <nav class="md-nav" aria-label="Multi-Perspective Analysis">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#edge-case-handling" class="md-nav__link">
+  <a href="#key-insights-summary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Edge Case Handling
+        Key Insights Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Insights Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-simplicity-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Simplicity Perspective
       
     </span>
   </a>
@@ -990,10 +1041,76 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#scalability" class="md-nav__link">
+  <a href="#from-architecture-perspective" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Scalability
+        From Architecture Perspective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-security-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Security Perspective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-testing-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Testing Perspective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-observability-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Observability Perspective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-documentation-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Documentation Perspective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-devops-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From DevOps Perspective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-ux-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From UX Perspective
       
     </span>
   </a>
@@ -1004,12 +1121,17 @@
     </nav>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#design-recommendations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next Steps
+        Design Recommendations
       
     </span>
   </a>
@@ -1017,10 +1139,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#related-reading" class="md-nav__link">
+  <a href="#related-documentation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Related Reading
+        Related Documentation
       
     </span>
   </a>
@@ -1348,10 +1470,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-cli-tool" class="md-nav__link">
+  <a href="#1-cli-tool-cli" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. CLI Tool
+        1. CLI Tool (cli/)
       
     </span>
   </a>
@@ -1359,10 +1481,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-scheduler-daemon" class="md-nav__link">
+  <a href="#2-scheduler-daemon-scheduler" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Scheduler Daemon
+        2. Scheduler Daemon (scheduler/)
       
     </span>
   </a>
@@ -1370,10 +1492,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-core-orchestrator" class="md-nav__link">
+  <a href="#3-core-orchestrator-core" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Core Orchestrator
+        3. Core Orchestrator (core/)
       
     </span>
   </a>
@@ -1381,10 +1503,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#4-framework-adapters" class="md-nav__link">
+  <a href="#4-framework-adapters-adapters" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. Framework Adapters
+        4. Framework Adapters (adapters/)
       
     </span>
   </a>
@@ -1392,10 +1514,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#5-messaging-layer" class="md-nav__link">
+  <a href="#5-messaging-layer-messaging" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. Messaging Layer
+        5. Messaging Layer (messaging/)
       
     </span>
   </a>
@@ -1408,22 +1530,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#data-flow" class="md-nav__link">
+  <a href="#architectural-principles" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Data Flow
+        Architectural Principles
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Data Flow">
+    <nav class="md-nav" aria-label="Architectural Principles">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#agent-execution-flow" class="md-nav__link">
+  <a href="#1-modularity" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Agent Execution Flow
+        1. Modularity
       
     </span>
   </a>
@@ -1431,10 +1553,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#task-delegation-flow" class="md-nav__link">
+  <a href="#2-separation-of-concerns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Task Delegation Flow
+        2. Separation of Concerns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-dependency-injection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Dependency Injection
       
     </span>
   </a>
@@ -1447,22 +1580,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#storage-model" class="md-nav__link">
+  <a href="#scalability-considerations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Storage Model
+        Scalability Considerations
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Storage Model">
+    <nav class="md-nav" aria-label="Scalability Considerations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#hybrid-storage-strategy" class="md-nav__link">
+  <a href="#file-system-limits" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Hybrid Storage Strategy
+        File System Limits
       
     </span>
   </a>
@@ -1470,10 +1603,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#file-system-structure" class="md-nav__link">
+  <a href="#concurrent-execution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        File System Structure
+        Concurrent Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scheduler-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scheduler Performance
       
     </span>
   </a>
@@ -1486,22 +1630,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#design-principles" class="md-nav__link">
+  <a href="#key-architectural-decisions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Design Principles
+        Key Architectural Decisions
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Design Principles">
+    <nav class="md-nav" aria-label="Key Architectural Decisions">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-quality-over-cost" class="md-nav__link">
+  <a href="#decision-1-file-based-vs-database-state" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Quality Over Cost
+        Decision 1: File-Based vs Database State
       
     </span>
   </a>
@@ -1509,10 +1653,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-stateless-execution" class="md-nav__link">
+  <a href="#decision-2-monorepo-vs-multi-repo" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Stateless Execution
+        Decision 2: Monorepo vs Multi-Repo
       
     </span>
   </a>
@@ -1520,32 +1664,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-transparency" class="md-nav__link">
+  <a href="#decision-3-synchronous-vs-asynchronous-execution" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Transparency
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-modularity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. Modularity
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-resilience" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. Resilience
+        Decision 3: Synchronous vs Asynchronous Execution
       
     </span>
   </a>
@@ -1558,18 +1680,56 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#key-features" class="md-nav__link">
+  <a href="#resilience-patterns" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Key Features
+        Resilience Patterns
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Key Features">
+    <nav class="md-nav" aria-label="Resilience Patterns">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#pattern-1-circuit-breaker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern 1: Circuit Breaker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-2-retry-with-exponential-backoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern 2: Retry with Exponential Backoff
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pattern-3-graceful-degradation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pattern 3: Graceful Degradation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#multi-perspective-analysis" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1578,13 +1738,26 @@
     </span>
   </a>
   
-</li>
+    <nav class="md-nav" aria-label="Multi-Perspective Analysis">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#edge-case-handling" class="md-nav__link">
+  <a href="#key-insights-summary" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Edge Case Handling
+        Key Insights Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Insights Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#from-simplicity-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Simplicity Perspective
       
     </span>
   </a>
@@ -1592,10 +1765,76 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#scalability" class="md-nav__link">
+  <a href="#from-architecture-perspective" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Scalability
+        From Architecture Perspective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-security-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Security Perspective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-testing-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Testing Perspective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-observability-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Observability Perspective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-documentation-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From Documentation Perspective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-devops-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From DevOps Perspective
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-ux-perspective" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        From UX Perspective
       
     </span>
   </a>
@@ -1606,12 +1845,17 @@
     </nav>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#design-recommendations" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Next Steps
+        Design Recommendations
       
     </span>
   </a>
@@ -1619,10 +1863,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#related-reading" class="md-nav__link">
+  <a href="#related-documentation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Related Reading
+        Related Documentation
       
     </span>
   </a>
@@ -1650,7 +1894,8 @@
 
 
 <h1 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h1>
-<p>RecursiveManager is designed as a hierarchical AI agent system that mimics organizational structures. This document provides a high-level overview of the system architecture.</p>
+<p>RecursiveManager is a hierarchical AI agent system that mimics organizational structures, enabling recursive delegation, autonomous task management, and multi-framework support. Each agent operates as a "person" in a company - hiring subordinates, managing tasks, escalating issues, and maintaining its own workspace with file-based persistence and fresh memory on each execution.</p>
+<p><strong>Core Philosophy</strong>: Quality over cost. Multi-perspective analysis before all decisions. Stateless execution with rich file-based state.</p>
 <h2 id="system-architecture">System Architecture<a class="headerlink" href="#system-architecture" title="Permanent link">&para;</a></h2>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>┌─────────────────────────────────────────────────────────────┐
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>│                    RecursiveManager System                   │
@@ -1706,55 +1951,46 @@
 </span><span id="__span-0-52"><a id="__codelineno-0-52" name="__codelineno-0-52" href="#__codelineno-0-52"></a>└─────────────────────────────────────────────────────────────┘
 </span></code></pre></div>
 <h2 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h2>
-<h3 id="1-cli-tool">1. CLI Tool<a class="headerlink" href="#1-cli-tool" title="Permanent link">&para;</a></h3>
+<h3 id="1-cli-tool-cli">1. CLI Tool (<code>cli/</code>)<a class="headerlink" href="#1-cli-tool-cli" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: User-facing interface for all agent operations</p>
-<p><strong>Key Commands</strong>:
-- <code>init</code> - Initialize the system
-- <code>hire</code> - Create a new agent
-- <code>fire</code> - Delete an agent
-- <code>message</code> - Send a message to an agent
-- <code>run</code> - Manually trigger agent execution
-- <code>status</code> - View organizational chart
-- <code>logs</code> - View agent logs</p>
-<p><strong>Package</strong>: <code>@recursive-manager/cli</code></p>
-<h3 id="2-scheduler-daemon">2. Scheduler Daemon<a class="headerlink" href="#2-scheduler-daemon" title="Permanent link">&para;</a></h3>
+<p><strong>Commands</strong>:
+- <code>recursive-manager init</code> - Initialize system
+- <code>recursive-manager hire</code> - Create new agent
+- <code>recursive-manager fire</code> - Delete agent
+- <code>recursive-manager message</code> - Send message to agent
+- <code>recursive-manager run</code> - Manually trigger agent
+- <code>recursive-manager status</code> - View org chart
+- <code>recursive-manager logs</code> - View agent logs</p>
+<h3 id="2-scheduler-daemon-scheduler">2. Scheduler Daemon (<code>scheduler/</code>)<a class="headerlink" href="#2-scheduler-daemon-scheduler" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Time-based and event-based agent execution</p>
 <p><strong>Responsibilities</strong>:
-- Scan agent schedules periodically
+- Scan all <code>agents/*/schedule.json</code> files
 - Spawn agents at scheduled times
-- Handle reactive triggers (messages from Slack, Telegram, etc.)
-- Manage continuous task execution
+- Handle reactive triggers (Slack, Telegram, etc.)
+- Manage continuous task execution (only when work available)
 - Monitor agent health</p>
-<p><strong>Package</strong>: <code>@recursive-manager/scheduler</code></p>
-<h3 id="3-core-orchestrator">3. Core Orchestrator<a class="headerlink" href="#3-core-orchestrator" title="Permanent link">&para;</a></h3>
+<h3 id="3-core-orchestrator-core">3. Core Orchestrator (<code>core/</code>)<a class="headerlink" href="#3-core-orchestrator-core" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Framework-agnostic agent execution logic</p>
 <p><strong>Responsibilities</strong>:
-- Load agent configuration and context
-- Prepare execution environment
+- Load agent configuration
+- Prepare execution context
 - Invoke framework adapter
-- Process execution results
+- Handle execution results
 - Update file-based state
-- Coordinate multi-perspective analysis</p>
-<p><strong>Package</strong>: <code>@recursive-manager/core</code></p>
-<h3 id="4-framework-adapters">4. Framework Adapters<a class="headerlink" href="#4-framework-adapters" title="Permanent link">&para;</a></h3>
+- Multi-perspective analysis coordination</p>
+<h3 id="4-framework-adapters-adapters">4. Framework Adapters (<code>adapters/</code>)<a class="headerlink" href="#4-framework-adapters-adapters" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Interface with different AI coding frameworks</p>
 <p><strong>Initial Support</strong>:
 - Claude Code (primary)
 - OpenCode (secondary)</p>
-<p><strong>Interface Contract</strong>:
+<p><strong>Interface Contract</strong>: All adapters must implement:
 <div class="language-typescript highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">FrameworkAdapter</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nx">executeAgent</span><span class="p">(</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nx">agentId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">    </span><span class="nx">mode</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;continuous&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;reactive&#39;</span><span class="p">,</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="nx">context</span><span class="o">:</span><span class="w"> </span><span class="kt">ExecutionContext</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">ExecutionResult</span><span class="o">&gt;</span><span class="p">;</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nx">supportsFeature</span><span class="p">(</span><span class="nx">feature</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span><span class="p">;</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nx">getCapabilities</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">Capability</span><span class="p">[];</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="p">}</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nx">executeAgent</span><span class="p">(</span><span class="nx">agentId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">mode</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;continuous&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;reactive&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">context</span><span class="o">:</span><span class="w"> </span><span class="kt">ExecutionContext</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">ExecutionResult</span><span class="o">&gt;</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nx">supportsFeature</span><span class="p">(</span><span class="nx">feature</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="kt">boolean</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nx">getCapabilities</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">Capability</span><span class="p">[]</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="p">}</span>
 </span></code></pre></div></p>
-<p><strong>Package</strong>: <code>@recursive-manager/adapters</code></p>
-<h3 id="5-messaging-layer">5. Messaging Layer<a class="headerlink" href="#5-messaging-layer" title="Permanent link">&para;</a></h3>
+<h3 id="5-messaging-layer-messaging">5. Messaging Layer (<code>messaging/</code>)<a class="headerlink" href="#5-messaging-layer-messaging" title="Permanent link">&para;</a></h3>
 <p><strong>Purpose</strong>: Standardized message handling across platforms</p>
 <p><strong>Modules</strong>:
 - Slack integration
@@ -1763,141 +1999,337 @@
 - Internal message queue</p>
 <p><strong>Interface Contract</strong>:
 <div class="language-typescript highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kd">interface</span><span class="w"> </span><span class="nx">MessagingAdapter</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nx">pollMessages</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">Message</span><span class="p">[]</span><span class="o">&gt;</span><span class="p">;</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nx">sendMessage</span><span class="p">(</span><span class="nx">agentId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">message</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span><span class="p">;</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nx">markAsRead</span><span class="p">(</span><span class="nx">messageId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nx">pollMessages</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">Message</span><span class="p">[]</span><span class="o">&gt;</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nx">sendMessage</span><span class="p">(</span><span class="nx">agentId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">,</span><span class="w"> </span><span class="nx">message</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nx">markAsRead</span><span class="p">(</span><span class="nx">messageId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="p">}</span>
 </span></code></pre></div></p>
-<p><strong>Package</strong>: <code>@recursive-manager/core</code> (messaging module)</p>
-<h2 id="data-flow">Data Flow<a class="headerlink" href="#data-flow" title="Permanent link">&para;</a></h2>
-<h3 id="agent-execution-flow">Agent Execution Flow<a class="headerlink" href="#agent-execution-flow" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>1. Trigger (schedule/message/manual)
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>   ↓
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>2. Scheduler identifies agent to run
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>   ↓
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>3. Core Orchestrator loads agent context
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>   ↓
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>4. Framework Adapter executes agent
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>   ↓
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>5. Agent performs work (tasks/messages)
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>   ↓
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>6. Results written to file system
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>   ↓
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>7. Database updated with metadata
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>   ↓
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>8. Next execution scheduled
+<h2 id="architectural-principles">Architectural Principles<a class="headerlink" href="#architectural-principles" title="Permanent link">&para;</a></h2>
+<h3 id="1-modularity">1. Modularity<a class="headerlink" href="#1-modularity" title="Permanent link">&para;</a></h3>
+<p>Each component must be independently:
+- <strong>Testable</strong>: Unit tests without full system
+- <strong>Replaceable</strong>: Swap implementations without breaking others
+- <strong>Scalable</strong>: Handle increased load independently</p>
+<h3 id="2-separation-of-concerns">2. Separation of Concerns<a class="headerlink" href="#2-separation-of-concerns" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>┌─ Presentation Layer ──────────────────────┐
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>│  CLI, Web UI, API                          │
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>└────────────────┬───────────────────────────┘
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>                 │
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>┌─ Application Layer ───────────────────────┐
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>│  Business logic, orchestration             │
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>└────────────────┬───────────────────────────┘
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>                 │
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>┌─ Domain Layer ────────────────────────────┐
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>│  Agent entities, task management           │
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>└────────────────┬───────────────────────────┘
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>                 │
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>┌─ Infrastructure Layer ────────────────────┐
+</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>│  File system, messaging, framework adapters│
+</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>└────────────────────────────────────────────┘
 </span></code></pre></div>
-<h3 id="task-delegation-flow">Task Delegation Flow<a class="headerlink" href="#task-delegation-flow" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>1. Manager agent creates task
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>   ↓
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>2. Manager delegates to subordinate
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>   ↓
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>3. Subordinate&#39;s task queue updated
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>   ↓
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>4. Subordinate executes on next run
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>   ↓
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>5. Progress updates flow back to manager
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>   ↓
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>6. Manager monitors and coordinates
+<h3 id="3-dependency-injection">3. Dependency Injection<a class="headerlink" href="#3-dependency-injection" title="Permanent link">&para;</a></h3>
+<div class="language-typescript highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1">// Bad: Hard-coded dependencies</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kd">class</span><span class="w"> </span><span class="nx">AgentOrchestrator</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="kr">constructor</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">adapter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">ClaudeCodeAdapter</span><span class="p">();</span><span class="w"> </span><span class="c1">// Tight coupling!</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="c1">// Good: Injected dependencies</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="kd">class</span><span class="w"> </span><span class="nx">AgentOrchestrator</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="kr">constructor</span><span class="p">(</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="nx">adapter</span><span class="o">:</span><span class="w"> </span><span class="kt">FrameworkAdapter</span><span class="p">,</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="nx">messaging</span><span class="o">:</span><span class="w"> </span><span class="kt">MessagingAdapter</span><span class="p">,</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="nx">storage</span><span class="o">:</span><span class="w"> </span><span class="kt">StorageAdapter</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">  </span><span class="p">)</span><span class="w"> </span><span class="p">{}</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="p">}</span>
 </span></code></pre></div>
-<h2 id="storage-model">Storage Model<a class="headerlink" href="#storage-model" title="Permanent link">&para;</a></h2>
-<h3 id="hybrid-storage-strategy">Hybrid Storage Strategy<a class="headerlink" href="#hybrid-storage-strategy" title="Permanent link">&para;</a></h3>
-<p><strong>Files</strong> (for transparency and debugging):
-- Agent configurations
-- Task details and progress
-- Workspace files
-- Message history
-- Logs and execution traces</p>
-<p><strong>Database</strong> (for queries and relationships):
-- Agent hierarchy
-- Task dependencies
-- Message metadata
-- Execution history
-- Audit logs</p>
-<h3 id="file-system-structure">File System Structure<a class="headerlink" href="#file-system-structure" title="Permanent link">&para;</a></h3>
-<p>See <a href="/architecture/file-structure">File Structure</a> for detailed schemas.</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>data/
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>├── agents/
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>│   ├── 00-0f/          # Sharded by hex prefix
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>│   │   └── agent-001/
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>│   ├── 10-1f/
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>│   └── ...
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>├── backups/
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>│   └── YYYY-MM-DD/
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>├── logs/
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>│   ├── system/
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>│   └── agents/
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>└── recursive-manager.db
+<h2 id="scalability-considerations">Scalability Considerations<a class="headerlink" href="#scalability-considerations" title="Permanent link">&para;</a></h2>
+<h3 id="file-system-limits">File System Limits<a class="headerlink" href="#file-system-limits" title="Permanent link">&para;</a></h3>
+<p><strong>Problem</strong>: 10,000 agents = 10,000 directories</p>
+<p><strong>Solution</strong>: Sharding
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>agents/
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  00-0f/  # First 16 agents
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    agent-001/
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    agent-002/
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  10-1f/  # Next 16 agents
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    agent-016/
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    agent-017/
+</span></code></pre></div></p>
+<h3 id="concurrent-execution">Concurrent Execution<a class="headerlink" href="#concurrent-execution" title="Permanent link">&para;</a></h3>
+<p><strong>Problem</strong>: 100 agents running simultaneously</p>
+<p><strong>Solution</strong>: Worker pool pattern
+<div class="language-typescript highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kd">class</span><span class="w"> </span><span class="nx">ExecutionPool</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="k">private</span><span class="w"> </span><span class="nx">maxConcurrent</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">10</span><span class="p">;</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="k">private</span><span class="w"> </span><span class="nx">queue</span><span class="o">:</span><span class="w"> </span><span class="kt">AgentTask</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[];</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="k">private</span><span class="w"> </span><span class="nx">active</span><span class="o">:</span><span class="w"> </span><span class="kt">Set</span><span class="o">&lt;</span><span class="kt">string</span><span class="o">&gt;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Set</span><span class="p">();</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="k">async</span><span class="w"> </span><span class="nx">execute</span><span class="p">(</span><span class="nx">task</span><span class="o">:</span><span class="w"> </span><span class="kt">AgentTask</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">active</span><span class="p">.</span><span class="nx">size</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">maxConcurrent</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">      </span><span class="k">await</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">waitForSlot</span><span class="p">();</span>
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">active</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">task</span><span class="p">.</span><span class="nx">agentId</span><span class="p">);</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">      </span><span class="k">await</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">runAgent</span><span class="p">(</span><span class="nx">task</span><span class="p">);</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">finally</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">      </span><span class="k">this</span><span class="p">.</span><span class="nx">active</span><span class="p">.</span><span class="ow">delete</span><span class="p">(</span><span class="nx">task</span><span class="p">.</span><span class="nx">agentId</span><span class="p">);</span>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<h3 id="scheduler-performance">Scheduler Performance<a class="headerlink" href="#scheduler-performance" title="Permanent link">&para;</a></h3>
+<p><strong>Problem</strong>: Scanning 10,000 schedule files every 5 seconds</p>
+<p><strong>Solution</strong>: Event-driven scheduling
+<div class="language-typescript highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1">// Instead of polling:</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nx">setInterval</span><span class="p">(()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">scanAllSchedules</span><span class="p">(),</span><span class="w"> </span><span class="mf">5000</span><span class="p">);</span><span class="w"> </span><span class="c1">// O(n) every 5s</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1">// Use priority queue:</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="kd">class</span><span class="w"> </span><span class="nx">SchedulerQueue</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="k">private</span><span class="w"> </span><span class="nx">heap</span><span class="o">:</span><span class="w"> </span><span class="kt">MinHeap</span><span class="o">&lt;</span><span class="nx">ScheduledEvent</span><span class="o">&gt;</span><span class="p">;</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="nx">nextExecution</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nx">ScheduledEvent</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">heap</span><span class="p">.</span><span class="nx">peek</span><span class="p">();</span><span class="w"> </span><span class="c1">// O(1)</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span><span class="k">async</span><span class="w"> </span><span class="nx">processNext</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="ow">void</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">next</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">heap</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span><span class="w"> </span><span class="c1">// O(log n)</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">    </span><span class="k">await</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">executeAgent</span><span class="p">(</span><span class="nx">next</span><span class="p">.</span><span class="nx">agentId</span><span class="p">);</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">heap</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">next</span><span class="p">.</span><span class="nx">reschedule</span><span class="p">());</span><span class="w"> </span><span class="c1">// O(log n)</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<h2 id="key-architectural-decisions">Key Architectural Decisions<a class="headerlink" href="#key-architectural-decisions" title="Permanent link">&para;</a></h2>
+<h3 id="decision-1-file-based-vs-database-state">Decision 1: File-Based vs Database State<a class="headerlink" href="#decision-1-file-based-vs-database-state" title="Permanent link">&para;</a></h3>
+<p><strong>File-Based Pros</strong>:
+- Simple to understand
+- Easy to inspect/debug
+- No external dependencies
+- Git-compatible</p>
+<p><strong>File-Based Cons</strong>:
+- Slow for large-scale queries
+- No ACID guarantees
+- Hard to implement complex relationships</p>
+<p><strong>Hybrid Approach</strong>:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Filesystem: Workspace, notes, drafts (agent-owned data)
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Database: Metadata, relationships, task indexes (queryable data)
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>This gives us:
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>✓ Simple workspace management
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>✓ Fast queries
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>✓ ACID compliance where needed
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>✓ Easy debugging (files + SQL)
+</span></code></pre></div></p>
+<h3 id="decision-2-monorepo-vs-multi-repo">Decision 2: Monorepo vs Multi-Repo<a class="headerlink" href="#decision-2-monorepo-vs-multi-repo" title="Permanent link">&para;</a></h3>
+<p><strong>Recommendation</strong>: Monorepo with clear module boundaries</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>RecursiveManager/
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>  packages/
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    cli/                  # CLI tool
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    core/                 # Core orchestrator
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    scheduler/            # Scheduler daemon
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    adapters/
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>      claude-code/        # Claude Code adapter
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>      opencode/           # OpenCode adapter
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>    messaging/
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>      slack/              # Slack integration
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>      telegram/           # Telegram integration
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>    common/               # Shared utilities
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>  docs/                   # Documentation
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>  examples/               # Example configurations
 </span></code></pre></div>
-<h2 id="design-principles">Design Principles<a class="headerlink" href="#design-principles" title="Permanent link">&para;</a></h2>
-<h3 id="1-quality-over-cost">1. Quality Over Cost<a class="headerlink" href="#1-quality-over-cost" title="Permanent link">&para;</a></h3>
+<p><strong>Benefits</strong>:
+- Shared tooling (TypeScript, linting, testing)
+- Easier refactoring across modules
+- Single version number
+- Atomic changes across boundaries</p>
+<h3 id="decision-3-synchronous-vs-asynchronous-execution">Decision 3: Synchronous vs Asynchronous Execution<a class="headerlink" href="#decision-3-synchronous-vs-asynchronous-execution" title="Permanent link">&para;</a></h3>
+<p><strong>Recommendation</strong>: Async-first with sync facades</p>
+<div class="language-typescript highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1">// Core is async</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">executeAgent</span><span class="p">(</span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">Result</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">agent</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">loadAgent</span><span class="p">(</span><span class="nx">id</span><span class="p">);</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">context</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">prepareContext</span><span class="p">(</span><span class="nx">agent</span><span class="p">);</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">runFramework</span><span class="p">(</span><span class="nx">context</span><span class="p">);</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="k">await</span><span class="w"> </span><span class="nx">saveState</span><span class="p">(</span><span class="nx">agent</span><span class="p">,</span><span class="w"> </span><span class="nx">result</span><span class="p">);</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="nx">result</span><span class="p">;</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="p">}</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="c1">// CLI provides sync-looking interface</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="kd">function</span><span class="w"> </span><span class="nx">cliRun</span><span class="p">(</span><span class="nx">id</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="ow">void</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">  </span><span class="nx">executeAgent</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">    </span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">result</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Success:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">result</span><span class="p">))</span>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">    </span><span class="p">.</span><span class="k">catch</span><span class="p">(</span><span class="nx">err</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s1">&#39;Failed:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">));</span>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="p">}</span>
+</span></code></pre></div>
+<h2 id="resilience-patterns">Resilience Patterns<a class="headerlink" href="#resilience-patterns" title="Permanent link">&para;</a></h2>
+<h3 id="pattern-1-circuit-breaker">Pattern 1: Circuit Breaker<a class="headerlink" href="#pattern-1-circuit-breaker" title="Permanent link">&para;</a></h3>
+<div class="language-typescript highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kd">class</span><span class="w"> </span><span class="nx">FrameworkAdapter</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="k">private</span><span class="w"> </span><span class="nx">failureCount</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="k">private</span><span class="w"> </span><span class="nx">lastFailure</span><span class="o">:</span><span class="w"> </span><span class="kt">Date</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="k">private</span><span class="w"> </span><span class="nx">state</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;CLOSED&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;OPEN&#39;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s1">&#39;HALF_OPEN&#39;</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;CLOSED&#39;</span><span class="p">;</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span><span class="k">async</span><span class="w"> </span><span class="nx">execute</span><span class="p">(</span><span class="nx">agent</span><span class="o">:</span><span class="w"> </span><span class="kt">Agent</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">Result</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">state</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="s1">&#39;OPEN&#39;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">lastFailure</span><span class="o">!</span><span class="p">.</span><span class="nx">getTime</span><span class="p">()</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">60000</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">        </span><span class="k">this</span><span class="p">.</span><span class="nx">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;HALF_OPEN&#39;</span><span class="p">;</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">      </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">        </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="s1">&#39;Circuit breaker OPEN - framework unavailable&#39;</span><span class="p">);</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">actualExecute</span><span class="p">(</span><span class="nx">agent</span><span class="p">);</span>
+</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="w">      </span><span class="k">this</span><span class="p">.</span><span class="nx">onSuccess</span><span class="p">();</span>
+</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="nx">result</span><span class="p">;</span>
+</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="w">      </span><span class="k">this</span><span class="p">.</span><span class="nx">onFailure</span><span class="p">();</span>
+</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a><span class="w">      </span><span class="k">throw</span><span class="w"> </span><span class="nx">err</span><span class="p">;</span>
+</span><span id="__span-11-22"><a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-11-23"><a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-11-24"><a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>
+</span><span id="__span-11-25"><a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a><span class="w">  </span><span class="k">private</span><span class="w"> </span><span class="nx">onFailure</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="ow">void</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-26"><a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">failureCount</span><span class="o">++</span><span class="p">;</span>
+</span><span id="__span-11-27"><a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">lastFailure</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nb">Date</span><span class="p">();</span>
+</span><span id="__span-11-28"><a id="__codelineno-11-28" name="__codelineno-11-28" href="#__codelineno-11-28"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">failureCount</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mf">5</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-29"><a id="__codelineno-11-29" name="__codelineno-11-29" href="#__codelineno-11-29"></a><span class="w">      </span><span class="k">this</span><span class="p">.</span><span class="nx">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;OPEN&#39;</span><span class="p">;</span>
+</span><span id="__span-11-30"><a id="__codelineno-11-30" name="__codelineno-11-30" href="#__codelineno-11-30"></a><span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s1">&#39;Circuit breaker opened - too many failures&#39;</span><span class="p">);</span>
+</span><span id="__span-11-31"><a id="__codelineno-11-31" name="__codelineno-11-31" href="#__codelineno-11-31"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-11-32"><a id="__codelineno-11-32" name="__codelineno-11-32" href="#__codelineno-11-32"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-11-33"><a id="__codelineno-11-33" name="__codelineno-11-33" href="#__codelineno-11-33"></a>
+</span><span id="__span-11-34"><a id="__codelineno-11-34" name="__codelineno-11-34" href="#__codelineno-11-34"></a><span class="w">  </span><span class="k">private</span><span class="w"> </span><span class="nx">onSuccess</span><span class="p">()</span><span class="o">:</span><span class="w"> </span><span class="ow">void</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-11-35"><a id="__codelineno-11-35" name="__codelineno-11-35" href="#__codelineno-11-35"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">failureCount</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span>
+</span><span id="__span-11-36"><a id="__codelineno-11-36" name="__codelineno-11-36" href="#__codelineno-11-36"></a><span class="w">    </span><span class="k">this</span><span class="p">.</span><span class="nx">state</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;CLOSED&#39;</span><span class="p">;</span>
+</span><span id="__span-11-37"><a id="__codelineno-11-37" name="__codelineno-11-37" href="#__codelineno-11-37"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-11-38"><a id="__codelineno-11-38" name="__codelineno-11-38" href="#__codelineno-11-38"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="pattern-2-retry-with-exponential-backoff">Pattern 2: Retry with Exponential Backoff<a class="headerlink" href="#pattern-2-retry-with-exponential-backoff" title="Permanent link">&para;</a></h3>
+<div class="language-typescript highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">executeWithRetry</span><span class="o">&lt;</span><span class="nx">T</span><span class="o">&gt;</span><span class="p">(</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nx">fn</span><span class="o">:</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="p">=&gt;</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">T</span><span class="o">&gt;</span><span class="p">,</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="nx">maxRetries</span><span class="o">:</span><span class="w"> </span><span class="kt">number</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">T</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kd">let</span><span class="w"> </span><span class="nx">attempt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span><span class="w"> </span><span class="nx">attempt</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="nx">maxRetries</span><span class="p">;</span><span class="w"> </span><span class="nx">attempt</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">      </span><span class="k">return</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fn</span><span class="p">();</span>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">attempt</span><span class="w"> </span><span class="o">===</span><span class="w"> </span><span class="nx">maxRetries</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mf">1</span><span class="p">)</span><span class="w"> </span><span class="k">throw</span><span class="w"> </span><span class="nx">err</span><span class="p">;</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">      </span><span class="kd">const</span><span class="w"> </span><span class="nx">backoff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">min</span><span class="p">(</span><span class="mf">1000</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">Math</span><span class="p">.</span><span class="nx">pow</span><span class="p">(</span><span class="mf">2</span><span class="p">,</span><span class="w"> </span><span class="nx">attempt</span><span class="p">),</span><span class="w"> </span><span class="mf">30000</span><span class="p">);</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">      </span><span class="k">await</span><span class="w"> </span><span class="nx">sleep</span><span class="p">(</span><span class="nx">backoff</span><span class="p">);</span>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="w">  </span><span class="k">throw</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="ne">Error</span><span class="p">(</span><span class="s1">&#39;Should never reach here&#39;</span><span class="p">);</span>
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="pattern-3-graceful-degradation">Pattern 3: Graceful Degradation<a class="headerlink" href="#pattern-3-graceful-degradation" title="Permanent link">&para;</a></h3>
+<div class="language-typescript highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kd">class</span><span class="w"> </span><span class="nx">MessagingLayer</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="k">async</span><span class="w"> </span><span class="nx">pollMessages</span><span class="p">(</span><span class="nx">agentId</span><span class="o">:</span><span class="w"> </span><span class="kt">string</span><span class="p">)</span><span class="o">:</span><span class="w"> </span><span class="nb">Promise</span><span class="o">&lt;</span><span class="nx">Message</span><span class="p">[]</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">messages</span><span class="o">:</span><span class="w"> </span><span class="kt">Message</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[];</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span><span class="c1">// Try Slack (preferred)</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">      </span><span class="nx">messages</span><span class="p">.</span><span class="nx">push</span><span class="p">(...</span><span class="k">await</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">slack</span><span class="p">.</span><span class="nx">poll</span><span class="p">(</span><span class="nx">agentId</span><span class="p">));</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s1">&#39;Slack unavailable, skipping:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">);</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">    </span><span class="c1">// Try Telegram (fallback)</span>
+</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">      </span><span class="nx">messages</span><span class="p">.</span><span class="nx">push</span><span class="p">(...</span><span class="k">await</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">telegram</span><span class="p">.</span><span class="nx">poll</span><span class="p">(</span><span class="nx">agentId</span><span class="p">));</span>
+</span><span id="__span-13-15"><a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="w">    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="nx">err</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-13-16"><a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="w">      </span><span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s1">&#39;Telegram unavailable, skipping:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">err</span><span class="p">);</span>
+</span><span id="__span-13-17"><a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-13-18"><a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>
+</span><span id="__span-13-19"><a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="w">    </span><span class="c1">// Internal messages always work (local)</span>
+</span><span id="__span-13-20"><a id="__codelineno-13-20" name="__codelineno-13-20" href="#__codelineno-13-20"></a><span class="w">    </span><span class="nx">messages</span><span class="p">.</span><span class="nx">push</span><span class="p">(...</span><span class="k">await</span><span class="w"> </span><span class="k">this</span><span class="p">.</span><span class="nx">internal</span><span class="p">.</span><span class="nx">poll</span><span class="p">(</span><span class="nx">agentId</span><span class="p">));</span>
+</span><span id="__span-13-21"><a id="__codelineno-13-21" name="__codelineno-13-21" href="#__codelineno-13-21"></a>
+</span><span id="__span-13-22"><a id="__codelineno-13-22" name="__codelineno-13-22" href="#__codelineno-13-22"></a><span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="nx">messages</span><span class="p">;</span>
+</span><span id="__span-13-23"><a id="__codelineno-13-23" name="__codelineno-13-23" href="#__codelineno-13-23"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-13-24"><a id="__codelineno-13-24" name="__codelineno-13-24" href="#__codelineno-13-24"></a><span class="p">}</span>
+</span></code></pre></div>
+<h2 id="multi-perspective-analysis">Multi-Perspective Analysis<a class="headerlink" href="#multi-perspective-analysis" title="Permanent link">&para;</a></h2>
+<p>RecursiveManager uses multi-perspective analysis to evaluate decisions from 8 perspectives:</p>
+<ol>
+<li><strong>Simplicity &amp; Developer Experience</strong>: Making complexity approachable</li>
+<li><strong>Architecture &amp; Scalability</strong>: Building for 1-1000+ agents</li>
+<li><strong>Security &amp; Trust</strong>: Preventing malicious/buggy agents</li>
+<li><strong>Testing &amp; Quality Assurance</strong>: Ensuring reliability</li>
+<li><strong>Observability &amp; Debugging</strong>: Understanding recursive hierarchies</li>
+<li><strong>Documentation &amp; Onboarding</strong>: Learning curve management</li>
+<li><strong>DevOps &amp; Operations</strong>: Deployment and maintenance</li>
+<li><strong>User Experience</strong>: From beginner to power user</li>
+</ol>
+<p>See <a href="../../concepts/multi-perspective-analysis/">Multi-Perspective Analysis</a> for detailed analysis.</p>
+<h3 id="key-insights-summary">Key Insights Summary<a class="headerlink" href="#key-insights-summary" title="Permanent link">&para;</a></h3>
+<h4 id="from-simplicity-perspective">From Simplicity Perspective<a class="headerlink" href="#from-simplicity-perspective" title="Permanent link">&para;</a></h4>
 <ul>
-<li>Multi-perspective analysis before major decisions</li>
-<li>Comprehensive edge case handling</li>
-<li>Defensive programming with validation</li>
+<li><strong>Progressive Disclosure</strong>: Simple commands for basics, advanced flags for power users</li>
+<li><strong>Sensible Defaults</strong>: Works out of box for 80% of use cases</li>
+<li><strong>Clear Error Messages</strong>: Actionable feedback with suggested fixes</li>
+<li><strong>Pit of Success</strong>: Convention over configuration</li>
 </ul>
-<h3 id="2-stateless-execution">2. Stateless Execution<a class="headerlink" href="#2-stateless-execution" title="Permanent link">&para;</a></h3>
+<h4 id="from-architecture-perspective">From Architecture Perspective<a class="headerlink" href="#from-architecture-perspective" title="Permanent link">&para;</a></h4>
 <ul>
-<li>Fresh context from files each run</li>
-<li>No long-running process memory</li>
-<li>Prevents context decay over time</li>
+<li><strong>Hybrid Storage</strong>: Files for workspaces, database for queries</li>
+<li><strong>Modularity</strong>: Framework-agnostic core, pluggable adapters</li>
+<li><strong>Scalability</strong>: Worker pool pattern, event-driven scheduling</li>
+<li><strong>Resilience</strong>: Circuit breakers, retries, graceful degradation</li>
 </ul>
-<h3 id="3-transparency">3. Transparency<a class="headerlink" href="#3-transparency" title="Permanent link">&para;</a></h3>
+<h4 id="from-security-perspective">From Security Perspective<a class="headerlink" href="#from-security-perspective" title="Permanent link">&para;</a></h4>
 <ul>
-<li>All state visible in files</li>
-<li>Full audit trail</li>
-<li>Debuggable at every step</li>
+<li><strong>Sandboxing</strong>: Containers with resource limits</li>
+<li><strong>Permission Model</strong>: Role-based with explicit grants</li>
+<li><strong>Audit Logging</strong>: Immutable audit trail</li>
+<li><strong>Threat Mitigation</strong>: Defense against recursion explosion, privilege escalation</li>
 </ul>
-<h3 id="4-modularity">4. Modularity<a class="headerlink" href="#4-modularity" title="Permanent link">&para;</a></h3>
+<h4 id="from-testing-perspective">From Testing Perspective<a class="headerlink" href="#from-testing-perspective" title="Permanent link">&para;</a></h4>
 <ul>
-<li>Framework-agnostic core</li>
-<li>Pluggable adapters</li>
-<li>Clear interface contracts</li>
+<li><strong>Unit Tests</strong>: 80%+ coverage on all modules</li>
+<li><strong>Integration Tests</strong>: Key workflows validated</li>
+<li><strong>E2E Tests</strong>: Full user journeys</li>
+<li><strong>Performance Tests</strong>: 1000+ agent scalability</li>
 </ul>
-<h3 id="5-resilience">5. Resilience<a class="headerlink" href="#5-resilience" title="Permanent link">&para;</a></h3>
+<h4 id="from-observability-perspective">From Observability Perspective<a class="headerlink" href="#from-observability-perspective" title="Permanent link">&para;</a></h4>
 <ul>
-<li>Circuit breakers for failures</li>
-<li>Graceful degradation</li>
-<li>Automatic recovery mechanisms</li>
+<li><strong>Execution Tracing</strong>: Full trace of recursive execution paths</li>
+<li><strong>Metrics</strong>: Health scores, success rates, resource usage</li>
+<li><strong>Debug Tools</strong>: Single command to understand agent state</li>
+<li><strong>Visualization</strong>: Org chart, task dependencies, execution flow</li>
 </ul>
-<h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
-<h3 id="multi-perspective-analysis">Multi-Perspective Analysis<a class="headerlink" href="#multi-perspective-analysis" title="Permanent link">&para;</a></h3>
-<p>Before major decisions, analyze from 8 perspectives:
-1. Simplicity &amp; Developer Experience
-2. Architecture &amp; Scalability
-3. Security &amp; Trust
-4. Testing &amp; Quality Assurance
-5. Observability &amp; Debugging
-6. Documentation &amp; Onboarding
-7. DevOps &amp; Operations
-8. User Experience</p>
-<h3 id="edge-case-handling">Edge Case Handling<a class="headerlink" href="#edge-case-handling" title="Permanent link">&para;</a></h3>
-<p>Comprehensive handling of 28+ documented edge cases:
-- Recursion explosion
-- Circular reporting structures
-- Task deadlocks
-- Resource exhaustion
-- Framework failures
-- And more...</p>
-<p>See <a href="/architecture/edge-cases">Edge Cases</a> for details.</p>
-<h3 id="scalability">Scalability<a class="headerlink" href="#scalability" title="Permanent link">&para;</a></h3>
-<p>Designed to scale from 1 to 1000+ agents:
-- Agent directory sharding
-- Database indexes on critical queries
-- Worker pool for concurrent execution
-- Efficient file I/O with atomic writes</p>
-<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<h4 id="from-documentation-perspective">From Documentation Perspective<a class="headerlink" href="#from-documentation-perspective" title="Permanent link">&para;</a></h4>
 <ul>
-<li><a href="/architecture/system-design">System Design</a> - Detailed design decisions</li>
-<li><a href="/architecture/file-structure">File Structure</a> - File schemas and organization</li>
-<li><a href="/architecture/execution-model">Execution Model</a> - How agents execute</li>
-<li><a href="/architecture/edge-cases">Edge Cases</a> - Comprehensive edge case catalog</li>
+<li><strong>Quickstart</strong>: Running in 5 minutes</li>
+<li><strong>Tutorials</strong>: Common workflows step-by-step</li>
+<li><strong>Reference</strong>: Complete CLI/API docs</li>
+<li><strong>Troubleshooting</strong>: Edge case solutions</li>
 </ul>
-<h2 id="related-reading">Related Reading<a class="headerlink" href="#related-reading" title="Permanent link">&para;</a></h2>
-<p>For implementation details, see:
-- <a href="https://github.com/yourusername/RecursiveManager/blob/main/COMPREHENSIVE_PLAN.md">COMPREHENSIVE_PLAN.md</a>
-- <a href="https://github.com/yourusername/RecursiveManager/blob/main/MULTI_PERSPECTIVE_ANALYSIS.md">MULTI_PERSPECTIVE_ANALYSIS.md</a>
-- <a href="https://github.com/yourusername/RecursiveManager/blob/main/IMPLEMENTATION_PHASES.md">IMPLEMENTATION_PHASES.md</a></p>
+<h4 id="from-devops-perspective">From DevOps Perspective<a class="headerlink" href="#from-devops-perspective" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>CI/CD</strong>: Automated testing and releases</li>
+<li><strong>Deployment</strong>: Single binary, no dependencies</li>
+<li><strong>Monitoring</strong>: Health checks, alerts</li>
+<li><strong>Backup/Recovery</strong>: Automated backups, disaster recovery</li>
+</ul>
+<h4 id="from-ux-perspective">From UX Perspective<a class="headerlink" href="#from-ux-perspective" title="Permanent link">&para;</a></h4>
+<ul>
+<li><strong>Guided Setup</strong>: Interactive wizard</li>
+<li><strong>Intelligent Defaults</strong>: Smart configuration</li>
+<li><strong>Rich Feedback</strong>: Progress indicators, status updates</li>
+<li><strong>Powerful When Needed</strong>: Advanced features available but hidden</li>
+</ul>
+<h2 id="design-recommendations">Design Recommendations<a class="headerlink" href="#design-recommendations" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Start Small, Design Big</strong>: Build for 1-10 agents, but architect for 1000+</li>
+<li><strong>Horizontal Scalability</strong>: Use worker pool pattern, not vertical scaling</li>
+<li><strong>Hybrid Storage</strong>: Database for queries, files for workspaces</li>
+<li><strong>Event-Driven</strong>: Use events for cross-component communication</li>
+<li><strong>Resilient by Default</strong>: Circuit breakers, retries, graceful degradation</li>
+</ol>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../file-structure/">File Structure Specification</a> - Detailed file and database schemas</li>
+<li><a href="../../concepts/multi-perspective-analysis/">Multi-Perspective Analysis</a> - Complete analysis methodology</li>
+<li><a href="../database/">Database Schema</a> - Database tables and relationships</li>
+<li><a href="../../development/contributing/">Development Guide</a> - Implementation phases and practices</li>
+</ul>
 
 
 

@@ -479,6 +479,333 @@ throw new Error('Lock acquisition failed');
 - **0x** - Flamegraph profiling
 - **autocannon** - Load testing
 
+## Edge Cases & Contingencies
+
+This section documents common edge cases, failure scenarios, and their handling strategies. For complete edge case catalog, see [EDGE_CASES_AND_CONTINGENCIES.md](https://github.com/aaron777collins/RecursiveManager/blob/main/EDGE_CASES_AND_CONTINGENCIES.md).
+
+### Agent Lifecycle Edge Cases
+
+#### Orphaned Agents (Manager Fired)
+
+**Detection**:
+```sql
+SELECT * FROM agents
+WHERE reporting_to NOT IN (SELECT id FROM agents WHERE status = 'active')
+```
+
+**Handling**:
+- Reassign to grandparent manager if available
+- Promote to top-level if no grandparent exists
+- Notify new manager about inherited agent
+
+#### Circular Reporting Structure
+
+**Detection**: Run cycle detection on every reassignment
+```typescript
+function detectCycle(agentId: string, visited: Set<string> = new Set()): boolean {
+  if (visited.has(agentId)) return true;
+  visited.add(agentId);
+
+  const manager = getManager(agentId);
+  if (!manager) return false;
+
+  return detectCycle(manager.id, visited);
+}
+```
+
+**Handling**: Reject reassignment that would create cycle
+
+#### Agent Hiring Spree (Runaway Recursion)
+
+**Detection**: Rate limiting (5 hires/hour per agent)
+```typescript
+const recentHires = await getHiresInLastHour(agentId);
+if (recentHires.length > 5) {
+  throw new Error('Rate limit exceeded: max 5 hires per hour');
+}
+```
+
+**Handling**:
+1. Pause agent immediately
+2. Alert user
+3. Option to rollback (fire all recent hires)
+
+### Task Management Edge Cases
+
+#### Task Deadlock (Circular Dependencies)
+
+**Detection**:
+```typescript
+function detectTaskDeadlock(taskId: string): string[] | null {
+  const visited = new Set<string>();
+  const path: string[] = [];
+
+  function dfs(id: string): boolean {
+    if (path.includes(id)) return true; // Cycle found
+    if (visited.has(id)) return false;
+
+    visited.add(id);
+    path.push(id);
+
+    const blockedBy = getTaskBlockedBy(id);
+    for (const blockerId of blockedBy) {
+      if (dfs(blockerId)) return true;
+    }
+
+    path.pop();
+    return false;
+  }
+
+  if (dfs(taskId)) return path; // Return cycle
+  return null;
+}
+```
+
+**Handling**:
+1. Alert all agents in cycle
+2. Require human intervention to break cycle
+3. Visualize dependency graph
+
+#### Infinite Task Nesting
+
+**Detection**: Enforce MAX_TASK_DEPTH = 10
+```typescript
+const depth = getTaskDepth(taskId);
+if (depth >= MAX_TASK_DEPTH) {
+  throw new Error(`Task nesting too deep: ${depth} (max: ${MAX_TASK_DEPTH})`);
+}
+```
+
+**Handling**: Suggest delegating to new agent instead of deeper nesting
+
+#### Abandoned Tasks (Agent Paused)
+
+**Detection**: Daily check for tasks with inactive agents
+```sql
+SELECT * FROM tasks
+WHERE status = 'in-progress'
+  AND agent_id IN (SELECT id FROM agents WHERE status != 'active')
+```
+
+**Handling**:
+- If agent paused: Mark task as blocked
+- If agent fired: Reassign to manager
+
+### Messaging Edge Cases
+
+#### Message Flood
+
+**Detection**: Rate limiting (10 messages/minute per user)
+
+**Handling**:
+1. Queue excess messages
+2. Send auto-reply about high volume
+3. Batch process messages
+
+#### Duplicate Messages (Platform Glitch)
+
+**Detection**: Message deduplication using hash
+```typescript
+async function isDuplicate(msg: IncomingMessage): Promise<boolean> {
+  const hash = sha256(msg.content);
+  const existing = await db.get(`
+    SELECT 1 FROM messages
+    WHERE channel = ? AND hash = ? AND timestamp > ?
+  `, [msg.channel, hash, Date.now() - 60000]);
+
+  return !!existing;
+}
+```
+
+**Handling**: Discard duplicate silently
+
+### Scheduling Edge Cases
+
+#### Clock Skew (Daylight Saving Time)
+
+**Detection**: Store timezone explicitly with schedule
+
+**Handling**: Use timezone-aware libraries (date-fns-tz)
+```typescript
+import { zonedTimeToUtc } from 'date-fns-tz';
+
+function getNextExecution(schedule: Schedule): Date {
+  const tz = schedule.timezone;
+  const cron = parseCron(schedule.schedule);
+  const nextLocal = cron.next();
+  return zonedTimeToUtc(nextLocal, tz);
+}
+```
+
+#### Scheduler Daemon Crash
+
+**Detection**: Watchdog health check
+
+**Handling on Restart**: Recover missed executions from last hour
+```typescript
+async function recoverMissedExecutions(): Promise<void> {
+  const now = Date.now();
+  const missedSchedules = await db.all(`
+    SELECT * FROM schedules
+    WHERE enabled = TRUE
+      AND next_execution_at < ?
+      AND next_execution_at > ?
+  `, [now, now - 3600000]);
+
+  for (const schedule of missedSchedules) {
+    console.log(`Missed execution for ${schedule.agentId}, running now`);
+    await executeAgent(schedule.agentId, 'scheduled');
+  }
+}
+```
+
+#### Thundering Herd
+
+**Detection**: Check for many agents scheduled at same time
+
+**Handling**: Add jitter (random 0-5 minute offset)
+```typescript
+function addJitter(scheduledTime: Date, maxJitterSec: number = 300): Date {
+  const jitterMs = Math.random() * maxJitterSec * 1000;
+  return new Date(scheduledTime.getTime() + jitterMs);
+}
+```
+
+### File System Edge Cases
+
+#### Disk Full
+
+**Detection**: Check available disk space
+```typescript
+import { statfs } from 'fs/promises';
+
+const stats = await statfs('/');
+const availableGB = stats.bavail * stats.bsize / (1024**3);
+
+if (availableGB < 5) {
+  throw new Error(`Disk space critically low: ${availableGB}GB remaining`);
+}
+```
+
+**Handling**:
+1. Pause all agents
+2. Trigger emergency cleanup (delete cache, archive old tasks, compress logs)
+3. Resume when space recovered
+
+#### File Corruption
+
+**Detection**: JSON parse errors + schema validation
+
+**Handling**: Attempt recovery from backup
+```typescript
+async function attemptRecovery(agentId: string): Promise<void> {
+  const backup = await getLatestBackup(agentId);
+  if (backup) {
+    console.log(`Restoring ${agentId} config from backup`);
+    await fs.copyFile(backup, getConfigPath(agentId));
+    return;
+  }
+
+  throw new Error('Recovery failed: no backups available');
+}
+```
+
+### Concurrency Edge Cases
+
+#### Two Continuous Instances Running
+
+**Detection**: Per-agent mutex using async-mutex
+```typescript
+import { Mutex } from 'async-mutex';
+
+class AgentExecutor {
+  private locks: Map<string, Mutex> = new Map();
+
+  async execute(agentId: string): Promise<void> {
+    if (!this.locks.has(agentId)) {
+      this.locks.set(agentId, new Mutex());
+    }
+
+    const lock = this.locks.get(agentId)!;
+
+    if (lock.isLocked()) {
+      console.log(`Agent ${agentId} already running, skipping`);
+      return;
+    }
+
+    await lock.runExclusive(async () => {
+      await this.actualExecute(agentId);
+    });
+  }
+}
+```
+
+#### Database Deadlock
+
+**Detection**: SQLite reports SQLITE_BUSY
+
+**Handling**: Retry with exponential backoff
+```typescript
+async function executeQuery(sql: string, params: any[]): Promise<any> {
+  const maxRetries = 5;
+  let lastError;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await db.run(sql, params);
+    } catch (err: any) {
+      if (err.code === 'SQLITE_BUSY') {
+        const backoff = Math.min(100 * Math.pow(2, attempt), 1000);
+        await sleep(backoff);
+        lastError = err;
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  throw lastError;
+}
+```
+
+## Contingency Plans
+
+### Complete System Failure
+
+**Triggers**: Database corruption, file system full, critical bug
+
+**Plan**:
+1. Stop all agents: `recursive-manager emergency-stop`
+2. Backup everything: `recursive-manager backup --full`
+3. Run diagnostics: `recursive-manager diagnose --verbose`
+4. Attempt repair: `recursive-manager repair --auto`
+5. Manual recovery: Restore from backups
+6. Resume: `recursive-manager resume --safe-mode`
+
+### Runaway Costs (API Usage Explosion)
+
+**Triggers**: Daily API cost > $100, >1000 agents running
+
+**Plan**:
+1. Immediate pause: Stop all agents
+2. Audit: `recursive-manager audit --costs --last-24h`
+3. Identify culprits: Which agents consumed most?
+4. Fix: Fire runaway agents, fix bugs
+5. Set limits: Configure stricter budgets
+6. Resume gradually: One-by-one resumption
+
+### Security Breach
+
+**Triggers**: Unauthorized agent creation, unusual file access
+
+**Plan**:
+1. Isolate: Disconnect messaging integrations
+2. Audit: Review audit logs
+3. Quarantine: Pause suspicious agents
+4. Investigate: What was accessed/modified?
+5. Remediate: Fire compromised agents, patch vulnerability
+6. Monitor: Enhanced logging for 7 days
+
 ## Getting Help
 
 If you're stuck:
@@ -492,3 +819,9 @@ If you're stuck:
    - Actual behavior
    - Environment details
    - Logs and error messages
+
+## Related Documentation
+
+- [Edge Cases & Contingencies](https://github.com/aaron777collins/RecursiveManager/blob/main/EDGE_CASES_AND_CONTINGENCIES.md) - Complete edge case catalog
+- [Architecture Overview](../architecture/overview.md) - System architecture
+- [File Structure](../architecture/file-structure.md) - File and database schemas

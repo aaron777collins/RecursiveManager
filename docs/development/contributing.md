@@ -317,6 +317,64 @@ Add entry to CHANGELOG.md under `[Unreleased]`:
 - Bug fix description
 ```
 
+## Implementation Phases
+
+RecursiveManager development follows a phased approach to manage complexity and ensure quality at each step. For detailed phase breakdown, see [IMPLEMENTATION_PHASES.md](https://github.com/aaron777collins/RecursiveManager/blob/main/IMPLEMENTATION_PHASES.md).
+
+### Current Phase
+
+Check the project README or GitHub milestones for the current development phase.
+
+### Phase Overview
+
+1. **Phase 1: Foundation & Core Infrastructure** - Project setup, file system, database, logging
+2. **Phase 2: Core Agent System** - Agent lifecycle, configuration, task management
+3. **Phase 3: Execution Engine** - Framework adapters, orchestration, concurrency
+4. **Phase 4: Scheduling & Triggers** - Time-based and event-based execution
+5. **Phase 5: Messaging Integration** - Slack, Telegram, email integration
+6. **Phase 6: CLI & User Experience** - Command-line interface and tooling
+7. **Phase 7: Observability & Debugging** - Tracing, metrics, monitoring
+8. **Phase 8: Security & Resilience** - Sandboxing, permissions, resilience patterns
+9. **Phase 9: Multi-Framework Support** - Additional framework adapters
+10. **Phase 10: Documentation & Examples** - Comprehensive documentation
+
+### Contributing to a Phase
+
+When contributing:
+
+1. **Check phase dependencies**: Ensure prerequisite phases are complete
+2. **Follow phase specifications**: Refer to IMPLEMENTATION_PHASES.md for detailed requirements
+3. **Complete deliverables**: Finish all listed deliverables for a phase component
+4. **Write tests**: Each phase has specific testing requirements
+5. **Update documentation**: Document new features and APIs
+
+### Phase-Specific Guidelines
+
+#### Phase 1-3 (Foundation to Execution)
+- Focus on core architecture
+- Prioritize modularity and testability
+- Establish patterns for future phases
+
+#### Phase 4-5 (Scheduling and Messaging)
+- Integration with external systems
+- Handle edge cases (rate limiting, duplicates, failures)
+- Implement resilience patterns
+
+#### Phase 6-7 (CLI and Observability)
+- User experience focus
+- Clear error messages
+- Comprehensive debugging tools
+
+#### Phase 8 (Security)
+- Security review required
+- Threat model validation
+- Penetration testing
+
+#### Phase 9-10 (Multi-Framework and Documentation)
+- Extensibility focus
+- Complete documentation
+- Example implementations
+
 ## Community
 
 ### Getting Help

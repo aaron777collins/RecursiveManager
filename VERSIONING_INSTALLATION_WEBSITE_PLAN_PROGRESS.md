@@ -26,8 +26,8 @@ IN_PROGRESS
 - [x] 3.3 Create landing page (index.md)
 - [x] 3.4 Create custom CSS (extra.css)
 - [x] 3.5 Create brand icon (icon-white.svg)
-- [ ] 3.6 Port existing documentation
-- [ ] 3.7 Add requirements.txt for MkDocs
+- [x] 3.6 Port existing documentation
+- [x] 3.7 Add requirements.txt for MkDocs
 
 ### Phase 4: CI/CD Automation
 - [ ] 4.1 Create docs.yml GitHub Actions workflow
@@ -141,7 +141,8 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 3.5: Created brand icon (icon-white.svg)
+- Task 3.6: Ported existing documentation from planning files
+- Task 3.7: Created requirements.txt for MkDocs
 
 ## Notes
 
@@ -269,3 +270,18 @@ IN_PROGRESS
   - Documentation builds successfully with `mkdocs build --strict`
   - File size: 2.9 KB
 
+
+### Iteration 14 (2026-01-19)
+- Task 3.6: Ported existing documentation from comprehensive planning files
+  - Copied COMPREHENSIVE_PLAN.md → docs/architecture/overview.md (enhanced with full architectural details)
+  - Copied FILE_STRUCTURE_SPEC.md → docs/architecture/file-structure.md (complete schemas and database design)
+  - Copied MULTI_PERSPECTIVE_ANALYSIS.md → docs/concepts/multi-perspective-analysis.md (699 lines of detailed analysis)
+  - Enhanced docs/development/debugging.md with edge case handling from EDGE_CASES_AND_CONTINGENCIES.md
+  - Enhanced docs/development/contributing.md with implementation phase overview from IMPLEMENTATION_PHASES.md
+  - Fixed relative links to use GitHub URLs for source planning files
+  - Verified documentation builds successfully with `mkdocs build --strict` - no errors or warnings
+- Task 3.7: Created docs/requirements.txt for MkDocs
+  - Added mkdocs>=1.5.0
+  - Added mkdocs-material>=9.5.0
+  - Documentation is ready for CI/CD deployment
+- Documentation porting complete - all comprehensive planning content now available in web documentation

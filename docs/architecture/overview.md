@@ -1,6 +1,8 @@
 # Architecture Overview
 
-RecursiveManager is designed as a hierarchical AI agent system that mimics organizational structures. This document provides a high-level overview of the system architecture.
+RecursiveManager is a hierarchical AI agent system that mimics organizational structures, enabling recursive delegation, autonomous task management, and multi-framework support. Each agent operates as a "person" in a company - hiring subordinates, managing tasks, escalating issues, and maintaining its own workspace with file-based persistence and fresh memory on each execution.
+
+**Core Philosophy**: Quality over cost. Multi-perspective analysis before all decisions. Stateless execution with rich file-based state.
 
 ## System Architecture
 
@@ -61,49 +63,43 @@ RecursiveManager is designed as a hierarchical AI agent system that mimics organ
 
 ## Core Components
 
-### 1. CLI Tool
+### 1. CLI Tool (`cli/`)
 
 **Purpose**: User-facing interface for all agent operations
 
-**Key Commands**:
-- `init` - Initialize the system
-- `hire` - Create a new agent
-- `fire` - Delete an agent
-- `message` - Send a message to an agent
-- `run` - Manually trigger agent execution
-- `status` - View organizational chart
-- `logs` - View agent logs
+**Commands**:
+- `recursive-manager init` - Initialize system
+- `recursive-manager hire` - Create new agent
+- `recursive-manager fire` - Delete agent
+- `recursive-manager message` - Send message to agent
+- `recursive-manager run` - Manually trigger agent
+- `recursive-manager status` - View org chart
+- `recursive-manager logs` - View agent logs
 
-**Package**: `@recursive-manager/cli`
-
-### 2. Scheduler Daemon
+### 2. Scheduler Daemon (`scheduler/`)
 
 **Purpose**: Time-based and event-based agent execution
 
 **Responsibilities**:
-- Scan agent schedules periodically
+- Scan all `agents/*/schedule.json` files
 - Spawn agents at scheduled times
-- Handle reactive triggers (messages from Slack, Telegram, etc.)
-- Manage continuous task execution
+- Handle reactive triggers (Slack, Telegram, etc.)
+- Manage continuous task execution (only when work available)
 - Monitor agent health
 
-**Package**: `@recursive-manager/scheduler`
-
-### 3. Core Orchestrator
+### 3. Core Orchestrator (`core/`)
 
 **Purpose**: Framework-agnostic agent execution logic
 
 **Responsibilities**:
-- Load agent configuration and context
-- Prepare execution environment
+- Load agent configuration
+- Prepare execution context
 - Invoke framework adapter
-- Process execution results
+- Handle execution results
 - Update file-based state
-- Coordinate multi-perspective analysis
+- Multi-perspective analysis coordination
 
-**Package**: `@recursive-manager/core`
-
-### 4. Framework Adapters
+### 4. Framework Adapters (`adapters/`)
 
 **Purpose**: Interface with different AI coding frameworks
 
@@ -111,23 +107,16 @@ RecursiveManager is designed as a hierarchical AI agent system that mimics organ
 - Claude Code (primary)
 - OpenCode (secondary)
 
-**Interface Contract**:
+**Interface Contract**: All adapters must implement:
 ```typescript
 interface FrameworkAdapter {
-  executeAgent(
-    agentId: string,
-    mode: 'continuous' | 'reactive',
-    context: ExecutionContext
-  ): Promise<ExecutionResult>;
-
-  supportsFeature(feature: string): boolean;
-  getCapabilities(): Capability[];
+  executeAgent(agentId: string, mode: 'continuous' | 'reactive', context: ExecutionContext): Promise<ExecutionResult>
+  supportsFeature(feature: string): boolean
+  getCapabilities(): Capability[]
 }
 ```
 
-**Package**: `@recursive-manager/adapters`
-
-### 5. Messaging Layer
+### 5. Messaging Layer (`messaging/`)
 
 **Purpose**: Standardized message handling across platforms
 
@@ -140,165 +129,376 @@ interface FrameworkAdapter {
 **Interface Contract**:
 ```typescript
 interface MessagingAdapter {
-  pollMessages(): Promise<Message[]>;
-  sendMessage(agentId: string, message: string): Promise<void>;
-  markAsRead(messageId: string): Promise<void>;
+  pollMessages(): Promise<Message[]>
+  sendMessage(agentId: string, message: string): Promise<void>
+  markAsRead(messageId: string): Promise<void>
 }
 ```
 
-**Package**: `@recursive-manager/core` (messaging module)
+## Architectural Principles
 
-## Data Flow
+### 1. Modularity
 
-### Agent Execution Flow
+Each component must be independently:
+- **Testable**: Unit tests without full system
+- **Replaceable**: Swap implementations without breaking others
+- **Scalable**: Handle increased load independently
 
-```
-1. Trigger (schedule/message/manual)
-   ↓
-2. Scheduler identifies agent to run
-   ↓
-3. Core Orchestrator loads agent context
-   ↓
-4. Framework Adapter executes agent
-   ↓
-5. Agent performs work (tasks/messages)
-   ↓
-6. Results written to file system
-   ↓
-7. Database updated with metadata
-   ↓
-8. Next execution scheduled
-```
-
-### Task Delegation Flow
+### 2. Separation of Concerns
 
 ```
-1. Manager agent creates task
-   ↓
-2. Manager delegates to subordinate
-   ↓
-3. Subordinate's task queue updated
-   ↓
-4. Subordinate executes on next run
-   ↓
-5. Progress updates flow back to manager
-   ↓
-6. Manager monitors and coordinates
+┌─ Presentation Layer ──────────────────────┐
+│  CLI, Web UI, API                          │
+└────────────────┬───────────────────────────┘
+                 │
+┌─ Application Layer ───────────────────────┐
+│  Business logic, orchestration             │
+└────────────────┬───────────────────────────┘
+                 │
+┌─ Domain Layer ────────────────────────────┐
+│  Agent entities, task management           │
+└────────────────┬───────────────────────────┘
+                 │
+┌─ Infrastructure Layer ────────────────────┐
+│  File system, messaging, framework adapters│
+└────────────────────────────────────────────┘
 ```
 
-## Storage Model
+### 3. Dependency Injection
 
-### Hybrid Storage Strategy
+```typescript
+// Bad: Hard-coded dependencies
+class AgentOrchestrator {
+  constructor() {
+    this.adapter = new ClaudeCodeAdapter(); // Tight coupling!
+  }
+}
 
-**Files** (for transparency and debugging):
-- Agent configurations
-- Task details and progress
-- Workspace files
-- Message history
-- Logs and execution traces
-
-**Database** (for queries and relationships):
-- Agent hierarchy
-- Task dependencies
-- Message metadata
-- Execution history
-- Audit logs
-
-### File System Structure
-
-See [File Structure](/architecture/file-structure) for detailed schemas.
-
-```
-data/
-├── agents/
-│   ├── 00-0f/          # Sharded by hex prefix
-│   │   └── agent-001/
-│   ├── 10-1f/
-│   └── ...
-├── backups/
-│   └── YYYY-MM-DD/
-├── logs/
-│   ├── system/
-│   └── agents/
-└── recursive-manager.db
+// Good: Injected dependencies
+class AgentOrchestrator {
+  constructor(
+    private adapter: FrameworkAdapter,
+    private messaging: MessagingAdapter,
+    private storage: StorageAdapter
+  ) {}
+}
 ```
 
-## Design Principles
+## Scalability Considerations
 
-### 1. Quality Over Cost
+### File System Limits
 
-- Multi-perspective analysis before major decisions
-- Comprehensive edge case handling
-- Defensive programming with validation
+**Problem**: 10,000 agents = 10,000 directories
 
-### 2. Stateless Execution
+**Solution**: Sharding
+```
+agents/
+  00-0f/  # First 16 agents
+    agent-001/
+    agent-002/
+  10-1f/  # Next 16 agents
+    agent-016/
+    agent-017/
+```
 
-- Fresh context from files each run
-- No long-running process memory
-- Prevents context decay over time
+### Concurrent Execution
 
-### 3. Transparency
+**Problem**: 100 agents running simultaneously
 
-- All state visible in files
-- Full audit trail
-- Debuggable at every step
+**Solution**: Worker pool pattern
+```typescript
+class ExecutionPool {
+  private maxConcurrent: number = 10;
+  private queue: AgentTask[] = [];
+  private active: Set<string> = new Set();
 
-### 4. Modularity
+  async execute(task: AgentTask): Promise<void> {
+    if (this.active.size >= this.maxConcurrent) {
+      await this.waitForSlot();
+    }
 
-- Framework-agnostic core
-- Pluggable adapters
-- Clear interface contracts
+    this.active.add(task.agentId);
+    try {
+      await this.runAgent(task);
+    } finally {
+      this.active.delete(task.agentId);
+    }
+  }
+}
+```
 
-### 5. Resilience
+### Scheduler Performance
 
-- Circuit breakers for failures
-- Graceful degradation
-- Automatic recovery mechanisms
+**Problem**: Scanning 10,000 schedule files every 5 seconds
 
-## Key Features
+**Solution**: Event-driven scheduling
+```typescript
+// Instead of polling:
+setInterval(() => scanAllSchedules(), 5000); // O(n) every 5s
 
-### Multi-Perspective Analysis
+// Use priority queue:
+class SchedulerQueue {
+  private heap: MinHeap<ScheduledEvent>;
 
-Before major decisions, analyze from 8 perspectives:
-1. Simplicity & Developer Experience
-2. Architecture & Scalability
-3. Security & Trust
-4. Testing & Quality Assurance
-5. Observability & Debugging
-6. Documentation & Onboarding
-7. DevOps & Operations
-8. User Experience
+  nextExecution(): ScheduledEvent {
+    return this.heap.peek(); // O(1)
+  }
 
-### Edge Case Handling
+  async processNext(): Promise<void> {
+    const next = this.heap.pop(); // O(log n)
+    await this.executeAgent(next.agentId);
+    this.heap.push(next.reschedule()); // O(log n)
+  }
+}
+```
 
-Comprehensive handling of 28+ documented edge cases:
-- Recursion explosion
-- Circular reporting structures
-- Task deadlocks
-- Resource exhaustion
-- Framework failures
-- And more...
+## Key Architectural Decisions
 
-See [Edge Cases](/architecture/edge-cases) for details.
+### Decision 1: File-Based vs Database State
 
-### Scalability
+**File-Based Pros**:
+- Simple to understand
+- Easy to inspect/debug
+- No external dependencies
+- Git-compatible
 
-Designed to scale from 1 to 1000+ agents:
-- Agent directory sharding
-- Database indexes on critical queries
-- Worker pool for concurrent execution
-- Efficient file I/O with atomic writes
+**File-Based Cons**:
+- Slow for large-scale queries
+- No ACID guarantees
+- Hard to implement complex relationships
 
-## Next Steps
+**Hybrid Approach**:
+```
+Filesystem: Workspace, notes, drafts (agent-owned data)
+Database: Metadata, relationships, task indexes (queryable data)
 
-- [System Design](/architecture/system-design) - Detailed design decisions
-- [File Structure](/architecture/file-structure) - File schemas and organization
-- [Execution Model](/architecture/execution-model) - How agents execute
-- [Edge Cases](/architecture/edge-cases) - Comprehensive edge case catalog
+This gives us:
+✓ Simple workspace management
+✓ Fast queries
+✓ ACID compliance where needed
+✓ Easy debugging (files + SQL)
+```
 
-## Related Reading
+### Decision 2: Monorepo vs Multi-Repo
 
-For implementation details, see:
-- [COMPREHENSIVE_PLAN.md](https://github.com/yourusername/RecursiveManager/blob/main/COMPREHENSIVE_PLAN.md)
-- [MULTI_PERSPECTIVE_ANALYSIS.md](https://github.com/yourusername/RecursiveManager/blob/main/MULTI_PERSPECTIVE_ANALYSIS.md)
-- [IMPLEMENTATION_PHASES.md](https://github.com/yourusername/RecursiveManager/blob/main/IMPLEMENTATION_PHASES.md)
+**Recommendation**: Monorepo with clear module boundaries
+
+```
+RecursiveManager/
+  packages/
+    cli/                  # CLI tool
+    core/                 # Core orchestrator
+    scheduler/            # Scheduler daemon
+    adapters/
+      claude-code/        # Claude Code adapter
+      opencode/           # OpenCode adapter
+    messaging/
+      slack/              # Slack integration
+      telegram/           # Telegram integration
+    common/               # Shared utilities
+  docs/                   # Documentation
+  examples/               # Example configurations
+```
+
+**Benefits**:
+- Shared tooling (TypeScript, linting, testing)
+- Easier refactoring across modules
+- Single version number
+- Atomic changes across boundaries
+
+### Decision 3: Synchronous vs Asynchronous Execution
+
+**Recommendation**: Async-first with sync facades
+
+```typescript
+// Core is async
+async function executeAgent(id: string): Promise<Result> {
+  const agent = await loadAgent(id);
+  const context = await prepareContext(agent);
+  const result = await runFramework(context);
+  await saveState(agent, result);
+  return result;
+}
+
+// CLI provides sync-looking interface
+function cliRun(id: string): void {
+  executeAgent(id)
+    .then(result => console.log('Success:', result))
+    .catch(err => console.error('Failed:', err));
+}
+```
+
+## Resilience Patterns
+
+### Pattern 1: Circuit Breaker
+
+```typescript
+class FrameworkAdapter {
+  private failureCount: number = 0;
+  private lastFailure: Date | null = null;
+  private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
+
+  async execute(agent: Agent): Promise<Result> {
+    if (this.state === 'OPEN') {
+      if (Date.now() - this.lastFailure!.getTime() > 60000) {
+        this.state = 'HALF_OPEN';
+      } else {
+        throw new Error('Circuit breaker OPEN - framework unavailable');
+      }
+    }
+
+    try {
+      const result = await this.actualExecute(agent);
+      this.onSuccess();
+      return result;
+    } catch (err) {
+      this.onFailure();
+      throw err;
+    }
+  }
+
+  private onFailure(): void {
+    this.failureCount++;
+    this.lastFailure = new Date();
+    if (this.failureCount >= 5) {
+      this.state = 'OPEN';
+      console.error('Circuit breaker opened - too many failures');
+    }
+  }
+
+  private onSuccess(): void {
+    this.failureCount = 0;
+    this.state = 'CLOSED';
+  }
+}
+```
+
+### Pattern 2: Retry with Exponential Backoff
+
+```typescript
+async function executeWithRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3
+): Promise<T> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (attempt === maxRetries - 1) throw err;
+
+      const backoff = Math.min(1000 * Math.pow(2, attempt), 30000);
+      await sleep(backoff);
+    }
+  }
+  throw new Error('Should never reach here');
+}
+```
+
+### Pattern 3: Graceful Degradation
+
+```typescript
+class MessagingLayer {
+  async pollMessages(agentId: string): Promise<Message[]> {
+    const messages: Message[] = [];
+
+    // Try Slack (preferred)
+    try {
+      messages.push(...await this.slack.poll(agentId));
+    } catch (err) {
+      console.warn('Slack unavailable, skipping:', err);
+    }
+
+    // Try Telegram (fallback)
+    try {
+      messages.push(...await this.telegram.poll(agentId));
+    } catch (err) {
+      console.warn('Telegram unavailable, skipping:', err);
+    }
+
+    // Internal messages always work (local)
+    messages.push(...await this.internal.poll(agentId));
+
+    return messages;
+  }
+}
+```
+
+## Multi-Perspective Analysis
+
+RecursiveManager uses multi-perspective analysis to evaluate decisions from 8 perspectives:
+
+1. **Simplicity & Developer Experience**: Making complexity approachable
+2. **Architecture & Scalability**: Building for 1-1000+ agents
+3. **Security & Trust**: Preventing malicious/buggy agents
+4. **Testing & Quality Assurance**: Ensuring reliability
+5. **Observability & Debugging**: Understanding recursive hierarchies
+6. **Documentation & Onboarding**: Learning curve management
+7. **DevOps & Operations**: Deployment and maintenance
+8. **User Experience**: From beginner to power user
+
+See [Multi-Perspective Analysis](../concepts/multi-perspective-analysis.md) for detailed analysis.
+
+### Key Insights Summary
+
+#### From Simplicity Perspective
+- **Progressive Disclosure**: Simple commands for basics, advanced flags for power users
+- **Sensible Defaults**: Works out of box for 80% of use cases
+- **Clear Error Messages**: Actionable feedback with suggested fixes
+- **Pit of Success**: Convention over configuration
+
+#### From Architecture Perspective
+- **Hybrid Storage**: Files for workspaces, database for queries
+- **Modularity**: Framework-agnostic core, pluggable adapters
+- **Scalability**: Worker pool pattern, event-driven scheduling
+- **Resilience**: Circuit breakers, retries, graceful degradation
+
+#### From Security Perspective
+- **Sandboxing**: Containers with resource limits
+- **Permission Model**: Role-based with explicit grants
+- **Audit Logging**: Immutable audit trail
+- **Threat Mitigation**: Defense against recursion explosion, privilege escalation
+
+#### From Testing Perspective
+- **Unit Tests**: 80%+ coverage on all modules
+- **Integration Tests**: Key workflows validated
+- **E2E Tests**: Full user journeys
+- **Performance Tests**: 1000+ agent scalability
+
+#### From Observability Perspective
+- **Execution Tracing**: Full trace of recursive execution paths
+- **Metrics**: Health scores, success rates, resource usage
+- **Debug Tools**: Single command to understand agent state
+- **Visualization**: Org chart, task dependencies, execution flow
+
+#### From Documentation Perspective
+- **Quickstart**: Running in 5 minutes
+- **Tutorials**: Common workflows step-by-step
+- **Reference**: Complete CLI/API docs
+- **Troubleshooting**: Edge case solutions
+
+#### From DevOps Perspective
+- **CI/CD**: Automated testing and releases
+- **Deployment**: Single binary, no dependencies
+- **Monitoring**: Health checks, alerts
+- **Backup/Recovery**: Automated backups, disaster recovery
+
+#### From UX Perspective
+- **Guided Setup**: Interactive wizard
+- **Intelligent Defaults**: Smart configuration
+- **Rich Feedback**: Progress indicators, status updates
+- **Powerful When Needed**: Advanced features available but hidden
+
+## Design Recommendations
+
+1. **Start Small, Design Big**: Build for 1-10 agents, but architect for 1000+
+2. **Horizontal Scalability**: Use worker pool pattern, not vertical scaling
+3. **Hybrid Storage**: Database for queries, files for workspaces
+4. **Event-Driven**: Use events for cross-component communication
+5. **Resilient by Default**: Circuit breakers, retries, graceful degradation
+
+## Related Documentation
+
+- [File Structure Specification](file-structure.md) - Detailed file and database schemas
+- [Multi-Perspective Analysis](../concepts/multi-perspective-analysis.md) - Complete analysis methodology
+- [Database Schema](database.md) - Database tables and relationships
+- [Development Guide](../development/contributing.md) - Implementation phases and practices
