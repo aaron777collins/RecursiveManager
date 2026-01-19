@@ -372,3 +372,358 @@ export function getBackupsDirectory(options: PathOptions = {}): string {
   const baseDir = options.baseDir ?? DEFAULT_BASE_DIR;
   return path.resolve(baseDir, 'backups');
 }
+
+// ============================================================================
+// Path Validation Utilities
+// ============================================================================
+
+/**
+ * Options for path validation
+ */
+export interface PathValidationOptions {
+  /**
+   * Base directory for path containment checks
+   * @default ~/.recursive-manager
+   */
+  baseDir?: string;
+
+  /**
+   * Whether to allow empty values (default: false)
+   */
+  allowEmpty?: boolean;
+}
+
+/**
+ * Result of path validation
+ */
+export interface PathValidationResult {
+  /**
+   * Whether the path is valid
+   */
+  valid: boolean;
+
+  /**
+   * Error message if validation failed
+   */
+  error?: string;
+
+  /**
+   * Normalized/sanitized path if validation succeeded
+   */
+  sanitized?: string;
+}
+
+/**
+ * Validate an agent ID
+ *
+ * Agent IDs must:
+ * - Not be empty (unless allowEmpty is true)
+ * - Not contain path separators (/ or \)
+ * - Not contain null bytes
+ * - Not be exactly '.' or '..'
+ * - Not start or end with whitespace
+ *
+ * @param agentId - The agent ID to validate
+ * @param options - Validation options
+ * @returns Validation result with sanitized ID
+ *
+ * @example
+ * ```typescript
+ * validateAgentId('CEO')                    // => { valid: true, sanitized: 'CEO' }
+ * validateAgentId('backend-dev-001')        // => { valid: true, sanitized: 'backend-dev-001' }
+ * validateAgentId('../../../etc/passwd')    // => { valid: false, error: '...' }
+ * validateAgentId('agent/with/slash')       // => { valid: false, error: '...' }
+ * ```
+ */
+export function validateAgentId(
+  agentId: string,
+  options: PathValidationOptions = {}
+): PathValidationResult {
+  const { allowEmpty = false } = options;
+
+  // Check for empty
+  if (!agentId || agentId.trim().length === 0) {
+    if (allowEmpty) {
+      return { valid: true, sanitized: '' };
+    }
+    return { valid: false, error: 'Agent ID cannot be empty' };
+  }
+
+  // Check for whitespace at start or end
+  if (agentId !== agentId.trim()) {
+    return {
+      valid: false,
+      error: 'Agent ID cannot start or end with whitespace',
+    };
+  }
+
+  // Check for path separators
+  if (agentId.includes('/') || agentId.includes('\\')) {
+    return {
+      valid: false,
+      error: 'Agent ID cannot contain path separators (/ or \\)',
+    };
+  }
+
+  // Check for null bytes
+  if (agentId.includes('\0')) {
+    return {
+      valid: false,
+      error: 'Agent ID cannot contain null bytes',
+    };
+  }
+
+  // Check for relative path components
+  if (agentId === '.' || agentId === '..') {
+    return {
+      valid: false,
+      error: 'Agent ID cannot be "." or ".."',
+    };
+  }
+
+  return { valid: true, sanitized: agentId };
+}
+
+/**
+ * Validate a task ID
+ *
+ * Task IDs must follow the same rules as agent IDs
+ *
+ * @param taskId - The task ID to validate
+ * @param options - Validation options
+ * @returns Validation result with sanitized ID
+ *
+ * @example
+ * ```typescript
+ * validateTaskId('task-1-implement-feature')  // => { valid: true, sanitized: '...' }
+ * validateTaskId('task/../../../etc')         // => { valid: false, error: '...' }
+ * ```
+ */
+export function validateTaskId(
+  taskId: string,
+  options: PathValidationOptions = {}
+): PathValidationResult {
+  // Task IDs follow the same validation rules as agent IDs
+  const result = validateAgentId(taskId, options);
+  if (!result.valid) {
+    // Adjust error message to say "Task ID" instead of "Agent ID"
+    return {
+      ...result,
+      error: result.error?.replace('Agent ID', 'Task ID'),
+    };
+  }
+  return result;
+}
+
+/**
+ * Validate that a path is within a base directory (prevents path traversal)
+ *
+ * This function ensures that:
+ * - The resolved path is within the base directory
+ * - The path doesn't escape via symlinks or .. components
+ * - The path is absolute after resolution
+ *
+ * @param targetPath - The path to validate
+ * @param options - Validation options (baseDir required)
+ * @returns Validation result with normalized path
+ *
+ * @example
+ * ```typescript
+ * validatePathContainment('/home/user/.recursive-manager/agents/CEO', {
+ *   baseDir: '/home/user/.recursive-manager'
+ * })
+ * // => { valid: true, sanitized: '/home/user/.recursive-manager/agents/CEO' }
+ *
+ * validatePathContainment('/etc/passwd', {
+ *   baseDir: '/home/user/.recursive-manager'
+ * })
+ * // => { valid: false, error: 'Path is outside base directory' }
+ *
+ * validatePathContainment('../../../etc/passwd', {
+ *   baseDir: '/home/user/.recursive-manager'
+ * })
+ * // => { valid: false, error: 'Path is outside base directory' }
+ * ```
+ */
+export function validatePathContainment(
+  targetPath: string,
+  options: PathValidationOptions = {}
+): PathValidationResult {
+  const { baseDir = DEFAULT_BASE_DIR } = options;
+
+  // Resolve both paths to absolute paths (eliminates .. and . components)
+  // If targetPath is relative, resolve it relative to baseDir
+  const resolvedBase = path.resolve(baseDir);
+  const resolvedTarget = path.isAbsolute(targetPath)
+    ? path.resolve(targetPath)
+    : path.resolve(baseDir, targetPath);
+
+  // Normalize paths to handle trailing slashes consistently
+  const normalizedBase = path.normalize(resolvedBase);
+  const normalizedTarget = path.normalize(resolvedTarget);
+
+  // Check if target is within base directory
+  // Use path.relative to determine if target is within base
+  const relativePath = path.relative(normalizedBase, normalizedTarget);
+
+  // If relative path starts with '..' or is absolute, it's outside base
+  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
+    return {
+      valid: false,
+      error: `Path is outside base directory: ${normalizedTarget} is not within ${normalizedBase}`,
+    };
+  }
+
+  return { valid: true, sanitized: normalizedTarget };
+}
+
+/**
+ * Validate a complete agent directory path
+ *
+ * This combines validation of:
+ * - Agent ID format
+ * - Path containment within base directory
+ * - No path traversal attempts
+ *
+ * @param agentId - The agent ID
+ * @param options - Validation options
+ * @returns Validation result with normalized agent directory path
+ *
+ * @example
+ * ```typescript
+ * validateAgentPath('CEO')
+ * // => { valid: true, sanitized: '/home/user/.recursive-manager/agents/c0-cf/CEO' }
+ *
+ * validateAgentPath('../../../etc')
+ * // => { valid: false, error: '...' }
+ * ```
+ */
+export function validateAgentPath(
+  agentId: string,
+  options: PathValidationOptions = {}
+): PathValidationResult {
+  // First validate the agent ID
+  const idValidation = validateAgentId(agentId, options);
+  if (!idValidation.valid) {
+    return idValidation;
+  }
+
+  // Get the agent directory path
+  const baseDir = options.baseDir ?? DEFAULT_BASE_DIR;
+  const agentDir = getAgentDirectory(agentId, { baseDir });
+
+  // Validate path containment
+  const containmentValidation = validatePathContainment(agentDir, { baseDir });
+  if (!containmentValidation.valid) {
+    return containmentValidation;
+  }
+
+  return { valid: true, sanitized: agentDir };
+}
+
+/**
+ * Validate a complete task path
+ *
+ * This combines validation of:
+ * - Agent ID format
+ * - Task ID format
+ * - Path containment within base directory
+ * - No path traversal attempts
+ *
+ * @param agentId - The agent ID
+ * @param taskId - The task ID
+ * @param status - Task status directory (default: 'active')
+ * @param options - Validation options
+ * @returns Validation result with normalized task path
+ *
+ * @example
+ * ```typescript
+ * validateTaskPath('CEO', 'task-1-implement-feature')
+ * // => { valid: true, sanitized: '/home/user/.recursive-manager/agents/c0-cf/CEO/tasks/active/task-1-implement-feature' }
+ *
+ * validateTaskPath('CEO', '../../../etc/passwd')
+ * // => { valid: false, error: '...' }
+ * ```
+ */
+export function validateTaskPath(
+  agentId: string,
+  taskId: string,
+  status: string = 'active',
+  options: PathValidationOptions = {}
+): PathValidationResult {
+  // First validate the agent ID
+  const agentValidation = validateAgentId(agentId, options);
+  if (!agentValidation.valid) {
+    return agentValidation;
+  }
+
+  // Then validate the task ID
+  const taskValidation = validateTaskId(taskId, options);
+  if (!taskValidation.valid) {
+    return taskValidation;
+  }
+
+  // Get the task path
+  const baseDir = options.baseDir ?? DEFAULT_BASE_DIR;
+  const taskPath = getTaskPath(agentId, taskId, status, { baseDir });
+
+  // Validate path containment
+  const containmentValidation = validatePathContainment(taskPath, { baseDir });
+  if (!containmentValidation.valid) {
+    return containmentValidation;
+  }
+
+  return { valid: true, sanitized: taskPath };
+}
+
+/**
+ * Sanitize a string for use as a filename or directory name
+ *
+ * Removes or replaces characters that are problematic in filenames:
+ * - Path separators (/ and \)
+ * - Null bytes
+ * - Control characters
+ * - Leading/trailing whitespace
+ * - Leading/trailing dots
+ *
+ * @param name - The name to sanitize
+ * @param replacement - Character to use for replacements (default: '-')
+ * @returns Sanitized name safe for use in file paths
+ *
+ * @example
+ * ```typescript
+ * sanitizePathComponent('My Task / Feature')  // => 'My-Task-Feature'
+ * sanitizePathComponent('../../../etc')       // => 'etc'
+ * sanitizePathComponent('  task  ')           // => 'task'
+ * sanitizePathComponent('.hidden')            // => 'hidden'
+ * ```
+ */
+export function sanitizePathComponent(name: string, replacement: string = '-'): string {
+  // Remove leading/trailing whitespace
+  let sanitized = name.trim();
+
+  // Replace path separators and colons with replacement character
+  // Also trim whitespace around them
+  sanitized = sanitized.replace(/\s*[/\\:]\s*/g, replacement);
+
+  // Remove null bytes
+  sanitized = sanitized.replace(/\0/g, '');
+
+  // Remove or replace control characters (ASCII 0-31)
+  // eslint-disable-next-line no-control-regex
+  sanitized = sanitized.replace(/[\x00-\x1f]/g, '');
+
+  // Remove leading/trailing dots (prevents hidden files and relative paths)
+  sanitized = sanitized.replace(/^\.+|\.+$/g, '');
+
+  // Collapse multiple replacement characters into one
+  const escapedReplacement = replacement.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const multipleRegex = new RegExp(`${escapedReplacement}+`, 'g');
+  sanitized = sanitized.replace(multipleRegex, replacement);
+
+  // Remove leading/trailing replacement characters
+  const trimRegex = new RegExp(`^${escapedReplacement}+|${escapedReplacement}+$`, 'g');
+  sanitized = sanitized.replace(trimRegex, '');
+
+  return sanitized;
+}

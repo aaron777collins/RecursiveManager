@@ -78,5 +78,13 @@ export {
   getAgentLogPath,
   getDatabasePath,
   getBackupsDirectory,
+  validateAgentId,
+  validateTaskId,
+  validatePathContainment,
+  validateAgentPath,
+  validateTaskPath,
+  sanitizePathComponent,
   type PathOptions,
+  type PathValidationOptions,
+  type PathValidationResult,
 } from './path-utils';

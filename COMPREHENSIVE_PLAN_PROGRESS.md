@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 20:16:23 EST
+Last Updated: 2026-01-18 20:22:59 EST
 
 ## Status
 
@@ -102,7 +102,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 1.2.6: Implement agent directory sharding logic (hex prefix)
 - [x] Task 1.2.7: Create getAgentDirectory(agentId) utility
 - [x] Task 1.2.8: Create getTaskPath(agentId, taskId) utility
-- [ ] Task 1.2.9: Create path validation utilities
+- [x] Task 1.2.9: Create path validation utilities
 
 ##### JSON Schema Definition
 
@@ -532,6 +532,103 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.2.9: Create path validation utilities ✅
+
+**Summary**: Implemented comprehensive path validation utilities to prevent path traversal attacks, validate agent/task IDs, and sanitize path components. Includes 60 passing tests covering all validation scenarios and edge cases.
+
+**What Was Implemented**:
+
+- ✅ Extended `packages/common/src/path-utils.ts` with validation functions (350 additional lines)
+  - `validateAgentId(agentId, options?)` - Validate agent ID format
+  - `validateTaskId(taskId, options?)` - Validate task ID format
+  - `validatePathContainment(targetPath, options?)` - Prevent path traversal attacks
+  - `validateAgentPath(agentId, options?)` - Complete agent path validation
+  - `validateTaskPath(agentId, taskId, status?, options?)` - Complete task path validation
+  - `sanitizePathComponent(name, replacement?)` - Sanitize strings for use in paths
+- ✅ Type-safe interfaces:
+  - `PathValidationOptions` - Configuration for validation (baseDir, allowEmpty)
+  - `PathValidationResult` - Validation result with valid flag, error message, and sanitized value
+- ✅ Security features:
+  - Rejects empty IDs (unless allowEmpty is true)
+  - Rejects path separators (/ and \) in IDs
+  - Rejects null bytes
+  - Rejects '.' and '..' as IDs
+  - Rejects leading/trailing whitespace
+  - Validates paths are within base directory
+  - Prevents path traversal with .. components
+  - Handles both absolute and relative path resolution
+- ✅ Sanitization features:
+  - Removes/replaces path separators
+  - Removes null bytes and control characters
+  - Removes leading/trailing dots (prevents hidden files)
+  - Collapses multiple replacement characters
+  - Handles Windows colons (C:)
+  - Preserves internal dots in filenames
+- ✅ Exported from `@recursive-manager/common` package
+  - Added to package index with proper TypeScript types
+  - Available for use in all other packages
+- ✅ Comprehensive test suite (60 tests, all passing)
+  - Valid and invalid agent IDs (15 tests)
+  - Valid and invalid task IDs (4 tests)
+  - Path containment validation (9 tests)
+  - Agent path validation (4 tests)
+  - Task path validation (5 tests)
+  - Path component sanitization (23 tests)
+  - Edge cases and realistic use cases
+
+**Files Created/Modified**:
+
+1. `packages/common/src/path-utils.ts` - Extended with 350 lines of validation code (total 729 lines)
+2. `packages/common/src/__tests__/path-validation.test.ts` (386 lines) - Comprehensive tests
+3. `packages/common/src/index.ts` - Updated exports to include validation functions
+
+**Testing Results**:
+
+- ✅ 60/60 path validation tests passing
+- ✅ 249/249 total tests passing in common package (189 previous + 60 new)
+- ✅ All tests complete in ~9 seconds
+- ✅ ESLint passes
+- ✅ TypeScript compilation successful
+- ✅ Test coverage includes:
+  - All validation functions
+  - Security scenarios (path traversal, injection)
+  - Edge cases (empty, whitespace, special characters)
+  - Realistic use cases (user input, filenames, paths)
+
+**Key Design Decisions**:
+
+1. **Defense in depth**: Multiple validation layers (ID format, path containment, sanitization)
+2. **Security first**: Rejects any potentially dangerous path components
+3. **Clear error messages**: Descriptive errors explain what's wrong
+4. **Flexible validation**: Optional baseDir and allowEmpty for different use cases
+5. **Relative path support**: Validates relative paths resolve within base directory
+6. **Sanitization option**: Provides utility to clean user input for safe use in paths
+7. **Cross-platform**: Handles both Unix (/) and Windows (\) path separators
+
+**Security Impact**:
+
+This implementation provides critical security protection against:
+
+- Path traversal attacks (../../../etc/passwd)
+- Directory escape attempts
+- Malicious agent/task IDs
+- Hidden file creation (.htaccess, .env)
+- Null byte injection
+- Control character injection
+
+**Integration Points**:
+
+Will be used by:
+
+- Task 2.2: Agent lifecycle management (validate agent IDs before creation)
+- Task 2.3: Task management (validate task IDs before creation)
+- All future path operations to ensure security
+- User input validation throughout the system
+
+**Next Task**: Task 1.2.10 - Define agent-config.schema.json
+
+---
 
 ### Tasks 1.2.6, 1.2.7, 1.2.8: Implement path utilities with agent directory sharding ✅
 
