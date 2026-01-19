@@ -30,12 +30,18 @@ import {
   allMigrations,
   getTaskPath,
   completeTask,
+  detectTaskDeadlock,
+  getMessages,
 } from '@recursive-manager/common';
 import {
   createTaskDirectory,
   completeTaskWithFiles,
   archiveOldTasks,
+  notifyDeadlock,
+  monitorDeadlocks,
 } from '../index';
+import { saveAgentConfig } from '../../config';
+import { AgentConfig } from '@recursive-manager/common';
 
 describe('Task Lifecycle Integration Tests', () => {
   let db: Database.Database;
@@ -527,6 +533,414 @@ describe('Task Lifecycle Integration Tests', () => {
       // Task should still be in completed directory
       const completedPath = getTaskPath('recent-agent', task.id, 'completed');
       expect(fs.existsSync(completedPath)).toBe(true);
+    });
+  });
+
+  describe('Deadlock Detection and Notification', () => {
+    it('should detect deadlock, notify agents, and resolve when dependency removed', async () => {
+      // Setup: Create two agents
+      const agentA = createAgent(db, {
+        id: 'deadlock-agent-a',
+        role: 'Developer',
+        displayName: 'Agent A',
+        reportingTo: null,
+        framework: 'claude-code',
+        systemPrompt: 'Test deadlock',
+        schedule: { mode: 'manual' },
+      });
+
+      const agentB = createAgent(db, {
+        id: 'deadlock-agent-b',
+        role: 'Developer',
+        displayName: 'Agent B',
+        reportingTo: null,
+        framework: 'claude-code',
+        systemPrompt: 'Test deadlock',
+        schedule: { mode: 'manual' },
+      });
+
+      // Create agent configs with deadlock notifications enabled
+      const createConfig = (agentId: string): AgentConfig => ({
+        version: '1.0.0',
+        identity: {
+          id: agentId,
+          role: 'Developer',
+          displayName: `Agent ${agentId}`,
+          createdAt: new Date().toISOString(),
+          createdBy: 'test',
+          reportingTo: null,
+        },
+        goal: {
+          mainGoal: 'Test work',
+        },
+        permissions: {
+          canHire: false,
+          maxSubordinates: 0,
+          hiringBudget: 0,
+        },
+        framework: {
+          primary: 'claude-code',
+          fallbacks: [],
+        },
+        communication: {
+          notifyOnCompletion: true,
+          notifyOnDelegation: true,
+          notifyOnDeadlock: true,
+        },
+        behavior: {
+          executionMode: 'continuous',
+          autonomy: 'low',
+          escalationThreshold: 3,
+        },
+        metadata: {
+          version: 1,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+
+      await saveAgentConfig(agentA.id, createConfig(agentA.id), testDir);
+      await saveAgentConfig(agentB.id, createConfig(agentB.id), testDir);
+
+      // STEP 1: CREATE DEADLOCK - Create circular dependency: A -> B -> A
+      const taskA = createTask(db, {
+        id: 'task-deadlock-a',
+        agentId: agentA.id,
+        title: 'Task A',
+        description: 'Task A blocks on B',
+        priority: 'high',
+        status: 'blocked',
+      });
+
+      const taskB = createTask(db, {
+        id: 'task-deadlock-b',
+        agentId: agentB.id,
+        title: 'Task B',
+        description: 'Task B blocks on A',
+        priority: 'high',
+        status: 'blocked',
+      });
+
+      // Set up circular blocking relationships
+      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+        JSON.stringify([taskB.id]),
+        taskA.id
+      );
+      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+        JSON.stringify([taskA.id]),
+        taskB.id
+      );
+
+      // STEP 2: DETECT DEADLOCK - Verify deadlock is detected from either task
+      const cycleFromA = detectTaskDeadlock(db, taskA.id);
+      const cycleFromB = detectTaskDeadlock(db, taskB.id);
+
+      expect(cycleFromA).toBeTruthy();
+      expect(cycleFromA).toHaveLength(2);
+      expect(cycleFromB).toBeTruthy();
+      expect(cycleFromB).toHaveLength(2);
+
+      // STEP 3: NOTIFY AGENTS - Send deadlock notifications
+      const messageIds = await notifyDeadlock(db, [taskA.id, taskB.id], { dataDir: testDir });
+
+      // Verify notifications sent
+      expect(messageIds).toHaveLength(2);
+
+      // Verify both agents received urgent notifications
+      const messagesA = getMessages(db, { toAgentId: agentA.id });
+      const messagesB = getMessages(db, { toAgentId: agentB.id });
+
+      expect(messagesA).toHaveLength(1);
+      expect(messagesA[0].priority).toBe('urgent');
+      expect(messagesA[0].action_required).toBe(true);
+      expect(messagesA[0].subject).toContain('DEADLOCK');
+
+      expect(messagesB).toHaveLength(1);
+      expect(messagesB[0].priority).toBe('urgent');
+      expect(messagesB[0].subject).toContain('DEADLOCK');
+
+      // STEP 4: RESOLVE DEADLOCK - Remove one dependency
+      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(JSON.stringify([]), taskA.id);
+
+      // STEP 5: VERIFY RESOLUTION - Deadlock should no longer be detected
+      const cycleAfterResolution = detectTaskDeadlock(db, taskA.id);
+      expect(cycleAfterResolution).toBeNull();
+
+      // Task A should now be unblocked
+      const updatedTaskA = getTask(db, taskA.id);
+      expect(JSON.parse(updatedTaskA?.blocked_by || '[]')).toHaveLength(0);
+    });
+
+    it('should monitor all blocked tasks and detect multiple deadlocks', async () => {
+      // Setup: Create four agents
+      const agents = ['monitor-a', 'monitor-b', 'monitor-c', 'monitor-d'].map((id) =>
+        createAgent(db, {
+          id,
+          role: 'Developer',
+          displayName: `Agent ${id}`,
+          reportingTo: null,
+          framework: 'claude-code',
+          systemPrompt: 'Test monitoring',
+          schedule: { mode: 'manual' },
+        })
+      );
+
+      // Create configs for all agents
+      const createConfig = (agentId: string): AgentConfig => ({
+        version: '1.0.0',
+        identity: {
+          id: agentId,
+          role: 'Developer',
+          displayName: `Agent ${agentId}`,
+          createdAt: new Date().toISOString(),
+          createdBy: 'test',
+          reportingTo: null,
+        },
+        goal: {
+          mainGoal: 'Test work',
+        },
+        permissions: {
+          canHire: false,
+          maxSubordinates: 0,
+          hiringBudget: 0,
+        },
+        framework: {
+          primary: 'claude-code',
+          fallbacks: [],
+        },
+        communication: {
+          notifyOnCompletion: true,
+          notifyOnDelegation: true,
+          notifyOnDeadlock: true,
+        },
+        behavior: {
+          executionMode: 'continuous',
+          autonomy: 'low',
+          escalationThreshold: 3,
+        },
+        metadata: {
+          version: 1,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+
+      for (const agent of agents) {
+        await saveAgentConfig(agent.id, createConfig(agent.id), testDir);
+      }
+
+      // Create first deadlock cycle: A -> B -> A
+      const taskA = createTask(db, {
+        id: 'task-monitor-a',
+        agentId: agents[0].id,
+        title: 'Task A',
+        priority: 'high',
+        status: 'blocked',
+      });
+
+      const taskB = createTask(db, {
+        id: 'task-monitor-b',
+        agentId: agents[1].id,
+        title: 'Task B',
+        priority: 'high',
+        status: 'blocked',
+      });
+
+      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+        JSON.stringify([taskB.id]),
+        taskA.id
+      );
+      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+        JSON.stringify([taskA.id]),
+        taskB.id
+      );
+
+      // Create second independent deadlock cycle: C -> D -> C
+      const taskC = createTask(db, {
+        id: 'task-monitor-c',
+        agentId: agents[2].id,
+        title: 'Task C',
+        priority: 'high',
+        status: 'blocked',
+      });
+
+      const taskD = createTask(db, {
+        id: 'task-monitor-d',
+        agentId: agents[3].id,
+        title: 'Task D',
+        priority: 'high',
+        status: 'blocked',
+      });
+
+      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+        JSON.stringify([taskD.id]),
+        taskC.id
+      );
+      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+        JSON.stringify([taskC.id]),
+        taskD.id
+      );
+
+      // Create a non-deadlocked blocked task (should be ignored)
+      const taskE = createTask(db, {
+        id: 'task-monitor-e',
+        agentId: agents[0].id,
+        title: 'Task E',
+        priority: 'low',
+        status: 'blocked',
+      });
+
+      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+        JSON.stringify(['non-existent-task']),
+        taskE.id
+      );
+
+      // MONITOR ALL DEADLOCKS
+      const result = await monitorDeadlocks(db, { dataDir: testDir });
+
+      // Verify monitoring results
+      expect(result.deadlocksDetected).toBe(2); // Two independent cycles
+      expect(result.notificationsSent).toBe(4); // One per agent in deadlocks
+      expect(result.deadlockedTaskIds).toHaveLength(4);
+      expect(result.cycles).toHaveLength(2);
+
+      // Verify all deadlocked task IDs are included
+      expect(result.deadlockedTaskIds).toContain(taskA.id);
+      expect(result.deadlockedTaskIds).toContain(taskB.id);
+      expect(result.deadlockedTaskIds).toContain(taskC.id);
+      expect(result.deadlockedTaskIds).toContain(taskD.id);
+      expect(result.deadlockedTaskIds).not.toContain(taskE.id); // Non-deadlocked task excluded
+
+      // Verify all agents in deadlocks received notifications
+      expect(getMessages(db, { toAgentId: agents[0].id })).toHaveLength(1);
+      expect(getMessages(db, { toAgentId: agents[1].id })).toHaveLength(1);
+      expect(getMessages(db, { toAgentId: agents[2].id })).toHaveLength(1);
+      expect(getMessages(db, { toAgentId: agents[3].id })).toHaveLength(1);
+    });
+
+    it('should handle three-way deadlock with proper cycle detection', async () => {
+      // Setup: Create three agents
+      const agentIds = ['three-a', 'three-b', 'three-c'];
+      const agents = agentIds.map((id) =>
+        createAgent(db, {
+          id,
+          role: 'Developer',
+          displayName: `Agent ${id}`,
+          reportingTo: null,
+          framework: 'claude-code',
+          systemPrompt: 'Test three-way deadlock',
+          schedule: { mode: 'manual' },
+        })
+      );
+
+      // Create configs
+      const createConfig = (agentId: string): AgentConfig => ({
+        version: '1.0.0',
+        identity: {
+          id: agentId,
+          role: 'Developer',
+          displayName: `Agent ${agentId}`,
+          createdAt: new Date().toISOString(),
+          createdBy: 'test',
+          reportingTo: null,
+        },
+        goal: {
+          mainGoal: 'Test work',
+        },
+        permissions: {
+          canHire: false,
+          maxSubordinates: 0,
+          hiringBudget: 0,
+        },
+        framework: {
+          primary: 'claude-code',
+          fallbacks: [],
+        },
+        communication: {
+          notifyOnCompletion: true,
+          notifyOnDelegation: true,
+          notifyOnDeadlock: true,
+        },
+        behavior: {
+          executionMode: 'continuous',
+          autonomy: 'low',
+          escalationThreshold: 3,
+        },
+        metadata: {
+          version: 1,
+          updatedAt: new Date().toISOString(),
+        },
+      });
+
+      for (const agent of agents) {
+        await saveAgentConfig(agent.id, createConfig(agent.id), testDir);
+      }
+
+      // Create three-way deadlock: A -> B -> C -> A
+      const taskA = createTask(db, {
+        id: 'task-three-a',
+        agentId: agents[0].id,
+        title: 'Task A',
+        priority: 'high',
+        status: 'blocked',
+      });
+
+      const taskB = createTask(db, {
+        id: 'task-three-b',
+        agentId: agents[1].id,
+        title: 'Task B',
+        priority: 'high',
+        status: 'blocked',
+      });
+
+      const taskC = createTask(db, {
+        id: 'task-three-c',
+        agentId: agents[2].id,
+        title: 'Task C',
+        priority: 'high',
+        status: 'blocked',
+      });
+
+      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+        JSON.stringify([taskB.id]),
+        taskA.id
+      );
+      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+        JSON.stringify([taskC.id]),
+        taskB.id
+      );
+      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+        JSON.stringify([taskA.id]),
+        taskC.id
+      );
+
+      // Detect deadlock from each entry point
+      const cycleFromA = detectTaskDeadlock(db, taskA.id);
+      const cycleFromB = detectTaskDeadlock(db, taskB.id);
+      const cycleFromC = detectTaskDeadlock(db, taskC.id);
+
+      // All should detect the same cycle (possibly rotated)
+      expect(cycleFromA).toHaveLength(3);
+      expect(cycleFromB).toHaveLength(3);
+      expect(cycleFromC).toHaveLength(3);
+
+      // Monitor should deduplicate these to a single cycle
+      const result = await monitorDeadlocks(db, { dataDir: testDir });
+
+      expect(result.deadlocksDetected).toBe(1); // Single cycle despite 3 entry points
+      expect(result.notificationsSent).toBe(3); // One per agent
+      expect(result.cycles[0]).toHaveLength(3);
+
+      // All three agents should receive notifications
+      expect(getMessages(db, { toAgentId: agents[0].id })).toHaveLength(1);
+      expect(getMessages(db, { toAgentId: agents[1].id })).toHaveLength(1);
+      expect(getMessages(db, { toAgentId: agents[2].id })).toHaveLength(1);
+
+      // Verify notifications share the same thread ID (same cycle)
+      const msg1 = getMessages(db, { toAgentId: agents[0].id })[0];
+      const msg2 = getMessages(db, { toAgentId: agents[1].id })[0];
+      const msg3 = getMessages(db, { toAgentId: agents[2].id })[0];
+
+      expect(msg1.thread_id).toBe(msg2.thread_id);
+      expect(msg2.thread_id).toBe(msg3.thread_id);
     });
   });
 });
