@@ -73,7 +73,7 @@ IN_PROGRESS
 - [x] Add snapshot validation and pre-rollback backup
 - [x] Integrate snapshot creation in hireAgent lifecycle
 - [x] Integrate snapshot creation in fireAgent lifecycle
-- [ ] Write integration tests for rollback
+- [x] Write integration tests for rollback
 
 #### 2.6 CLI Infrastructure
 - [x] Create packages/cli/src/utils/paths.ts with getInstallRoot()
@@ -221,6 +221,33 @@ IN_PROGRESS
 - [ ] Verify all GitHub Actions workflows passing on master branch
 
 ## Completed This Iteration
+
+**Iteration 13: Write Integration Tests for Rollback Command**
+- Created packages/cli/src/__tests__/rollback.integration.test.ts with comprehensive test coverage
+- 17 test cases covering all rollback command functionality:
+  - List available snapshots (--history flag)
+  - JSON output support for history listing
+  - Filter snapshots by agent ID (--agent-id flag)
+  - Limit number of snapshots shown (--limit flag)
+  - Restore database from a specific snapshot
+  - Create backup before restore by default
+  - Skip backup with --no-backup flag
+  - Validate snapshot integrity before restore
+  - Fail on corrupted snapshot with validation
+  - Skip validation with --no-validate flag
+  - Handle user cancellation gracefully
+  - JSON output support for restore operations
+  - Fail gracefully for non-existent snapshots
+  - Interactive snapshot selection when no ID provided
+  - Handle cancellation in interactive mode
+  - Show message when no snapshots available
+  - Custom data directory support (--data-dir flag)
+- All 17 tests passing successfully
+- Used proper mocking for interactive prompts and console output
+- Tests verify full rollback workflow from snapshot creation to restoration
+- Phase 2.5 (Implement rollback Command) is now COMPLETE (all 9 tasks done)
+- CLI package now has 71+ tests passing (4 test suites)
+- Rollback integration tests validated against real database operations
 
 **Iteration 12: Integrate Snapshot Creation in Lifecycle Functions**
 - Integrated snapshot creation in hireAgent lifecycle (packages/core/src/lifecycle/hireAgent.ts)
