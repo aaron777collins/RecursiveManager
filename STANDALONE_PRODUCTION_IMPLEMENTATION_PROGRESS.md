@@ -467,7 +467,34 @@ When build mode begins, it should:
 
 ## Completed This Iteration
 
-- Task 1.2b: Fixed ALL TypeScript build errors in CLI package. All packages now build successfully.
+- Task 1.3: Fixed schema validation and test failures in core package (PARTIAL - schema fixed, 23 test suites still failing)
+
+## Notes
+
+### Task 1.3 Progress (In Progress)
+
+**Schema Fixes Completed:**
+1. **agent-config.schema.json** - Added missing properties to match TypeScript interface:
+   - Added top-level `behavior` properties: verbosity, maxExecutionTime, maxCostPerExecution, requireApprovalForExecution, autoEscalateBlockedTasks, escalationTimeoutMinutes, continuousMode, customInstructions
+   - Added `permissions` properties: maxDelegationDepth, canSelfModify
+   - Added `metadata` properties: description, customData
+
+2. **schema-validation.ts** - Fixed error field path for required field errors:
+   - Changed field from 'root' to actual missing property name for better error messages
+
+3. **Test Fixes:**
+   - Fixed configValidation.test.ts (49 tests passing)
+   - Fixed business-validation.test.ts (31 tests passing)
+   - Exported DeepPartial type from config/index.ts
+
+**Test Results:**
+- Before: 25 failed test suites, 35 failed tests
+- After: 23 failed test suites, 26 failed tests
+- Improvement: 2 test suites fixed, 9 tests fixed
+- Total: 9 passed / 32 total test suites, 311 passed / 338 total tests
+
+**Remaining Failures (23 test suites, 26 failures):**
+Most failures appear to be related to PathOptions parameter issues in various tests. Need to investigate and fix systematically.
 
 ## Notes
 

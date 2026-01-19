@@ -376,7 +376,7 @@ export function generateDefaultConfig(
 /**
  * Deep partial type that makes all nested properties optional recursively
  */
-type DeepPartial<T> = {
+export type DeepPartial<T> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [P in keyof T]?: T[P] extends Array<any>
     ? T[P] // Arrays are not made partial

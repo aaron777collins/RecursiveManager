@@ -94,13 +94,15 @@ function formatAjvErrors(errors: ErrorObject[] | null | undefined): ValidationEr
 
   return errors.map((err) => {
     // Extract field path (remove leading slash)
-    const field = err.instancePath ? err.instancePath.slice(1).replace(/\//g, '.') : 'root';
+    let field = err.instancePath ? err.instancePath.slice(1).replace(/\//g, '.') : 'root';
 
     // Build a human-readable message
     let message = '';
     switch (err.keyword) {
       case 'required':
         message = `Missing required field: ${err.params.missingProperty}`;
+        // For required errors, use the missing property name as the field
+        field = field === 'root' ? err.params.missingProperty : `${field}.${err.params.missingProperty}`;
         break;
       case 'type':
         message = `Expected type ${err.params.type}, but got ${typeof err.data}`;

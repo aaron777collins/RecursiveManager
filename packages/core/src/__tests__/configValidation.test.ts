@@ -538,7 +538,7 @@ describe('Config Validation (Task 2.1.7)', () => {
           ...validMinimalConfig.permissions,
           canHire: true,
           maxSubordinates: 5,
-          hiringBudget: 1000,
+          hiringBudget: 5, // Must be <= maxSubordinates
         },
       };
 

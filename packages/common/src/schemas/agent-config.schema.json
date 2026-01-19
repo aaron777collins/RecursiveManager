@@ -132,6 +132,16 @@
           },
           "default": []
         },
+        "maxDelegationDepth": {
+          "type": "integer",
+          "description": "Maximum allowed task delegation depth",
+          "minimum": 0
+        },
+        "canSelfModify": {
+          "type": "boolean",
+          "description": "Whether this agent can modify its own configuration",
+          "default": false
+        },
         "workspaceQuotaMB": {
           "type": "integer",
           "description": "Workspace storage quota in megabytes",
@@ -272,6 +282,43 @@
       "type": "object",
       "description": "Agent behavior configuration",
       "properties": {
+        "verbosity": {
+          "type": "integer",
+          "description": "How verbose the agent should be (1-5)",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "maxExecutionTime": {
+          "type": "number",
+          "description": "Maximum execution time in minutes per run",
+          "minimum": 0
+        },
+        "maxCostPerExecution": {
+          "type": "number",
+          "description": "Maximum cost per execution in USD",
+          "minimum": 0
+        },
+        "requireApprovalForExecution": {
+          "type": "boolean",
+          "description": "Whether to require approval before executing"
+        },
+        "autoEscalateBlockedTasks": {
+          "type": "boolean",
+          "description": "Whether to auto-escalate blocked tasks"
+        },
+        "escalationTimeoutMinutes": {
+          "type": "number",
+          "description": "Minutes to wait before escalating blocked tasks",
+          "minimum": 0
+        },
+        "continuousMode": {
+          "type": "boolean",
+          "description": "Whether to continue working on tasks until complete"
+        },
+        "customInstructions": {
+          "type": "string",
+          "description": "Custom prompt instructions or personality"
+        },
         "multiPerspectiveAnalysis": {
           "type": "object",
           "description": "Multi-perspective analysis settings",
@@ -416,6 +463,14 @@
         "notes": {
           "type": "string",
           "description": "Additional notes about this agent"
+        },
+        "description": {
+          "type": "string",
+          "description": "Agent description or purpose"
+        },
+        "customData": {
+          "type": "object",
+          "description": "Custom key-value metadata"
         }
       },
       "default": {},

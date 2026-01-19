@@ -7,15 +7,8 @@ import {
   validateAgentConfigBusinessLogicStrict,
   BusinessValidationFailure,
 } from '../business-validation';
-import { mergeConfigs } from '../../config';
+import { mergeConfigs, type DeepPartial } from '../../config';
 import type { AgentConfig } from '@recursive-manager/common';
-
-// Type for deep partial config overrides
-type DeepPartial<T> = T extends object
-  ? {
-      [P in keyof T]?: DeepPartial<T[P]>;
-    }
-  : T;
 
 describe('Business Validation', () => {
   // Helper to create a minimal valid config
@@ -652,14 +645,29 @@ describe('Business Validation', () => {
     });
 
     it('should warn if agent can hire but has no workspace quota', () => {
-      const config = createValidConfig({
+      // Create config without default workspaceQuotaMB by not including permissions.workspaceQuotaMB
+      const config: AgentConfig = {
+        version: '1.0.0',
+        identity: {
+          id: 'test-agent',
+          role: 'Test Role',
+          displayName: 'Test Agent',
+          createdAt: new Date().toISOString(),
+          createdBy: 'system',
+        },
+        goal: {
+          mainGoal: 'Test goal',
+        },
         permissions: {
           canHire: true,
           maxSubordinates: 5,
           hiringBudget: 3,
-          workspaceQuotaMB: undefined,
+          // workspaceQuotaMB is omitted (undefined)
         },
-      });
+        framework: {
+          primary: 'claude-code',
+        },
+      };
 
       const result = validateAgentConfigBusinessLogic(config);
 
