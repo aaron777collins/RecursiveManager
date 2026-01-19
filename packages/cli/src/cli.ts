@@ -8,6 +8,11 @@
 
 import { Command } from 'commander';
 import { VERSION } from './index';
+import { registerInitCommand } from './commands/init';
+import { registerStatusCommand } from './commands/status';
+import { registerUpdateCommand } from './commands/update';
+import { registerConfigCommand } from './commands/config';
+import { registerDebugCommand } from './commands/debug';
 
 const program = new Command();
 
@@ -16,47 +21,12 @@ program
   .description('Hierarchical AI agent system for autonomous task management')
   .version(VERSION);
 
-// Placeholder commands - will be implemented in Phase 2.4
-program
-  .command('init <goal>')
-  .description('Initialize RecursiveManager with a goal')
-  .action((goal: string) => {
-    console.log(`Initializing RecursiveManager with goal: ${goal}`);
-    console.log('This feature is coming soon in Phase 2.4');
-  });
-
-program
-  .command('status')
-  .description('Show organization chart')
-  .option('--agent-id <id>', 'Show details for specific agent')
-  .action(() => {
-    console.log('Showing organization chart...');
-    console.log('This feature is coming soon in Phase 2.4');
-  });
-
-program
-  .command('update')
-  .description('Update RecursiveManager to the latest version')
-  .action(() => {
-    console.log('Running self-update...');
-    console.log('This feature is coming soon in Phase 2.4');
-  });
-
-program
-  .command('config')
-  .description('Configure RecursiveManager settings')
-  .action(() => {
-    console.log('Opening configuration wizard...');
-    console.log('This feature is coming soon in Phase 2.4');
-  });
-
-program
-  .command('debug <agent-id>')
-  .description('Debug a specific agent')
-  .action((agentId: string) => {
-    console.log(`Debugging agent: ${agentId}`);
-    console.log('This feature is coming soon in Phase 2.4');
-  });
+// Register all commands
+registerInitCommand(program);
+registerStatusCommand(program);
+registerUpdateCommand(program);
+registerConfigCommand(program);
+registerDebugCommand(program);
 
 // Parse command line arguments
 program.parse(process.argv);
