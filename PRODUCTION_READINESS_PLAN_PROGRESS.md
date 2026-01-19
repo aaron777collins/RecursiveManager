@@ -85,7 +85,7 @@ IN_PROGRESS
 #### 3.1 Guide Files (9 missing)
 - [x] Create docs/guide/quick-start.md (step-by-step first use, basic examples)
 - [x] Create docs/guide/core-concepts.md (hierarchy, delegation, perspectives)
-- [ ] Create docs/guide/creating-agents.md (hiring, roles, manager relationships)
+- [x] Create docs/guide/creating-agents.md (hiring, roles, manager relationships)
 - [ ] Create docs/guide/task-management.md (lifecycle, blocking, deadlock detection)
 - [ ] Create docs/guide/scheduling.md (cron, time-based, recurring tasks)
 - [ ] Create docs/guide/messaging.md (inter-agent communication, channels)
@@ -221,6 +221,63 @@ IN_PROGRESS
 - [ ] Verify all GitHub Actions workflows passing on master branch
 
 ## Completed This Iteration
+
+**Iteration 16: Create docs/guide/creating-agents.md**
+- Created comprehensive agent creation and hiring guide (1,024 lines, 51KB)
+- Structured in 14 main sections covering all aspects of agent creation:
+  1. Overview (agent structure and components)
+  2. The hireAgent Function (API, parameters, return values)
+  3. Agent Configuration Structure (all 7 sections with detailed explanations)
+  4. Creating Agents: Complete Examples (4 comprehensive examples)
+  5. What Happens When You Hire an Agent (5-step process)
+  6. Configuration Files Created (config.json, schedule.json, metadata.json, registry.json)
+  7. Using generateDefaultConfig() (utility function details)
+  8. Manager-Subordinate Relationships (hierarchy tracking)
+  9. Error Handling (validation errors, common failures)
+  10. Best Practices (8 best practices for agent creation)
+  11. Common Patterns (3 reusable patterns)
+- Includes practical examples for all use cases:
+  - Root CEO agent creation
+  - Subordinate agent creation
+  - Team creation with multiple members
+  - Custom configuration without defaults
+- Documents complete AgentConfig structure with all sections:
+  - Identity (required): id, role, displayName, createdAt, createdBy, reportingTo
+  - Goal (required): mainGoal, subGoals, successCriteria
+  - Permissions (required): 11 permission fields with examples
+  - Framework (required): primary, fallback, capabilities
+  - Communication (optional): channels, notifications, update frequency
+  - Behavior (optional): multi-perspective, escalation, delegation
+  - Metadata (optional): tags, priority, description, customData
+- Explains the complete hiring process (5 steps):
+  1. Validation (permissions, limits, cycles)
+  2. Filesystem operations (directory structure creation)
+  3. Database operations (agent record, org_hierarchy, audit logs)
+  4. Parent updates (subordinate registry)
+  5. Snapshot creation (rollback capability)
+- Details all configuration files created during hiring
+- Covers manager-subordinate relationships and org_hierarchy tracking
+- Provides comprehensive error handling guide:
+  - Validation errors (HireValidationError)
+  - Common validation failures (5 types)
+  - Filesystem errors and rollback
+- Includes 8 best practices for effective agent creation:
+  1. Design hierarchy first
+  2. Use meaningful role names
+  3. Set appropriate permissions
+  4. Define clear goals (SMART criteria)
+  5. Start small, scale up
+  6. Monitor subordinate limits
+  7. Use hiring budget wisely
+  8. Leverage configuration schemas
+- Provides 3 common patterns:
+  1. Team creation (create complete team in one function)
+  2. Role-based configuration (reusable templates)
+  3. Conditional hiring (prerequisite checks)
+- Links to 5 related documentation pages for deeper dives
+- Follows VitePress markdown format with warning callouts
+- Successfully builds with VitePress (no errors)
+- Phase 3.1 (Guide Files) - 3/9 tasks complete
 
 **Iteration 15: Create docs/guide/core-concepts.md**
 - Created comprehensive core concepts guide (801 lines, 21KB)
