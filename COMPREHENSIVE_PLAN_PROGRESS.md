@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 22:30:00 EST
+Last Updated: 2026-01-18 22:07:00 EST
 
 ## Status
 
@@ -143,7 +143,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Schema Creation
 
-- [ ] Task 1.3.5: Create agents table with indexes (status, reporting_to, created_at)
+- [x] Task 1.3.5: Create agents table with indexes (status, reporting_to, created_at)
 - [ ] Task 1.3.6: Create tasks table with version field and indexes (agent_status, parent, delegated)
 - [ ] Task 1.3.7: Create messages table with indexes (to_unread, timestamp, channel)
 - [ ] Task 1.3.8: Create schedules table with indexes (agent, next_execution, enabled)
@@ -532,6 +532,52 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.3.5: Create agents table with indexes ✅
+
+**Summary**: Implemented the first database schema migration to create the core `agents` table with all required indexes. This is the foundational table that stores agent metadata and enables the hierarchical agent system.
+
+**What Was Implemented**:
+
+1. **Migration File** (`packages/common/src/db/migrations/001_create_agents_table.ts`):
+   - Created migration version 1 with complete agents table schema
+   - Table includes all specified columns: id, role, display_name, created_at, created_by, reporting_to, status, main_goal, config_path, last_execution_at, total_executions, total_runtime_minutes
+   - Three indexes for query optimization:
+     - `idx_status`: For filtering by agent status (active, paused, fired)
+     - `idx_reporting_to`: For hierarchical queries (finding subordinates)
+     - `idx_created_at`: For chronological queries and analytics
+   - Foreign key constraint on `reporting_to` column referencing `agents(id)`
+   - Complete rollback support (down migration) for development/testing
+
+2. **Migration Registry** (`packages/common/src/db/migrations/index.ts`):
+   - Central registry for all migrations
+   - Exports `allMigrations` array and `getMigrations()` function
+   - Clear documentation for adding new migrations
+
+3. **Comprehensive Test Suite** (`packages/common/src/db/__tests__/001_agents_table.test.ts`):
+   - **Schema validation tests**: Verify all 12 columns created correctly
+   - **Index creation tests**: Confirm all three indexes exist
+   - **Data insertion tests**: Validate inserting valid agent data
+   - **Constraint tests**: Verify NOT NULL and PRIMARY KEY constraints work
+   - **Foreign key tests**: Validate self-referential reporting_to relationship
+   - **Idempotency tests**: Confirm safe to run migration multiple times
+   - **Rollback tests**: Verify down migration properly removes table and indexes
+   - **Index performance tests**: Confirm indexes are used in query plans
+   - **All 13 tests passing** ✅
+
+**Files Created**:
+
+- `/packages/common/src/db/migrations/001_create_agents_table.ts`
+- `/packages/common/src/db/migrations/index.ts`
+- `/packages/common/src/db/__tests__/001_agents_table.test.ts`
+
+**Verification**:
+
+- Build successful: All TypeScript compiles without errors
+- Tests passing: 13/13 tests pass
+- Migration system integrated: Uses existing migration framework from Tasks 1.3.3 & 1.3.4
+
+---
 
 ### Task 1.3.1 & 1.3.2: Database initialization with WAL mode and connection pooling ✅
 
