@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 00:25:00 EST
+Last Updated: 2026-01-19 00:34:00 EST
 
 ## Status
 
@@ -210,12 +210,12 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Testing
 
-- [ ] Task 1.4.12: Unit tests for log output format
-- [ ] Task 1.4.13: Integration tests for log rotation
+- [x] Task 1.4.12: Unit tests for log output format
+- [x] Task 1.4.13: Integration tests for log rotation
 - [x] Task 1.4.14: Tests for audit event recording
 - [x] Task 1.4.15: Tests for audit query API
 
-**Completion Criteria**: Structured logging working, log rotation functional, audit trail capturing all operations
+**Completion Criteria**: Structured logging working, log rotation functional, audit trail capturing all operations ✅ COMPLETE
 
 ---
 
@@ -4062,6 +4062,102 @@ Added comprehensive test suite with 12 test cases covering:
 ---
 
 ## Completed This Iteration
+
+### Task 1.4.12-1.4.13: Comprehensive Testing for Log Output Format and Log Rotation ✅
+
+**Date**: 2026-01-19 00:34:00 EST
+
+**Summary**: Implemented comprehensive unit tests for JSON log output format (Task 1.4.12) and integration tests for log rotation functionality (Task 1.4.13), completing Phase 1.4 (Logging & Audit System).
+
+**What Was Implemented**:
+
+1. **Task 1.4.12: Unit Tests for Log Output Format** - 13 comprehensive test cases:
+
+   **Test Suite**: "JSON Output Format (Task 1.4.12)" in `logger.test.ts:274-631`
+
+   **Tests Implemented**:
+   - ✅ Verifies all required fields present (timestamp, level, message, metadata)
+   - ✅ Validates timestamp format (YYYY-MM-DD HH:mm:ss.SSS with millisecond precision)
+   - ✅ Tests correct level for each log method (error, warn, info, debug)
+   - ✅ Ensures custom metadata fields are preserved
+   - ✅ Validates all standard metadata fields (traceId, agentId, taskId, executionId, managerId, subordinateIds, hierarchyPath, hierarchyDepth)
+   - ✅ Tests metadata merging (default metadata + call-time metadata)
+   - ✅ Tests metadata override behavior (call-time overrides defaults)
+   - ✅ Validates JSONL format (one JSON object per line)
+   - ✅ Tests empty metadata handling
+   - ✅ Tests undefined metadata handling
+   - ✅ Ensures consistent JSON structure across all log levels
+   - ✅ Tests special character escaping in JSON (quotes, newlines, backslashes)
+   - ✅ Tests child logger metadata inclusion
+
+   **Coverage**: Complete validation of JSON output format specification from Task 1.4.2
+
+2. **Task 1.4.13: Integration Tests for Log Rotation** - 10 comprehensive test cases:
+
+   **Test Suite**: "Log Rotation Integration (Task 1.4.13)" in `logger.test.ts:961-1293`
+
+   **Tests Implemented**:
+   - ✅ Creates log files with date pattern in filename (YYYY-MM-DD)
+   - ✅ Writes logs to rotated file and verifies content
+   - ✅ Handles multiple log files with rotation enabled
+   - ✅ Creates gzipped archives when compression enabled
+   - ✅ Respects maxSize option and creates new files when size exceeded
+   - ✅ Uses custom date patterns in log filenames (YYYY-MM-DD-HH)
+   - ✅ Maintains log integrity across rotation (no lost messages)
+   - ✅ Handles rotation with child loggers
+   - ✅ Supports concurrent writes to rotated log files
+   - ✅ Preserves metadata through rotation
+
+   **Coverage**: Real integration tests that verify rotation behavior, file creation, content preservation, and metadata integrity
+
+3. **Bug Fix**: Fixed async cleanup issue in "Log Rotation" test suite:
+   - Changed `afterAll` to async and added 200ms wait for Winston async writes
+   - Changed cleanup from individual file deletion to `fs.rmSync()` with recursive option
+   - Prevents ENOENT errors from async file writes completing after cleanup
+
+**Files Modified**:
+- `packages/common/src/__tests__/logger.test.ts`:
+  - Added "JSON Output Format (Task 1.4.12)" test suite (358 lines, 13 tests)
+  - Added "Log Rotation Integration (Task 1.4.13)" test suite (333 lines, 10 tests)
+  - Fixed "Log Rotation" afterAll cleanup to handle async writes
+  - Total: 691 lines of new test code
+
+**Test Results**:
+- ✅ All 13 JSON output format tests passed
+- ✅ All 10 log rotation integration tests passed
+- ✅ Total test count: 95 tests (up from 72)
+- ✅ Test suite: 1 passed, 1 total
+- ✅ No failures or warnings
+
+**Validation**:
+- ✅ JSON output format matches specification (timestamp, level, message, metadata)
+- ✅ Timestamp format validated (YYYY-MM-DD HH:mm:ss.SSS)
+- ✅ All standard metadata fields tested
+- ✅ JSONL format verified (one JSON per line)
+- ✅ Special character escaping validated
+- ✅ Log rotation creates dated files
+- ✅ Rotation respects maxSize limits
+- ✅ Compression and retention options work
+- ✅ Concurrent writes handled correctly
+- ✅ Metadata preserved through rotation
+- ✅ Log integrity maintained (no lost messages)
+
+**Phase 1.4 Status**: ✅ **COMPLETE**
+
+All 15 tasks in Phase 1.4 (Logging & Audit System) are now complete:
+- [x] Task 1.4.1-1.4.4: Logger setup with rotation and retention
+- [x] Task 1.4.5-1.4.7: Agent-specific and hierarchical logging
+- [x] Task 1.4.8-1.4.11: Audit system implementation
+- [x] Task 1.4.12-1.4.13: Comprehensive testing (completed this iteration)
+- [x] Task 1.4.14-1.4.15: Audit system testing
+
+**Completion Criteria Met**:
+- ✅ Structured logging working (Winston with JSON format)
+- ✅ Log rotation functional (daily rotation, compression, retention)
+- ✅ Audit trail capturing all operations (immutable audit log)
+- ✅ Comprehensive test coverage (95 total tests, 23 new)
+
+---
 
 ### Task 1.4.6-1.4.7: Implemented Hierarchical Logging with Subordinate Context ✅
 

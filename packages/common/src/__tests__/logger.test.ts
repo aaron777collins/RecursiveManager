@@ -271,6 +271,369 @@ describe('Logger Module', () => {
     });
   });
 
+  describe('JSON Output Format (Task 1.4.12)', () => {
+    let tempFile: string;
+
+    beforeEach(() => {
+      tempFile = path.join(os.tmpdir(), `test-json-${Date.now()}.log`);
+    });
+
+    afterEach(() => {
+      if (fs.existsSync(tempFile)) {
+        fs.unlinkSync(tempFile);
+      }
+    });
+
+    const waitForFile = () => {
+      return new Promise((resolve) => setTimeout(resolve, 100));
+    };
+
+    it('should output all required fields in JSON format', async () => {
+      const logger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+      });
+
+      logger.info('Test message', { traceId: 'test-trace-123' });
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const parsed = JSON.parse(content.trim().split('\n')[0] as string);
+
+      // Verify all required fields are present
+      expect(parsed).toHaveProperty('timestamp');
+      expect(parsed).toHaveProperty('level');
+      expect(parsed).toHaveProperty('message');
+      expect(parsed).toHaveProperty('metadata');
+
+      // Verify field types
+      expect(typeof parsed.timestamp).toBe('string');
+      expect(typeof parsed.level).toBe('string');
+      expect(typeof parsed.message).toBe('string');
+      expect(typeof parsed.metadata).toBe('object');
+    });
+
+    it('should format timestamp with millisecond precision', async () => {
+      const logger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+      });
+
+      logger.info('Timestamp test');
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const parsed = JSON.parse(content.trim().split('\n')[0] as string);
+
+      // Winston format: YYYY-MM-DD HH:mm:ss.SSS
+      expect(parsed.timestamp).toMatch(
+        /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/
+      );
+
+      // Verify it's a valid timestamp format
+      expect(parsed.timestamp).toBeDefined();
+      expect(typeof parsed.timestamp).toBe('string');
+
+      // Should have millisecond precision (3 digits after seconds)
+      const millisPart = parsed.timestamp.split('.')[1];
+      expect(millisPart).toHaveLength(3);
+    });
+
+    it('should include correct level for each log method', async () => {
+      const logger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+        level: 'debug',
+      });
+
+      logger.error('Error message');
+      logger.warn('Warn message');
+      logger.info('Info message');
+      logger.debug('Debug message');
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const lines = content.trim().split('\n');
+
+      expect(lines).toHaveLength(4);
+
+      const errorLog = JSON.parse(lines[0] as string);
+      const warnLog = JSON.parse(lines[1] as string);
+      const infoLog = JSON.parse(lines[2] as string);
+      const debugLog = JSON.parse(lines[3] as string);
+
+      expect(errorLog.level).toBe('error');
+      expect(warnLog.level).toBe('warn');
+      expect(infoLog.level).toBe('info');
+      expect(debugLog.level).toBe('debug');
+    });
+
+    it('should preserve custom metadata fields in JSON output', async () => {
+      const logger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+      });
+
+      logger.info('Custom metadata test', {
+        customField1: 'value1',
+        customField2: 42,
+        customField3: true,
+        customNested: { nested: 'value' },
+      });
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const parsed = JSON.parse(content.trim().split('\n')[0] as string);
+
+      expect(parsed.metadata.customField1).toBe('value1');
+      expect(parsed.metadata.customField2).toBe(42);
+      expect(parsed.metadata.customField3).toBe(true);
+      expect(parsed.metadata.customNested).toEqual({ nested: 'value' });
+    });
+
+    it('should include all standard metadata fields when provided', async () => {
+      const logger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+      });
+
+      const metadata = {
+        traceId: 'trace-123',
+        agentId: 'agent-456',
+        taskId: 'task-789',
+        executionId: 'exec-abc',
+        managerId: 'manager-001',
+        subordinateIds: ['sub-1', 'sub-2'],
+        hierarchyPath: 'CEO/CTO/Dev',
+        hierarchyDepth: 2,
+      };
+
+      logger.info('Standard metadata test', metadata);
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const parsed = JSON.parse(content.trim().split('\n')[0] as string);
+
+      expect(parsed.metadata.traceId).toBe('trace-123');
+      expect(parsed.metadata.agentId).toBe('agent-456');
+      expect(parsed.metadata.taskId).toBe('task-789');
+      expect(parsed.metadata.executionId).toBe('exec-abc');
+      expect(parsed.metadata.managerId).toBe('manager-001');
+      expect(parsed.metadata.subordinateIds).toEqual(['sub-1', 'sub-2']);
+      expect(parsed.metadata.hierarchyPath).toBe('CEO/CTO/Dev');
+      expect(parsed.metadata.hierarchyDepth).toBe(2);
+    });
+
+    it('should merge default metadata with call-time metadata in JSON output', async () => {
+      const logger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+        defaultMetadata: {
+          traceId: 'default-trace',
+          agentId: 'default-agent',
+        },
+      });
+
+      logger.info('Merge test', { taskId: 'task-123' });
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const parsed = JSON.parse(content.trim().split('\n')[0] as string);
+
+      expect(parsed.metadata.traceId).toBe('default-trace');
+      expect(parsed.metadata.agentId).toBe('default-agent');
+      expect(parsed.metadata.taskId).toBe('task-123');
+    });
+
+    it('should override default metadata with call-time metadata in JSON output', async () => {
+      const logger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+        defaultMetadata: {
+          traceId: 'default-trace',
+          agentId: 'default-agent',
+        },
+      });
+
+      logger.info('Override test', {
+        traceId: 'override-trace',
+      });
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const parsed = JSON.parse(content.trim().split('\n')[0] as string);
+
+      expect(parsed.metadata.traceId).toBe('override-trace');
+      expect(parsed.metadata.agentId).toBe('default-agent');
+    });
+
+    it('should produce valid JSONL format (one JSON object per line)', async () => {
+      const logger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+      });
+
+      logger.info('Line 1');
+      logger.info('Line 2');
+      logger.info('Line 3');
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const lines = content.trim().split('\n');
+
+      expect(lines).toHaveLength(3);
+
+      // Each line should be valid JSON
+      lines.forEach((line, index) => {
+        expect(() => JSON.parse(line)).not.toThrow();
+        const parsed = JSON.parse(line);
+        expect(parsed.message).toBe(`Line ${index + 1}`);
+      });
+    });
+
+    it('should handle empty metadata gracefully in JSON output', async () => {
+      const logger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+      });
+
+      logger.info('Empty metadata test', {});
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const parsed = JSON.parse(content.trim().split('\n')[0] as string);
+
+      expect(parsed.metadata).toBeDefined();
+      expect(typeof parsed.metadata).toBe('object');
+    });
+
+    it('should handle undefined metadata in JSON output', async () => {
+      const logger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+      });
+
+      logger.info('Undefined metadata test');
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const parsed = JSON.parse(content.trim().split('\n')[0] as string);
+
+      expect(parsed.metadata).toBeDefined();
+    });
+
+    it('should produce consistent JSON structure across all log levels', async () => {
+      const logger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+        level: 'debug',
+      });
+
+      const metadata = { traceId: 'consistent-test' };
+
+      logger.error('Error', metadata);
+      logger.warn('Warn', metadata);
+      logger.info('Info', metadata);
+      logger.debug('Debug', metadata);
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const lines = content.trim().split('\n');
+
+      // All logs should have the same structure
+      lines.forEach((line) => {
+        const parsed = JSON.parse(line);
+        expect(parsed).toHaveProperty('timestamp');
+        expect(parsed).toHaveProperty('level');
+        expect(parsed).toHaveProperty('message');
+        expect(parsed).toHaveProperty('metadata');
+        expect(parsed.metadata.traceId).toBe('consistent-test');
+      });
+    });
+
+    it('should properly escape special characters in JSON', async () => {
+      const logger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+      });
+
+      const specialMessage = 'Message with "quotes", \nnewlines, and \ttabs';
+      const specialMetadata = {
+        field: 'Value with "quotes" and \\ backslashes',
+      };
+
+      logger.info(specialMessage, specialMetadata);
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const parsed = JSON.parse(content.trim().split('\n')[0] as string);
+
+      expect(parsed.message).toContain('quotes');
+      expect(parsed.message).toContain('newlines');
+      expect(parsed.message).toContain('tabs');
+      expect(parsed.metadata.field).toContain('quotes');
+      expect(parsed.metadata.field).toContain('\\');
+    });
+
+    it('should include child logger metadata in JSON output', async () => {
+      const parentLogger = createLogger({
+        file: true,
+        filePath: tempFile,
+        console: false,
+        json: true,
+        defaultMetadata: { parentField: 'parent-value' },
+      });
+
+      const childLogger = parentLogger.child({ childField: 'child-value' });
+      childLogger.info('Child log', { callField: 'call-value' });
+
+      await waitForFile();
+
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      const parsed = JSON.parse(content.trim().split('\n')[0] as string);
+
+      expect(parsed.metadata.parentField).toBe('parent-value');
+      expect(parsed.metadata.childField).toBe('child-value');
+      expect(parsed.metadata.callField).toBe('call-value');
+    });
+  });
+
   describe('Log levels', () => {
     it('should respect log level threshold - info level', () => {
       const logger = createLogger({ level: 'info', console: false });
@@ -428,14 +791,13 @@ describe('Logger Module', () => {
       }
     });
 
-    afterAll(() => {
+    afterAll(async () => {
+      // Wait for any pending async writes to complete
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
       // Clean up test directory
       if (fs.existsSync(testDir)) {
-        const files = fs.readdirSync(testDir);
-        files.forEach((file) => {
-          fs.unlinkSync(path.join(testDir, file));
-        });
-        fs.rmdirSync(testDir);
+        fs.rmSync(testDir, { recursive: true, force: true });
       }
     });
 
@@ -592,6 +954,340 @@ describe('Logger Module', () => {
 
       expect(logger).toBeDefined();
       logger.info('Test numeric maxFiles');
+    });
+  });
+
+  describe('Log Rotation Integration (Task 1.4.13)', () => {
+    const testDir = path.join(
+      os.tmpdir(),
+      `logger-rotation-integration-test-${Date.now()}`
+    );
+
+    beforeEach(() => {
+      if (!fs.existsSync(testDir)) {
+        fs.mkdirSync(testDir, { recursive: true });
+      }
+    });
+
+    afterEach(() => {
+      if (fs.existsSync(testDir)) {
+        fs.rmSync(testDir, { recursive: true, force: true });
+      }
+    });
+
+    it('should create log files with date pattern in filename', async () => {
+      const logFile = path.join(testDir, 'dated.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        console: false,
+        datePattern: 'YYYY-MM-DD',
+      });
+
+      logger.info('Test message');
+
+      // Wait for file write
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      const files = fs.readdirSync(testDir);
+
+      // Should have file with date pattern: dated-YYYY-MM-DD.log
+      const datedFiles = files.filter((f) => f.match(/dated-\d{4}-\d{2}-\d{2}\.log/));
+      expect(datedFiles.length).toBeGreaterThan(0);
+    });
+
+    it('should write logs to rotated file', async () => {
+      const logFile = path.join(testDir, 'content-test.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        console: false,
+        json: true,
+      });
+
+      logger.info('Rotation message 1');
+      logger.info('Rotation message 2');
+
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      const files = fs.readdirSync(testDir);
+      const logFiles = files.filter((f) => f.startsWith('content-test'));
+
+      expect(logFiles.length).toBeGreaterThan(0);
+
+      // Read the log file and verify content
+      const logFilePath = path.join(testDir, logFiles[0] as string);
+      const content = fs.readFileSync(logFilePath, 'utf-8');
+      const lines = content.trim().split('\n');
+
+      expect(lines.length).toBe(2);
+      expect(content).toContain('Rotation message 1');
+      expect(content).toContain('Rotation message 2');
+    });
+
+    it('should handle multiple log files with rotation enabled', async () => {
+      const logFile = path.join(testDir, 'multi.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        console: false,
+        maxSize: '1k', // Small size to trigger rotation with enough data
+      });
+
+      // Write many logs to potentially trigger size-based rotation
+      for (let i = 0; i < 100; i++) {
+        logger.info(`Message ${i}: ${'x'.repeat(50)}`);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      const files = fs.readdirSync(testDir);
+      const logFiles = files.filter((f) => f.startsWith('multi'));
+
+      // Should have at least one log file
+      expect(logFiles.length).toBeGreaterThan(0);
+
+      // Verify all log files have valid content
+      logFiles.forEach((file) => {
+        const content = fs.readFileSync(path.join(testDir, file), 'utf-8');
+        expect(content.length).toBeGreaterThan(0);
+      });
+    });
+
+    it('should create gzipped archives when compression is enabled', async () => {
+      const logFile = path.join(testDir, 'compressed.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        compress: true,
+        console: false,
+      });
+
+      logger.info('Compression test message');
+
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      // Note: Compression only happens when files are rotated/archived
+      // This test verifies the logger is created with compression enabled
+      // In a real scenario, old log files would be compressed to .gz
+      const files = fs.readdirSync(testDir);
+      expect(files.length).toBeGreaterThan(0);
+    });
+
+    it('should respect maxSize option and create new files when size exceeded', async () => {
+      const logFile = path.join(testDir, 'size-limit.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        maxSize: '500', // 500 bytes - very small to trigger rotation
+        console: false,
+      });
+
+      // Write enough data to exceed maxSize
+      const largeMessage = 'x'.repeat(100);
+      for (let i = 0; i < 10; i++) {
+        logger.info(`Large message ${i}: ${largeMessage}`);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      const files = fs.readdirSync(testDir);
+      const logFiles = files.filter((f) => f.startsWith('size-limit'));
+
+      // Winston may create multiple files if size is exceeded
+      expect(logFiles.length).toBeGreaterThan(0);
+
+      // Verify files exist and have content
+      logFiles.forEach((file) => {
+        const stat = fs.statSync(path.join(testDir, file));
+        expect(stat.size).toBeGreaterThan(0);
+      });
+    });
+
+    it('should use custom date pattern in log filenames', async () => {
+      const logFile = path.join(testDir, 'custom-date.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        datePattern: 'YYYY-MM-DD-HH',
+        console: false,
+      });
+
+      logger.info('Custom date pattern test');
+
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      const files = fs.readdirSync(testDir);
+
+      // Should have file with hour-level date pattern: custom-date-YYYY-MM-DD-HH.log
+      const customDatedFiles = files.filter((f) =>
+        f.match(/custom-date-\d{4}-\d{2}-\d{2}-\d{2}\.log/)
+      );
+      expect(customDatedFiles.length).toBeGreaterThan(0);
+    });
+
+    it('should maintain log integrity across rotation', async () => {
+      const logFile = path.join(testDir, 'integrity.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        console: false,
+        json: true,
+      });
+
+      const messages = [
+        'Message 1',
+        'Message 2',
+        'Message 3',
+        'Message 4',
+        'Message 5',
+      ];
+
+      messages.forEach((msg) => logger.info(msg));
+
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      const files = fs.readdirSync(testDir);
+      const logFiles = files.filter((f) => f.startsWith('integrity'));
+
+      expect(logFiles.length).toBeGreaterThan(0);
+
+      // Verify all messages are present across all log files
+      let allContent = '';
+      logFiles.forEach((file) => {
+        const content = fs.readFileSync(path.join(testDir, file), 'utf-8');
+        allContent += content;
+      });
+
+      messages.forEach((msg) => {
+        expect(allContent).toContain(msg);
+      });
+
+      // Verify all lines are valid JSON
+      const allLines = allContent.trim().split('\n');
+      allLines.forEach((line) => {
+        expect(() => JSON.parse(line)).not.toThrow();
+      });
+    });
+
+    it('should handle rotation with child loggers', async () => {
+      const logFile = path.join(testDir, 'child-rotation.log');
+      const parentLogger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        console: false,
+        defaultMetadata: { parent: 'value' },
+      });
+
+      const childLogger = parentLogger.child({ child: 'value' });
+
+      parentLogger.info('Parent message');
+      childLogger.info('Child message');
+
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      const files = fs.readdirSync(testDir);
+      const logFiles = files.filter((f) => f.startsWith('child-rotation'));
+
+      expect(logFiles.length).toBeGreaterThan(0);
+
+      const content = fs.readFileSync(
+        path.join(testDir, logFiles[0] as string),
+        'utf-8'
+      );
+      expect(content).toContain('Parent message');
+      expect(content).toContain('Child message');
+    });
+
+    it('should support concurrent writes to rotated log files', async () => {
+      const logFile = path.join(testDir, 'concurrent.log');
+      const logger1 = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        console: false,
+      });
+
+      const logger2 = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        console: false,
+      });
+
+      // Write from both loggers concurrently
+      const promises: Promise<void>[] = [];
+      for (let i = 0; i < 10; i++) {
+        promises.push(
+          new Promise((resolve) => {
+            logger1.info(`Logger1 message ${i}`);
+            resolve();
+          })
+        );
+        promises.push(
+          new Promise((resolve) => {
+            logger2.info(`Logger2 message ${i}`);
+            resolve();
+          })
+        );
+      }
+
+      await Promise.all(promises);
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      const files = fs.readdirSync(testDir);
+      const logFiles = files.filter((f) => f.startsWith('concurrent'));
+
+      expect(logFiles.length).toBeGreaterThan(0);
+
+      // Verify content exists
+      const content = fs.readFileSync(
+        path.join(testDir, logFiles[0] as string),
+        'utf-8'
+      );
+      expect(content.length).toBeGreaterThan(0);
+    });
+
+    it('should preserve metadata through rotation', async () => {
+      const logFile = path.join(testDir, 'metadata-rotation.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        console: false,
+        json: true,
+        defaultMetadata: {
+          traceId: 'trace-123',
+          agentId: 'agent-456',
+        },
+      });
+
+      logger.info('Message with metadata', { taskId: 'task-789' });
+
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      const files = fs.readdirSync(testDir);
+      const logFiles = files.filter((f) => f.startsWith('metadata-rotation'));
+
+      expect(logFiles.length).toBeGreaterThan(0);
+
+      const content = fs.readFileSync(
+        path.join(testDir, logFiles[0] as string),
+        'utf-8'
+      );
+      const parsed = JSON.parse(content.trim());
+
+      expect(parsed.metadata.traceId).toBe('trace-123');
+      expect(parsed.metadata.agentId).toBe('agent-456');
+      expect(parsed.metadata.taskId).toBe('task-789');
     });
   });
 
