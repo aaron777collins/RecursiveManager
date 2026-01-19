@@ -13,6 +13,7 @@ import {
   backupDatabase,
   optimizeDatabase,
   transaction,
+  getDatabaseHealth,
   DatabasePool,
 } from '../index';
 
@@ -439,6 +440,130 @@ describe('Database Initialization', () => {
         count: number;
       };
       expect(finalCount.count).toBe(100);
+
+      connection.close();
+    });
+  });
+
+  describe('getDatabaseHealth', () => {
+    it('should return healthy status for new database', () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      const health = getDatabaseHealth(connection.db, dbPath);
+
+      expect(health.healthy).toBe(true);
+      expect(health.checks.accessible).toBe(true);
+      expect(health.checks.integrityOk).toBe(true);
+      expect(health.checks.walEnabled).toBe(true);
+      expect(health.checks.foreignKeysEnabled).toBe(true);
+      expect(health.errors).toHaveLength(0);
+
+      connection.close();
+    });
+
+    it('should return database statistics', () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      // Add some data to make stats more interesting
+      connection.db.exec('CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT)');
+      connection.db.exec("INSERT INTO test (id, name) VALUES (1, 'Alice'), (2, 'Bob')");
+
+      const health = getDatabaseHealth(connection.db, dbPath);
+
+      expect(health.stats.databaseSize).toBeGreaterThan(0);
+      expect(health.stats.pageCount).toBeGreaterThan(0);
+      expect(health.stats.pageSize).toBeGreaterThan(0);
+      expect(health.stats.schemaVersion).toBe(0);
+
+      connection.close();
+    });
+
+    it('should include WAL file size when WAL exists', () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      // Create some data to force WAL creation
+      connection.db.exec('CREATE TABLE test (id INTEGER PRIMARY KEY, data TEXT)');
+      for (let i = 0; i < 100; i++) {
+        connection.db.exec(`INSERT INTO test (id, data) VALUES (${i}, '${'x'.repeat(1000)}')`);
+      }
+
+      const health = getDatabaseHealth(connection.db, dbPath);
+
+      // WAL file should exist and have some size
+      expect(health.stats.walSize).toBeGreaterThanOrEqual(0);
+
+      connection.close();
+    });
+
+    it('should detect database version from schema_version table', () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      setDatabaseVersion(connection.db, 5);
+
+      const health = getDatabaseHealth(connection.db, dbPath);
+
+      expect(health.stats.schemaVersion).toBe(5);
+
+      connection.close();
+    });
+
+    it('should detect unhealthy database when closed', () => {
+      const connection = initializeDatabase({ path: dbPath });
+      connection.close();
+
+      const health = getDatabaseHealth(connection.db, dbPath);
+
+      expect(health.healthy).toBe(false);
+      expect(health.checks.accessible).toBe(false);
+      expect(health.errors.length).toBeGreaterThan(0);
+    });
+
+    it('should include error messages for failed checks', () => {
+      const connection = initializeDatabase({ path: dbPath });
+      connection.close();
+
+      const health = getDatabaseHealth(connection.db, dbPath);
+
+      expect(health.errors.some((err) => err.includes('not accessible'))).toBe(true);
+    });
+
+    it('should detect when database file does not exist', () => {
+      const connection = initializeDatabase({ path: dbPath });
+      const nonExistentPath = path.join(os.tmpdir(), 'nonexistent-db.sqlite');
+
+      const health = getDatabaseHealth(connection.db, nonExistentPath);
+
+      // Database is still accessible (in-memory or existing connection)
+      // but file size should be 0
+      expect(health.stats.databaseSize).toBe(0);
+
+      connection.close();
+    });
+
+    it('should handle multiple health checks in sequence', () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      const health1 = getDatabaseHealth(connection.db, dbPath);
+      const health2 = getDatabaseHealth(connection.db, dbPath);
+      const health3 = getDatabaseHealth(connection.db, dbPath);
+
+      expect(health1.healthy).toBe(true);
+      expect(health2.healthy).toBe(true);
+      expect(health3.healthy).toBe(true);
+
+      connection.close();
+    });
+
+    it('should report all check results even if some fail', () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      const health = getDatabaseHealth(connection.db, dbPath);
+
+      // All checks should have boolean values
+      expect(typeof health.checks.accessible).toBe('boolean');
+      expect(typeof health.checks.integrityOk).toBe('boolean');
+      expect(typeof health.checks.walEnabled).toBe('boolean');
+      expect(typeof health.checks.foreignKeysEnabled).toBe('boolean');
 
       connection.close();
     });

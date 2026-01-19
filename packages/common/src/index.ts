@@ -141,9 +141,11 @@ export {
   backupDatabase,
   optimizeDatabase,
   transaction,
+  getDatabaseHealth,
   DatabasePool,
   type DatabaseOptions,
   type DatabaseConnection,
+  type DatabaseHealthStatus,
 } from './db';
 
 // Database Migrations (Phase 1.3)

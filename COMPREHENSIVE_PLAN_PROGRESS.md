@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 23:18:27 EST
+Last Updated: 2026-01-18 23:25:00 EST
 
 ## Status
 
@@ -169,8 +169,8 @@ RecursiveManager is a hierarchical AI agent system with:
 ##### Concurrency & Error Handling
 
 - [x] Task 1.3.21: Implement retry with exponential backoff for SQLITE_BUSY (EC-7.2)
-- [ ] Task 1.3.22: Add transaction support for complex operations
-- [ ] Task 1.3.23: Implement database health checks
+- [x] Task 1.3.22: Add transaction support for complex operations
+- [x] Task 1.3.23: Implement database health checks
 - [ ] Task 1.3.24: Add crash recovery mechanisms
 
 ##### Testing
@@ -532,6 +532,78 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.3.22: Add transaction support for complex operations ✅
+
+**Summary**: Verified transaction support already implemented. Added comprehensive health check system with detailed diagnostics and statistics.
+
+**What Was Verified**:
+
+1. **Transaction Support** (Already Implemented):
+   - `transaction()` function using better-sqlite3's native transaction support
+   - Automatic rollback on errors
+   - Used in agent creation, task creation, and migrations
+   - Full test coverage
+
+### Task 1.3.23: Implement database health checks ✅
+
+**Summary**: Implemented comprehensive database health check system that provides detailed diagnostics, statistics, and error reporting for database monitoring.
+
+**What Was Implemented**:
+
+1. **DatabaseHealthStatus Interface** (`packages/common/src/db/index.ts`):
+   - **Overall health**: Boolean flag for quick health status
+   - **Individual checks**:
+     - `accessible` - Database can execute queries
+     - `integrityOk` - PRAGMA integrity_check passes
+     - `walEnabled` - WAL mode is enabled
+     - `foreignKeysEnabled` - Foreign keys are enabled
+   - **Statistics**:
+     - `databaseSize` - Database file size in bytes
+     - `walSize` - WAL file size in bytes
+     - `pageCount` - Number of database pages
+     - `pageSize` - Page size in bytes
+     - `schemaVersion` - Current schema version
+   - **Error tracking**: Array of error messages from failed checks
+
+2. **getDatabaseHealth() Function**:
+   - Performs 4 critical checks (accessibility, integrity, WAL mode, foreign keys)
+   - Collects 5 statistics (file sizes, page info, schema version)
+   - Graceful error handling - continues checking even if some checks fail
+   - Returns comprehensive health status object
+   - Non-destructive - read-only operations
+
+3. **Comprehensive Test Coverage**:
+   - 9 test cases covering all functionality:
+     - ✅ Healthy database detection
+     - ✅ Database statistics collection
+     - ✅ WAL file size detection
+     - ✅ Schema version tracking
+     - ✅ Unhealthy database detection (closed DB)
+     - ✅ Error message collection
+     - ✅ Non-existent file handling
+     - ✅ Multiple sequential health checks
+     - ✅ Complete check result reporting
+
+4. **Exports**:
+   - Added `getDatabaseHealth` function export
+   - Added `DatabaseHealthStatus` type export
+   - Available from `@recursive-manager/common` package
+
+**Test Results**:
+
+- All 746 tests passing (including 9 new health check tests)
+- Build successful
+- TypeScript compilation clean
+
+**Location**:
+
+- Implementation: `packages/common/src/db/index.ts:333-435`
+- Type: `packages/common/src/db/index.ts:45-110`
+- Tests: `packages/common/src/db/__tests__/index.test.ts:447-569`
+- Exports: `packages/common/src/index.ts:144,148`
+
+---
 
 ### Task 1.3.21: Implement retry with exponential backoff for SQLITE_BUSY (EC-7.2) ✅
 

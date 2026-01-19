@@ -42,6 +42,73 @@ export interface DatabaseOptions {
   timeout?: number;
 }
 
+export interface DatabaseHealthStatus {
+  /**
+   * Whether the database is healthy overall
+   */
+  healthy: boolean;
+
+  /**
+   * Individual check results
+   */
+  checks: {
+    /**
+     * Database is accessible and can execute queries
+     */
+    accessible: boolean;
+
+    /**
+     * Database integrity check passes (PRAGMA integrity_check)
+     */
+    integrityOk: boolean;
+
+    /**
+     * WAL mode is enabled
+     */
+    walEnabled: boolean;
+
+    /**
+     * Foreign keys are enabled
+     */
+    foreignKeysEnabled: boolean;
+  };
+
+  /**
+   * Database statistics and metrics
+   */
+  stats: {
+    /**
+     * Database file size in bytes
+     */
+    databaseSize: number;
+
+    /**
+     * WAL file size in bytes (0 if not exists)
+     */
+    walSize: number;
+
+    /**
+     * Number of pages in the database
+     */
+    pageCount: number;
+
+    /**
+     * Database page size in bytes
+     */
+    pageSize: number;
+
+    /**
+     * Current schema version
+     */
+    schemaVersion: number;
+  };
+
+  /**
+   * Any errors encountered during health checks
+   */
+  errors: string[];
+}
+
 export interface DatabaseConnection {
   /**
    * The underlying better-sqlite3 database instance
@@ -248,6 +315,138 @@ export function optimizeDatabase(db: Database.Database): void {
 export function transaction<T>(db: Database.Database, fn: () => T): T {
   const txn = db.transaction(fn);
   return txn();
+}
+
+/**
+ * Perform comprehensive database health check
+ *
+ * This function performs multiple checks to ensure the database is healthy:
+ * - Accessibility (can execute queries)
+ * - Integrity check (PRAGMA integrity_check)
+ * - Configuration verification (WAL mode, foreign keys)
+ * - Statistics collection (file size, page count, schema version)
+ *
+ * @param db - Database instance
+ * @param dbPath - Path to the database file (for file size checks)
+ * @returns Comprehensive health status
+ */
+export function getDatabaseHealth(db: Database.Database, dbPath: string): DatabaseHealthStatus {
+  const errors: string[] = [];
+  const checks = {
+    accessible: false,
+    integrityOk: false,
+    walEnabled: false,
+    foreignKeysEnabled: false,
+  };
+  const stats = {
+    databaseSize: 0,
+    walSize: 0,
+    pageCount: 0,
+    pageSize: 0,
+    schemaVersion: 0,
+  };
+
+  // Check 1: Database accessibility
+  try {
+    db.prepare('SELECT 1').get();
+    checks.accessible = true;
+  } catch (error) {
+    errors.push(
+      `Database not accessible: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // Check 2: Database integrity
+  try {
+    const result = db.pragma('integrity_check', { simple: true });
+    checks.integrityOk = result === 'ok';
+    if (!checks.integrityOk) {
+      errors.push(`Database integrity check failed: ${result}`);
+    }
+  } catch (error) {
+    errors.push(
+      `Integrity check failed: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // Check 3: WAL mode verification
+  try {
+    const journalMode = db.pragma('journal_mode', { simple: true }) as string;
+    checks.walEnabled = journalMode.toLowerCase() === 'wal';
+    if (!checks.walEnabled) {
+      errors.push(`WAL mode not enabled (current: ${journalMode})`);
+    }
+  } catch (error) {
+    errors.push(
+      `Failed to check WAL mode: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // Check 4: Foreign keys verification
+  try {
+    const foreignKeys = db.pragma('foreign_keys', { simple: true }) as number;
+    checks.foreignKeysEnabled = foreignKeys === 1;
+    if (!checks.foreignKeysEnabled) {
+      errors.push('Foreign keys are not enabled');
+    }
+  } catch (error) {
+    errors.push(
+      `Failed to check foreign keys: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // Stats 1: Database file size
+  try {
+    if (fs.existsSync(dbPath)) {
+      const stat = fs.statSync(dbPath);
+      stats.databaseSize = stat.size;
+    }
+  } catch (error) {
+    errors.push(
+      `Failed to get database size: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // Stats 2: WAL file size
+  try {
+    const walPath = `${dbPath}-wal`;
+    if (fs.existsSync(walPath)) {
+      const stat = fs.statSync(walPath);
+      stats.walSize = stat.size;
+    }
+  } catch (error) {
+    // WAL file may not exist, this is not an error
+  }
+
+  // Stats 3: Page count and page size
+  try {
+    stats.pageCount = db.pragma('page_count', { simple: true }) as number;
+    stats.pageSize = db.pragma('page_size', { simple: true }) as number;
+  } catch (error) {
+    errors.push(
+      `Failed to get page stats: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // Stats 4: Schema version
+  try {
+    stats.schemaVersion = getDatabaseVersion(db);
+  } catch (error) {
+    errors.push(
+      `Failed to get schema version: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  // Overall health is true if all critical checks pass
+  const healthy =
+    checks.accessible && checks.integrityOk && checks.walEnabled && checks.foreignKeysEnabled;
+
+  return {
+    healthy,
+    checks,
+    stats,
+    errors,
+  };
 }
 
 /**
