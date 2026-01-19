@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 20:38:48 EST
+Last Updated: 2026-01-18 20:41:32 EST
 
 ## Status
 
@@ -109,7 +109,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 1.2.10: Define agent-config.schema.json (identity, goal, permissions, framework, communication, behavior, metadata)
 - [x] Task 1.2.11: Define schedule.schema.json (mode, continuous, timeBased, reactive, pauseConditions)
 - [x] Task 1.2.12: Define task.schema.json (task, hierarchy, delegation, progress, context, execution)
-- [ ] Task 1.2.13: Define message.schema.json (frontmatter fields)
+- [x] Task 1.2.13: Define message.schema.json (frontmatter fields)
 - [ ] Task 1.2.14: Define metadata.schema.json (runtime, statistics, health, budget)
 - [ ] Task 1.2.15: Define subordinates.schema.json (subordinates array, summary)
 
@@ -532,6 +532,66 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.2.13: Define message.schema.json ✅
+
+**Summary**: Created comprehensive JSON Schema for message frontmatter fields used in inbox/outbox markdown files. Includes message identification, sender/recipient information, priority levels, channel sources, read status, action tracking, threading, external platform metadata, and attachment support. Schema enables rich message management across internal and external communication channels (Slack, Telegram, email).
+
+**What Was Implemented**:
+
+- ✅ Created `packages/common/src/schemas/message.schema.json` (4.6KB, 165+ lines)
+  - Complete JSON Schema Draft-07 definition
+  - Schema ID: https://recursivemanager.dev/schemas/message.schema.json
+  - Title and description metadata
+- ✅ Required fields defined:
+  - `id` - Unique message identifier (format: msg-{timestamp}-{random})
+  - `from` - Sender agent ID (pattern validated)
+  - `to` - Recipient agent ID (pattern validated)
+  - `timestamp` - ISO 8601 creation timestamp
+  - `priority` - Priority enum (low, normal, high, urgent)
+  - `channel` - Channel source enum (internal, slack, telegram, email)
+  - `read` - Boolean read status (default: false)
+  - `actionRequired` - Boolean action flag (default: false)
+- ✅ Optional fields for enhanced functionality:
+  - `subject` - Message subject line
+  - `threadId` - Thread identifier for grouped messages (format: thread-{id})
+  - `inReplyTo` - Message ID for reply chains
+  - `externalId` - External message ID for platform integration
+  - `readAt` - ISO 8601 timestamp when message was read
+  - `archivedAt` - ISO 8601 timestamp for archival tracking
+  - `tags` - Array of tags for categorization
+- ✅ External platform metadata support:
+  - `externalMetadata` object with platform-specific fields
+  - Slack: `slackChannel`, `slackTs` (message timestamp)
+  - Telegram: `telegramChatId`, `telegramMessageId`
+  - Email: `emailMessageId`, `emailThread`
+  - Extensible design allows additional platforms
+- ✅ Attachment support:
+  - `attachments` array with filename, path, size, mimeType
+  - Full validation for attachment metadata
+- ✅ Pattern validation:
+  - Message ID: `^msg-[0-9]+-[a-zA-Z0-9]+$`
+  - Agent ID: `^[a-zA-Z0-9-_]+$`
+  - Thread ID: `^thread-[a-zA-Z0-9-]+$`
+- ✅ Default values configured for common fields
+- ✅ No additional properties allowed (strict validation)
+- ✅ Built and verified successfully with TypeScript compiler
+- ✅ Copied to dist/schemas/ directory during build
+- ✅ All existing tests pass (302 tests, 10 suites)
+
+**Alignment with Planning Documents**:
+
+- Schema matches FILE_STRUCTURE_SPEC.md specifications for inbox/outbox messages
+- Supports multi-channel messaging as defined in architecture
+- Includes fields for message archival (30-day retention) as per edge cases
+- Ready for database integration (messages table in Phase 1.3)
+
+**Files Modified**:
+
+- Created: `packages/common/src/schemas/message.schema.json`
+- Updated: `packages/common/dist/schemas/message.schema.json` (via build)
+
+---
 
 ### Task 1.2.12: Define task.schema.json ✅
 

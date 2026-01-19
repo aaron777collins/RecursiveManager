@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://recursivemanager.dev/schemas/message.schema.json",
+  "title": "Message Schema",
+  "description": "Schema for RecursiveManager message frontmatter in inbox/outbox markdown files",
+  "type": "object",
+  "required": ["id", "from", "to", "timestamp", "priority", "channel", "read", "actionRequired"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique message identifier (format: msg-{timestamp}-{random})",
+      "minLength": 1,
+      "pattern": "^msg-[0-9]+-[a-zA-Z0-9]+$"
+    },
+    "from": {
+      "type": "string",
+      "description": "Sender agent ID",
+      "minLength": 1,
+      "pattern": "^[a-zA-Z0-9-_]+$"
+    },
+    "to": {
+      "type": "string",
+      "description": "Recipient agent ID",
+      "minLength": 1,
+      "pattern": "^[a-zA-Z0-9-_]+$"
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO 8601 timestamp when message was created",
+      "format": "date-time"
+    },
+    "priority": {
+      "type": "string",
+      "description": "Message priority level",
+      "enum": ["low", "normal", "high", "urgent"],
+      "default": "normal"
+    },
+    "channel": {
+      "type": "string",
+      "description": "Communication channel source",
+      "enum": ["internal", "slack", "telegram", "email"]
+    },
+    "read": {
+      "type": "boolean",
+      "description": "Whether message has been read",
+      "default": false
+    },
+    "actionRequired": {
+      "type": "boolean",
+      "description": "Whether message requires action from recipient",
+      "default": false
+    },
+    "subject": {
+      "type": "string",
+      "description": "Message subject line (optional)",
+      "minLength": 1
+    },
+    "threadId": {
+      "type": "string",
+      "description": "Thread identifier for grouped messages",
+      "minLength": 1,
+      "pattern": "^thread-[a-zA-Z0-9-]+$"
+    },
+    "inReplyTo": {
+      "type": "string",
+      "description": "Message ID this is replying to",
+      "minLength": 1,
+      "pattern": "^msg-[0-9]+-[a-zA-Z0-9]+$"
+    },
+    "externalId": {
+      "type": "string",
+      "description": "External message ID (for Slack, Telegram, etc.)",
+      "minLength": 1
+    },
+    "externalMetadata": {
+      "type": "object",
+      "description": "Platform-specific metadata",
+      "properties": {
+        "slackChannel": {
+          "type": "string",
+          "description": "Slack channel name or ID"
+        },
+        "slackTs": {
+          "type": "string",
+          "description": "Slack message timestamp"
+        },
+        "telegramChatId": {
+          "type": "string",
+          "description": "Telegram chat ID"
+        },
+        "telegramMessageId": {
+          "type": "string",
+          "description": "Telegram message ID"
+        },
+        "emailMessageId": {
+          "type": "string",
+          "description": "Email Message-ID header"
+        },
+        "emailThread": {
+          "type": "string",
+          "description": "Email thread/conversation ID"
+        }
+      },
+      "additionalProperties": true
+    },
+    "readAt": {
+      "type": ["string", "null"],
+      "description": "ISO 8601 timestamp when message was read",
+      "format": "date-time"
+    },
+    "archivedAt": {
+      "type": ["string", "null"],
+      "description": "ISO 8601 timestamp when message was archived",
+      "format": "date-time"
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags for message categorization",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "default": []
+    },
+    "attachments": {
+      "type": "array",
+      "description": "List of attachments or file references",
+      "items": {
+        "type": "object",
+        "required": ["filename", "path"],
+        "properties": {
+          "filename": {
+            "type": "string",
+            "description": "Original filename",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "description": "Path to attachment file",
+            "minLength": 1
+          },
+          "size": {
+            "type": "integer",
+            "description": "File size in bytes",
+            "minimum": 0
+          },
+          "mimeType": {
+            "type": "string",
+            "description": "MIME type of attachment",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": false
+      },
+      "default": []
+    }
+  },
+  "additionalProperties": false
+}
