@@ -34,7 +34,7 @@ IN_PROGRESS
 - [x] 4.2 Create release.yml GitHub Actions workflow
 
 ### Phase 5: Package Structure Updates
-- [ ] 5.1 Update root package.json scripts
+- [x] 5.1 Update root package.json scripts
 - [ ] 5.2 Add .gitignore entries
 - [ ] 5.3 Create .env.example
 
@@ -141,7 +141,7 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 4.2: Created release.yml GitHub Actions workflow for automated release management
+- Task 5.1: Updated root package.json scripts
 
 ## Notes
 
@@ -323,3 +323,13 @@ IN_PROGRESS
   - Added verification step to confirm release creation
   - Follows GitHub Actions best practices
   - Ready to create releases when tags are pushed
+
+### Iteration 17 (2026-01-19)
+- Task 5.1: Updated root package.json scripts
+  - Added docs:dev script for mkdocs serve
+  - Added docs:build script for mkdocs build
+  - Added docs:deploy script for mkdocs gh-deploy
+  - Added version script to display package version using echo $npm_package_version
+  - Added postinstall script to run husky install for git hooks
+  - Verified scripts work correctly with npm run version test
+  - All scripts follow npm best practices
