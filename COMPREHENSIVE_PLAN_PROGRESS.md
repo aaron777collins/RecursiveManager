@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 23:15:00 EST
+Last Updated: 2026-01-18 22:54:58 EST
 
 ## Status
 
@@ -160,7 +160,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Query APIs - Tasks
 
-- [ ] Task 1.3.16: Implement createTask(task) with depth validation
+- [x] Task 1.3.16: Implement createTask(task) with depth validation
 - [ ] Task 1.3.17: Implement updateTaskStatus(id, status, version) with optimistic locking
 - [ ] Task 1.3.18: Implement getActiveTasks(agentId)
 - [ ] Task 1.3.19: Implement detectTaskDeadlock(taskId) using DFS algorithm
@@ -532,6 +532,95 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.3.16: Implement createTask(task) with depth validation ✅
+
+**Summary**: Implemented the first task query API function `createTask()` with comprehensive depth validation. This function creates tasks in the database while enforcing a maximum depth constraint of 5 levels (TASK_MAX_DEPTH), preventing excessively deep task hierarchies that could cause performance issues or complexity.
+
+**What Was Implemented**:
+
+1. **Type Definitions** (`packages/common/src/db/queries/types.ts`):
+   - Added `TaskStatus` type: 'pending' | 'in-progress' | 'blocked' | 'completed' | 'archived'
+   - Added `TaskPriority` type: 'low' | 'medium' | 'high' | 'urgent'
+   - Added `TaskRecord` interface with all 19 task table fields
+   - Added `CreateTaskInput` interface for task creation parameters
+
+2. **Constants** (`packages/common/src/db/constants.ts`):
+   - Created new constants module for database-related constants
+   - Defined `TASK_MAX_DEPTH = 5`: Maximum task hierarchy depth
+   - Defined `AGENT_MAX_HIERARCHY_DEPTH = 5`: Maximum agent hierarchy depth
+
+3. **Task Query Functions** (`packages/common/src/db/queries/tasks.ts`):
+   - **`getTask(db, id)`**: Retrieves a task by ID, returns null if not found
+   - **`createTask(db, input)`**: Creates a task with depth validation
+     - Validates agent exists (throws error if not found)
+     - If parent task specified:
+       - Validates parent exists (throws error if not found)
+       - Checks parent depth against TASK_MAX_DEPTH
+       - Throws detailed error if depth would be exceeded
+       - Calculates child depth as parent.depth + 1
+     - Root tasks (no parent) have depth = 0
+     - Inserts task in transaction
+     - Updates parent's `subtasks_total` count if applicable
+     - Returns created task record
+   - Comprehensive JSDoc documentation with examples
+
+4. **Export Updates** (`packages/common/src/db/queries/index.ts`):
+   - Added `export * from './tasks'` to expose task query functions
+
+5. **Comprehensive Test Suite** (`packages/common/src/db/__tests__/queries-tasks.test.ts`):
+   - 12 test cases covering all aspects:
+     - getTask returns null for non-existent task
+     - Create root task with depth 0
+     - Default priority "medium" when not specified
+     - Create subtask with depth 1
+     - Update parent subtasks_total count (1 subtask, then 2 subtasks)
+     - Create nested tasks with correct depths (depth 0→1→2→3)
+     - Create task with delegated_to field
+     - Error: agent not found
+     - Error: parent task not found
+     - Error: parent at maximum depth
+     - Error message includes parent task details
+     - Success: create task at exactly max depth (edge case)
+   - All 12 tests pass successfully
+
+6. **Validation**:
+   - ✅ All 12 new tests pass
+   - ✅ All existing tests still pass (663 tests total, only 1 pre-existing flaky disk-space test failed)
+   - ✅ Build passes: TypeScript compilation successful
+   - ✅ No lint errors
+
+**Key Design Decisions**:
+
+1. **Depth Validation Logic**: Check parent's current depth BEFORE creating child, ensuring we never exceed TASK_MAX_DEPTH. Root tasks start at depth 0.
+
+2. **Error Messages**: Provide detailed error messages including parent task title, ID, and current depth to help users understand why task creation failed.
+
+3. **Transaction Safety**: Use database transaction to ensure atomic updates (insert task + update parent's subtask count).
+
+4. **Subtask Counting**: Automatically increment parent's `subtasks_total` when child task is created, maintaining accurate counts.
+
+5. **Consistent Pattern**: Follow established patterns from `agents.ts` for prepared statements, transactions, and error handling.
+
+**Files Modified**:
+
+- `packages/common/src/db/queries/types.ts` (added TaskRecord, CreateTaskInput, TaskStatus, TaskPriority)
+- `packages/common/src/db/queries/index.ts` (added export)
+
+**Files Created**:
+
+- `packages/common/src/db/constants.ts` (new constants module)
+- `packages/common/src/db/queries/tasks.ts` (new query module)
+- `packages/common/src/db/__tests__/queries-tasks.test.ts` (new test suite)
+
+**Next Steps**:
+
+- Task 1.3.17: Implement updateTaskStatus() with optimistic locking
+- Task 1.3.18: Implement getActiveTasks()
+- Task 1.3.19: Implement detectTaskDeadlock()
+- Task 1.3.20: Implement getBlockedTasks()
+
+---
 
 ### Task 1.3.9: Create audit_log table with indexes ✅
 

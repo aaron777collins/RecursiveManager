@@ -73,3 +73,51 @@ export interface CreateOrgHierarchyInput {
   depth: number;
   path: string;
 }
+
+/**
+ * Task status enum
+ */
+export type TaskStatus = 'pending' | 'in-progress' | 'blocked' | 'completed' | 'archived';
+
+/**
+ * Task priority enum
+ */
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+/**
+ * Task record from the database
+ */
+export interface TaskRecord {
+  id: string;
+  agent_id: string;
+  title: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  created_at: string; // ISO 8601 timestamp
+  started_at: string | null;
+  completed_at: string | null;
+  parent_task_id: string | null;
+  depth: number;
+  percent_complete: number;
+  subtasks_completed: number;
+  subtasks_total: number;
+  delegated_to: string | null;
+  delegated_at: string | null;
+  blocked_by: string; // JSON array as text
+  blocked_since: string | null;
+  task_path: string;
+  version: number;
+}
+
+/**
+ * Input for creating a new task
+ */
+export interface CreateTaskInput {
+  id: string;
+  agentId: string;
+  title: string;
+  priority?: TaskPriority;
+  parentTaskId?: string | null;
+  delegatedTo?: string | null;
+  taskPath: string;
+}
