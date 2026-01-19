@@ -18,7 +18,8 @@
   "license": "MIT",
   "author": "",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "docs"
   ],
   "scripts": {
     "build": "turbo run build",
