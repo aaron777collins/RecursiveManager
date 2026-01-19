@@ -25,7 +25,7 @@ IN_PROGRESS
 - [x] 3.2 Create documentation directory structure
 - [x] 3.3 Create landing page (index.md)
 - [x] 3.4 Create custom CSS (extra.css)
-- [ ] 3.5 Create brand icon (icon-white.svg)
+- [x] 3.5 Create brand icon (icon-white.svg)
 - [ ] 3.6 Port existing documentation
 - [ ] 3.7 Add requirements.txt for MkDocs
 
@@ -141,7 +141,7 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 3.4: Created custom CSS (extra.css)
+- Task 3.5: Created brand icon (icon-white.svg)
 
 ## Notes
 
@@ -253,4 +253,19 @@ IN_PROGRESS
   - All styles support both light and dark modes via [data-md-color-scheme="slate"]
   - Successfully built documentation with `mkdocs build --strict` - no errors
   - Verified CSS file is correctly referenced in mkdocs.yml
+
+### Iteration 13 (2026-01-19)
+- Task 3.5: Created brand icon (icon-white.svg)
+  - Created SVG icon representing hierarchical organizational structure
+  - Implemented three-tier hierarchy visualization (root → middle → leaf nodes)
+  - Used deep purple color palette matching the theme:
+    - Root node: #8b5cf6 (primary purple)
+    - Middle tier: #a78bfa (lighter purple)
+    - Bottom tier: #ddd6fe (lightest purple)
+  - Designed with white-on-purple aesthetic for dark backgrounds
+  - Added decorative glow effects and connecting lines between tiers
+  - SVG is scalable and works at any size (200x200 viewBox)
+  - Successfully verified icon is referenced in mkdocs.yml (favicon and logo)
+  - Documentation builds successfully with `mkdocs build --strict`
+  - File size: 2.9 KB
 
