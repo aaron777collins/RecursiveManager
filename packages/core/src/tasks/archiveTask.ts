@@ -11,7 +11,7 @@
 import type { Database } from 'better-sqlite3';
 import { getAgentDirectory } from '@recursive-manager/common';
 import { moveTaskDirectory } from './createTaskDirectory';
-import type { TaskRecord } from '@recursive-manager/common';
+import type { TaskRecord, TaskStatus } from '@recursive-manager/common';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as zlib from 'zlib';
@@ -109,10 +109,10 @@ export async function archiveOldTasks(db: Database, olderThanDays: number = 7): 
       const completedDate = new Date(task.completed_at!);
       const year = completedDate.getFullYear();
       const month = String(completedDate.getMonth() + 1).padStart(2, '0');
-      const archiveStatus = `archive/${year}-${month}`;
+      const archiveStatus = `archive/${year}-${month}` as TaskStatus;
 
       // Move the task directory from completed/ to archive/{YYYY-MM}/
-      await moveTaskDirectory(task.agent_id, task.id, 'completed', archiveStatus);
+      await moveTaskDirectory(task.agent_id, task.id, 'completed' as TaskStatus, archiveStatus);
 
       // Update the database status
       const now = new Date().toISOString();

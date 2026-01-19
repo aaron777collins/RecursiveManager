@@ -78,7 +78,7 @@ export async function notifyDeadlock(
   const cycleVisualization = tasks
     .map((task, index) => {
       const nextIndex = (index + 1) % tasks.length;
-      const nextTask = tasks[nextIndex];
+      const nextTask = tasks[nextIndex]!; // Safe: modulo ensures valid index
       return `   ${index + 1}. **${task.title}** (${task.id})
       - Owned by: ${task.agent_id}
       - Status: ${task.status}

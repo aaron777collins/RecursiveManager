@@ -481,13 +481,7 @@ async function handleAbandonedTasks(
           db,
           task.id,
           'pending', // Reset to pending for manager to pick up
-          task.version,
-          {
-            note: `Task reassigned from fired agent ${agentId}`,
-            reassignedFrom: agentId,
-            reassignedTo: agent.reporting_to,
-            reassignedAt: new Date().toISOString(),
-          }
+          task.version
         );
 
         // Update the task's agent assignment
@@ -504,8 +498,9 @@ async function handleAbandonedTasks(
           action: AuditAction.TASK_DELEGATE,
           agentId: agent.reporting_to,
           targetAgentId: agentId,
-          taskId: task.id,
+          success: true,
           details: {
+            taskId: task.id,
             reason: 'Agent fired - tasks reassigned to manager',
             from: agentId,
             to: agent.reporting_to,
@@ -536,18 +531,15 @@ async function handleAbandonedTasks(
     for (const task of activeTasks) {
       try {
         // Update task status to archived
-        updateTaskStatus(db, task.id, 'archived', task.version, {
-          note: `Task archived because agent ${agentId} was fired with no manager`,
-          archivedFrom: agentId,
-          archivedAt: new Date().toISOString(),
-        });
+        updateTaskStatus(db, task.id, 'archived', task.version);
 
         // Audit log the archival
         auditLog(db, {
-          action: AuditAction.TASK_UPDATED,
+          action: AuditAction.TASK_UPDATE,
           agentId,
-          taskId: task.id,
+          success: true,
           details: {
+            taskId: task.id,
             reason: 'Agent fired without manager',
             status: 'archived',
           },
@@ -856,8 +848,8 @@ Your role and responsibilities remain unchanged.
       // Write to database
       createMessage(db, dbMessage);
 
-      // Write to filesystem
-      await writeMessageToInbox(agentId, message, options);
+      // Write to filesystem (map baseDir to dataDir for message writer options)
+      await writeMessageToInbox(agentId, message, { dataDir: options.baseDir });
 
       successCount++;
       logger.debug('Notification sent successfully', {

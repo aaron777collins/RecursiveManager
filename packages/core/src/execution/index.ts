@@ -130,9 +130,12 @@ export class ExecutionOrchestrator {
 
       const startTime = Date.now();
 
+      // Get database connection for agent queries and audit logging
+      const dbConnection = this.database.getConnection();
+
       try {
         // Load agent record from database
-        const agent = await getAgent(agentId);
+        const agent = await getAgent(dbConnection.db, agentId);
         if (!agent) {
           throw new ExecutionError(`Agent not found: ${agentId}`);
         }
@@ -143,7 +146,6 @@ export class ExecutionOrchestrator {
         }
 
         // Load execution context (config, tasks, messages, workspace)
-        const dbConnection = this.database.getConnection();
         const context = await loadExecutionContext(dbConnection.db, agentId, 'continuous', {});
 
         logger.info('Execution context loaded', {
@@ -184,12 +186,12 @@ export class ExecutionOrchestrator {
         const duration = Date.now() - startTime;
 
         // Log audit event
-        await auditLog({
+        auditLog(dbConnection.db, {
           agentId,
-          action: AuditAction.EXECUTE,
+          action: AuditAction.EXECUTE_END,
+          success: result.success,
           details: {
             mode: 'continuous',
-            success: result.success,
             tasksCompleted: result.tasksCompleted,
             messagesProcessed: result.messagesProcessed,
             duration,
@@ -211,12 +213,12 @@ export class ExecutionOrchestrator {
         });
 
         // Log failure audit event
-        await auditLog({
+        auditLog(dbConnection.db, {
           agentId,
-          action: AuditAction.EXECUTE,
+          action: AuditAction.EXECUTE_END,
+          success: false,
           details: {
             mode: 'continuous',
-            success: false,
             error: error instanceof Error ? error.message : String(error),
             duration,
           },
@@ -261,9 +263,12 @@ export class ExecutionOrchestrator {
 
       const startTime = Date.now();
 
+      // Get database connection for agent queries and audit logging
+      const dbConnection = this.database.getConnection();
+
       try {
         // Load agent record from database
-        const agent = await getAgent(agentId);
+        const agent = await getAgent(dbConnection.db, agentId);
         if (!agent) {
           throw new ExecutionError(`Agent not found: ${agentId}`);
         }
@@ -274,7 +279,6 @@ export class ExecutionOrchestrator {
         }
 
         // Load execution context (config, tasks, messages, workspace)
-        const dbConnection = this.database.getConnection();
         const context = await loadExecutionContext(dbConnection.db, agentId, 'reactive', {});
 
         logger.info('Execution context loaded', {
@@ -315,14 +319,14 @@ export class ExecutionOrchestrator {
         const duration = Date.now() - startTime;
 
         // Log audit event
-        await auditLog({
+        auditLog(dbConnection.db, {
           agentId,
-          action: AuditAction.EXECUTE,
+          action: AuditAction.EXECUTE_END,
+          success: result.success,
           details: {
             mode: 'reactive',
             triggerType: trigger.type,
             messageId: trigger.messageId,
-            success: result.success,
             tasksCompleted: result.tasksCompleted,
             messagesProcessed: result.messagesProcessed,
             duration,
@@ -345,13 +349,13 @@ export class ExecutionOrchestrator {
         });
 
         // Log failure audit event
-        await auditLog({
+        auditLog(dbConnection.db, {
           agentId,
-          action: AuditAction.EXECUTE,
+          action: AuditAction.EXECUTE_END,
+          success: false,
           details: {
             mode: 'reactive',
             triggerType: trigger.type,
-            success: false,
             error: error instanceof Error ? error.message : String(error),
             duration,
           },

@@ -208,8 +208,8 @@ The agent is now active and will process work according to its schedule. No acti
       // Write to database
       createMessage(db, dbMessage);
 
-      // Write to filesystem
-      await writeMessageToInbox(agentId, message, options);
+      // Write to filesystem (map baseDir to dataDir for message writer options)
+      await writeMessageToInbox(agentId, message, { dataDir: options.baseDir });
 
       successCount++;
       logger.debug('Resume notification sent successfully', {

@@ -101,8 +101,8 @@ export async function writeMessageToInbox(
   message: MessageData,
   options: { dataDir?: string } = {}
 ): Promise<string> {
-  // Get inbox path
-  const inboxDir = getInboxPath(agentId, options);
+  // Get inbox path (map dataDir to baseDir for PathOptions)
+  const inboxDir = getInboxPath(agentId, { baseDir: options.dataDir });
 
   // Determine subdirectory based on read status
   const subDir = message.read ? 'read' : 'unread';
@@ -121,7 +121,6 @@ export async function writeMessageToInbox(
   // Write file atomically
   await atomicWrite(filePath, content, {
     mode: 0o644,
-    createBackup: false, // Messages don't need backups
   });
 
   return filePath;

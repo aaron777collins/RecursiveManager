@@ -218,8 +218,8 @@ If the agent has active tasks, you may want to:
       // Write to database
       createMessage(db, dbMessage);
 
-      // Write to filesystem
-      await writeMessageToInbox(agentId, message, options);
+      // Write to filesystem (map baseDir to dataDir for message writer options)
+      await writeMessageToInbox(agentId, message, { dataDir: options.baseDir });
 
       successCount++;
       logger.debug('Pause notification sent successfully', {

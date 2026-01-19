@@ -154,8 +154,8 @@ The plan has 12 phases, but dependencies are:
 
 - [x] 1.1: Install dependencies cleanly (npm install)
 - [x] 1.2: Run full test suite and capture results
-- [ ] 1.2a: Fix TypeScript build errors in core package (blocking tests)
-- [ ] 1.2b: Fix TypeScript build errors in adapters package (blocking tests)
+- [x] 1.2a: Fix TypeScript build errors in core package (blocking tests)
+- [ ] 1.2b: Fix TypeScript build errors in CLI package (blocking tests)
 - [ ] 1.3: Fix any remaining test failures in core package
 - [ ] 1.4: Fix any remaining test failures in CLI package
 - [ ] 1.5: Fix any remaining test failures in adapters package
@@ -467,15 +467,57 @@ When build mode begins, it should:
 
 ## Completed This Iteration
 
-- Task 1.2: Ran full test suite and captured results. Found that TypeScript build errors are blocking tests from running. The previous commit (6801934) claimed to fix TypeScript errors, but they still exist.
+- Task 1.2a: Fixed ALL TypeScript build errors in core package. Core package now builds successfully.
 
 ## Notes
 
-- Fixed turbo.json configuration: Changed "tasks" to "pipeline" for Turbo v1.13.4 compatibility
-- Discovered dev dependencies weren't installed initially - had to run npm install --include=dev
-- Now have 1115 packages installed (963 added for dev dependencies)
-- Build errors found in core and adapters packages:
-  - Core package: ~30+ TypeScript errors in execution, messaging, lifecycle, tasks
-  - Adapters package: Type errors in context tests (status field mismatch)
-  - Common package tests: PASSED (all tests passing)
-- Next task: Fix TypeScript build errors in core package (task 1.2a)
+### Summary of Fixes
+
+Fixed 14 TypeScript errors across 7 files in the core package:
+
+1. **execution/index.ts**:
+   - Fixed `getAgent()` calls - added missing database parameter
+   - Fixed `auditLog()` calls - added database parameter and `success` field
+   - Changed `AuditAction.EXECUTE` to `AuditAction.EXECUTE_END` (correct enum value)
+
+2. **messaging/messageWriter.ts**:
+   - Fixed PathOptions mapping: `dataDir` → `baseDir` when calling path utilities
+   - Removed invalid `createBackup` property from AtomicWriteOptions
+
+3. **lifecycle/fireAgent.ts**:
+   - Fixed PathOptions mapping for writeMessageToInbox calls
+   - Fixed `updateTaskStatus()` calls - removed invalid 5th parameter
+   - Fixed `auditLog()` calls - moved `taskId` into `details` object, added `success` field
+   - Changed `AuditAction.TASK_UPDATED` to `AuditAction.TASK_UPDATE`
+
+4. **lifecycle/pauseAgent.ts**:
+   - Fixed PathOptions mapping for writeMessageToInbox call
+
+5. **lifecycle/resumeAgent.ts**:
+   - Fixed PathOptions mapping for writeMessageToInbox call
+
+6. **execution/state.ts**:
+   - Added Database import from 'better-sqlite3'
+   - Added `db` parameter to `saveExecutionResult()` function
+   - Fixed `updateAgent()` call - added missing `db` parameter
+   - Changed `lastActivityAt` to `lastExecutionAt` (correct field name)
+   - Removed invalid `backup` property from AtomicWriteOptions
+
+7. **tasks/archiveTask.ts**:
+   - Added TaskStatus type cast for string status values
+
+8. **tasks/notifyDeadlock.ts**:
+   - Added non-null assertion for `nextTask` (safe due to modulo operation)
+
+### Build Status
+
+- Core package: ✅ BUILD SUCCESSFUL (0 errors)
+- Common package: ✅ BUILD SUCCESSFUL
+- Adapters package: ✅ BUILD SUCCESSFUL
+- Scheduler package: ✅ BUILD SUCCESSFUL
+- Docs package: ✅ BUILD SUCCESSFUL
+- CLI package: ❌ 3 TypeScript errors remaining (next task)
+
+### Next Task
+
+Task 1.2b: Fix TypeScript build errors in CLI package (3 errors remaining)

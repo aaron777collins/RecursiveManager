@@ -12,6 +12,7 @@ import {
   atomicWrite,
   createAgentLogger,
 } from '@recursive-manager/common';
+import Database from 'better-sqlite3';
 import { readFile } from 'fs/promises';
 
 /**
@@ -72,6 +73,7 @@ const DEFAULT_METADATA: AgentMetadata = {
  * 3. Saves updated metadata atomically
  * 4. Updates agent record in database if needed
  *
+ * @param db - Database connection
  * @param agentId - Unique agent identifier
  * @param result - Execution result from framework adapter
  * @param mode - Execution mode (continuous or reactive)
@@ -79,6 +81,7 @@ const DEFAULT_METADATA: AgentMetadata = {
  * @throws SaveExecutionResultError if save fails
  */
 export async function saveExecutionResult(
+  db: Database.Database,
   agentId: string,
   result: ExecutionResult,
   mode: ExecutionMode
@@ -103,7 +106,6 @@ export async function saveExecutionResult(
     const metadataPath = getMetadataPath(agentId);
     await atomicWrite(metadataPath, JSON.stringify(updatedMetadata, null, 2), {
       encoding: 'utf-8',
-      backup: true,
     });
 
     logger.info('Execution result saved', {
@@ -115,8 +117,8 @@ export async function saveExecutionResult(
     // Update database if health score changed significantly
     const healthScoreDelta = Math.abs(updatedMetadata.healthScore - metadata.healthScore);
     if (healthScoreDelta >= 10) {
-      await updateAgent(agentId, {
-        lastActivityAt: new Date(),
+      updateAgent(db, agentId, {
+        lastExecutionAt: new Date().toISOString(),
       });
 
       logger.debug('Updated agent record with health score change', {
