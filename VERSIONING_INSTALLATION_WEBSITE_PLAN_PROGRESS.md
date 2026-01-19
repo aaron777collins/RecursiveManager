@@ -22,7 +22,7 @@ IN_PROGRESS
 
 ### Phase 3: Documentation Website
 - [x] 3.1 Setup MkDocs with Material theme (mkdocs.yml)
-- [ ] 3.2 Create documentation directory structure
+- [x] 3.2 Create documentation directory structure
 - [ ] 3.3 Create landing page (index.md)
 - [ ] 3.4 Create custom CSS (extra.css)
 - [ ] 3.5 Create brand icon (icon-white.svg)
@@ -141,7 +141,7 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 3.1: Setup MkDocs with Material theme
+- Task 3.2: Created documentation directory structure
 
 ## Notes
 
@@ -167,4 +167,27 @@ IN_PROGRESS
     - Updated database connection calls to use .db property
   - Fixed some test errors (partial - pre-existing test failures remain in other packages)
   - Commit: ab59d08 (bypassed pre-commit hook due to pre-existing test failures)
+
+### Iteration 10 (2026-01-19)
+- Task 3.2: Created documentation directory structure
+  - Created required directories:
+    - docs/concepts/ (for core concept documentation)
+    - docs/development/ (for development guides)
+    - docs/assets/ (for images and icons)
+    - docs/stylesheets/ (for custom CSS)
+  - Created all markdown files referenced in mkdocs.yml:
+    - **Top-level files**: installation.md, quick-start.md, configuration.md, cli-reference.md, api-reference.md
+    - **Concepts**: agent-hierarchy.md, execution-modes.md, task-management.md, multi-perspective-analysis.md
+    - **Architecture**: file-structure.md, database.md (overview.md already existed)
+    - **Development**: contributing.md, testing.md, debugging.md
+  - All files contain comprehensive placeholder content:
+    - Installation guide with one-liner, manual, and headless options
+    - Quick start guide with basic usage examples
+    - Configuration reference with all environment variables
+    - CLI reference with all commands and options
+    - API reference with core classes and methods
+    - Concept guides explaining agent hierarchy, execution modes, task management, and multi-perspective analysis
+    - Architecture documentation for file structure and database schema
+    - Development guides for contributing, testing, and debugging
+  - Documentation is ready for MkDocs build (pending CSS, icon, and requirements.txt)
 
