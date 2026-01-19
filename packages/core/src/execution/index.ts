@@ -19,9 +19,11 @@ import {
   DatabasePool,
 } from '@recursive-manager/common';
 import { AgentLock, AgentLockError } from './AgentLock';
+import { ExecutionPool, type PoolStatistics } from './ExecutionPool';
 
 // Re-export for external use
 export { AgentLock, AgentLockError };
+export { ExecutionPool, type PoolStatistics };
 
 /**
  * Reactive trigger that initiates reactive execution mode
@@ -73,6 +75,8 @@ export interface ExecutionOrchestratorOptions {
   maxExecutionTime?: number;
   /** Maximum time for multi-perspective analysis in milliseconds (default: 2 minutes) */
   maxAnalysisTime?: number;
+  /** Maximum concurrent executions across all agents (default: 10) */
+  maxConcurrent?: number;
 }
 
 /**
@@ -87,143 +91,152 @@ export class ExecutionOrchestrator {
   private readonly maxAnalysisTime: number;
   /** Agent lock manager for preventing concurrent executions */
   private readonly agentLock: AgentLock = new AgentLock();
+  /** Execution pool for managing concurrent executions with worker pool pattern */
+  private readonly executionPool: ExecutionPool;
 
   constructor(options: ExecutionOrchestratorOptions) {
     this.adapterRegistry = options.adapterRegistry;
     this.database = options.database;
     this.maxExecutionTime = options.maxExecutionTime ?? 5 * 60 * 1000; // 5 minutes
     this.maxAnalysisTime = options.maxAnalysisTime ?? 2 * 60 * 1000; // 2 minutes
+    this.executionPool = new ExecutionPool({
+      maxConcurrent: options.maxConcurrent ?? 10,
+    });
   }
 
   /**
    * Execute an agent in continuous mode
    *
    * Picks the next task from the agent's active task list and executes it.
+   * Uses ExecutionPool to manage global concurrency limits and queuing.
    *
    * @param agentId - Unique agent identifier
    * @returns Promise resolving to execution result
    * @throws ExecutionError if execution fails
    */
   async executeContinuous(agentId: string): Promise<ExecutionResult> {
-    const logger = createAgentLogger(agentId);
-    logger.info('Starting continuous execution', { agentId });
+    // Execute through the pool to enforce max concurrent limit
+    return this.executionPool.execute(agentId, async () => {
+      const logger = createAgentLogger(agentId);
+      logger.info('Starting continuous execution', { agentId });
 
-    // Try to acquire lock without waiting (fail fast for concurrent executions)
-    const release = this.agentLock.tryAcquire(agentId);
-    if (!release) {
-      throw new ExecutionError(
-        `Agent ${agentId} is already executing. Concurrent executions are not allowed.`
-      );
-    }
-
-    const startTime = Date.now();
-
-    try {
-      // Load agent record from database
-      const agent = await getAgent(agentId);
-      if (!agent) {
-        throw new ExecutionError(`Agent not found: ${agentId}`);
-      }
-
-      // Check agent status
-      if (agent.status !== 'active') {
+      // Try to acquire lock without waiting (fail fast for concurrent executions of same agent)
+      const release = this.agentLock.tryAcquire(agentId);
+      if (!release) {
         throw new ExecutionError(
-          `Agent is not active (status: ${agent.status})`
+          `Agent ${agentId} is already executing. Concurrent executions are not allowed.`
         );
       }
 
-      // Load execution context (config, tasks, messages, workspace)
-      const db = this.database.getConnection();
-      const context = await loadExecutionContext(db, agentId, 'continuous', {});
+      const startTime = Date.now();
 
-      logger.info('Execution context loaded', {
-        activeTasks: context.activeTasks.length,
-        messages: context.messages.length,
-        workspaceFiles: context.workspaceFiles.length,
-      });
+      try {
+        // Load agent record from database
+        const agent = await getAgent(agentId);
+        if (!agent) {
+          throw new ExecutionError(`Agent not found: ${agentId}`);
+        }
 
-      // Get framework adapter for this agent (with fallback support)
-      const adapterResult = await this.adapterRegistry.getHealthyAdapter(
-        context.config.framework.primary,
-        context.config.framework.fallback
-      );
+        // Check agent status
+        if (agent.status !== 'active') {
+          throw new ExecutionError(
+            `Agent is not active (status: ${agent.status})`
+          );
+        }
 
-      if (!adapterResult) {
-        throw new ExecutionError(
-          `No healthy adapter available for framework: ${context.config.framework.primary}`
-        );
-      }
+        // Load execution context (config, tasks, messages, workspace)
+        const db = this.database.getConnection();
+        const context = await loadExecutionContext(db, agentId, 'continuous', {});
 
-      const { adapter, usedFallback } = adapterResult;
-
-      if (usedFallback) {
-        logger.warn('Using fallback adapter', {
-          primary: context.config.framework.primary,
-          fallback: context.config.framework.fallback,
+        logger.info('Execution context loaded', {
+          activeTasks: context.activeTasks.length,
+          messages: context.messages.length,
+          workspaceFiles: context.workspaceFiles.length,
         });
-      }
 
-      // Execute agent with timeout
-      const result: ExecutionResult = await this.executeWithTimeout(
-        () => adapter.executeAgent(agentId, 'continuous', context),
-        this.maxExecutionTime,
-        'Continuous execution timeout'
-      );
+        // Get framework adapter for this agent (with fallback support)
+        const adapterResult = await this.adapterRegistry.getHealthyAdapter(
+          context.config.framework.primary,
+          context.config.framework.fallback
+        );
 
-      // Calculate duration
-      const duration = Date.now() - startTime;
+        if (!adapterResult) {
+          throw new ExecutionError(
+            `No healthy adapter available for framework: ${context.config.framework.primary}`
+          );
+        }
 
-      // Log audit event
-      await auditLog({
-        agentId,
-        action: AuditAction.EXECUTE,
-        details: {
-          mode: 'continuous',
+        const { adapter, usedFallback } = adapterResult;
+
+        if (usedFallback) {
+          logger.warn('Using fallback adapter', {
+            primary: context.config.framework.primary,
+            fallback: context.config.framework.fallback,
+          });
+        }
+
+        // Execute agent with timeout
+        const result: ExecutionResult = await this.executeWithTimeout(
+          () => adapter.executeAgent(agentId, 'continuous', context),
+          this.maxExecutionTime,
+          'Continuous execution timeout'
+        );
+
+        // Calculate duration
+        const duration = Date.now() - startTime;
+
+        // Log audit event
+        await auditLog({
+          agentId,
+          action: AuditAction.EXECUTE,
+          details: {
+            mode: 'continuous',
+            success: result.success,
+            tasksCompleted: result.tasksCompleted,
+            messagesProcessed: result.messagesProcessed,
+            duration,
+          },
+        });
+
+        logger.info('Continuous execution completed', {
           success: result.success,
           tasksCompleted: result.tasksCompleted,
-          messagesProcessed: result.messagesProcessed,
           duration,
-        },
-      });
+        });
 
-      logger.info('Continuous execution completed', {
-        success: result.success,
-        tasksCompleted: result.tasksCompleted,
-        duration,
-      });
-
-      return result;
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      logger.error('Continuous execution failed', {
-        error: error instanceof Error ? error.message : String(error),
-        duration,
-      });
-
-      // Log failure audit event
-      await auditLog({
-        agentId,
-        action: AuditAction.EXECUTE,
-        details: {
-          mode: 'continuous',
-          success: false,
+        return result;
+      } catch (error) {
+        const duration = Date.now() - startTime;
+        logger.error('Continuous execution failed', {
           error: error instanceof Error ? error.message : String(error),
           duration,
-        },
-      });
+        });
 
-      throw error;
-    } finally {
-      // Always release lock, even on error
-      release();
-    }
+        // Log failure audit event
+        await auditLog({
+          agentId,
+          action: AuditAction.EXECUTE,
+          details: {
+            mode: 'continuous',
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+            duration,
+          },
+        });
+
+        throw error;
+      } finally {
+        // Always release lock, even on error
+        release();
+      }
+    });
   }
 
   /**
    * Execute an agent in reactive mode
    *
    * Handles a specific trigger (message, webhook, etc.) and executes the agent
-   * in response to it.
+   * in response to it. Uses ExecutionPool to manage global concurrency limits and queuing.
    *
    * @param agentId - Unique agent identifier
    * @param trigger - Reactive trigger information
@@ -234,126 +247,129 @@ export class ExecutionOrchestrator {
     agentId: string,
     trigger: ReactiveTrigger
   ): Promise<ExecutionResult> {
-    const logger = createAgentLogger(agentId);
-    logger.info('Starting reactive execution', {
-      agentId,
-      triggerType: trigger.type,
-      messageId: trigger.messageId,
-    });
-
-    // Try to acquire lock without waiting (fail fast for concurrent executions)
-    const release = this.agentLock.tryAcquire(agentId);
-    if (!release) {
-      throw new ExecutionError(
-        `Agent ${agentId} is already executing. Concurrent executions are not allowed.`
-      );
-    }
-
-    const startTime = Date.now();
-
-    try {
-      // Load agent record from database
-      const agent = await getAgent(agentId);
-      if (!agent) {
-        throw new ExecutionError(`Agent not found: ${agentId}`);
-      }
-
-      // Check agent status
-      if (agent.status !== 'active') {
-        throw new ExecutionError(
-          `Agent is not active (status: ${agent.status})`
-        );
-      }
-
-      // Load execution context (config, tasks, messages, workspace)
-      const db = this.database.getConnection();
-      const context = await loadExecutionContext(db, agentId, 'reactive', {});
-
-      logger.info('Execution context loaded', {
-        activeTasks: context.activeTasks.length,
-        messages: context.messages.length,
-        workspaceFiles: context.workspaceFiles.length,
+    // Execute through the pool to enforce max concurrent limit
+    return this.executionPool.execute(agentId, async () => {
+      const logger = createAgentLogger(agentId);
+      logger.info('Starting reactive execution', {
+        agentId,
+        triggerType: trigger.type,
+        messageId: trigger.messageId,
       });
 
-      // Get framework adapter for this agent (with fallback support)
-      const adapterResult = await this.adapterRegistry.getHealthyAdapter(
-        context.config.framework.primary,
-        context.config.framework.fallback
-      );
-
-      if (!adapterResult) {
+      // Try to acquire lock without waiting (fail fast for concurrent executions of same agent)
+      const release = this.agentLock.tryAcquire(agentId);
+      if (!release) {
         throw new ExecutionError(
-          `No healthy adapter available for framework: ${context.config.framework.primary}`
+          `Agent ${agentId} is already executing. Concurrent executions are not allowed.`
         );
       }
 
-      const { adapter, usedFallback } = adapterResult;
+      const startTime = Date.now();
 
-      if (usedFallback) {
-        logger.warn('Using fallback adapter', {
-          primary: context.config.framework.primary,
-          fallback: context.config.framework.fallback,
+      try {
+        // Load agent record from database
+        const agent = await getAgent(agentId);
+        if (!agent) {
+          throw new ExecutionError(`Agent not found: ${agentId}`);
+        }
+
+        // Check agent status
+        if (agent.status !== 'active') {
+          throw new ExecutionError(
+            `Agent is not active (status: ${agent.status})`
+          );
+        }
+
+        // Load execution context (config, tasks, messages, workspace)
+        const db = this.database.getConnection();
+        const context = await loadExecutionContext(db, agentId, 'reactive', {});
+
+        logger.info('Execution context loaded', {
+          activeTasks: context.activeTasks.length,
+          messages: context.messages.length,
+          workspaceFiles: context.workspaceFiles.length,
         });
-      }
 
-      // Execute agent with timeout
-      const result: ExecutionResult = await this.executeWithTimeout(
-        () => adapter.executeAgent(agentId, 'reactive', context),
-        this.maxExecutionTime,
-        'Reactive execution timeout'
-      );
+        // Get framework adapter for this agent (with fallback support)
+        const adapterResult = await this.adapterRegistry.getHealthyAdapter(
+          context.config.framework.primary,
+          context.config.framework.fallback
+        );
 
-      // Calculate duration
-      const duration = Date.now() - startTime;
+        if (!adapterResult) {
+          throw new ExecutionError(
+            `No healthy adapter available for framework: ${context.config.framework.primary}`
+          );
+        }
 
-      // Log audit event
-      await auditLog({
-        agentId,
-        action: AuditAction.EXECUTE,
-        details: {
-          mode: 'reactive',
-          triggerType: trigger.type,
-          messageId: trigger.messageId,
+        const { adapter, usedFallback } = adapterResult;
+
+        if (usedFallback) {
+          logger.warn('Using fallback adapter', {
+            primary: context.config.framework.primary,
+            fallback: context.config.framework.fallback,
+          });
+        }
+
+        // Execute agent with timeout
+        const result: ExecutionResult = await this.executeWithTimeout(
+          () => adapter.executeAgent(agentId, 'reactive', context),
+          this.maxExecutionTime,
+          'Reactive execution timeout'
+        );
+
+        // Calculate duration
+        const duration = Date.now() - startTime;
+
+        // Log audit event
+        await auditLog({
+          agentId,
+          action: AuditAction.EXECUTE,
+          details: {
+            mode: 'reactive',
+            triggerType: trigger.type,
+            messageId: trigger.messageId,
+            success: result.success,
+            tasksCompleted: result.tasksCompleted,
+            messagesProcessed: result.messagesProcessed,
+            duration,
+          },
+        });
+
+        logger.info('Reactive execution completed', {
           success: result.success,
           tasksCompleted: result.tasksCompleted,
           messagesProcessed: result.messagesProcessed,
           duration,
-        },
-      });
+        });
 
-      logger.info('Reactive execution completed', {
-        success: result.success,
-        tasksCompleted: result.tasksCompleted,
-        messagesProcessed: result.messagesProcessed,
-        duration,
-      });
-
-      return result;
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      logger.error('Reactive execution failed', {
-        error: error instanceof Error ? error.message : String(error),
-        duration,
-      });
-
-      // Log failure audit event
-      await auditLog({
-        agentId,
-        action: AuditAction.EXECUTE,
-        details: {
-          mode: 'reactive',
-          triggerType: trigger.type,
-          success: false,
+        return result;
+      } catch (error) {
+        const duration = Date.now() - startTime;
+        logger.error('Reactive execution failed', {
           error: error instanceof Error ? error.message : String(error),
           duration,
-        },
-      });
+        });
 
-      throw error;
-    } finally {
-      // Always release lock, even on error
-      release();
-    }
+        // Log failure audit event
+        await auditLog({
+          agentId,
+          action: AuditAction.EXECUTE,
+          details: {
+            mode: 'reactive',
+            triggerType: trigger.type,
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+            duration,
+          },
+        });
+
+        throw error;
+      } finally {
+        // Always release lock, even on error
+        release();
+      }
+    });
   }
 
   /**
@@ -699,6 +715,33 @@ export class ExecutionOrchestrator {
    */
   isExecuting(agentId: string): boolean {
     return this.agentLock.isLocked(agentId);
+  }
+
+  /**
+   * Get list of currently executing agent IDs
+   *
+   * @returns Array of active agent IDs
+   */
+  getActiveExecutions(): string[] {
+    return this.executionPool.getActiveExecutions();
+  }
+
+  /**
+   * Get number of tasks waiting in the execution queue
+   *
+   * @returns Queue depth
+   */
+  getQueueDepth(): number {
+    return this.executionPool.getQueueDepth();
+  }
+
+  /**
+   * Get comprehensive pool statistics
+   *
+   * @returns Pool statistics including active count, queue depth, and performance metrics
+   */
+  getPoolStatistics(): PoolStatistics {
+    return this.executionPool.getStatistics();
   }
 }
 
