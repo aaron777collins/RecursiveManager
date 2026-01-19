@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 20:28:50 EST
+Last Updated: 2026-01-18 20:34:00 EST
 
 ## Status
 
@@ -107,7 +107,7 @@ RecursiveManager is a hierarchical AI agent system with:
 ##### JSON Schema Definition
 
 - [x] Task 1.2.10: Define agent-config.schema.json (identity, goal, permissions, framework, communication, behavior, metadata)
-- [ ] Task 1.2.11: Define schedule.schema.json (mode, continuous, timeBased, reactive, pauseConditions)
+- [x] Task 1.2.11: Define schedule.schema.json (mode, continuous, timeBased, reactive, pauseConditions)
 - [ ] Task 1.2.12: Define task.schema.json (task, hierarchy, delegation, progress, context, execution)
 - [ ] Task 1.2.13: Define message.schema.json (frontmatter fields)
 - [ ] Task 1.2.14: Define metadata.schema.json (runtime, statistics, health, budget)
@@ -532,6 +532,139 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.2.11: Define schedule.schema.json ✅
+
+**Summary**: Created comprehensive JSON Schema for agent scheduling configuration with full validation rules. Includes mode-based scheduling (continuous, timeBased, reactive, hybrid), time-based triggers, reactive triggers, and pause conditions. Includes 33 passing tests covering all scheduling scenarios.
+
+**What Was Implemented**:
+
+- ✅ Created `packages/common/src/schemas/schedule.schema.json` (7.3KB, 229 lines)
+  - Complete JSON Schema Draft-07 definition
+  - Schema ID: https://recursivemanager.dev/schemas/schedule.schema.json
+  - Title and description metadata
+- ✅ Required top-level fields defined:
+  - `version` - Semantic version pattern (e.g., "1.0.0")
+  - `mode` - Scheduling mode enum (continuous, timeBased, reactive, hybrid)
+- ✅ Optional sections with defaults:
+  - `continuous` - Continuous execution configuration
+  - `timeBased` - Time-based scheduling configuration
+  - `reactive` - Reactive trigger configuration
+  - `pauseConditions` - Conditions that pause agent execution
+- ✅ Continuous section (optional):
+  - `enabled` - Boolean flag (default: true)
+  - `conditions` - Execution conditions object
+    - `onlyWhenTasksPending` - Only run when tasks exist (default: true)
+    - `minimumInterval` - Min time between executions (pattern: "5m", "1h", etc.)
+    - `pauseBetweenRuns` - Pause duration between runs (pattern: "1m", "30s", etc.)
+- ✅ TimeBased section (optional):
+  - `enabled` - Boolean flag (default: true)
+  - `triggers` - Array of time-based triggers
+    - Each trigger: id, description, schedule (cron), action, timezone
+    - Trigger IDs validated with alphanumeric pattern
+    - Cron schedule format (e.g., "0 9 \* \* \*")
+    - IANA timezone support (default: "UTC")
+- ✅ Reactive section (optional):
+  - `enabled` - Boolean flag (default: true)
+  - `triggers` - Array of reactive triggers
+    - `source` - Message source enum (slack, telegram, email, internal)
+    - `channel` - Channel name (for slack)
+    - `mentions`, `directMessages` - Boolean flags
+    - `debounce` - Debounce period (pattern: "30s", "1m", etc.)
+    - `fromAgents` - Array of agent IDs (for internal source)
+    - `priority` - Priority enum (immediate, high, normal, low)
+- ✅ PauseConditions section (optional):
+  - `ifManagerPaused` - Pause if manager is paused (default: true)
+  - `ifOutOfBudget` - Pause if budget exhausted (default: true)
+  - `ifSystemMaintenance` - Pause during maintenance (default: true)
+  - `manualPause` - Manual pause flag (default: false)
+- ✅ Validation features:
+  - Type checking (string, boolean, array, object)
+  - Pattern validation (version, trigger IDs, intervals, debounce)
+  - Enum validation (mode, source, priority)
+  - Required vs optional fields with sensible defaults
+  - Additional properties rejected for strict validation
+- ✅ Exported from `@recursive-manager/common` package
+  - Added to index.ts with proper TypeScript import
+  - Available for use in validation functions
+  - Schema file copied to dist/ directory on build
+- ✅ Comprehensive test suite (33 tests, all passing)
+  - Schema structure validation (metadata, compilation, required fields)
+  - Valid configuration tests (minimal, complete, all modes)
+  - Mode-specific tests (continuous-only, timeBased-only, reactive-only, hybrid)
+  - Enum validation tests (all modes, sources, priorities)
+  - Pattern validation tests (intervals, debounce, trigger IDs)
+  - Invalid configuration tests (missing fields, bad formats, invalid enums)
+  - Default values tests (all default values verified)
+  - Edge cases (empty triggers, disabled sections, multiple triggers)
+- ✅ Build system updated
+  - Added `copy-schemas` script to package.json
+  - Build now copies schema files to dist/schemas/
+  - Both agent-config.schema.json and schedule.schema.json in dist
+
+**Files Created/Modified**:
+
+1. `packages/common/src/schemas/schedule.schema.json` (229 lines) - JSON Schema definition
+2. `packages/common/src/__tests__/schedule-schema.test.ts` (586 lines) - Comprehensive tests
+3. `packages/common/src/index.ts` - Updated exports to include scheduleSchema
+4. `packages/common/package.json` - Added copy-schemas script to build process
+
+**Testing Results**:
+
+- ✅ 33/33 schedule schema tests passing
+- ✅ 302/302 total tests passing in common package (269 previous + 33 new)
+- ✅ All tests complete in ~12 seconds
+- ✅ ESLint passes with TypeScript strict mode
+- ✅ TypeScript compilation successful
+- ✅ Schema files correctly copied to dist/schemas/
+- ✅ Test coverage includes:
+  - Schema metadata and compilation
+  - Minimal and complete valid configurations
+  - All scheduling modes (continuous, timeBased, reactive, hybrid)
+  - All reactive sources (slack, telegram, email, internal)
+  - All priority levels (immediate, high, normal, low)
+  - Pattern validation (intervals, debounce patterns)
+  - Invalid configuration detection with detailed errors
+  - Default values verification
+  - Edge cases (empty arrays, disabled sections, multiple triggers)
+
+**Key Design Decisions**:
+
+1. **JSON Schema Draft-07**: Standard, widely-supported schema version
+2. **Strict validation**: No additional properties allowed at top level
+3. **Semantic versioning**: Version field uses regex pattern for proper SemVer format
+4. **Trigger ID pattern**: Allows alphanumeric, hyphens, and underscores only (security)
+5. **Interval/debounce patterns**: Regex pattern enforces format like "5m", "30s", "1h", "2d"
+6. **Enum types**: Comprehensive enums for mode, source, priority
+7. **Sensible defaults**: All optional sections have reasonable defaults
+8. **Hybrid mode support**: Default mode is "hybrid" for maximum flexibility
+9. **Empty triggers allowed**: Triggers arrays can be empty (flexibility)
+10. **Timezone support**: IANA timezone strings for time-based triggers
+
+**Schema Coverage**:
+
+Implements all fields from FILE_STRUCTURE_SPEC.md section 2 (schedule.json):
+
+- ✅ $schema reference
+- ✅ version field
+- ✅ mode (continuous, timeBased, reactive, hybrid)
+- ✅ continuous (enabled, conditions with intervals)
+- ✅ timeBased (enabled, triggers with cron schedules)
+- ✅ reactive (enabled, triggers with sources and priorities)
+- ✅ pauseConditions (all 4 pause condition flags)
+
+**Integration Points**:
+
+Will be used by:
+
+- Task 1.2.16: validateSchedule() function (uses this schema with AJV)
+- Task 2.1: Agent configuration management (load/save schedule.json)
+- Task 4: Scheduling & Triggers phase (scheduler daemon reads this)
+- All future schedule configuration operations
+
+**Next Task**: Task 1.2.12 - Define task.schema.json
+
+---
 
 ### Task 1.2.10: Define agent-config.schema.json ✅
 

@@ -92,5 +92,6 @@ export {
 // JSON Schemas (Phase 1.2)
 // Export schemas as importable JSON for validation
 import agentConfigSchema from './schemas/agent-config.schema.json';
+import scheduleSchema from './schemas/schedule.schema.json';
 
-export { agentConfigSchema };
+export { agentConfigSchema, scheduleSchema };

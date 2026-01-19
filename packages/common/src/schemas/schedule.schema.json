@@ -1,0 +1,232 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://recursivemanager.dev/schemas/schedule.schema.json",
+  "title": "Agent Schedule Configuration",
+  "description": "Schema for RecursiveManager agent scheduling and triggers",
+  "type": "object",
+  "required": ["version", "mode"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "version": {
+      "type": "string",
+      "description": "Schedule schema version",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "default": "1.0.0"
+    },
+    "mode": {
+      "type": "string",
+      "description": "Scheduling mode for agent execution",
+      "enum": ["continuous", "timeBased", "reactive", "hybrid"],
+      "default": "hybrid"
+    },
+    "continuous": {
+      "type": "object",
+      "description": "Continuous execution configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether continuous execution is enabled",
+          "default": true
+        },
+        "conditions": {
+          "type": "object",
+          "description": "Conditions for continuous execution",
+          "properties": {
+            "onlyWhenTasksPending": {
+              "type": "boolean",
+              "description": "Only run when agent has pending tasks",
+              "default": true
+            },
+            "minimumInterval": {
+              "type": "string",
+              "description": "Minimum time between executions (e.g., '5m', '1h', '30s')",
+              "pattern": "^[0-9]+(s|m|h|d)$",
+              "default": "5m"
+            },
+            "pauseBetweenRuns": {
+              "type": "string",
+              "description": "Pause duration between continuous runs (e.g., '1m', '30s')",
+              "pattern": "^[0-9]+(s|m|h|d)$",
+              "default": "1m"
+            }
+          },
+          "additionalProperties": false,
+          "default": {
+            "onlyWhenTasksPending": true,
+            "minimumInterval": "5m",
+            "pauseBetweenRuns": "1m"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "default": {
+        "enabled": true,
+        "conditions": {
+          "onlyWhenTasksPending": true,
+          "minimumInterval": "5m",
+          "pauseBetweenRuns": "1m"
+        }
+      }
+    },
+    "timeBased": {
+      "type": "object",
+      "description": "Time-based scheduling configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether time-based triggers are enabled",
+          "default": true
+        },
+        "triggers": {
+          "type": "array",
+          "description": "List of time-based triggers",
+          "items": {
+            "type": "object",
+            "required": ["id", "description", "schedule", "action"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Unique trigger identifier",
+                "minLength": 1,
+                "pattern": "^[a-zA-Z0-9-_]+$"
+              },
+              "description": {
+                "type": "string",
+                "description": "Human-readable description of trigger purpose",
+                "minLength": 1
+              },
+              "schedule": {
+                "type": "string",
+                "description": "Cron expression defining when trigger fires",
+                "minLength": 1
+              },
+              "action": {
+                "type": "string",
+                "description": "Action to perform when trigger fires",
+                "minLength": 1
+              },
+              "timezone": {
+                "type": "string",
+                "description": "IANA timezone for cron schedule",
+                "default": "UTC"
+              }
+            },
+            "additionalProperties": false
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false,
+      "default": {
+        "enabled": true,
+        "triggers": []
+      }
+    },
+    "reactive": {
+      "type": "object",
+      "description": "Reactive trigger configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether reactive triggers are enabled",
+          "default": true
+        },
+        "triggers": {
+          "type": "array",
+          "description": "List of reactive triggers",
+          "items": {
+            "type": "object",
+            "required": ["source"],
+            "properties": {
+              "source": {
+                "type": "string",
+                "description": "Message source (slack, telegram, email, internal)",
+                "enum": ["slack", "telegram", "email", "internal"]
+              },
+              "channel": {
+                "type": "string",
+                "description": "Channel name (for slack)",
+                "minLength": 1
+              },
+              "mentions": {
+                "type": "boolean",
+                "description": "Trigger on mentions",
+                "default": true
+              },
+              "directMessages": {
+                "type": "boolean",
+                "description": "Trigger on direct messages",
+                "default": true
+              },
+              "debounce": {
+                "type": "string",
+                "description": "Debounce period for rapid messages (e.g., '30s', '1m')",
+                "pattern": "^[0-9]+(s|m|h)$",
+                "default": "30s"
+              },
+              "fromAgents": {
+                "type": "array",
+                "description": "List of agent IDs to listen to (for internal source)",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "default": []
+              },
+              "priority": {
+                "type": "string",
+                "description": "Message priority level",
+                "enum": ["immediate", "high", "normal", "low"],
+                "default": "normal"
+              }
+            },
+            "additionalProperties": false
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false,
+      "default": {
+        "enabled": true,
+        "triggers": []
+      }
+    },
+    "pauseConditions": {
+      "type": "object",
+      "description": "Conditions that pause agent execution",
+      "properties": {
+        "ifManagerPaused": {
+          "type": "boolean",
+          "description": "Pause if manager agent is paused",
+          "default": true
+        },
+        "ifOutOfBudget": {
+          "type": "boolean",
+          "description": "Pause if execution budget is exhausted",
+          "default": true
+        },
+        "ifSystemMaintenance": {
+          "type": "boolean",
+          "description": "Pause during system maintenance",
+          "default": true
+        },
+        "manualPause": {
+          "type": "boolean",
+          "description": "Manual pause flag (set by user/manager)",
+          "default": false
+        }
+      },
+      "additionalProperties": false,
+      "default": {
+        "ifManagerPaused": true,
+        "ifOutOfBudget": true,
+        "ifSystemMaintenance": true,
+        "manualPause": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
