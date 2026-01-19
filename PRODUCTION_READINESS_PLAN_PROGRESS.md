@@ -86,7 +86,7 @@ IN_PROGRESS
 - [x] Create docs/guide/quick-start.md (step-by-step first use, basic examples)
 - [x] Create docs/guide/core-concepts.md (hierarchy, delegation, perspectives)
 - [x] Create docs/guide/creating-agents.md (hiring, roles, manager relationships)
-- [ ] Create docs/guide/task-management.md (lifecycle, blocking, deadlock detection)
+- [x] Create docs/guide/task-management.md (lifecycle, blocking, deadlock detection)
 - [ ] Create docs/guide/scheduling.md (cron, time-based, recurring tasks)
 - [ ] Create docs/guide/messaging.md (inter-agent communication, channels)
 - [ ] Create docs/guide/multi-perspective.md (8 perspectives, synthesis workflow)
@@ -221,6 +221,73 @@ IN_PROGRESS
 - [ ] Verify all GitHub Actions workflows passing on master branch
 
 ## Completed This Iteration
+
+**Iteration 17: Create docs/guide/task-management.md**
+- Created comprehensive task management guide (1,543 lines, 48KB)
+- Structured in 12 main sections covering complete task management system:
+  1. Overview (task management capabilities)
+  2. Task Lifecycle (5 states: pending → in-progress → blocked → completed → archived)
+  3. Task Data Structure (database schema, TypeScript interfaces, indexes)
+  4. Creating Tasks (basic creation, subtasks, depth limits, dependencies, workspace)
+  5. Task Status and Progress (status updates, optimistic locking, progress tracking, parent cascade)
+  6. Task Blocking and Dependencies (creating blocked tasks, validation, agent pause, querying)
+  7. Deadlock Detection (DFS algorithm, monitoring, notifications, resolution strategies)
+  8. Task Delegation (delegation to subordinates, validation, notifications)
+  9. Task Completion (basic completion, file operations, notifications, parent updates)
+  10. Task Archival (automatic archival, structure, compression, querying)
+  11. Best Practices (8 recommendations for effective task management)
+  12. Common Patterns (4 reusable patterns: pipeline, parallel-merge, hierarchical, auto-retry)
+  13. Troubleshooting (5 common issues with diagnosis and solutions)
+- Documents complete task lifecycle from creation to archival
+- Includes TASK_MAX_DEPTH constant (depth 0-5 hierarchy)
+- Explains optimistic locking with version field for concurrency control
+- Details task blocking system:
+  - Dependency blocking (blocked_by JSON array)
+  - Agent pause blocking (PAUSE_BLOCKER constant)
+  - Circular dependency detection (DFS validation)
+  - Self-reference prevention
+- Comprehensive deadlock detection coverage:
+  - DFS algorithm for cycle detection
+  - Automatic monitoring with monitorDeadlocks()
+  - Notification system for involved agents
+  - 3 resolution strategies (remove dependency, reorder, escalate)
+- Documents task delegation workflow:
+  - Subordinate validation via org_hierarchy
+  - delegateTask() function
+  - notifyTaskDelegation() for notifications
+- Explains parent-child task relationships:
+  - subtasks_total and subtasks_completed tracking
+  - Automatic progress cascade up hierarchy
+  - percent_complete calculation
+- Covers task archival system:
+  - Archive after 7 days by default
+  - Archive structure: archive/{YYYY-MM}/
+  - Compression after 90 days to .tar.gz
+- Includes 8 best practices:
+  1. Keep hierarchies shallow (0-3 levels recommended)
+  2. Use clear task titles
+  3. Set appropriate priorities
+  4. Minimize dependencies
+  5. Monitor for deadlocks
+  6. Use progress updates
+  7. Clean up completed tasks
+  8. Handle optimistic locking
+- Provides 4 common patterns:
+  1. Task Pipeline (linear dependency chain)
+  2. Parallel with Merge (fan-out/fan-in)
+  3. Hierarchical Breakdown (nested subtasks)
+  4. Auto-Retry (automatic failure recovery)
+- Comprehensive troubleshooting section:
+  - Task stuck in blocked status
+  - Deadlock not detected
+  - Parent progress not updating
+  - Version mismatch errors
+  - Task files not found
+- All examples include TypeScript code with proper imports
+- Links to 9 related documentation pages
+- Follows VitePress markdown format with warning callouts
+- Successfully validates markdown structure
+- Phase 3.1 (Guide Files) - 4/9 tasks complete
 
 **Iteration 16: Create docs/guide/creating-agents.md**
 - Created comprehensive agent creation and hiring guide (1,024 lines, 51KB)
