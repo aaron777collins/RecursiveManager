@@ -31,9 +31,16 @@ import {
   updateAgent,
   getSubordinates,
   AgentRecord,
+  createMessage,
+  MessageInput,
 } from '@recursive-manager/common';
 import { auditLog, AuditAction } from '@recursive-manager/common';
 import { loadAgentConfig } from '../config';
+import {
+  generateMessageId,
+  writeMessageToInbox,
+  MessageData,
+} from '../messaging/messageWriter';
 
 /**
  * Strategy for handling orphaned subordinates when an agent is fired
@@ -453,6 +460,305 @@ async function handleAbandonedTasks(
 }
 
 /**
+ * Send notifications to affected agents after firing operation
+ *
+ * Notifies:
+ * 1. The fired agent (high priority, action required)
+ * 2. The manager (if exists) about subordinate termination
+ * 3. All subordinates about their status change
+ *
+ * @param db - Database instance
+ * @param firedAgent - The agent being fired
+ * @param subordinates - List of subordinates affected
+ * @param strategy - Strategy used for orphan handling
+ * @param result - Fire operation result details
+ * @param options - Path resolution options
+ */
+async function notifyAffectedAgents(
+  db: Database.Database,
+  firedAgent: AgentRecord,
+  subordinates: AgentRecord[],
+  strategy: FireStrategy,
+  result: { orphansHandled: number; tasksReassigned: number; tasksArchived: number },
+  options: PathOptions = {}
+): Promise<void> {
+  const logger = createAgentLogger('system');
+  const timestamp = new Date().toISOString();
+
+  logger.info('Sending notifications to affected agents', {
+    firedAgentId: firedAgent.id,
+    strategy,
+    subordinatesCount: subordinates.length,
+  });
+
+  const notifications: Array<{ agentId: string; message: MessageData; dbMessage: MessageInput }> = [];
+
+  // 1. Notification to the fired agent
+  const firedAgentMessageId = generateMessageId();
+  const firedAgentFilePath = `inbox/unread/${firedAgentMessageId}.md`;
+
+  notifications.push({
+    agentId: firedAgent.id,
+    message: {
+      id: firedAgentMessageId,
+      from: 'system',
+      to: firedAgent.id,
+      timestamp,
+      priority: 'high',
+      channel: 'internal',
+      read: false,
+      actionRequired: true,
+      subject: `Termination Notice: You have been fired`,
+      content: `# Termination Notice
+
+You have been terminated from your position as **${firedAgent.role}**.
+
+## Details
+
+- **Effective Date**: ${timestamp}
+- **Subordinates**: ${subordinates.length > 0 ? `${subordinates.length} subordinate(s) affected` : 'No subordinates'}
+- **Strategy Applied**: ${strategy}
+- **Tasks Handled**: ${result.tasksReassigned} reassigned, ${result.tasksArchived} archived
+
+## What Happens Next
+
+${subordinates.length > 0 ? `Your subordinates have been ${strategy === 'cascade' ? 'cascade-fired' : strategy === 'reassign' ? 'reassigned to your manager' : 'promoted under your manager'}.` : 'You had no subordinates.'}
+
+Your agent directory has been archived to the backups folder for future reference.
+
+## Action Required
+
+Please ensure all outstanding work is documented and accessible to your manager${firedAgent.reporting_to ? ` (${firedAgent.reporting_to})` : ''}.
+
+---
+*This is an automated system notification.*`,
+    },
+    dbMessage: {
+      id: firedAgentMessageId,
+      from_agent_id: 'system',
+      to_agent_id: firedAgent.id,
+      timestamp,
+      priority: 'high',
+      channel: 'internal',
+      read: false,
+      action_required: true,
+      subject: `Termination Notice: You have been fired`,
+      message_path: firedAgentFilePath,
+    },
+  });
+
+  // 2. Notification to the manager (if exists)
+  if (firedAgent.reporting_to) {
+    const managerMessageId = generateMessageId();
+    const managerFilePath = `inbox/unread/${managerMessageId}.md`;
+
+    notifications.push({
+      agentId: firedAgent.reporting_to,
+      message: {
+        id: managerMessageId,
+        from: 'system',
+        to: firedAgent.reporting_to,
+        timestamp,
+        priority: 'high',
+        channel: 'internal',
+        read: false,
+        actionRequired: false,
+        subject: `Subordinate Termination: ${firedAgent.role} (${firedAgent.id})`,
+        content: `# Subordinate Termination Notification
+
+Your subordinate **${firedAgent.display_name}** (${firedAgent.role}) has been terminated.
+
+## Details
+
+- **Agent ID**: ${firedAgent.id}
+- **Role**: ${firedAgent.role}
+- **Termination Date**: ${timestamp}
+- **Orphan Strategy**: ${strategy}
+- **Subordinates Affected**: ${subordinates.length}
+
+## Impact
+
+${subordinates.length > 0 ? `
+### Subordinates Handled
+
+The fired agent had ${subordinates.length} direct report(s). The following action was taken:
+
+${strategy === 'reassign' ? `- All subordinates have been **reassigned** to you` : strategy === 'promote' ? `- All subordinates have been **promoted** to report to you` : `- All subordinates have been **cascade-fired**`}
+` : '- No subordinates were affected (agent had no direct reports)'}
+
+### Tasks
+
+- **Tasks Reassigned**: ${result.tasksReassigned}
+- **Tasks Archived**: ${result.tasksArchived}
+
+## Next Steps
+
+${subordinates.length > 0 && strategy !== 'cascade' ? `You now have ${subordinates.length} additional direct report(s). Please review their work and provide guidance as needed.` : 'No action required from you at this time.'}
+
+---
+*This is an automated system notification.*`,
+      },
+      dbMessage: {
+        id: managerMessageId,
+        from_agent_id: 'system',
+        to_agent_id: firedAgent.reporting_to,
+        timestamp,
+        priority: 'high',
+        channel: 'internal',
+        read: false,
+        action_required: false,
+        subject: `Subordinate Termination: ${firedAgent.role} (${firedAgent.id})`,
+        message_path: managerFilePath,
+      },
+    });
+  }
+
+  // 3. Notifications to subordinates
+  for (const subordinate of subordinates) {
+    const subordinateMessageId = generateMessageId();
+    const subordinateFilePath = `inbox/unread/${subordinateMessageId}.md`;
+
+    if (strategy === 'cascade') {
+      // Notify about cascade firing
+      notifications.push({
+        agentId: subordinate.id,
+        message: {
+          id: subordinateMessageId,
+          from: 'system',
+          to: subordinate.id,
+          timestamp,
+          priority: 'urgent',
+          channel: 'internal',
+          read: false,
+          actionRequired: true,
+          subject: `Cascade Termination: You have been fired`,
+          content: `# Cascade Termination Notice
+
+You have been terminated as part of a cascade firing operation.
+
+## Details
+
+- **Effective Date**: ${timestamp}
+- **Reason**: Your manager **${firedAgent.display_name}** (${firedAgent.role}) was fired, triggering a cascade termination
+- **Your Role**: ${subordinate.role}
+
+## What This Means
+
+When an agent is fired with the "cascade" strategy, all subordinates in the reporting chain are also terminated. This ensures clean organizational structure.
+
+## Action Required
+
+Please ensure all outstanding work is documented. Your agent directory will be archived to the backups folder.
+
+---
+*This is an automated system notification.*`,
+        },
+        dbMessage: {
+          id: subordinateMessageId,
+          from_agent_id: 'system',
+          to_agent_id: subordinate.id,
+          timestamp,
+          priority: 'urgent',
+          channel: 'internal',
+          read: false,
+          action_required: true,
+          subject: `Cascade Termination: You have been fired`,
+          message_path: subordinateFilePath,
+        },
+      });
+    } else {
+      // Notify about manager change (reassign or promote)
+      const newManagerId = firedAgent.reporting_to || 'none';
+      notifications.push({
+        agentId: subordinate.id,
+        message: {
+          id: subordinateMessageId,
+          from: 'system',
+          to: subordinate.id,
+          timestamp,
+          priority: 'high',
+          channel: 'internal',
+          read: false,
+          actionRequired: true,
+          subject: `Manager Change: New reporting structure`,
+          content: `# Manager Change Notification
+
+Your reporting structure has changed due to your manager being terminated.
+
+## Details
+
+- **Former Manager**: ${firedAgent.display_name} (${firedAgent.role}, ${firedAgent.id})
+- **Termination Date**: ${timestamp}
+- **New Manager**: ${newManagerId}
+- **Strategy**: ${strategy}
+
+## What This Means
+
+${strategy === 'reassign' ? `You have been **reassigned** to your former manager's supervisor. Your new reporting relationship is now with agent \`${newManagerId}\`.` : `You have been **promoted** in the hierarchy. You now report directly to agent \`${newManagerId}\`.`}
+
+## Action Required
+
+- Update any ongoing work to reflect the new reporting structure
+- Reach out to your new manager for guidance on priorities
+- Continue your assigned tasks without interruption
+
+Your role and responsibilities remain unchanged.
+
+---
+*This is an automated system notification.*`,
+        },
+        dbMessage: {
+          id: subordinateMessageId,
+          from_agent_id: 'system',
+          to_agent_id: subordinate.id,
+          timestamp,
+          priority: 'high',
+          channel: 'internal',
+          read: false,
+          action_required: true,
+          subject: `Manager Change: New reporting structure`,
+          message_path: subordinateFilePath,
+        },
+      });
+    }
+  }
+
+  // Send all notifications in batch
+  let successCount = 0;
+  let errorCount = 0;
+
+  for (const { agentId, message, dbMessage } of notifications) {
+    try {
+      // Write to database
+      createMessage(db, dbMessage);
+
+      // Write to filesystem
+      await writeMessageToInbox(agentId, message, options);
+
+      successCount++;
+      logger.debug('Notification sent successfully', {
+        messageId: message.id,
+        toAgent: agentId,
+      });
+    } catch (err) {
+      errorCount++;
+      logger.error('Failed to send notification', {
+        messageId: message.id,
+        toAgent: agentId,
+        error: (err as Error).message,
+      });
+      // Continue with other notifications even if one fails
+    }
+  }
+
+  logger.info('Notification phase completed', {
+    total: notifications.length,
+    success: successCount,
+    errors: errorCount,
+  });
+}
+
+/**
  * Fire an agent from the organization
  *
  * This is the main orchestration function that handles the complete agent firing process.
@@ -476,12 +782,18 @@ async function handleAbandonedTasks(
  *    - Update agent status to 'fired'
  *    - Audit log the FIRE action
  *
- * 5. **Parent Updates** (if agent has a manager)
+ * 5. **Notify Affected Agents**
+ *    - Send notification to the fired agent
+ *    - Send notification to the manager (if exists)
+ *    - Send notifications to all subordinates based on strategy
+ *    - Write messages to database and filesystem
+ *
+ * 6. **Parent Updates** (if agent has a manager)
  *    - Update parent's subordinates/registry.json
  *    - Mark agent as fired in registry
  *    - Update summary statistics
  *
- * 6. **Filesystem Operations**
+ * 7. **Filesystem Operations**
  *    - Archive agent directory to backups/fired-agents/
  *    - Preserve all agent data for future reference
  *
@@ -545,6 +857,13 @@ export async function fireAgent(
 
     // STEP 2: HANDLE ORPHANED SUBORDINATES
     logger.info('Handling orphaned subordinates', { agentId, strategy });
+
+    // Get subordinates before handling them (needed for notifications later)
+    const subordinates = getSubordinates(db, agentId);
+    logger.debug('Retrieved subordinates for notification', {
+      agentId,
+      count: subordinates.length,
+    });
 
     let orphansHandled = 0;
     try {
@@ -630,7 +949,32 @@ export async function fireAgent(
       throw new FireAgentError(`Failed to update agent status: ${error.message}`, agentId, error);
     }
 
-    // STEP 5: PARENT UPDATES (if agent has a manager)
+    // STEP 5: NOTIFY AFFECTED AGENTS
+    logger.info('Notifying affected agents', { agentId });
+
+    try {
+      await notifyAffectedAgents(
+        db,
+        agent,
+        subordinates,
+        strategy,
+        {
+          orphansHandled,
+          tasksReassigned: taskResult.reassigned,
+          tasksArchived: taskResult.archived,
+        },
+        options
+      );
+      logger.info('Affected agents notified', { agentId });
+    } catch (err) {
+      logger.error('Failed to notify affected agents', {
+        agentId,
+        error: (err as Error).message,
+      });
+      // Don't throw - notification failure is non-critical
+    }
+
+    // STEP 6: PARENT UPDATES (if agent has a manager)
     if (agent.reporting_to) {
       logger.info('Updating parent subordinates registry', {
         agentId,
@@ -653,7 +997,7 @@ export async function fireAgent(
       }
     }
 
-    // STEP 6: FILESYSTEM OPERATIONS (Archive)
+    // STEP 7: FILESYSTEM OPERATIONS (Archive)
     logger.info('Archiving agent files', { agentId });
 
     let filesArchived = false;

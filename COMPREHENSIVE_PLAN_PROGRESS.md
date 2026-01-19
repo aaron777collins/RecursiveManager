@@ -258,7 +258,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 2.2.12: Handle abandoned tasks (EC-2.3) - reassign or archive
 - [x] Task 2.2.13: Clean up agent files (archive to backups/)
 - [x] Task 2.2.14: Update database (set status='fired', update org_hierarchy)
-- [ ] Task 2.2.15: Notify affected agents (orphans, manager)
+- [x] Task 2.2.15: Notify affected agents (orphans, manager)
 
 ##### Pause/Resume
 
@@ -5067,3 +5067,101 @@ Implemented the complete `hireAgent()` function that orchestrates the full agent
 **Tasks 2.2.5-2.2.9 Status**: ✅ **COMPLETE**
 
 All hiring infrastructure is now complete and ready for CLI integration.
+
+---
+
+## Completed This Iteration (2026-01-19)
+
+**Task Completed**: Task 2.2.15 - Notify affected agents (orphans, manager)
+
+### Implementation Summary
+
+Implemented comprehensive notification system for fireAgent operations that notifies all affected parties when an agent is fired.
+
+### What Was Implemented
+
+1. **Message Query Functions** (`packages/common/src/db/queries/messages.ts`):
+   - `createMessage()` - Insert message records into database
+   - `getMessage()` - Retrieve single message by ID
+   - `getMessages()` - Query messages with filtering (unread, channel, priority, action required)
+   - `markMessageAsRead()` - Update message read status
+   - `markMessageAsArchived()` - Archive messages
+   - `getUnreadMessageCount()` - Count unread messages for an agent
+   - `deleteMessage()` - Delete message (use sparingly)
+
+2. **Message Writer Utilities** (`packages/core/src/messaging/messageWriter.ts`):
+   - `generateMessageId()` - Generate unique message IDs (format: msg-{timestamp}-{random})
+   - `formatMessageFile()` - Convert message data to markdown with YAML frontmatter
+   - `writeMessageToInbox()` - Write message file to agent's inbox (unread/ or read/)
+   - `writeMessagesInBatch()` - Batch write multiple messages with error handling
+
+3. **Notification Integration in fireAgent** (`packages/core/src/lifecycle/fireAgent.ts`):
+   - Added Step 5: "Notify Affected Agents" between database operations and parent updates
+   - `notifyAffectedAgents()` helper function that sends notifications to:
+     - **Fired Agent**: High priority termination notice with action required
+     - **Manager**: Subordinate termination notification with impact details
+     - **Subordinates**: Manager change or cascade termination notices based on strategy
+   - Messages written to both database and filesystem
+   - Graceful error handling - notification failures don't block firing
+
+4. **Comprehensive Test Coverage**:
+   - Unit tests for message query functions (`packages/common/src/db/queries/__tests__/messages.test.ts`)
+   - Unit tests for message writer utilities (`packages/core/src/messaging/__tests__/messageWriter.test.ts`)
+   - Integration tests in fireAgent test suite (`packages/core/src/__tests__/fireAgent.test.ts`)
+   - Tests cover: fired agent notifications, manager notifications, subordinate notifications (reassign/promote/cascade), error handling, batch operations
+
+### Message Content Details
+
+**To Fired Agent**:
+- Priority: HIGH, Action Required: TRUE
+- Subject: "Termination Notice: You have been fired"
+- Content: Effective date, subordinate count, strategy applied, tasks handled, next steps
+
+**To Manager** (if exists):
+- Priority: HIGH, Action Required: FALSE
+- Subject: "Subordinate Termination: {role} ({id})"
+- Content: Terminated agent details, orphan handling strategy, impact summary, task counts
+
+**To Subordinates** (if any):
+- **Reassign/Promote**: Priority HIGH, Action Required: TRUE
+  - Subject: "Manager Change: New reporting structure"
+  - Content: Former manager, new manager, strategy explanation, action items
+- **Cascade**: Priority URGENT, Action Required: TRUE
+  - Subject: "Cascade Termination: You have been fired"
+  - Content: Cascade explanation, reason, effective date, offboarding steps
+
+### Technical Features
+
+- **Dual Persistence**: Messages stored in both database (for queries) and filesystem (for agent access)
+- **Atomic Operations**: Message writes use atomicWrite() from common utilities
+- **Schema Validation**: All messages conform to message.schema.json
+- **Graceful Degradation**: Notification failures logged but don't block firing operation
+- **Rich Context**: Messages include full context about the firing operation (strategy, counts, etc.)
+- **Proper Frontmatter**: Markdown files with YAML frontmatter for metadata
+- **Directory Structure**: Messages go to inbox/unread/ or inbox/read/ based on status
+
+### Files Created
+
+- `packages/common/src/db/queries/messages.ts` (268 lines)
+- `packages/core/src/messaging/messageWriter.ts` (161 lines)
+- `packages/common/src/db/queries/__tests__/messages.test.ts` (368 lines)
+- `packages/core/src/messaging/__tests__/messageWriter.test.ts` (286 lines)
+
+### Files Modified
+
+- `packages/common/src/db/queries/index.ts` (added messages export)
+- `packages/core/src/lifecycle/fireAgent.ts` (added notifyAffectedAgents function and notification phase)
+- `packages/core/src/__tests__/fireAgent.test.ts` (added 7 notification-specific tests)
+- `COMPREHENSIVE_PLAN_PROGRESS.md` (marked Task 2.2.15 complete)
+
+### Testing Coverage
+
+- 7 new test cases specifically for notifications
+- Tests verify messages in database and filesystem
+- Tests cover all strategies (reassign, promote, cascade)
+- Tests verify all affected parties receive appropriate notifications
+- Tests confirm graceful error handling
+
+**Task 2.2.15 Status**: ✅ **COMPLETE**
+
+The fireAgent notification system is now fully implemented and tested. All affected agents (fired agent, manager, subordinates) receive appropriate notifications with rich context about the termination and its impact.

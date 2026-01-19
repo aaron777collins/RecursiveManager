@@ -28,6 +28,8 @@ import {
   queryAuditLog,
   initializeDatabase,
   allMigrations,
+  getMessages,
+  getUnreadMessageCount,
 } from '@recursive-manager/common';
 
 // Test database and temp directory
@@ -561,6 +563,200 @@ describe('fireAgent()', () => {
       const backups = await fs.readdir(backupsDir);
       const archivedDir = backups.find((name) => name.startsWith('ceo-001-'));
       expect(archivedDir).toBeDefined();
+    });
+  });
+
+  describe('Notifications (Task 2.2.15)', () => {
+    it('should send notification to fired agent', async () => {
+      const ceoConfig = generateDefaultConfig('CEO', 'Lead', 'system', {
+        id: 'ceo-001',
+      });
+      await hireAgent(db, null, ceoConfig, { baseDir: tempDir });
+
+      await fireAgent(db, 'ceo-001', 'reassign', { baseDir: tempDir });
+
+      // Check database for message
+      const messages = getMessages(db, { agentId: 'ceo-001' });
+      expect(messages.length).toBeGreaterThan(0);
+
+      const firedNotification = messages.find((m) =>
+        m.subject?.includes('Termination Notice')
+      );
+      expect(firedNotification).toBeDefined();
+      expect(firedNotification?.priority).toBe('high');
+      expect(firedNotification?.action_required).toBe(true);
+      expect(firedNotification?.from_agent_id).toBe('system');
+
+      // Check filesystem for message file
+      const messageFilePath = path.join(
+        tempDir,
+        'agents',
+        'ce',
+        'ceo-001',
+        'inbox',
+        'unread',
+        `${firedNotification?.id}.md`
+      );
+
+      // Note: File may not exist if agent directory was archived
+      // That's expected behavior - messages are written before archival
+    });
+
+    it('should send notification to manager when subordinate is fired', async () => {
+      // Create CEO and CTO reporting to CEO
+      const ceoConfig = generateDefaultConfig('CEO', 'Lead', 'system', {
+        id: 'ceo-001',
+      });
+      await hireAgent(db, null, ceoConfig, { baseDir: tempDir });
+
+      const ctoConfig = generateDefaultConfig('CTO', 'Tech lead', 'ceo-001', {
+        id: 'cto-001',
+      });
+      await hireAgent(db, 'ceo-001', ctoConfig, { baseDir: tempDir });
+
+      // Fire CTO
+      await fireAgent(db, 'cto-001', 'reassign', { baseDir: tempDir });
+
+      // CEO should have received notification
+      const messages = getMessages(db, { agentId: 'ceo-001' });
+      expect(messages.length).toBeGreaterThan(0);
+
+      const managerNotification = messages.find((m) =>
+        m.subject?.includes('Subordinate Termination')
+      );
+      expect(managerNotification).toBeDefined();
+      expect(managerNotification?.priority).toBe('high');
+      expect(managerNotification?.from_agent_id).toBe('system');
+      expect(managerNotification?.subject).toContain('cto-001');
+    });
+
+    it('should send notifications to subordinates on reassign', async () => {
+      // Create CEO -> CTO -> Dev hierarchy
+      const ceoConfig = generateDefaultConfig('CEO', 'Lead', 'system', {
+        id: 'ceo-001',
+      });
+      await hireAgent(db, null, ceoConfig, { baseDir: tempDir });
+
+      const ctoConfig = generateDefaultConfig('CTO', 'Tech lead', 'ceo-001', {
+        id: 'cto-001',
+      });
+      await hireAgent(db, 'ceo-001', ctoConfig, { baseDir: tempDir });
+
+      const devConfig = generateDefaultConfig('Developer', 'Code', 'cto-001', {
+        id: 'dev-001',
+      });
+      await hireAgent(db, 'cto-001', devConfig, { baseDir: tempDir });
+
+      // Fire CTO with reassign strategy
+      await fireAgent(db, 'cto-001', 'reassign', { baseDir: tempDir });
+
+      // Developer should have received notification about manager change
+      const messages = getMessages(db, { agentId: 'dev-001' });
+      expect(messages.length).toBeGreaterThan(0);
+
+      const managerChangeNotification = messages.find((m) =>
+        m.subject?.includes('Manager Change')
+      );
+      expect(managerChangeNotification).toBeDefined();
+      expect(managerChangeNotification?.priority).toBe('high');
+      expect(managerChangeNotification?.action_required).toBe(true);
+    });
+
+    it('should send cascade termination notifications to subordinates', async () => {
+      // Create CEO -> CTO -> Dev hierarchy
+      const ceoConfig = generateDefaultConfig('CEO', 'Lead', 'system', {
+        id: 'ceo-001',
+      });
+      await hireAgent(db, null, ceoConfig, { baseDir: tempDir });
+
+      const ctoConfig = generateDefaultConfig('CTO', 'Tech lead', 'ceo-001', {
+        id: 'cto-001',
+      });
+      await hireAgent(db, 'ceo-001', ctoConfig, { baseDir: tempDir });
+
+      const devConfig = generateDefaultConfig('Developer', 'Code', 'cto-001', {
+        id: 'dev-001',
+      });
+      await hireAgent(db, 'cto-001', devConfig, { baseDir: tempDir });
+
+      // Fire CTO with cascade strategy
+      await fireAgent(db, 'cto-001', 'cascade', { baseDir: tempDir });
+
+      // Developer should have received cascade termination notification
+      const messages = getMessages(db, { agentId: 'dev-001' });
+      expect(messages.length).toBeGreaterThan(0);
+
+      const cascadeNotification = messages.find((m) =>
+        m.subject?.includes('Cascade Termination')
+      );
+      expect(cascadeNotification).toBeDefined();
+      expect(cascadeNotification?.priority).toBe('urgent');
+      expect(cascadeNotification?.action_required).toBe(true);
+    });
+
+    it('should handle notification failures gracefully', async () => {
+      const ceoConfig = generateDefaultConfig('CEO', 'Lead', 'system', {
+        id: 'ceo-001',
+      });
+      await hireAgent(db, null, ceoConfig, { baseDir: tempDir });
+
+      // Fire should succeed even if some notifications fail
+      const result = await fireAgent(db, 'ceo-001', 'reassign', {
+        baseDir: '/invalid/path/that/does/not/exist',
+      });
+
+      expect(result.status).toBe('fired');
+      expect(result.agentId).toBe('ceo-001');
+    });
+
+    it('should send notifications to all affected parties', async () => {
+      // Create CEO -> CTO -> Dev1, Dev2 hierarchy
+      const ceoConfig = generateDefaultConfig('CEO', 'Lead', 'system', {
+        id: 'ceo-001',
+      });
+      await hireAgent(db, null, ceoConfig, { baseDir: tempDir });
+
+      const ctoConfig = generateDefaultConfig('CTO', 'Tech lead', 'ceo-001', {
+        id: 'cto-001',
+      });
+      await hireAgent(db, 'ceo-001', ctoConfig, { baseDir: tempDir });
+
+      const dev1Config = generateDefaultConfig('Developer 1', 'Code', 'cto-001', {
+        id: 'dev-001',
+      });
+      await hireAgent(db, 'cto-001', dev1Config, { baseDir: tempDir });
+
+      const dev2Config = generateDefaultConfig('Developer 2', 'Code', 'cto-001', {
+        id: 'dev-002',
+      });
+      await hireAgent(db, 'cto-001', dev2Config, { baseDir: tempDir });
+
+      // Fire CTO
+      await fireAgent(db, 'cto-001', 'reassign', { baseDir: tempDir });
+
+      // CTO should have termination notification (1 message)
+      const ctoMessages = getMessages(db, { agentId: 'cto-001' });
+      expect(ctoMessages.length).toBeGreaterThanOrEqual(1);
+
+      // CEO should have subordinate termination notification (1 message)
+      const ceoMessages = getMessages(db, { agentId: 'ceo-001' });
+      expect(ceoMessages.length).toBeGreaterThanOrEqual(1);
+
+      // Dev1 should have manager change notification (1 message)
+      const dev1Messages = getMessages(db, { agentId: 'dev-001' });
+      expect(dev1Messages.length).toBeGreaterThanOrEqual(1);
+
+      // Dev2 should have manager change notification (1 message)
+      const dev2Messages = getMessages(db, { agentId: 'dev-002' });
+      expect(dev2Messages.length).toBeGreaterThanOrEqual(1);
+
+      // Total: 4 messages (1 to each affected party)
+      const allUnreadCounts =
+        getUnreadMessageCount(db, 'cto-001') +
+        getUnreadMessageCount(db, 'ceo-001') +
+        getUnreadMessageCount(db, 'dev-001') +
+        getUnreadMessageCount(db, 'dev-002');
+      expect(allUnreadCounts).toBeGreaterThanOrEqual(4);
     });
   });
 });

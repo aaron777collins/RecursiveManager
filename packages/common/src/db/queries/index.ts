@@ -8,3 +8,4 @@ export * from './types';
 export * from './agents';
 export * from './tasks';
 export * from './audit';
+export * from './messages';
