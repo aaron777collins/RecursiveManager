@@ -145,7 +145,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 1.3.5: Create agents table with indexes (status, reporting_to, created_at)
 - [x] Task 1.3.6: Create tasks table with version field and indexes (agent_status, parent, delegated)
-- [ ] Task 1.3.7: Create messages table with indexes (to_unread, timestamp, channel)
+- [x] Task 1.3.7: Create messages table with indexes (to_unread, timestamp, channel)
 - [ ] Task 1.3.8: Create schedules table with indexes (agent, next_execution, enabled)
 - [ ] Task 1.3.9: Create audit_log table with indexes (timestamp, agent, action)
 - [ ] Task 1.3.10: Create org_hierarchy materialized view with indexes
@@ -532,6 +532,63 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.3.7: Create messages table with indexes ✅
+
+**Summary**: Implemented the third database schema migration to create the `messages` table with comprehensive indexes for efficient message querying. This table stores message metadata for communication between agents and external channels (Slack, Telegram, Email), with full message content stored as markdown files in agent inbox/outbox directories.
+
+**What Was Implemented**:
+
+1. **Migration File** (`packages/common/src/db/migrations/003_create_messages_table.ts`):
+   - Created migration version 3 with complete messages table schema
+   - Table includes 16 columns:
+     - Core fields: id (PRIMARY KEY), from_agent_id, to_agent_id, timestamp, priority, channel
+     - Status fields: read (INTEGER/boolean), action_required (INTEGER/boolean), read_at, archived_at
+     - Optional fields: subject, thread_id, in_reply_to (for message threading)
+     - External integration fields: external_id, external_metadata (JSON)
+     - File reference: message_path (to markdown file with full content)
+     - System fields: created_at (auto-generated timestamp)
+   - Three indexes for query optimization:
+     - `idx_messages_to_unread`: Composite index on (to_agent_id, read) - most common query
+     - `idx_messages_timestamp`: For chronological message ordering
+     - `idx_messages_channel`: For filtering by communication channel (internal, slack, telegram, email)
+   - Foreign key constraint:
+     - `to_agent_id` → `agents(id)`: Message recipient
+     - `in_reply_to` → `messages(id)`: Message threading (self-referential)
+   - Default values:
+     - priority: 'normal'
+     - read: 0 (false)
+     - action_required: 0 (false)
+     - created_at: CURRENT_TIMESTAMP
+   - Complete rollback support (down migration)
+
+2. **Migration Registry Update** (`packages/common/src/db/migrations/index.ts`):
+   - Added `migration003` import
+   - Added `migration003` to the `allMigrations` array
+
+3. **Comprehensive Test Suite** (`packages/common/src/db/__tests__/003_messages_table.test.ts`):
+   - **Table Creation Tests**: Verify schema, columns, types, primary key, NOT NULL constraints, defaults
+   - **Index Tests**: Verify all 3 indexes exist and have correct column composition
+   - **Data Operations Tests**: Insert, update, NOT NULL enforcement, primary key uniqueness, default values
+   - **Rollback Tests**: Verify clean migration rollback
+   - All 17 tests passing successfully
+
+4. **Validation**:
+   - ✅ Build passes: TypeScript compilation successful
+   - ✅ All migration tests pass (17/17)
+   - ✅ Foreign key constraints work correctly (messages reference agents)
+   - ✅ Indexes created and functional
+   - ✅ Rollback migration works cleanly
+
+**Design Decisions**:
+
+- Used INTEGER for boolean fields (read, action_required) following SQLite best practices
+- Composite index on (to_agent_id, read) optimizes the most common query: "get unread messages for agent X"
+- External metadata stored as JSON TEXT for flexibility across different platforms
+- Message content stored in separate markdown files referenced by message_path for better file organization
+- Self-referential foreign key on in_reply_to enables message threading support
+
+---
 
 ### Task 1.3.6: Create tasks table with version field and indexes ✅
 
