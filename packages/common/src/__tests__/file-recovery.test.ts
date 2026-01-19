@@ -156,9 +156,9 @@ describe('file-recovery', () => {
       const filePath = path.join(testDir, 'config.json');
 
       // Create multiple backups
-      const backup1 = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
-      const backup2 = path.join(testDir, 'config.json.2024-01-02_10-00-00.backup');
-      const backup3 = path.join(testDir, 'config.json.2024-01-03_10-00-00.backup');
+      const backup1 = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
+      const backup2 = path.join(testDir, 'config.2024-01-02T10-00-00-000.json');
+      const backup3 = path.join(testDir, 'config.2024-01-03T10-00-00-000.json');
 
       await fs.writeFile(backup1, JSON.stringify({ version: 1 }));
       await fs.writeFile(backup2, JSON.stringify({ version: 2 }));
@@ -172,8 +172,8 @@ describe('file-recovery', () => {
     it('should skip corrupt backups', async () => {
       const filePath = path.join(testDir, 'config.json');
 
-      const backup1 = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
-      const backup2 = path.join(testDir, 'config.json.2024-01-02_10-00-00.backup');
+      const backup1 = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
+      const backup2 = path.join(testDir, 'config.2024-01-02T10-00-00-000.json');
 
       await fs.writeFile(backup1, JSON.stringify({ valid: true }));
       await fs.writeFile(backup2, 'corrupt json');
@@ -195,7 +195,7 @@ describe('file-recovery', () => {
     it('should return null if all backups are corrupt', async () => {
       const filePath = path.join(testDir, 'config.json');
 
-      const backup1 = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
+      const backup1 = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
       await fs.writeFile(backup1, 'not json');
 
       const result = await findLatestBackup(filePath);
@@ -206,8 +206,8 @@ describe('file-recovery', () => {
     it('should use custom validator when provided', async () => {
       const filePath = path.join(testDir, 'config.json');
 
-      const backup1 = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
-      const backup2 = path.join(testDir, 'config.json.2024-01-02_10-00-00.backup');
+      const backup1 = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
+      const backup2 = path.join(testDir, 'config.2024-01-02T10-00-00-000.json');
 
       await fs.writeFile(backup1, JSON.stringify({ valid: true }));
       await fs.writeFile(backup2, JSON.stringify({ valid: false }));
@@ -228,7 +228,7 @@ describe('file-recovery', () => {
       const backupDir = path.join(testDir, 'backups');
       await fs.mkdir(backupDir);
 
-      const backup = path.join(backupDir, 'config.json.2024-01-01_10-00-00.backup');
+      const backup = path.join(backupDir, 'config.2024-01-01T10-00-00-000.json');
       await fs.writeFile(backup, JSON.stringify({ data: 'test' }));
 
       const result = await findLatestBackup(filePath, { backupDir });
@@ -241,8 +241,8 @@ describe('file-recovery', () => {
     it('should find the most recent valid backup', () => {
       const filePath = path.join(testDir, 'config.json');
 
-      const backup1 = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
-      const backup2 = path.join(testDir, 'config.json.2024-01-02_10-00-00.backup');
+      const backup1 = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
+      const backup2 = path.join(testDir, 'config.2024-01-02T10-00-00-000.json');
 
       fsSync.writeFileSync(backup1, JSON.stringify({ version: 1 }));
       fsSync.writeFileSync(backup2, JSON.stringify({ version: 2 }));
@@ -255,8 +255,8 @@ describe('file-recovery', () => {
     it('should skip corrupt backups', () => {
       const filePath = path.join(testDir, 'config.json');
 
-      const backup1 = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
-      const backup2 = path.join(testDir, 'config.json.2024-01-02_10-00-00.backup');
+      const backup1 = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
+      const backup2 = path.join(testDir, 'config.2024-01-02T10-00-00-000.json');
 
       fsSync.writeFileSync(backup1, JSON.stringify({ valid: true }));
       fsSync.writeFileSync(backup2, 'not json');
@@ -270,7 +270,7 @@ describe('file-recovery', () => {
   describe('attemptRecovery', () => {
     it('should recover from backup successfully', async () => {
       const filePath = path.join(testDir, 'config.json');
-      const backupPath = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
+      const backupPath = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
 
       await fs.writeFile(filePath, 'corrupt data');
       await fs.writeFile(backupPath, JSON.stringify({ recovered: true }));
@@ -287,7 +287,7 @@ describe('file-recovery', () => {
 
     it('should backup corrupt file before recovery', async () => {
       const filePath = path.join(testDir, 'config.json');
-      const backupPath = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
+      const backupPath = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
 
       const corruptData = 'corrupt data';
       await fs.writeFile(filePath, corruptData);
@@ -303,7 +303,7 @@ describe('file-recovery', () => {
 
     it('should skip corrupt file backup if disabled', async () => {
       const filePath = path.join(testDir, 'config.json');
-      const backupPath = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
+      const backupPath = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
 
       await fs.writeFile(filePath, 'corrupt data');
       await fs.writeFile(backupPath, JSON.stringify({ recovered: true }));
@@ -327,8 +327,8 @@ describe('file-recovery', () => {
 
     it('should use validator to verify recovered file', async () => {
       const filePath = path.join(testDir, 'config.json');
-      const backup1 = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
-      const backup2 = path.join(testDir, 'config.json.2024-01-02_10-00-00.backup');
+      const backup1 = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
+      const backup2 = path.join(testDir, 'config.2024-01-02T10-00-00-000.json');
 
       await fs.writeFile(filePath, 'corrupt');
       await fs.writeFile(backup1, JSON.stringify({ valid: true }));
@@ -362,7 +362,7 @@ describe('file-recovery', () => {
   describe('attemptRecoverySync', () => {
     it('should recover from backup successfully', () => {
       const filePath = path.join(testDir, 'config.json');
-      const backupPath = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
+      const backupPath = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
 
       fsSync.writeFileSync(filePath, 'corrupt');
       fsSync.writeFileSync(backupPath, JSON.stringify({ recovered: true }));
@@ -399,7 +399,7 @@ describe('file-recovery', () => {
 
     it('should recover and load corrupt file', async () => {
       const filePath = path.join(testDir, 'config.json');
-      const backupPath = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
+      const backupPath = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
 
       await fs.writeFile(filePath, 'corrupt');
       await fs.writeFile(backupPath, JSON.stringify({ recovered: true }));
@@ -460,7 +460,7 @@ describe('file-recovery', () => {
 
     it('should recover and load corrupt file', () => {
       const filePath = path.join(testDir, 'config.json');
-      const backupPath = path.join(testDir, 'config.json.2024-01-01_10-00-00.backup');
+      const backupPath = path.join(testDir, 'config.2024-01-01T10-00-00-000.json');
 
       fsSync.writeFileSync(filePath, 'corrupt');
       fsSync.writeFileSync(backupPath, JSON.stringify({ recovered: true }));
@@ -517,7 +517,8 @@ describe('file-recovery', () => {
   describe('edge cases', () => {
     it('should handle files with special characters in name', async () => {
       const filePath = path.join(testDir, 'config-test_v1.0.json');
-      const backupPath = path.join(testDir, 'config-test_v1.0.json.2024-01-01_10-00-00.backup');
+      // Use the correct backup format: basename.timestamp.ext
+      const backupPath = path.join(testDir, 'config-test_v1.0.2024-01-01T10-00-00-000.json');
 
       await fs.writeFile(filePath, 'corrupt');
       await fs.writeFile(backupPath, JSON.stringify({ data: 'test' }));
@@ -528,9 +529,10 @@ describe('file-recovery', () => {
     });
 
     it('should handle very long file names', async () => {
-      const longName = 'a'.repeat(100) + '.json';
-      const filePath = path.join(testDir, longName);
-      const backupPath = path.join(testDir, `${longName}.2024-01-01_10-00-00.backup`);
+      const longName = 'a'.repeat(100);
+      const filePath = path.join(testDir, longName + '.json');
+      // Use the correct backup format: basename.timestamp.ext
+      const backupPath = path.join(testDir, `${longName}.2024-01-01T10-00-00-000.json`);
 
       await fs.writeFile(filePath, 'corrupt');
       await fs.writeFile(backupPath, JSON.stringify({ data: 'test' }));

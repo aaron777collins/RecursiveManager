@@ -70,7 +70,7 @@ describe('File Lifecycle Integration Tests', () => {
       expect(JSON.parse(created)).toEqual(initialConfig);
 
       // STEP 2: BACKUP - Create backup (manual format for recovery compatibility)
-      const backupPath = path.join(testDir, 'agent-config.json.2024-01-01_10-00-00.backup');
+      const backupPath = path.join(testDir, 'agent-config.2024-01-01T10-00-00-000.json');
       await fs.writeFile(backupPath, JSON.stringify(initialConfig, null, 2));
 
       // Verify backup exists
@@ -205,7 +205,7 @@ describe('File Lifecycle Integration Tests', () => {
       expect(JSON.parse(content).status).toBe('in_progress');
 
       // BACKUP → CORRUPT → RECOVER cycle
-      const backupPath = path.join(testDir, 'task.json.2024-01-01_11-00-00.backup');
+      const backupPath = path.join(testDir, 'task.2024-01-01T11-00-00-000.json');
       await fs.writeFile(backupPath, JSON.stringify(updatedTask, null, 2));
 
       await fs.writeFile(taskPath, '{ malformed }');
@@ -314,7 +314,7 @@ describe('File Lifecycle Integration Tests', () => {
       const originalData = { recovered: true };
 
       // Create backup manually (expected format)
-      const backupPath = path.join(testDir, 'auto-recover.json.2024-01-01_12-00-00.backup');
+      const backupPath = path.join(testDir, 'auto-recover.2024-01-01T12-00-00-000.json');
       await fs.writeFile(backupPath, JSON.stringify(originalData, null, 2));
 
       // Create corrupt file
@@ -400,7 +400,7 @@ describe('File Lifecycle Integration Tests', () => {
       await atomicWrite(filePath, JSON.stringify(data1, null, 2));
 
       // 2. Create backup manually (expected format)
-      const backupPath = path.join(testDir, 'integrated.json.2024-01-01_13-00-00.backup');
+      const backupPath = path.join(testDir, 'integrated.2024-01-01T13-00-00-000.json');
       await fs.writeFile(backupPath, JSON.stringify(data1, null, 2));
 
       // 3. Update data
@@ -440,8 +440,8 @@ describe('File Lifecycle Integration Tests', () => {
         // Write
         await atomicWrite(configPath, JSON.stringify(configs[i], null, 2));
 
-        // Backup (manual format)
-        const backupPath = path.join(testDir, `integrity.json.2024-01-0${i + 1}_10-00-00.backup`);
+        // Backup using correct format: basename.timestamp.ext
+        const backupPath = path.join(testDir, `integrity.2024-01-0${i + 1}T10-00-00-000.json`);
         await fs.writeFile(backupPath, JSON.stringify(configs[i], null, 2));
 
         // Verify

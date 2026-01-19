@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 21:21:21 EST
+Last Updated: 2026-01-18 21:45:00 EST
 
 ## Status
 
@@ -126,7 +126,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 1.2.21: Unit tests for backup creation and restoration
 - [x] Task 1.2.22: Unit tests for schema validation (valid/invalid inputs)
 - [x] Task 1.2.23: Integration tests for full file lifecycle
-- [ ] Task 1.2.24: Edge case tests (disk full, permissions, corruption)
+- [x] Task 1.2.24: Edge case tests (disk full, permissions, corruption)
 
 **Completion Criteria**: Atomic writes reliable, backups working, schema validation catches all errors, all edge cases handled
 
@@ -532,6 +532,61 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.2.24: Edge case tests (disk full, permissions, corruption) ✅
+
+**Summary**: Implemented comprehensive edge case test suite covering critical failure scenarios for disk space, permissions, and file corruption. Additionally, discovered and fixed a backup format mismatch bug where `createBackup()` and `findLatestBackup()` used incompatible naming patterns.
+
+**What Was Implemented**:
+
+1. **New Test File**: Created `edge-cases.test.ts` with 34 comprehensive tests:
+   - EC-5.1: Disk Full Scenarios (8 tests)
+     - Atomic write behavior when disk is nearly full
+     - Backup creation with insufficient space
+     - Disk space enforcement with proper error handling
+   - Permission Error Scenarios (8 tests)
+     - EACCES/EPERM error handling for read/write operations
+     - Directory permission management
+     - Permission recovery workflows
+   - EC-5.2: File Corruption Edge Cases (12 tests)
+     - Backup format compatibility testing
+     - Recovery when all backups are corrupted
+     - Inaccessible backup locations
+     - Partial file corruption scenarios
+   - Integration Tests (3 tests)
+     - Combined edge cases with multiple failure modes
+   - Performance Tests (3 tests)
+     - Rapid successive writes without corruption
+     - Large file operations without hanging
+
+2. **Bug Fix**: Resolved backup format mismatch (documented in file-lifecycle-integration.test.ts):
+   - **Problem**: `createBackup()` created files like `config.2026-01-18T12-34-56-789.json` but `findLatestBackup()` expected `config.json.2026-01-18_12-34-56.backup`
+   - **Solution**: Updated `findLatestBackup()` and `findLatestBackupSync()` to match the actual format produced by `createBackup()`
+   - **Pattern**: `basename.YYYY-MM-DDTHH-MM-SS-mmm.ext` (with 'T' separator and milliseconds)
+   - **Fixed Files**:
+     - `packages/common/src/file-recovery.ts` (both async and sync versions)
+     - Updated all test files to use correct backup format
+
+**Test Execution Results**:
+
+- All 34 edge case tests passing
+- All 514 tests in the common package passing (18 test suites)
+- No regression in existing tests after bug fix
+- Test coverage includes:
+  - Disk space checking and enforcement
+  - Permission errors and recovery
+  - Corruption detection and backup restoration
+  - Concurrent operations
+  - Large files and rapid writes
+
+**Completion Criteria Met**: ✅
+
+- Edge cases for disk full, permissions, and corruption fully tested
+- Backup format bug identified and fixed
+- All tests passing with no regressions
+- Phase 1.2 File System Layer now complete
+
+---
 
 ### Task 1.2.21: Unit tests for backup creation and restoration ✅
 

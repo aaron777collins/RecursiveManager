@@ -302,15 +302,20 @@ export async function findLatestBackup(
 
   // Determine backup directory
   const dir = backupDir || path.dirname(filePath);
-  const filename = path.basename(filePath);
+  const ext = path.extname(filePath);
+  const basename = path.basename(filePath, ext);
 
   try {
     // Read all files in backup directory
     const files = await fs.readdir(dir);
 
-    // Filter for backup files matching our pattern
+    // Filter for backup files matching the pattern created by createBackup():
+    // basename.YYYY-MM-DDTHH-MM-SS-mmm.ext
+    // Example: config.2026-01-18T12-34-56-789.json
+    const escapedBasename = basename.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedExt = ext.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const backupPattern = new RegExp(
-      `^${filename.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.backup$`
+      `^${escapedBasename}\\.\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}-\\d{3}${escapedExt}$`
     );
 
     const backupFiles = files
@@ -344,13 +349,18 @@ export function findLatestBackupSync(
   const { backupDir, validator } = options;
 
   const dir = backupDir || path.dirname(filePath);
-  const filename = path.basename(filePath);
+  const ext = path.extname(filePath);
+  const basename = path.basename(filePath, ext);
 
   try {
     const files = fsSync.readdirSync(dir);
 
+    // Filter for backup files matching the pattern created by createBackup():
+    // basename.YYYY-MM-DDTHH-MM-SS-mmm.ext
+    const escapedBasename = basename.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const escapedExt = ext.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const backupPattern = new RegExp(
-      `^${filename.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}\\.backup$`
+      `^${escapedBasename}\\.\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}-\\d{3}${escapedExt}$`
     );
 
     const backupFiles = files
