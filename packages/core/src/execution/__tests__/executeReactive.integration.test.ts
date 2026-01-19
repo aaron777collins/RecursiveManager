@@ -26,13 +26,22 @@ import { saveAgentConfig } from '../../config';
 // Mock types for adapters (avoiding import issues)
 type ExecutionResult = {
   success: boolean;
-  agentId: string;
-  mode: 'continuous' | 'reactive';
+  duration: number;
   tasksCompleted: number;
   messagesProcessed: number;
-  duration: number;
-  timestamp: Date;
-  error?: string;
+  errors: Array<{
+    message: string;
+    stack?: string;
+    code?: string;
+  }>;
+  nextExecution?: Date;
+  metadata?: {
+    filesCreated?: string[];
+    filesModified?: string[];
+    apiCallCount?: number;
+    costUSD?: number;
+    output?: string;
+  };
 };
 
 type FrameworkAdapter = {
@@ -144,12 +153,10 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       ): Promise<ExecutionResult> {
         return {
           success: true,
-          agentId,
-          mode,
           tasksCompleted: 0,
           messagesProcessed: context.messages?.length || 0,
           duration: 1000,
-          timestamp: new Date(),
+          errors: [],
         };
       },
       async checkHealth(): Promise<boolean> {
@@ -613,12 +620,10 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         ): Promise<ExecutionResult> {
           return {
             success: true,
-            agentId,
-            mode,
             tasksCompleted: 0,
             messagesProcessed: context.messages?.length || 0,
             duration: 1500,
-            timestamp: new Date(),
+            errors: [],
           };
         },
         async checkHealth(): Promise<boolean> {
@@ -724,12 +729,10 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
           await new Promise((resolve) => setTimeout(resolve, 500));
           return {
             success: true,
-            agentId,
-            mode,
             tasksCompleted: 0,
             messagesProcessed: 0,
             duration: 500,
-            timestamp: new Date(),
+            errors: [],
           };
         },
         async checkHealth(): Promise<boolean> {

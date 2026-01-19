@@ -1,0 +1,6 @@
+{
+  "title": "RecursiveManager Production Readiness - Complete Implementation",
+  "description": "Implement all remaining items from PRODUCTION_READINESS_PLAN.md to make RecursiveManager production-ready:\n\nPhase 1: Fix integration test timeouts, linting errors, message retrieval bug, scheduler methods\nPhase 2: Implement 5 missing CLI commands (hire, fire, execute, pause, resume)\nPhase 3: Fix VitePress build, create 10 documentation pages\nPhase 4: Configure GitHub Pages, create v1.0 release\nPhase 5: Create E2E test suite\nPhase 6: Add performance benchmarks and health monitoring\nPhase 7: Polish error messages and UX\n\nSee PRODUCTION_READINESS_PLAN.md in repository root for complete details.",
+  "priority": "critical",
+  "projectId": null
+}

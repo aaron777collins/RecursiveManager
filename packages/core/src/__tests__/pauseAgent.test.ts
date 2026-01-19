@@ -263,12 +263,12 @@ describe('pauseAgent', () => {
       });
 
       expect(logs.length).toBeGreaterThan(0);
-      const pauseLog = logs[0];
+      const pauseLog = logs[0]!;
       expect(pauseLog).toBeDefined();
-      expect(pauseLog!.success).toBe(true);
-      expect(pauseLog!.agent_id).toBe('manager-001');
-      expect(pauseLog!.target_agent_id).toBe('dev-001');
-      expect(pauseLog!.details).toBeDefined();
+      expect(pauseLog.success).toBe(true);
+      expect(pauseLog.agent_id).toBe('manager-001');
+      expect(pauseLog.target_agent_id).toBe('dev-001');
+      expect(pauseLog.details).toBeDefined();
     });
 
     it('should log audit entry for root agent pause', async () => {
@@ -293,11 +293,11 @@ describe('pauseAgent', () => {
       });
 
       expect(logs.length).toBeGreaterThan(0);
-      const pauseLog = logs[0];
+      const pauseLog = logs[0]!;
       expect(pauseLog).toBeDefined();
-      expect(pauseLog!.success).toBe(true);
-      expect(pauseLog!.agent_id).toBeNull();
-      expect(pauseLog!.target_agent_id).toBe('ceo-001');
+      expect(pauseLog.success).toBe(true);
+      expect(pauseLog.agent_id).toBeNull();
+      expect(pauseLog.target_agent_id).toBe('ceo-001');
     });
   });
 

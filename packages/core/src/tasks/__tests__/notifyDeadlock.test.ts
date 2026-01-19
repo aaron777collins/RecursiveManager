@@ -162,14 +162,14 @@ describe('notifyDeadlock', () => {
       // Verify messages were created in database
       const messages = getMessages(db, { toAgentId: agentA });
       expect(messages).toHaveLength(1);
-      expect(messages[0].subject).toContain('DEADLOCK');
-      expect(messages[0].priority).toBe('urgent');
-      expect(messages[0].action_required).toBe(true);
-      expect(messages[0].from_agent_id).toBe('system');
+      expect(messages[0]!.subject).toContain('DEADLOCK');
+      expect(messages[0]!.priority).toBe('urgent');
+      expect(messages[0]!.action_required).toBe(true);
+      expect(messages[0]!.from_agent_id).toBe('system');
 
       const messagesB = getMessages(db, { toAgentId: agentB });
       expect(messagesB).toHaveLength(1);
-      expect(messagesB[0].subject).toContain('DEADLOCK');
+      expect(messagesB[0]!.subject).toContain('DEADLOCK');
 
       // Verify message files were written to inbox
       const inboxPathA = getInboxPath(agentA, testDir);
@@ -294,8 +294,8 @@ describe('notifyDeadlock', () => {
       // Verify agentA received one notification mentioning both tasks
       const messagesA = getMessages(db, { toAgentId: agentA });
       expect(messagesA).toHaveLength(1);
-      expect(messagesA[0].subject).toContain('Task A1');
-      expect(messagesA[0].subject).toContain('Task A2');
+      expect(messagesA[0]!.subject).toContain('Task A1');
+      expect(messagesA[0]!.subject).toContain('Task A2');
 
       // Read message content and verify it mentions both tasks
       const inboxPathA = getInboxPath(agentA, testDir);
@@ -666,10 +666,10 @@ describe('notifyDeadlock', () => {
       const messagesA = getMessages(db, { toAgentId: agentA });
       const messagesB = getMessages(db, { toAgentId: agentB });
 
-      expect(messagesA[0].thread_id).toBeDefined();
-      expect(messagesB[0].thread_id).toBeDefined();
-      expect(messagesA[0].thread_id).toBe(messagesB[0].thread_id);
-      expect(messagesA[0].thread_id).toContain('deadlock');
+      expect(messagesA[0]!.thread_id).toBeDefined();
+      expect(messagesB[0]!.thread_id).toBeDefined();
+      expect(messagesA[0]!.thread_id).toBe(messagesB[0]!.thread_id);
+      expect(messagesA[0]!.thread_id).toContain('deadlock');
     });
   });
 
@@ -774,7 +774,7 @@ describe('notifyDeadlock', () => {
 
       expect(failedLogs.length).toBeGreaterThanOrEqual(1);
 
-      const details = JSON.parse(failedLogs[0].details);
+      const details = JSON.parse(failedLogs[0]!.details);
       expect(details.type).toBe('deadlock_notification');
       expect(details.error).toBeDefined();
     });

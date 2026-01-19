@@ -272,12 +272,12 @@ describe('resumeAgent', () => {
       });
 
       expect(logs.length).toBeGreaterThan(0);
-      const resumeLog = logs[0];
+      const resumeLog = logs[0]!;
       expect(resumeLog).toBeDefined();
-      expect(resumeLog!.success).toBe(true);
-      expect(resumeLog!.agent_id).toBe('manager-001');
-      expect(resumeLog!.target_agent_id).toBe('dev-001');
-      expect(resumeLog!.details).toBeDefined();
+      expect(resumeLog.success).toBe(true);
+      expect(resumeLog.agent_id).toBe('manager-001');
+      expect(resumeLog.target_agent_id).toBe('dev-001');
+      expect(resumeLog.details).toBeDefined();
     });
 
     it('should log audit entry for root agent resume', async () => {
@@ -303,11 +303,11 @@ describe('resumeAgent', () => {
       });
 
       expect(logs.length).toBeGreaterThan(0);
-      const resumeLog = logs[0];
+      const resumeLog = logs[0]!;
       expect(resumeLog).toBeDefined();
-      expect(resumeLog!.success).toBe(true);
-      expect(resumeLog!.agent_id).toBeNull();
-      expect(resumeLog!.target_agent_id).toBe('ceo-001');
+      expect(resumeLog.success).toBe(true);
+      expect(resumeLog.agent_id).toBeNull();
+      expect(resumeLog.target_agent_id).toBe('ceo-001');
     });
   });
 

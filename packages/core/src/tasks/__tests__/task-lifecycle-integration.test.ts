@@ -642,13 +642,13 @@ describe('Task Lifecycle Integration Tests', () => {
       const messagesB = getMessages(db, { toAgentId: agentB.id });
 
       expect(messagesA).toHaveLength(1);
-      expect(messagesA[0].priority).toBe('urgent');
-      expect(messagesA[0].action_required).toBe(true);
-      expect(messagesA[0].subject).toContain('DEADLOCK');
+      expect(messagesA[0]!.priority).toBe('urgent');
+      expect(messagesA[0]!.action_required).toBe(true);
+      expect(messagesA[0]!.subject).toContain('DEADLOCK');
 
       expect(messagesB).toHaveLength(1);
-      expect(messagesB[0].priority).toBe('urgent');
-      expect(messagesB[0].subject).toContain('DEADLOCK');
+      expect(messagesB[0]!.priority).toBe('urgent');
+      expect(messagesB[0]!.subject).toContain('DEADLOCK');
 
       // STEP 4: RESOLVE DEADLOCK - Remove one dependency
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(JSON.stringify([]), taskA.id);
@@ -722,7 +722,7 @@ describe('Task Lifecycle Integration Tests', () => {
       // Create first deadlock cycle: A -> B -> A
       const taskA = createTask(db, {
         id: 'task-monitor-a',
-        agentId: agents[0].id,
+        agentId: agents[0]!.id,
         title: 'Task A',
         priority: 'high',
         status: 'blocked',
@@ -730,7 +730,7 @@ describe('Task Lifecycle Integration Tests', () => {
 
       const taskB = createTask(db, {
         id: 'task-monitor-b',
-        agentId: agents[1].id,
+        agentId: agents[1]!.id,
         title: 'Task B',
         priority: 'high',
         status: 'blocked',
@@ -748,7 +748,7 @@ describe('Task Lifecycle Integration Tests', () => {
       // Create second independent deadlock cycle: C -> D -> C
       const taskC = createTask(db, {
         id: 'task-monitor-c',
-        agentId: agents[2].id,
+        agentId: agents[2]!.id,
         title: 'Task C',
         priority: 'high',
         status: 'blocked',
@@ -756,7 +756,7 @@ describe('Task Lifecycle Integration Tests', () => {
 
       const taskD = createTask(db, {
         id: 'task-monitor-d',
-        agentId: agents[3].id,
+        agentId: agents[3]!.id,
         title: 'Task D',
         priority: 'high',
         status: 'blocked',
@@ -774,7 +774,7 @@ describe('Task Lifecycle Integration Tests', () => {
       // Create a non-deadlocked blocked task (should be ignored)
       const taskE = createTask(db, {
         id: 'task-monitor-e',
-        agentId: agents[0].id,
+        agentId: agents[0]!.id,
         title: 'Task E',
         priority: 'low',
         status: 'blocked',
@@ -802,10 +802,10 @@ describe('Task Lifecycle Integration Tests', () => {
       expect(result.deadlockedTaskIds).not.toContain(taskE.id); // Non-deadlocked task excluded
 
       // Verify all agents in deadlocks received notifications
-      expect(getMessages(db, { toAgentId: agents[0].id })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agents[1].id })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agents[2].id })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agents[3].id })).toHaveLength(1);
+      expect(getMessages(db, { toAgentId: agents[0]!.id })).toHaveLength(1);
+      expect(getMessages(db, { toAgentId: agents[1]!.id })).toHaveLength(1);
+      expect(getMessages(db, { toAgentId: agents[2]!.id })).toHaveLength(1);
+      expect(getMessages(db, { toAgentId: agents[3]!.id })).toHaveLength(1);
     });
 
     it('should handle three-way deadlock with proper cycle detection', async () => {
@@ -869,7 +869,7 @@ describe('Task Lifecycle Integration Tests', () => {
       // Create three-way deadlock: A -> B -> C -> A
       const taskA = createTask(db, {
         id: 'task-three-a',
-        agentId: agents[0].id,
+        agentId: agents[0]!.id,
         title: 'Task A',
         priority: 'high',
         status: 'blocked',
@@ -877,7 +877,7 @@ describe('Task Lifecycle Integration Tests', () => {
 
       const taskB = createTask(db, {
         id: 'task-three-b',
-        agentId: agents[1].id,
+        agentId: agents[1]!.id,
         title: 'Task B',
         priority: 'high',
         status: 'blocked',
@@ -885,7 +885,7 @@ describe('Task Lifecycle Integration Tests', () => {
 
       const taskC = createTask(db, {
         id: 'task-three-c',
-        agentId: agents[2].id,
+        agentId: agents[2]!.id,
         title: 'Task C',
         priority: 'high',
         status: 'blocked',
@@ -922,14 +922,14 @@ describe('Task Lifecycle Integration Tests', () => {
       expect(result.cycles[0]).toHaveLength(3);
 
       // All three agents should receive notifications
-      expect(getMessages(db, { toAgentId: agents[0].id })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agents[1].id })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agents[2].id })).toHaveLength(1);
+      expect(getMessages(db, { toAgentId: agents[0]!.id })).toHaveLength(1);
+      expect(getMessages(db, { toAgentId: agents[1]!.id })).toHaveLength(1);
+      expect(getMessages(db, { toAgentId: agents[2]!.id })).toHaveLength(1);
 
       // Verify notifications share the same thread ID (same cycle)
-      const msg1 = getMessages(db, { toAgentId: agents[0].id })[0];
-      const msg2 = getMessages(db, { toAgentId: agents[1].id })[0];
-      const msg3 = getMessages(db, { toAgentId: agents[2].id })[0];
+      const msg1 = getMessages(db, { toAgentId: agents[0]!.id })[0]!;
+      const msg2 = getMessages(db, { toAgentId: agents[1]!.id })[0]!;
+      const msg3 = getMessages(db, { toAgentId: agents[2]!.id })[0]!;
 
       expect(msg1.thread_id).toBe(msg2.thread_id);
       expect(msg2.thread_id).toBe(msg3.thread_id);

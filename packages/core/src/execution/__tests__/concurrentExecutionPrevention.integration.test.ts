@@ -39,13 +39,22 @@ import { saveAgentConfig } from '../../config';
 // Mock types for adapters
 type ExecutionResult = {
   success: boolean;
-  agentId: string;
-  mode: 'continuous' | 'reactive';
+  duration: number;
   tasksCompleted: number;
   messagesProcessed: number;
-  duration: number;
-  timestamp: Date;
-  error?: string;
+  errors: Array<{
+    message: string;
+    stack?: string;
+    code?: string;
+  }>;
+  nextExecution?: Date;
+  metadata?: {
+    filesCreated?: string[];
+    filesModified?: string[];
+    apiCallCount?: number;
+    costUSD?: number;
+    output?: string;
+  };
 };
 
 type FrameworkAdapter = {
@@ -442,12 +451,10 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
           await new Promise((resolve) => setTimeout(resolve, 50));
           return {
             success: true,
-            agentId,
-            mode,
             tasksCompleted: 1,
             messagesProcessed: 0,
             duration: 50,
-            timestamp: new Date(),
+            errors: [],
           };
         },
         async checkHealth(): Promise<boolean> {
@@ -571,12 +578,10 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       // Fix the adapter
       mockAdapter.executeAgent = async (agentId, mode) => ({
         success: true,
-        agentId,
-        mode,
         tasksCompleted: 0,
         messagesProcessed: 0,
         duration: 10,
-        timestamp: new Date(),
+        errors: [],
       });
 
       // Second execution should succeed (lock was released)
@@ -628,12 +633,10 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
           await new Promise((resolve) => setTimeout(resolve, 30));
           return {
             success: true,
-            agentId,
-            mode,
             tasksCompleted: 1,
             messagesProcessed: 0,
             duration: 30,
-            timestamp: new Date(),
+            errors: [],
           };
         },
         async checkHealth(): Promise<boolean> {

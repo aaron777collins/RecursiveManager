@@ -608,13 +608,13 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
 
       // Verify all transitions applied correctly
       expect(transitions).toHaveLength(4);
-      expect(transitions[0].status).toBe('in-progress');
-      expect(transitions[1].status).toBe('blocked');
-      expect(transitions[2].status).toBe('in-progress');
-      expect(transitions[3].status).toBe('completed');
+      expect(transitions[0]!.status).toBe('in-progress');
+      expect(transitions[1]!.status).toBe('blocked');
+      expect(transitions[2]!.status).toBe('in-progress');
+      expect(transitions[3]!.status).toBe('completed');
 
       // Verify version incremented correctly
-      expect(transitions[3].version).toBe(task.version + 4);
+      expect(transitions[3]!.version).toBe(task.version + 4);
     });
   });
 

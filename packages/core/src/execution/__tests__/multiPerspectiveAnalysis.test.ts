@@ -21,13 +21,22 @@ import { ExecutionOrchestrator, type Decision } from '../index';
 // Mock types for adapters (avoiding import issues)
 type ExecutionResult = {
   success: boolean;
-  agentId: string;
-  mode: 'continuous' | 'reactive';
+  duration: number;
   tasksCompleted: number;
   messagesProcessed: number;
-  duration: number;
-  timestamp: Date;
-  error?: string;
+  errors: Array<{
+    message: string;
+    stack?: string;
+    code?: string;
+  }>;
+  nextExecution?: Date;
+  metadata?: {
+    filesCreated?: string[];
+    filesModified?: string[];
+    apiCallCount?: number;
+    costUSD?: number;
+    output?: string;
+  };
 };
 
 type FrameworkAdapter = {
@@ -118,12 +127,10 @@ function createMockAdapter(name: string, isHealthy: boolean = true): FrameworkAd
     ): Promise<ExecutionResult> {
       return {
         success: true,
-        agentId: _agentId,
-        mode: _mode,
         tasksCompleted: 1,
         messagesProcessed: 0,
         duration: 1000,
-        timestamp: new Date(),
+        errors: [],
       };
     },
     async checkHealth(): Promise<boolean> {
@@ -474,7 +481,7 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
         ]);
 
         expect(decision.perspectiveResults).toHaveLength(1);
-        expect(decision.perspectiveResults[0].perspective).toBe(perspective);
+        expect(decision.perspectiveResults[0]!.perspective).toBe(perspective);
       }
     });
 
@@ -483,9 +490,9 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
 
       const decision = await orchestrator.runMultiPerspectiveAnalysis('Test', perspectives);
 
-      expect(decision.perspectiveResults[0].perspective).toBe('Third');
-      expect(decision.perspectiveResults[1].perspective).toBe('First');
-      expect(decision.perspectiveResults[2].perspective).toBe('Second');
+      expect(decision.perspectiveResults[0]!.perspective).toBe('Third');
+      expect(decision.perspectiveResults[1]!.perspective).toBe('First');
+      expect(decision.perspectiveResults[2]!.perspective).toBe('Second');
     });
 
     it('should handle duplicate perspectives', async () => {
@@ -546,7 +553,7 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
 
       const decision = await orchestrator.runMultiPerspectiveAnalysis('Test', [longPerspective]);
 
-      expect(decision.perspectiveResults[0].perspective).toBe(longPerspective);
+      expect(decision.perspectiveResults[0]!.perspective).toBe(longPerspective);
     });
 
     it('should handle unicode characters in perspective names', async () => {

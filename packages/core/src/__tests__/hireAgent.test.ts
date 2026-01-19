@@ -194,10 +194,10 @@ describe('hireAgent', () => {
       // Verify parent's subordinates registry was updated
       const registry = JSON.parse(await safeLoad(managerRegistryPath));
       expect(registry.subordinates).toHaveLength(1);
-      expect(registry.subordinates[0].agentId).toBe('dev-001');
-      expect(registry.subordinates[0].role).toBe('Senior Developer');
-      expect(registry.subordinates[0].status).toBe('active');
-      expect(registry.subordinates[0].hiredFor).toBe('Build authentication system');
+      expect(registry.subordinates[0]!.agentId).toBe('dev-001');
+      expect(registry.subordinates[0]!.role).toBe('Senior Developer');
+      expect(registry.subordinates[0]!.status).toBe('active');
+      expect(registry.subordinates[0]!.hiredFor).toBe('Build authentication system');
       expect(registry.summary.totalSubordinates).toBe(1);
       expect(registry.summary.activeSubordinates).toBe(1);
       expect(registry.summary.hiringBudgetRemaining).toBe(2); // Was 3, now 2

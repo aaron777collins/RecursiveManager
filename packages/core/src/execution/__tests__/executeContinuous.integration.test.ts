@@ -283,12 +283,10 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
           fallbackUsed = true;
           return {
             success: true,
-            agentId,
-            mode,
             tasksCompleted: 0,
             messagesProcessed: 0,
             duration: 500,
-            timestamp: new Date(),
+            errors: [],
           };
         },
         async checkHealth(): Promise<boolean> {
@@ -349,12 +347,10 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         await new Promise((resolve) => setTimeout(resolve, 100));
         return {
           success: true,
-          agentId,
-          mode,
           tasksCompleted: 0,
           messagesProcessed: 0,
           duration: 100,
-          timestamp: new Date(),
+          errors: [],
         };
       };
 
@@ -439,12 +435,10 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
 
       mockAdapter.executeAgent = async (agentId, mode) => ({
         success: true,
-        agentId,
-        mode,
         tasksCompleted: 0,
         messagesProcessed: 0,
         duration: 10,
-        timestamp: new Date(),
+        errors: [],
       });
 
       const result = await orchestrator.executeContinuous(agentId);

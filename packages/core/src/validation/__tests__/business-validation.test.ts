@@ -7,6 +7,7 @@ import {
   validateAgentConfigBusinessLogicStrict,
   BusinessValidationFailure,
 } from '../business-validation';
+import { mergeConfigs } from '../../config';
 import type { AgentConfig } from '@recursive-manager/common';
 
 // Type for deep partial config overrides
@@ -49,30 +50,7 @@ describe('Business Validation', () => {
       },
     };
 
-    // Deep merge helper
-    const deepMerge = (target: any, source: any): any => {
-      const output = { ...target };
-      if (isObject(target) && isObject(source)) {
-        Object.keys(source).forEach((key) => {
-          if (isObject(source[key])) {
-            if (!(key in target)) {
-              Object.assign(output, { [key]: source[key] });
-            } else {
-              output[key] = deepMerge(target[key], source[key]);
-            }
-          } else {
-            Object.assign(output, { [key]: source[key] });
-          }
-        });
-      }
-      return output;
-    };
-
-    const isObject = (item: any): boolean => {
-      return item && typeof item === 'object' && !Array.isArray(item);
-    };
-
-    return deepMerge(baseConfig, overrides) as AgentConfig;
+    return mergeConfigs(baseConfig, overrides);
   };
 
   describe('validateAgentConfigBusinessLogic', () => {
@@ -730,11 +708,13 @@ describe('Business Validation', () => {
 
       try {
         validateAgentConfigBusinessLogicStrict(config);
-        fail('Should have thrown');
+        throw new Error('Should have thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(BusinessValidationFailure);
-        const formatted = (error as BusinessValidationFailure).getFormattedErrors();
-        expect(formatted).toContain('PERM_INVALID_MAX_SUBORDINATES');
+        if (error instanceof BusinessValidationFailure) {
+          const formatted = error.getFormattedErrors();
+          expect(formatted).toContain('PERM_INVALID_MAX_SUBORDINATES');
+        }
       }
     });
   });

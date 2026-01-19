@@ -30,13 +30,22 @@ import { ExecutionOrchestrator } from '../index';
 // Mock types for adapters (avoiding import issues)
 type ExecutionResult = {
   success: boolean;
-  agentId: string;
-  mode: 'continuous' | 'reactive';
+  duration: number;
   tasksCompleted: number;
   messagesProcessed: number;
-  duration: number;
-  timestamp: Date;
-  error?: string;
+  errors: Array<{
+    message: string;
+    stack?: string;
+    code?: string;
+  }>;
+  nextExecution?: Date;
+  metadata?: {
+    filesCreated?: string[];
+    filesModified?: string[];
+    apiCallCount?: number;
+    costUSD?: number;
+    output?: string;
+  };
 };
 
 type FrameworkAdapter = {
@@ -132,12 +141,10 @@ function createMockAdapter(name: string, healthy = true): FrameworkAdapter {
     ): Promise<ExecutionResult> {
       return {
         success: true,
-        agentId: _agentId,
-        mode,
         tasksCompleted: 1,
         messagesProcessed: 0,
         duration: 100,
-        timestamp: new Date(),
+        errors: [],
       };
     },
     async checkHealth(): Promise<boolean> {

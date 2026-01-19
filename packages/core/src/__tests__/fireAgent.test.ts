@@ -375,8 +375,8 @@ describe('fireAgent()', () => {
       });
 
       expect(auditEvents.length).toBeGreaterThan(0);
-      expect(auditEvents[0].success).toBe(true);
-      expect(auditEvents[0].target_agent_id).toBe('ceo-001');
+      expect(auditEvents[0]!.success).toBe(true);
+      expect(auditEvents[0]!.target_agent_id).toBe('ceo-001');
     });
 
     it('should include orphan handling details in audit log', async () => {
@@ -413,7 +413,7 @@ describe('fireAgent()', () => {
       });
 
       expect(auditEvents.length).toBeGreaterThan(0);
-      const fireEvent = auditEvents[0];
+      const fireEvent = auditEvents[0]!;
       expect(fireEvent.success).toBe(true);
 
       const details = JSON.parse(fireEvent.details as string);
