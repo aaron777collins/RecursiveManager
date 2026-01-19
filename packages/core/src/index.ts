@@ -8,4 +8,4 @@
 export const VERSION = '0.1.0';
 
 // Agent Configuration Management (Phase 2.1)
-export { loadAgentConfig, ConfigLoadError } from './config';
+export { loadAgentConfig, saveAgentConfig, ConfigLoadError, ConfigSaveError } from './config';

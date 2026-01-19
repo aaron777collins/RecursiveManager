@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 00:45:00 EST
+Last Updated: 2026-01-19 00:53:53 EST
 
 ## Status
 
@@ -224,7 +224,7 @@ RecursiveManager is a hierarchical AI agent system with:
 #### Phase 2.1: Agent Configuration & Validation (2-3 days)
 
 - [x] Task 2.1.1: Implement loadAgentConfig(agentId) reading from file + validation
-- [ ] Task 2.1.2: Implement saveAgentConfig(agentId, config) with atomic write + backup
+- [x] Task 2.1.2: Implement saveAgentConfig(agentId, config) with atomic write + backup
 - [ ] Task 2.1.3: Implement generateDefaultConfig(role, goal) with sensible defaults
 - [ ] Task 2.1.4: Implement mergeConfigs(base, override) with proper precedence
 - [ ] Task 2.1.5: Add config validation with detailed error messages
@@ -4419,6 +4419,75 @@ Successfully integrated audit logging into all critical database operations for 
 - Modified: `packages/core/src/index.ts` (exported loadAgentConfig)
 - Created: `packages/core/src/__tests__/loadAgentConfig.test.ts`
 
+---
+
+## Completed This Iteration (2026-01-19 00:53:53 EST)
+
+### Task 2.1.2: Implement saveAgentConfig(agentId, config) with atomic write + backup ✅
+
+**Implementation Details**:
+
+1. **saveAgentConfig Function** (`packages/core/src/config/index.ts`):
+   - Complete save operation with 5-step process:
+     1. Validates configuration against schema using validateAgentConfigStrict()
+     2. Creates backup of existing configuration (if it exists)
+     3. Serializes configuration to JSON with proper formatting (2-space indent)
+     4. Writes configuration using atomic write (temp file + rename pattern)
+     5. Ensures directory structure exists
+   - Custom ConfigSaveError class for domain-specific errors
+   - Comprehensive error handling for all failure modes
+   - Integration with logging system for debugging
+   - Uses atomicWrite() and createBackup() from common package
+   - Full TypeScript type safety
+
+2. **Key Features**:
+   - **Atomic Writes**: Uses temp file + rename pattern to ensure writes are atomic
+   - **Automatic Backup**: Creates timestamped backup before overwriting existing config
+   - **Schema Validation**: Validates before writing to prevent invalid configs on disk
+   - **Directory Creation**: Automatically creates directory structure if needed
+   - **Proper Formatting**: JSON is formatted with 2-space indentation for readability
+   - **File Permissions**: Sets appropriate permissions (0o644) on config files
+   - **Error Recovery**: Backup creation failure doesn't prevent saves (logged as warning)
+
+3. **Comprehensive Test Suite** (`packages/core/src/__tests__/saveAgentConfig.test.ts`):
+   - 18 test cases covering all scenarios:
+     - ✓ Valid configuration saving
+     - ✓ Proper JSON formatting (2-space indent)
+     - ✓ Configuration with optional fields
+     - ✓ Overwriting existing configuration
+     - ✓ Directory structure creation
+     - ✓ Atomic write behavior (no temp files left)
+     - ✓ Backup creation before overwriting
+     - ✓ Backup failure doesn't prevent save
+     - ✓ Invalid config validation
+     - ✓ Invalid field types validation
+     - ✓ Validation before writing (no file on failure)
+     - ✓ File system error handling
+     - ✓ AgentId included in errors
+     - ✓ Special characters in agent IDs
+     - ✓ Custom path options
+     - ✓ Rapid successive saves
+     - ✓ Save and load roundtrip
+     - ✓ All fields preserved in roundtrip
+
+**Test Results**: 18/18 tests passing ✓
+
+**Integration**: Full roundtrip testing with loadAgentConfig confirms compatibility
+
+### Files Modified
+
+- Modified: `packages/core/src/config/index.ts` (added saveAgentConfig, ConfigSaveError)
+- Modified: `packages/core/src/index.ts` (exported saveAgentConfig, ConfigSaveError)
+- Created: `packages/core/src/__tests__/saveAgentConfig.test.ts`
+
+### Validation
+
+- ✅ All 18 saveAgentConfig tests pass
+- ✅ All 16 loadAgentConfig tests still pass
+- ✅ All 3 core index tests pass
+- ✅ TypeScript compilation succeeds
+- ✅ Full build succeeds
+
 ### Next Task
 
-Task 2.1.2: Implement saveAgentConfig(agentId, config) with atomic write + backup
+Task 2.1.3: Implement generateDefaultConfig(role, goal) with sensible defaults
