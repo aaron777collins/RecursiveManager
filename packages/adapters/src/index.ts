@@ -17,3 +17,7 @@ export type {
   TaskSchema,
   Message,
 } from './types';
+
+// Adapter registry
+export { AdapterRegistry } from './AdapterRegistry';
+export type { AdapterRegistryConfig, AdapterInfo } from './AdapterRegistry';

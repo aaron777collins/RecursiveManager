@@ -144,7 +144,7 @@ describe('Framework Adapter Types', () => {
       };
 
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].message).toBe('Task failed');
+      expect(result.errors[0]?.message).toBe('Task failed');
     });
 
     it('should allow optional metadata', () => {
@@ -189,18 +189,18 @@ describe('Framework Adapter Types', () => {
         readonly name = 'mock-adapter';
         readonly version = '1.0.0';
 
-        async executeAgent(
-          agentId: string,
-          mode: ExecutionMode,
-          context: ExecutionContext
+        executeAgent(
+          _agentId: string,
+          _mode: ExecutionMode,
+          _context: ExecutionContext
         ): Promise<ExecutionResult> {
-          return {
+          return Promise.resolve({
             success: true,
             duration: 1000,
             tasksCompleted: 0,
             messagesProcessed: 0,
             errors: [],
-          };
+          });
         }
 
         supportsFeature(feature: string): boolean {
@@ -217,8 +217,8 @@ describe('Framework Adapter Types', () => {
           ];
         }
 
-        async healthCheck(): Promise<boolean> {
-          return true;
+        healthCheck(): Promise<boolean> {
+          return Promise.resolve(true);
         }
       }
 
@@ -232,23 +232,20 @@ describe('Framework Adapter Types', () => {
       const mockAdapter: FrameworkAdapter = {
         name: 'test-adapter',
         version: '0.1.0',
-        executeAgent: async () => ({
-          success: true,
-          duration: 500,
-          tasksCompleted: 0,
-          messagesProcessed: 0,
-          errors: [],
-        }),
+        executeAgent: () =>
+          Promise.resolve({
+            success: true,
+            duration: 500,
+            tasksCompleted: 0,
+            messagesProcessed: 0,
+            errors: [],
+          }),
         supportsFeature: () => false,
         getCapabilities: () => [],
-        healthCheck: async () => true,
+        healthCheck: () => Promise.resolve(true),
       };
 
-      const result = await mockAdapter.executeAgent(
-        'agent-1',
-        'reactive',
-        {} as ExecutionContext
-      );
+      const result = await mockAdapter.executeAgent('agent-1', 'reactive', {} as ExecutionContext);
       expect(result.success).toBe(true);
 
       const isHealthy = await mockAdapter.healthCheck();
