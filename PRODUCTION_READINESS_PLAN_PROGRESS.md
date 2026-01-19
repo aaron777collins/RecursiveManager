@@ -84,7 +84,7 @@ IN_PROGRESS
 
 #### 3.1 Guide Files (9 missing)
 - [x] Create docs/guide/quick-start.md (step-by-step first use, basic examples)
-- [ ] Create docs/guide/core-concepts.md (hierarchy, delegation, perspectives)
+- [x] Create docs/guide/core-concepts.md (hierarchy, delegation, perspectives)
 - [ ] Create docs/guide/creating-agents.md (hiring, roles, manager relationships)
 - [ ] Create docs/guide/task-management.md (lifecycle, blocking, deadlock detection)
 - [ ] Create docs/guide/scheduling.md (cron, time-based, recurring tasks)
@@ -221,6 +221,32 @@ IN_PROGRESS
 - [ ] Verify all GitHub Actions workflows passing on master branch
 
 ## Completed This Iteration
+
+**Iteration 15: Create docs/guide/core-concepts.md**
+- Created comprehensive core concepts guide (801 lines, 21KB)
+- Structured in 10 main sections covering all fundamental concepts:
+  1. Agent Hierarchy (CEO pattern, org hierarchy view, relationships)
+  2. Task Delegation (lifecycle, flow, blocking, progress tracking)
+  3. Multi-Perspective Analysis (8 perspectives, workflow, synthesis)
+  4. Agent Lifecycle (states, hiring, pausing, resuming, firing)
+  5. Task Management (storage, depth limits, dependencies, deadlock detection)
+  6. Inter-Agent Communication (message structure, flow, channels)
+  7. Execution Model (worker pool, continuous/reactive/hybrid modes)
+  8. Configuration System (config.json, schedule.json, metadata.json)
+  9. Audit Logging (structure, immutability, examples)
+  10. Snapshot System (creation, rollback, storage)
+- Includes practical examples with code snippets and JSON configs
+- Documents database schema (agents, tasks, messages, org_hierarchy tables)
+- Explains materialized views for performance (org_hierarchy transitive closure)
+- Covers task blocking, dependencies, and deadlock detection
+- Details execution pool worker pattern with FIFO queuing
+- Documents all three agent configuration files with full examples
+- Explains snapshot system for database rollback
+- Provides best practices section (hierarchy design, task management, communication)
+- Links to 11 related documentation pages for deeper dives
+- Follows VitePress markdown format with warning callouts
+- Successfully builds with VitePress (no errors)
+- Phase 3.1 (Guide Files) - 2/9 tasks complete
 
 **Iteration 14: Create docs/guide/quick-start.md**
 - Created comprehensive quick-start guide (522 lines, 13KB)
