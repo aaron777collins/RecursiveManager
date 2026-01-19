@@ -160,3 +160,14 @@ export {
   type Migration,
   type MigrationStatus,
 } from './db/migrations';
+
+// Logging (Phase 1.4)
+export {
+  createLogger,
+  generateTraceId,
+  logger,
+  type Logger,
+  type LogLevel,
+  type LogMetadata,
+  type LoggerOptions,
+} from './logger';
