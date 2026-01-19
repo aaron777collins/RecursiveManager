@@ -7,5 +7,17 @@
 
 export const VERSION = '0.1.0';
 
-// Placeholder - actual exports will be added in Phase 6
+// Org chart visualization utilities (Phase 2.2.20)
+export {
+  formatOrgChart,
+  formatAsTree,
+  formatAsIndented,
+  formatAsTable,
+  formatAsJSON,
+  displayOrgChart,
+  type OrgChartEntry,
+  type FormatOptions,
+} from './utils/formatOrgChart';
+
+// Placeholder - additional exports will be added in Phase 6
 export {};

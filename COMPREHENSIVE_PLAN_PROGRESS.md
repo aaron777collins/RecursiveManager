@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 07:50:00 EST
+Last Updated: 2026-01-19 02:55:24 EST
 
 ## Status
 
@@ -268,8 +268,8 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Org Chart
 
-- [ ] Task 2.2.19: Implement getOrgChart() querying org_hierarchy
-- [ ] Task 2.2.20: Add org chart visualization formatting
+- [x] Task 2.2.19: Implement getOrgChart() querying org_hierarchy
+- [x] Task 2.2.20: Add org chart visualization formatting
 - [ ] Task 2.2.21: Implement real-time org chart updates on hire/fire
 
 ##### Edge Case Handling
@@ -5375,3 +5375,146 @@ Created comprehensive test suite with 6 test cases:
 **Task 2.2.18 Status**: ✅ **COMPLETE**
 
 The task blocking system is now fully implemented and integrated with pause/resume operations. All active tasks are properly blocked when an agent is paused, and intelligently unblocked when resumed, preserving tasks that have other dependencies.
+
+---
+
+## Completed This Iteration (2026-01-19 02:55:24 EST)
+
+### Task 2.2.19 & 2.2.20: Org Chart Implementation
+
+#### Summary
+
+Verified that Task 2.2.19 (getOrgChart implementation) was already complete and implemented Task 2.2.20 (org chart visualization formatting) by creating comprehensive formatting utilities for displaying organizational hierarchies.
+
+#### Task 2.2.19: getOrgChart() Implementation (ALREADY COMPLETE)
+
+**Location**: `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/queries/agents.ts:386-420`
+
+**What was found**:
+- Function fully implemented and exported
+- Queries org_hierarchy view with LEFT JOIN to agents table
+- Returns agent records with depth and path information
+- Sorts results by path for logical hierarchy display
+- Comprehensive test coverage in queries-agents.test.ts
+
+**Status**: ✅ **ALREADY COMPLETE**
+
+#### Task 2.2.20: Org Chart Visualization Formatting
+
+**Files Created**:
+1. `/home/ubuntu/repos/RecursiveManager/packages/cli/src/utils/formatOrgChart.ts` (450 lines)
+   - Complete formatting utilities for multiple output formats
+   
+2. `/home/ubuntu/repos/RecursiveManager/packages/cli/src/utils/__tests__/formatOrgChart.test.ts` (425 lines)
+   - Comprehensive test suite covering all formatters
+
+**Files Modified**:
+- `/home/ubuntu/repos/RecursiveManager/packages/cli/src/index.ts`
+  - Added exports for all formatting functions and types
+
+**Features Implemented**:
+
+1. **Four Output Formats**:
+   - `formatAsTree()`: ASCII tree with branches (├─, └─, │)
+   - `formatAsIndented()`: Simple indented list
+   - `formatAsTable()`: Columnar table with headers and separators
+   - `formatAsJSON()`: Machine-readable JSON output
+
+2. **Formatting Options**:
+   - `showStatus`: Display agent status indicators (●=active, ◐=paused, ○=fired)
+   - `showCreatedAt`: Include creation dates
+   - `showStats`: Show execution count and runtime
+   - `useColor`: ANSI color codes for terminal output
+   - `maxDepth`: Limit displayed hierarchy depth
+
+3. **Status Indicators**:
+   - Active agents: Green color, ● symbol
+   - Paused agents: Yellow color, ◐ symbol
+   - Fired agents: Red color, ○ symbol
+
+4. **Smart Formatting**:
+   - Proper tree structure with vertical lines for depth
+   - Handles edge cases (last child, branches, etc.)
+   - Color-aware column width calculation (strips ANSI codes)
+   - Role display when different from display name
+
+**API Surface**:
+```typescript
+// Main formatting function
+formatOrgChart(orgChart, format, options): string
+
+// Individual formatters
+formatAsTree(orgChart, options): string
+formatAsIndented(orgChart, options): string
+formatAsTable(orgChart, options): string
+formatAsJSON(orgChart, options): string
+
+// Console output helper
+displayOrgChart(orgChart, format, options): void
+
+// Types
+interface OrgChartEntry {
+  agent: AgentRecord;
+  depth: number;
+  path: string;
+}
+
+interface FormatOptions {
+  showStatus?: boolean;
+  showCreatedAt?: boolean;
+  showStats?: boolean;
+  useColor?: boolean;
+  maxDepth?: number;
+}
+```
+
+**Example Output**:
+
+Tree format:
+```
+● CEO (Alice)
+├─● CTO (Bob)
+│ ├─● Backend Dev (Charlie)
+│ └─● Frontend Dev (Diana)
+└─● CFO (Eve)
+```
+
+Table format:
+```
+DEPTH | STATUS | NAME        | ROLE        | CREATED
+------|--------|-------------|-------------|------------
+0     | ●      | Alice       | CEO         | 2026-01-18
+1     | ●      | Bob         | CTO         | 2026-01-18
+2     | ●      | Charlie     | Backend Dev | 2026-01-19
+```
+
+**Test Coverage**:
+
+Created comprehensive test suite with 30+ test cases covering:
+- Empty org charts
+- Single agents
+- Multi-level hierarchies
+- Status indicators
+- Optional metadata (dates, stats)
+- Max depth filtering
+- Column alignment
+- JSON serialization
+- Format delegation
+- Error handling
+
+**Status**: ✅ **COMPLETE**
+
+### Design Decisions
+
+1. **Modular Formatters**: Separate function for each format enables easy testing and extension
+2. **Color-Aware Width Calculation**: Strips ANSI codes before measuring for proper table alignment
+3. **Progressive Disclosure**: Options allow simple default output or detailed information as needed
+4. **Terminal-Friendly**: Uses standard ANSI codes for broad terminal compatibility
+5. **Type Safety**: Full TypeScript types for all functions and options
+
+### Next Task
+
+Task 2.2.21: Implement real-time org chart updates on hire/fire
+- This requires updating org_hierarchy when reporting relationships change
+- Current limitation documented in code: orphan reassignment doesn't update org_hierarchy
+- Will need trigger mechanism or manual refresh in updateAgent()
