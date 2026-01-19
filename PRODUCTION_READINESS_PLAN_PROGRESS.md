@@ -83,7 +83,7 @@ IN_PROGRESS
 ### Phase 3: Documentation Completion (23 missing files)
 
 #### 3.1 Guide Files (9 missing)
-- [ ] Create docs/guide/quick-start.md (step-by-step first use, basic examples)
+- [x] Create docs/guide/quick-start.md (step-by-step first use, basic examples)
 - [ ] Create docs/guide/core-concepts.md (hierarchy, delegation, perspectives)
 - [ ] Create docs/guide/creating-agents.md (hiring, roles, manager relationships)
 - [ ] Create docs/guide/task-management.md (lifecycle, blocking, deadlock detection)
@@ -221,6 +221,20 @@ IN_PROGRESS
 - [ ] Verify all GitHub Actions workflows passing on master branch
 
 ## Completed This Iteration
+
+**Iteration 14: Create docs/guide/quick-start.md**
+- Created comprehensive quick-start guide (522 lines, 13KB)
+- Structured in 6 main steps: Install → Initialize → Status → Config → Debug → Snapshots
+- Covers all CLI commands with practical examples
+- Includes prerequisites, system requirements, and installation methods
+- Added sections on understanding agent hierarchies (CEO pattern, delegation flow, task flow)
+- Documented common tasks (starting projects, monitoring, troubleshooting)
+- Provided tips and best practices (clear goals, monitoring, JSON output, snapshots)
+- Comprehensive troubleshooting section (command not found, database locked, permissions, disk space)
+- Added "What's Next" section linking to other documentation pages
+- Follows VitePress markdown format with warning callouts for dev status
+- Matches style and formatting of existing installation.md guide
+- Phase 3.1 (Guide Files) - 1/9 tasks complete
 
 **Iteration 13: Write Integration Tests for Rollback Command**
 - Created packages/cli/src/__tests__/rollback.integration.test.ts with comprehensive test coverage
