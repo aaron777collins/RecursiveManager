@@ -241,10 +241,10 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Hire Logic
 
-- [ ] Task 2.2.1: Implement validateHire(config) checking budget, rate limits, cycles
-- [ ] Task 2.2.2: Implement detectCycle(agentId, newManagerId) using graph traversal
-- [ ] Task 2.2.3: Implement checkHiringBudget(managerId)
-- [ ] Task 2.2.4: Implement checkRateLimit(managerId) - 5 hires/hour max
+- [x] Task 2.2.1: Implement validateHire(config) checking budget, rate limits, cycles
+- [x] Task 2.2.2: Implement detectCycle(agentId, newManagerId) using graph traversal
+- [x] Task 2.2.3: Implement checkHiringBudget(managerId)
+- [x] Task 2.2.4: Implement checkRateLimit(managerId) - 5 hires/hour max
 - [ ] Task 2.2.5: Implement hireAgent(config) creating all files + DB entries
 - [ ] Task 2.2.6: Create agent directory structure (tasks/, inbox/, outbox/, subordinates/, workspace/)
 - [ ] Task 2.2.7: Initialize config.json, schedule.json, metadata.json, README.md
@@ -480,6 +480,96 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Tasks 2.2.1-2.2.4: Hire Validation Implementation ✅
+
+**Date**: 2026-01-19 05:00:00 EST
+
+**Summary**: Implemented complete hire validation system with budget checking, rate limiting, and cycle detection to prevent invalid hiring scenarios. Covered edge cases EC-1.1 (self-hire), EC-1.3 (circular reporting), and EC-1.4 (hiring sprees).
+
+**What Was Implemented**:
+
+1. **validateHire.ts** (`packages/core/src/lifecycle/validateHire.ts`):
+   - `validateHire()` - Main validation orchestrator (365 lines)
+   - `validateHireStrict()` - Throws on validation failure
+   - `detectCycle()` - Graph traversal to prevent circular reporting (EC-1.1, EC-1.3)
+   - `checkHiringBudget()` - Validates maxSubordinates and hiringBudget limits
+   - `checkRateLimit()` - Enforces 5 hires/hour limit (EC-1.4)
+   - `HireValidationError` - Custom error with formatted messages
+   - TypeScript types: `ValidationError`, `HireValidationResult`
+
+2. **Validation Checks**:
+   - **Manager Existence**: Verifies manager exists in database
+   - **Manager Status**: Ensures manager is active (not paused/fired)
+   - **Hire Permission**: Checks canHire permission
+   - **Agent Existence**: Prevents hiring agent with existing ID
+   - **Self-Hire Prevention**: Detects if agent tries to hire itself (EC-1.1)
+   - **Cycle Detection**: Prevents circular reporting structures (EC-1.3)
+   - **Budget Limits**: Enforces maxSubordinates (hard limit) and hiringBudget (soft limit)
+   - **Rate Limiting**: Max 5 hires per hour per manager (EC-1.4)
+   - **Configuration Warnings**: Flags inconsistent permission settings
+
+3. **Cycle Detection Algorithm**:
+   - Uses graph traversal (DFS-style)
+   - Follows reporting_to chain upward from manager
+   - Detects if new agent ID appears in ancestor chain
+   - Prevents infinite loops with visited set and max depth (100)
+   - Handles both direct (A->B, B->A) and indirect cycles (A->B->C->A)
+
+4. **Rate Limiting**:
+   - Queries audit log for recent HIRE events
+   - 1-hour sliding window
+   - Only counts successful hires
+   - Returns detailed context (recent hire count, oldest hire time)
+
+5. **Test Suite** (`packages/core/src/__tests__/validateHire.test.ts`):
+   - 700+ lines, comprehensive test coverage
+   - **detectCycle Tests**: Self-hire, direct cycles, indirect cycles, valid hierarchies
+   - **checkHiringBudget Tests**: Within limits, maxSubordinates exceeded, budget exceeded
+   - **checkRateLimit Tests**: No hires, within limit, limit exceeded, failed hires not counted
+   - **validateHire Tests**: Valid scenarios, missing manager, inactive manager, no permission, existing agent, self-hire, circular reporting, multiple errors, configuration warnings
+   - **validateHireStrict Tests**: Exception throwing, formatted error messages
+   - **HireValidationError Tests**: Error formatting with context and warnings
+
+6. **Module Exports**:
+   - Updated `packages/core/src/lifecycle/index.ts`
+   - Updated `packages/core/src/index.ts` to export lifecycle functions
+   - Updated `packages/common/src/index.ts` to export allMigrations for testing
+
+**Architecture Decisions**:
+
+- **Validation Result Pattern**: Returns `{valid, errors, warnings}` for flexible error handling
+- **Strict Variant**: Provides `validateHireStrict()` that throws for convenience
+- **Detailed Context**: Each error includes code, message, and relevant context data
+- **Warnings vs Errors**: Separates blocking errors from advisory warnings
+- **Audit Log Integration**: Uses existing audit system for rate limit tracking
+- **Database Queries**: Leverages existing query APIs (getAgent, getSubordinates, queryAuditLog)
+- **Configuration Loading**: Uses loadAgentConfig() for manager permission checks
+
+**Edge Cases Handled**:
+
+- **EC-1.1**: Self-hire detection (agent hiring itself)
+- **EC-1.3**: Circular reporting prevention (A->B->C->A)
+- **EC-1.4**: Hiring spree prevention (5 hires/hour limit)
+- Paused/fired managers cannot hire
+- Non-existent agents cannot hire
+- Configuration inconsistencies flagged as warnings
+- Missing or corrupted configurations handled gracefully
+
+**Files Created**:
+- `packages/core/src/lifecycle/validateHire.ts` - 462 lines
+- `packages/core/src/lifecycle/index.ts` - Module exports
+- `packages/core/src/__tests__/validateHire.test.ts` - 720 lines of tests
+
+**Files Modified**:
+- `packages/core/src/index.ts` - Added lifecycle exports
+- `packages/common/src/index.ts` - Added allMigrations export
+
+**Next Tasks**: Task 2.2.5 (hireAgent implementation)
+
+---
+
+## Completed Previously
 
 ### Task 2.1.7: Unit tests for config validation (valid/invalid inputs) ✅
 

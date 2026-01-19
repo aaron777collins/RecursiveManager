@@ -18,3 +18,15 @@ export {
   BusinessValidationFailure,
   BusinessValidationResult,
 } from './validation/business-validation';
+
+// Agent Lifecycle Management (Phase 2.2)
+export {
+  validateHire,
+  validateHireStrict,
+  detectCycle,
+  checkHiringBudget,
+  checkRateLimit,
+  HireValidationError,
+  type ValidationError,
+  type HireValidationResult,
+} from './lifecycle';

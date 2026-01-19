@@ -161,6 +161,9 @@ export {
   type MigrationStatus,
 } from './db/migrations';
 
+// Default Migrations
+export { allMigrations, getMigrations } from './db/migrations';
+
 // Database Queries (Phase 1.3)
 export {
   // Agent queries
