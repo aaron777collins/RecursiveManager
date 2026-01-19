@@ -42,7 +42,7 @@ IN_PROGRESS
 - [x] 6.1 Update main README.md
 
 ### Phase 7: Configuration Management
-- [ ] 7.1 Create config.ts module
+- [x] 7.1 Create config.ts module
 
 ### Phase 8: Testing & Validation
 - [ ] 8.1 Add test-install.sh script
@@ -141,7 +141,7 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 6.1: Updated main README.md with all required changes
+- Task 7.1: Created config.ts module for global RecursiveManager configuration
 
 ## Notes
 
@@ -410,3 +410,28 @@ IN_PROGRESS
     - Added Version: 0.1.0
     - Noted core features are functional
   - Phase 6 (README Updates) is now complete
+
+### Iteration 21 (2026-01-19)
+- Task 7.1: Created config.ts module for global RecursiveManager configuration
+  - Created /home/ubuntu/repos/RecursiveManager/packages/common/src/config.ts
+  - Defined RecursiveManagerConfig interface with all configuration properties:
+    - Installation paths (home, dataDir)
+    - Logging configuration (logLevel, logFile)
+    - Agent limits (maxAgentDepth, maxAgentsPerManager, agentTimeoutMs)
+    - Execution settings (workerPoolSize, continuousExecutionIntervalMs)
+    - Framework adapter configuration (defaultFramework, claudeCodePath)
+  - Implemented loadConfig() function with environment variable loading:
+    - Loads from ~/.recursive-manager/.env if exists
+    - Loads from current directory .env
+    - Reads from process environment variables
+    - Provides sensible defaults for all values
+  - Exported singleton config constant for easy import
+  - Added dotenv dependency to packages/common/package.json
+  - Exported config module from packages/common/src/index.ts:
+    - loadConfig function
+    - config singleton
+    - RecursiveManagerConfig type
+  - Built and verified compilation with TypeScript
+  - Tested module works correctly (loads config from environment)
+  - Restored postinstall script in root package.json
+  - Phase 7 (Configuration Management) is now complete

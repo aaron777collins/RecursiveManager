@@ -253,6 +253,13 @@ export {
 // Config Loader (Phase 2.1 - moved from core to resolve circular dependency)
 export { loadAgentConfig, ConfigLoadError } from './config-loader';
 
+// Global Configuration (Phase 7.1 - Environment-based configuration)
+export {
+  loadConfig,
+  config,
+  type RecursiveManagerConfig,
+} from './config';
+
 // PID Manager (Phase 3.4)
 export {
   acquirePidLock,
