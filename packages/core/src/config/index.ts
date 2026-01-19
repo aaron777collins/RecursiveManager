@@ -30,8 +30,10 @@ export const loadAgentConfig = loadAgentConfigFromCommon;
 
 /**
  * Re-export ConfigLoadError from common for backward compatibility
+ * Export both the class (value) and the type
  */
 export const ConfigLoadError = ConfigLoadErrorFromCommon;
+export type ConfigLoadError = ConfigLoadErrorFromCommon;
 
 /**
  * Error thrown when agent configuration cannot be saved

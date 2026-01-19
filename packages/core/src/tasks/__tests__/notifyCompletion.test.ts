@@ -295,7 +295,7 @@ describe('notifyTaskCompletion', () => {
       expect(messageId).toBeNull();
 
       // Verify no messages were created
-      const messages = getMessages(db, {});
+      const messages = getMessages(db, { agentId: rootAgentId });
       expect(messages).toHaveLength(0);
     });
   });

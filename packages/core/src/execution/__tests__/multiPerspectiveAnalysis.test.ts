@@ -320,12 +320,11 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
   describe('Error Handling', () => {
     it('should handle timeout gracefully with safe default decision', async () => {
       // Create orchestrator with very short timeout (1ms) to force timeout
-      const shortTimeoutOrchestrator = new ExecutionOrchestrator(
-        db,
-        baseDir,
-        adapterRegistry as any,
-        1 // 1ms timeout
-      );
+      const shortTimeoutOrchestrator = new ExecutionOrchestrator({
+        database: dbPool,
+        adapterRegistry: adapterRegistry as any,
+        maxAnalysisTime: 1, // 1ms timeout
+      });
 
       const question = 'Should we implement feature X?';
       const perspectives = ['Engineer'];
@@ -348,12 +347,11 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
     });
 
     it('should include error information in rationale on failure', async () => {
-      const shortTimeoutOrchestrator = new ExecutionOrchestrator(
-        db,
-        baseDir,
-        adapterRegistry as any,
-        1 // 1ms timeout
-      );
+      const shortTimeoutOrchestrator = new ExecutionOrchestrator({
+        database: dbPool,
+        adapterRegistry: adapterRegistry as any,
+        maxAnalysisTime: 1, // 1ms timeout
+      });
 
       const question = 'Complex question';
       const perspectives = ['Engineer'];
@@ -507,7 +505,10 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
     });
 
     it('should work with orchestrator created with default timeout', async () => {
-      const defaultOrchestrator = new ExecutionOrchestrator(db, baseDir, adapterRegistry as any);
+      const defaultOrchestrator = new ExecutionOrchestrator({
+        database: dbPool,
+        adapterRegistry: adapterRegistry as any,
+      });
 
       const decision = await defaultOrchestrator.runMultiPerspectiveAnalysis('Test question', [
         'Engineer',
@@ -517,12 +518,11 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
     });
 
     it('should work with orchestrator created with custom timeout', async () => {
-      const customOrchestrator = new ExecutionOrchestrator(
-        db,
-        baseDir,
-        adapterRegistry as any,
-        5000 // 5 seconds
-      );
+      const customOrchestrator = new ExecutionOrchestrator({
+        database: dbPool,
+        adapterRegistry: adapterRegistry as any,
+        maxAnalysisTime: 5000, // 5 seconds
+      });
 
       const decision = await customOrchestrator.runMultiPerspectiveAnalysis('Test question', [
         'Engineer',
@@ -589,12 +589,11 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
     });
 
     it('should log errors on failure', async () => {
-      const shortTimeoutOrchestrator = new ExecutionOrchestrator(
-        db,
-        baseDir,
-        adapterRegistry as any,
-        1 // Force timeout
-      );
+      const shortTimeoutOrchestrator = new ExecutionOrchestrator({
+        database: dbPool,
+        adapterRegistry: adapterRegistry as any,
+        maxAnalysisTime: 1, // Force timeout
+      });
 
       // Should not throw, but should log error internally
       await expect(

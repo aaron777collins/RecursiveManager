@@ -13,9 +13,8 @@ import Database from 'better-sqlite3';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as tar from 'tar';
-import { archiveOldTasks, getCompletedTasks, compressOldArchives } from '../archiveTask';
-import { initializeDatabase, createTask, completeTask } from '@recursive-manager/common';
-import { createAgent } from '../../lifecycle/hireAgent';
+import { archiveOldTasks, compressOldArchives } from '../archiveTask';
+import { initializeDatabase, createTask, completeTask, createAgent, runMigrations, allMigrations } from '@recursive-manager/common';
 
 describe('Task Archival - Integration Tests', () => {
   let db: Database.Database;
@@ -23,7 +22,8 @@ describe('Task Archival - Integration Tests', () => {
 
   beforeEach(async () => {
     db = new Database(':memory:');
-    initializeDatabase(db);
+    db.pragma('journal_mode = WAL');
+    runMigrations(db, allMigrations);
     tempDir = path.join('/tmp', `test-archive-integration-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
   });
@@ -508,7 +508,8 @@ describe('Task Archival - Edge Cases', () => {
 
   beforeEach(async () => {
     db = new Database(':memory:');
-    initializeDatabase(db);
+    db.pragma('journal_mode = WAL');
+    runMigrations(db, allMigrations);
     tempDir = path.join('/tmp', `test-archive-edge-${Date.now()}`);
     await fs.mkdir(tempDir, { recursive: true });
   });

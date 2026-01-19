@@ -9,38 +9,71 @@ import {
 } from '../business-validation';
 import type { AgentConfig } from '@recursive-manager/common';
 
+// Type for deep partial config overrides
+type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
+
 describe('Business Validation', () => {
   // Helper to create a minimal valid config
-  const createValidConfig = (overrides: Partial<AgentConfig> = {}): AgentConfig => ({
-    version: '1.0.0',
-    identity: {
-      id: 'test-agent',
-      role: 'Test Role',
-      displayName: 'Test Agent',
-      createdAt: new Date().toISOString(),
-      createdBy: 'system',
-      reportingTo: 'manager',
-    },
-    goal: {
-      mainGoal: 'Test goal',
-    },
-    permissions: {
-      canHire: false,
-      maxSubordinates: 0,
-      hiringBudget: 0,
-      canFire: false,
-      canEscalate: true,
-      canAccessExternalAPIs: false,
-      maxDelegationDepth: 5,
-      workspaceQuotaMB: 1024,
-      maxExecutionMinutes: 60,
-    },
-    framework: {
-      primary: 'claude-code',
-      fallback: 'opencode',
-    },
-    ...overrides,
-  });
+  const createValidConfig = (overrides: DeepPartial<AgentConfig> = {}): AgentConfig => {
+    const baseConfig: AgentConfig = {
+      version: '1.0.0',
+      identity: {
+        id: 'test-agent',
+        role: 'Test Role',
+        displayName: 'Test Agent',
+        createdAt: new Date().toISOString(),
+        createdBy: 'system',
+        reportingTo: 'manager',
+      },
+      goal: {
+        mainGoal: 'Test goal',
+      },
+      permissions: {
+        canHire: false,
+        maxSubordinates: 0,
+        hiringBudget: 0,
+        canFire: false,
+        canEscalate: true,
+        canAccessExternalAPIs: false,
+        maxDelegationDepth: 5,
+        workspaceQuotaMB: 1024,
+        maxExecutionMinutes: 60,
+      },
+      framework: {
+        primary: 'claude-code',
+        fallback: 'opencode',
+      },
+    };
+
+    // Deep merge helper
+    const deepMerge = (target: any, source: any): any => {
+      const output = { ...target };
+      if (isObject(target) && isObject(source)) {
+        Object.keys(source).forEach((key) => {
+          if (isObject(source[key])) {
+            if (!(key in target)) {
+              Object.assign(output, { [key]: source[key] });
+            } else {
+              output[key] = deepMerge(target[key], source[key]);
+            }
+          } else {
+            Object.assign(output, { [key]: source[key] });
+          }
+        });
+      }
+      return output;
+    };
+
+    const isObject = (item: any): boolean => {
+      return item && typeof item === 'object' && !Array.isArray(item);
+    };
+
+    return deepMerge(baseConfig, overrides) as AgentConfig;
+  };
 
   describe('validateAgentConfigBusinessLogic', () => {
     it('should validate a valid configuration', () => {

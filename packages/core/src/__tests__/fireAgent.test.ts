@@ -23,10 +23,9 @@ import { generateDefaultConfig } from '../config';
 import {
   createAgent,
   getAgent,
-  getSubordinates,
   updateAgent,
   queryAuditLog,
-  initializeDatabase,
+  runMigrations,
   allMigrations,
   getMessages,
   getUnreadMessageCount,
@@ -43,7 +42,8 @@ beforeEach(async () => {
 
   // Initialize in-memory database
   db = new Database(':memory:');
-  initializeDatabase(db, allMigrations);
+  db.pragma('journal_mode = WAL');
+  runMigrations(db, allMigrations);
 });
 
 afterEach(async () => {

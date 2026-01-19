@@ -71,18 +71,17 @@ describe('completeTaskWithFiles', () => {
         priority: 'medium',
       });
 
-      // Create task directory in active/
-      await createTaskDirectory(db, {
-        taskId: task.id,
+      // Create task directory
+      await createTaskDirectory({
         agentId: 'test-agent',
-        taskStatus: 'in-progress',
+        task,
       });
 
-      const activePath = getTaskPath('test-agent', task.id, 'in-progress');
+      const pendingPath = getTaskPath('test-agent', task.id, 'pending');
       const completedPath = getTaskPath('test-agent', task.id, 'completed');
 
-      // Verify directory exists in active/
-      expect(fs.existsSync(activePath)).toBe(true);
+      // Verify directory exists in pending/
+      expect(fs.existsSync(pendingPath)).toBe(true);
       expect(fs.existsSync(completedPath)).toBe(false);
 
       // Complete the task
@@ -94,12 +93,12 @@ describe('completeTaskWithFiles', () => {
       expect(completedTask?.completed_at).toBeTruthy();
 
       // Verify directory moved to completed/
-      expect(fs.existsSync(activePath)).toBe(false);
+      expect(fs.existsSync(pendingPath)).toBe(false);
       expect(fs.existsSync(completedPath)).toBe(true);
 
-      // Verify task.md still exists in new location
-      const taskMdPath = path.join(completedPath, 'task.md');
-      expect(fs.existsSync(taskMdPath)).toBe(true);
+      // Verify plan.md still exists in new location
+      const planMdPath = path.join(completedPath, 'plan.md');
+      expect(fs.existsSync(planMdPath)).toBe(true);
     });
 
     it('should update parent task progress when completing subtask', async () => {
@@ -134,16 +133,14 @@ describe('completeTaskWithFiles', () => {
       });
 
       // Create directories for both tasks
-      await createTaskDirectory(db, {
-        taskId: parentTask.id,
+      await createTaskDirectory({
         agentId: 'test-agent',
-        taskStatus: 'in-progress',
+        task: parentTask,
       });
 
-      await createTaskDirectory(db, {
-        taskId: subtask.id,
+      await createTaskDirectory({
         agentId: 'test-agent',
-        taskStatus: 'in-progress',
+        task: subtask,
       });
 
       // Complete the subtask
@@ -187,10 +184,9 @@ describe('completeTaskWithFiles', () => {
       });
 
       // Create task directory
-      await createTaskDirectory(db, {
-        taskId: task.id,
+      await createTaskDirectory({
         agentId: 'test-agent',
-        taskStatus: 'pending',
+        task,
       });
 
       // Try to complete with wrong version number
@@ -223,10 +219,9 @@ describe('completeTaskWithFiles', () => {
       });
 
       // Create task directory in completed/ (unusual but possible)
-      await createTaskDirectory(db, {
-        taskId: task.id,
+      await createTaskDirectory({
         agentId: 'test-agent',
-        taskStatus: 'completed',
+        task,
       });
 
       const completedPath = getTaskPath('test-agent', task.id, 'completed');

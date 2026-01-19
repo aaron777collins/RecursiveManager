@@ -25,7 +25,7 @@ import {
   DatabasePool,
   type AgentConfig,
 } from '@recursive-manager/common';
-import { ExecutionOrchestrator, type Decision } from '../index';
+import { ExecutionOrchestrator } from '../index';
 
 // Mock types for adapters (avoiding import issues)
 type ExecutionResult = {
@@ -80,14 +80,20 @@ class AdapterRegistry {
 }
 
 // Helper to create valid AgentConfig
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function createValidConfig(agentId: string, role: string): AgentConfig {
   return {
     version: '1.0.0',
     identity: {
       id: agentId,
       role,
-      goal: 'Test goal',
+      displayName: role,
+      createdAt: new Date().toISOString(),
+      createdBy: 'test',
       reportingTo: null,
+    },
+    goal: {
+      mainGoal: 'Test goal',
     },
     permissions: {
       canHire: false,

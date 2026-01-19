@@ -379,20 +379,20 @@ describe('validateHire', () => {
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 5;
       config.permissions.hiringBudget = 3;
-      saveAgentConfig('manager', config);
+      await saveAgentConfig('manager', config);
 
-      const result = validateHire(db, 'manager', 'new-hire');
+      const result = await validateHire(db, 'manager', 'new-hire');
       expect(result.valid).toBe(true);
       expect(result.errors).toEqual([]);
     });
 
-    it('should fail when manager does not exist', () => {
-      const result = validateHire(db, 'nonexistent', 'new-hire');
+    it('should fail when manager does not exist', async () => {
+      const result = await validateHire(db, 'nonexistent', 'new-hire');
       expect(result.valid).toBe(false);
       expect(result.errors[0]!.code).toBe('MANAGER_NOT_FOUND');
     });
 
-    it('should fail when manager is not active', () => {
+    it('should fail when manager is not active', async () => {
       // Create paused manager
       createAgent(db, {
         id: 'manager',
@@ -410,14 +410,14 @@ describe('validateHire', () => {
 
       const config = generateDefaultConfig('Manager', 'Manage team', 'system');
       config.permissions.canHire = true;
-      saveAgentConfig('manager', config);
+      await saveAgentConfig('manager', config);
 
-      const result = validateHire(db, 'manager', 'new-hire');
+      const result = await validateHire(db, 'manager', 'new-hire');
       expect(result.valid).toBe(false);
       expect(result.errors[0]!.code).toBe('MANAGER_NOT_ACTIVE');
     });
 
-    it('should fail when manager lacks canHire permission', () => {
+    it('should fail when manager lacks canHire permission', async () => {
       // Create manager without hire permission
       createAgent(db, {
         id: 'manager',
@@ -433,14 +433,14 @@ describe('validateHire', () => {
       config.permissions.canHire = false;
       config.permissions.maxSubordinates = 0;
       config.permissions.hiringBudget = 0;
-      saveAgentConfig('manager', config);
+      await saveAgentConfig('manager', config);
 
-      const result = validateHire(db, 'manager', 'new-hire');
+      const result = await validateHire(db, 'manager', 'new-hire');
       expect(result.valid).toBe(false);
       expect(result.errors[0]!.code).toBe('NO_HIRE_PERMISSION');
     });
 
-    it('should fail when new agent ID already exists', () => {
+    it('should fail when new agent ID already exists', async () => {
       // Create manager
       createAgent(db, {
         id: 'manager',
@@ -456,7 +456,7 @@ describe('validateHire', () => {
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 5;
       config.permissions.hiringBudget = 3;
-      saveAgentConfig('manager', config);
+      await saveAgentConfig('manager', config);
 
       // Create existing agent
       createAgent(db, {
@@ -469,12 +469,12 @@ describe('validateHire', () => {
         configPath: '/test/existing/config.json',
       });
 
-      const result = validateHire(db, 'manager', 'existing');
+      const result = await validateHire(db, 'manager', 'existing');
       expect(result.valid).toBe(false);
       expect(result.errors[0]!.code).toBe('AGENT_ALREADY_EXISTS');
     });
 
-    it('should fail on self-hire (EC-1.1)', () => {
+    it('should fail on self-hire (EC-1.1)', async () => {
       // Create manager
       createAgent(db, {
         id: 'manager',
@@ -490,15 +490,15 @@ describe('validateHire', () => {
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 5;
       config.permissions.hiringBudget = 3;
-      saveAgentConfig('manager', config);
+      await saveAgentConfig('manager', config);
 
-      const result = validateHire(db, 'manager', 'manager');
+      const result = await validateHire(db, 'manager', 'manager');
       expect(result.valid).toBe(false);
-      const selfHireError = result.errors.find((e) => e.code === 'SELF_HIRE_FORBIDDEN');
+      const selfHireError = result.errors.find((e: any) => e.code === 'SELF_HIRE_FORBIDDEN');
       expect(selfHireError).toBeDefined();
     });
 
-    it('should fail on circular reporting (EC-1.3)', () => {
+    it('should fail on circular reporting (EC-1.3)', async () => {
       // Create chain: manager -> sub
       createAgent(db, {
         id: 'manager',
@@ -524,22 +524,22 @@ describe('validateHire', () => {
       managerConfig.permissions.canHire = true;
       managerConfig.permissions.maxSubordinates = 5;
       managerConfig.permissions.hiringBudget = 3;
-      saveAgentConfig('manager', managerConfig);
+      await saveAgentConfig('manager', managerConfig);
 
       const subConfig = generateDefaultConfig('Subordinate', 'Work', 'manager');
       subConfig.permissions.canHire = true;
       subConfig.permissions.maxSubordinates = 2;
       subConfig.permissions.hiringBudget = 1;
-      saveAgentConfig('sub', subConfig);
+      await saveAgentConfig('sub', subConfig);
 
       // Try to make manager report to sub (would create cycle)
-      const result = validateHire(db, 'sub', 'manager');
+      const result = await validateHire(db, 'sub', 'manager');
       expect(result.valid).toBe(false);
-      const cycleError = result.errors.find((e) => e.code === 'CIRCULAR_REPORTING_DETECTED');
+      const cycleError = result.errors.find((e: any) => e.code === 'CIRCULAR_REPORTING_DETECTED');
       expect(cycleError).toBeDefined();
     });
 
-    it('should include all validation errors when multiple issues exist', () => {
+    it('should include all validation errors when multiple issues exist', async () => {
       // Create manager that will hit multiple validation errors
       createAgent(db, {
         id: 'manager',
@@ -555,7 +555,7 @@ describe('validateHire', () => {
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 1;
       config.permissions.hiringBudget = 1;
-      saveAgentConfig('manager', config);
+      await saveAgentConfig('manager', config);
 
       // Create existing subordinate (exhausts both limits)
       createAgent(db, {
@@ -569,22 +569,22 @@ describe('validateHire', () => {
       });
 
       // Try to hire another (will fail budget AND try to hire existing agent with same ID)
-      const result = validateHire(db, 'manager', 'sub-1');
+      const result = await validateHire(db, 'manager', 'sub-1');
       expect(result.valid).toBe(false);
       expect(result.errors.length).toBeGreaterThan(1);
 
       // Should have AGENT_ALREADY_EXISTS
-      expect(result.errors.some((e) => e.code === 'AGENT_ALREADY_EXISTS')).toBe(true);
+      expect(result.errors.some((e: any) => e.code === 'AGENT_ALREADY_EXISTS')).toBe(true);
 
       // Should have budget errors
       expect(
         result.errors.some(
-          (e) => e.code === 'MAX_SUBORDINATES_EXCEEDED' || e.code === 'HIRING_BUDGET_EXCEEDED'
+          (e: any) => e.code === 'MAX_SUBORDINATES_EXCEEDED' || e.code === 'HIRING_BUDGET_EXCEEDED'
         )
       ).toBe(true);
     });
 
-    it('should include warnings for configuration inconsistencies', () => {
+    it('should include warnings for configuration inconsistencies', async () => {
       // Create manager with inconsistent config
       createAgent(db, {
         id: 'manager',
@@ -600,12 +600,12 @@ describe('validateHire', () => {
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 0; // Inconsistent!
       config.permissions.hiringBudget = 0;
-      saveAgentConfig('manager', config);
+      await saveAgentConfig('manager', config);
 
-      const result = validateHire(db, 'manager', 'new-hire');
+      const result = await validateHire(db, 'manager', 'new-hire');
       expect(result.valid).toBe(false); // Will fail because maxSubordinates = 0
       expect(result.warnings?.length).toBeGreaterThan(0);
-      expect(result.warnings?.some((w) => w.code === 'INCONSISTENT_PERMISSIONS')).toBe(true);
+      expect(result.warnings?.some((w: any) => w.code === 'INCONSISTENT_PERMISSIONS')).toBe(true);
     });
   });
 

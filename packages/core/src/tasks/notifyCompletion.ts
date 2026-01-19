@@ -118,10 +118,10 @@ export async function notifyTaskCompletion(
   }
 
   // Create notification message content
-  const messageContent = `# Task Completed by ${ownerAgent.name}
+  const messageContent = `# Task Completed by ${ownerAgent.display_name}
 
 **Task:** ${task.title}
-**Completed By:** ${ownerAgent.name} (${task.agent_id})
+**Completed By:** ${ownerAgent.display_name} (${task.agent_id})
 **Priority:** ${task.priority}
 **Completed At:** ${task.completed_at}
 ${timeToComplete ? `**Time to Complete:** ${timeToComplete}\n` : ''}
@@ -148,7 +148,15 @@ ${task.parent_task_id ? `This was a subtask. The parent task progress has been a
 
 ---
 
-*This is an automated notification. Reply to this message to contact ${ownerAgent.name}.*`;
+*This is an automated notification. Reply to this message to contact ${ownerAgent.display_name}.*`;
+
+  // Map task priority to message priority (completions are slightly lower priority than delegations)
+  let messagePriority: 'low' | 'normal' | 'high' | 'urgent' = 'normal';
+  if (task.priority === 'urgent' || task.priority === 'high') {
+    messagePriority = 'high';
+  } else if (task.priority === 'low') {
+    messagePriority = 'low';
+  }
 
   // Create message data
   const messageData: MessageData = {
@@ -156,7 +164,7 @@ ${task.parent_task_id ? `This was a subtask. The parent task progress has been a
     from: task.agent_id,
     to: managerAgent.id,
     timestamp: new Date().toISOString(),
-    priority: task.priority === 'urgent' ? 'high' : 'normal', // Completions are slightly lower priority than delegations
+    priority: messagePriority,
     channel: 'internal',
     read: false,
     actionRequired: false, // Completions are informational, not action-required
