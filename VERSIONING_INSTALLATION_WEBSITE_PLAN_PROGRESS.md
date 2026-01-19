@@ -10,8 +10,8 @@ IN_PROGRESS
 
 ### Phase 1: Versioning System
 - [x] 1.1 Create CHANGELOG.md
-- [ ] 1.2 Update package.json version to 0.1.0
-- [ ] 1.3 Create version.ts file
+- [x] 1.2 Update package.json version to 0.1.0
+- [x] 1.3 Create version.ts file
 - [ ] 1.4 Create update.sh script
 
 ### Phase 2: Installation System
@@ -55,6 +55,17 @@ IN_PROGRESS
   - Added initial 0.1.0 release notes
   - Documented all existing features in the Added section
   - Followed semantic versioning principles
+
+### Iteration 2 (2026-01-19)
+- Task 1.2: Verified package.json version is already set to 0.1.0
+  - No changes needed - already at target version
+
+### Iteration 3 (2026-01-19)
+- Task 1.3: Created version.ts file in packages/common/src/
+  - Added VERSION, RELEASE_DATE, RELEASE_URL constants
+  - Added getVersionInfo() function
+  - Updated common package index.ts to export version information
+  - Replaced inline VERSION constant with import from version.ts
 
 ## Notes
 

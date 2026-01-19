@@ -5,7 +5,13 @@
  * This package provides shared functionality used across all other packages.
  */
 
-export const VERSION = '0.1.0';
+// Version information (Phase 1.1)
+export {
+  VERSION,
+  RELEASE_DATE,
+  RELEASE_URL,
+  getVersionInfo,
+} from './version';
 
 // File I/O utilities (Phase 1.2)
 export {
