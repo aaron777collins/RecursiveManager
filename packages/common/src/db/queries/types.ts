@@ -113,7 +113,7 @@ export interface TaskRecord {
  * Input for creating a new task
  */
 export interface CreateTaskInput {
-  id: string;
+  id?: string; // Optional - will be auto-generated if not provided
   agentId: string;
   title: string;
   priority?: TaskPriority;

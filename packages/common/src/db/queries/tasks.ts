@@ -16,6 +16,7 @@ import { TaskRecord, CreateTaskInput, TaskStatus } from './types';
 import { TASK_MAX_DEPTH } from '../constants';
 import { getAgent } from './agents';
 import { auditLog, AuditAction } from './audit';
+import { generateTaskId } from '../taskIdGenerator';
 
 /**
  * Get a task by ID
@@ -84,22 +85,22 @@ export function getTask(db: Database.Database, id: string): TaskRecord | null {
  *
  * @example
  * ```typescript
- * // Create a root task
+ * // Create a root task with auto-generated ID
  * const rootTask = createTask(db, {
- *   id: 'task-001',
  *   agentId: 'ceo-001',
  *   title: 'Launch new product',
  *   priority: 'high',
  *   taskPath: 'Launch new product'
  * });
+ * // Generated ID will be like: 'task-1-launch-new-product'
  *
- * // Create a subtask
+ * // Create a subtask with custom ID
  * const subtask = createTask(db, {
- *   id: 'task-002',
+ *   id: 'task-002-design',
  *   agentId: 'ceo-001',
  *   title: 'Design product',
  *   priority: 'high',
- *   parentTaskId: 'task-001',
+ *   parentTaskId: rootTask.id,
  *   taskPath: 'Launch new product / Design product'
  * });
  * ```
@@ -110,6 +111,9 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
   if (!agent) {
     throw new Error(`Agent not found: ${input.agentId}`);
   }
+
+  // Step 1.5: Generate task ID if not provided
+  const taskId = input.id ?? generateTaskId(db, input.agentId, input.title);
 
   // Step 2: Depth validation
   let depth = 0;
@@ -170,7 +174,7 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
 
     // Insert task record
     insertTask.run(
-      input.id,
+      taskId,
       input.agentId,
       input.title,
       'pending', // default status
@@ -193,9 +197,9 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
     transaction();
 
     // Retrieve and return the created task
-    const task = getTask(db, input.id);
+    const task = getTask(db, taskId);
     if (!task) {
-      throw new Error(`Failed to retrieve created task: ${input.id}`);
+      throw new Error(`Failed to retrieve created task: ${taskId}`);
     }
 
     // Audit log successful task creation
@@ -205,7 +209,7 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
       targetAgentId: input.agentId,
       success: true,
       details: {
-        taskId: input.id,
+        taskId: taskId,
         title: input.title,
         priority: input.priority,
         parentTaskId: input.parentTaskId,
@@ -222,7 +226,7 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
       targetAgentId: input.agentId,
       success: false,
       details: {
-        taskId: input.id,
+        taskId: taskId,
         title: input.title,
         error: error instanceof Error ? error.message : String(error),
       },

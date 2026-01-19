@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 20:45:00 EST
+Last Updated: 2026-01-19 21:15:00 EST
 
 ## Status
 
@@ -300,7 +300,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 2.3.2: Implement validateTaskDepth(parentTaskId) - max depth 10
 - [x] Task 2.3.3: Create task directory structure (plan.md, progress.md, subtasks.md, context.json)
 - [x] Task 2.3.4: Initialize task in database with version=0
-- [ ] Task 2.3.5: Generate unique task IDs (task-{number}-{slug})
+- [x] Task 2.3.5: Generate unique task IDs (task-{number}-{slug})
 
 ##### Task Updates
 
@@ -5756,5 +5756,94 @@ Task 2.3.8 or Task 2.3.9: Continue with remaining Task Management System impleme
 **Status**: ✅ **Task 2.3.3 COMPLETE**
 
 Task directory structure creation is production-ready. Next task is 2.3.5 (Generate unique task IDs).
+
+---
+
+## Iteration: 2026-01-19 21:15
+
+### Completed This Iteration
+
+**Task 2.3.5**: Generate unique task IDs (task-{number}-{slug})
+
+### Implementation Summary
+
+1. **Created `packages/common/src/db/taskIdGenerator.ts`**:
+   - `slugify(text)` - Converts task titles to URL-friendly slugs
+   - `getNextTaskNumber(db, agentId)` - Gets next available task number for an agent
+   - `generateTaskId(db, agentId, title)` - Generates complete task ID
+   - ~140 lines of production code with comprehensive documentation
+
+2. **Key Features**:
+   - **Per-agent numbering**: Each agent has independent task number sequences starting from 1
+   - **Automatic slug generation**: Converts titles to lowercase, hyphenated, alphanumeric slugs
+   - **Length limits**: Slugs limited to 50 characters for readability
+   - **Special character handling**: Removes all non-alphanumeric characters except hyphens
+   - **Gap tolerance**: Handles gaps in task numbers (e.g., if tasks are deleted)
+   - **Fallback handling**: Uses "task" as slug if title contains only special characters
+
+3. **Updated `createTask()` function**:
+   - Made `id` parameter optional in `CreateTaskInput` interface
+   - Auto-generates ID using `generateTaskId()` if not provided
+   - Maintains backward compatibility - can still accept custom IDs
+   - Updated JSDoc examples to show both auto-generated and custom ID usage
+
+4. **Comprehensive Test Coverage**:
+   - Created `packages/common/src/db/__tests__/taskIdGenerator.test.ts`
+   - 22 test cases covering all functionality
+   - Tests for slugify edge cases: unicode, special chars, length limits, empty strings
+   - Tests for number sequencing: gaps, invalid formats, multi-agent scenarios
+   - All tests passing ✅
+
+5. **ID Format**:
+   ```
+   task-{number}-{slug}
+
+   Examples:
+   - task-1-setup-api
+   - task-42-implement-auth
+   - task-123-fix-bug-in-login
+   ```
+
+6. **Validation**:
+   - Existing schema validation already enforces format: `^task-[0-9]+-[a-zA-Z0-9-]+$`
+   - IDs are validated at creation time
+   - Regex ensures correct structure
+
+7. **Exports**:
+   - Added exports to `packages/common/src/db/index.ts`
+   - Functions available for use throughout the codebase
+
+### Testing Results
+
+```
+✓ All 22 tests in taskIdGenerator.test.ts passing
+✓ Build succeeds with no TypeScript errors
+✓ Integration with existing task creation validated
+```
+
+### Files Modified
+
+1. **New Files**:
+   - `packages/common/src/db/taskIdGenerator.ts`
+   - `packages/common/src/db/__tests__/taskIdGenerator.test.ts`
+
+2. **Modified Files**:
+   - `packages/common/src/db/queries/types.ts` - Made `id` optional in `CreateTaskInput`
+   - `packages/common/src/db/queries/tasks.ts` - Added ID generation logic to `createTask()`
+   - `packages/common/src/db/index.ts` - Added exports for task ID generator
+
+### Design Decisions
+
+1. **Per-agent numbering**: Each agent maintains its own sequence to avoid conflicts and provide clear ownership
+2. **Database-driven numbers**: Queries DB for max number rather than using a counter table (simpler, no locking needed)
+3. **Optional ID parameter**: Allows manual IDs when needed (e.g., for testing or specific naming)
+4. **50-char slug limit**: Balances readability with descriptiveness
+5. **Fallback to "task"**: Ensures always-valid IDs even with empty/special-char-only titles
+
+### Next Steps
+
+Task 2.3.8: Update task metadata (last update timestamp, execution counts)
+
+**Status**: ✅ **Task 2.3.5 COMPLETE**
 
 ---
