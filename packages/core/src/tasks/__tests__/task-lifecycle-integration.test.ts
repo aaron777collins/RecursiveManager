@@ -29,7 +29,6 @@ import {
   runMigrations,
   allMigrations,
   getTaskPath,
-  completeTask,
   detectTaskDeadlock,
   getMessages,
 } from '@recursive-manager/common';
