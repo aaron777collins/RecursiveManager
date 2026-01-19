@@ -365,3 +365,198 @@ export function getActiveTasks(db: Database.Database, agentId: string): TaskReco
   const results = query.all(agentId) as TaskRecord[];
   return results;
 }
+
+/**
+ * Detect task deadlock using DFS (Depth-First Search) algorithm
+ *
+ * A deadlock occurs when there is a circular dependency in the task blocking chain.
+ * For example: Task A blocks on B, B blocks on C, C blocks on A.
+ *
+ * This function uses a DFS approach to traverse the dependency graph and detect cycles.
+ * The algorithm maintains two data structures:
+ * - `visited`: Set of all task IDs we've explored (prevents re-exploring subtrees)
+ * - `path`: Current path of task IDs being explored (detects cycles)
+ *
+ * **Algorithm**:
+ * 1. Start DFS from the given taskId
+ * 2. For each task, check if it's already in the current path (cycle detected)
+ * 3. If not in path, add to visited set and path stack
+ * 4. Recursively explore all tasks that block this task
+ * 5. If a cycle is found, return the path forming the cycle
+ * 6. If no cycle found, return null
+ *
+ * **Example Deadlock**:
+ * ```
+ * Task A (blocked_by: ["B"])
+ *   └─> Task B (blocked_by: ["C"])
+ *         └─> Task C (blocked_by: ["A"])  // Cycle!
+ * ```
+ *
+ * @param db - Database instance
+ * @param taskId - The task ID to start deadlock detection from
+ * @returns Array of task IDs forming the cycle if deadlock detected, null otherwise
+ *
+ * @example
+ * ```typescript
+ * // Check if a task is in a deadlock
+ * const cycle = detectTaskDeadlock(db, 'task-001');
+ * if (cycle) {
+ *   console.log('Deadlock detected!');
+ *   console.log('Cycle: ' + cycle.join(' -> ') + ' -> ' + cycle[0]);
+ *   // Alert all agents in the cycle for human intervention
+ * } else {
+ *   console.log('No deadlock detected');
+ * }
+ * ```
+ */
+export function detectTaskDeadlock(db: Database.Database, taskId: string): string[] | null {
+  // Track all visited nodes to avoid re-exploration
+  const visited = new Set<string>();
+
+  // Track the current path to detect cycles
+  const path: string[] = [];
+
+  /**
+   * DFS helper function to explore the task dependency graph
+   *
+   * @param id - Current task ID being explored
+   * @returns true if a cycle is detected, false otherwise
+   */
+  function dfs(id: string): boolean {
+    // Cycle detected: current task is already in the path
+    if (path.includes(id)) {
+      // Add the task to path to complete the cycle visualization
+      path.push(id);
+      return true;
+    }
+
+    // Already explored this subtree, no need to explore again
+    if (visited.has(id)) {
+      return false;
+    }
+
+    // Mark as visited and add to current path
+    visited.add(id);
+    path.push(id);
+
+    // Get the task to access its blocked_by field
+    const task = getTask(db, id);
+    if (!task) {
+      // Task not found, can't explore further
+      path.pop();
+      return false;
+    }
+
+    // Parse the blocked_by JSON array
+    let blockedBy: string[];
+    try {
+      blockedBy = JSON.parse(task.blocked_by) as string[];
+    } catch (error) {
+      // Invalid JSON, treat as no blockers
+      blockedBy = [];
+    }
+
+    // Recursively explore all tasks that block this task
+    for (const blockerId of blockedBy) {
+      if (dfs(blockerId)) {
+        // Cycle found in one of the dependencies
+        return true;
+      }
+    }
+
+    // No cycle found through this path, backtrack
+    path.pop();
+    return false;
+  }
+
+  // Start DFS from the given task
+  if (dfs(taskId)) {
+    // Cycle detected: extract the cycle from the path
+    // The path will contain: [...prefix, cycleStart, ...cycle, cycleStart]
+    // We need to return just the cycle portion
+    const lastTaskId = path[path.length - 1];
+    if (!lastTaskId) {
+      // This should never happen if dfs returned true, but handle it for type safety
+      return null;
+    }
+    const cycleStartIndex = path.indexOf(lastTaskId);
+    return path.slice(cycleStartIndex, -1); // Exclude the duplicate at the end
+  }
+
+  // No cycle detected
+  return null;
+}
+
+/**
+ * Get all blocked tasks for an agent
+ *
+ * Returns all tasks assigned to the agent that have a 'blocked' status.
+ * These are tasks that cannot proceed because they are waiting on other tasks to complete.
+ *
+ * The query uses the idx_tasks_agent_status index for efficient filtering.
+ *
+ * **Use Cases**:
+ * - Identify tasks waiting on dependencies
+ * - Check for potential deadlocks
+ * - Prioritize unblocking critical tasks
+ * - Monitor agent workload bottlenecks
+ *
+ * @param db - Database instance
+ * @param agentId - Agent ID to query blocked tasks for
+ * @returns Array of blocked task records, ordered by priority and creation date
+ *
+ * @example
+ * ```typescript
+ * const blockedTasks = getBlockedTasks(db, 'agent-001');
+ * console.log(`Agent has ${blockedTasks.length} blocked tasks`);
+ *
+ * // Check each blocked task for deadlocks
+ * blockedTasks.forEach(task => {
+ *   const cycle = detectTaskDeadlock(db, task.id);
+ *   if (cycle) {
+ *     console.log(`Task ${task.title} is in a deadlock: ${cycle.join(' -> ')}`);
+ *   } else {
+ *     const blockers = JSON.parse(task.blocked_by);
+ *     console.log(`Task ${task.title} is blocked by: ${blockers.join(', ')}`);
+ *   }
+ * });
+ * ```
+ */
+export function getBlockedTasks(db: Database.Database, agentId: string): TaskRecord[] {
+  const query = db.prepare(`
+    SELECT
+      id,
+      agent_id,
+      title,
+      status,
+      priority,
+      created_at,
+      started_at,
+      completed_at,
+      parent_task_id,
+      depth,
+      percent_complete,
+      subtasks_completed,
+      subtasks_total,
+      delegated_to,
+      delegated_at,
+      blocked_by,
+      blocked_since,
+      task_path,
+      version
+    FROM tasks
+    WHERE agent_id = ?
+      AND status = 'blocked'
+    ORDER BY
+      CASE priority
+        WHEN 'urgent' THEN 1
+        WHEN 'high' THEN 2
+        WHEN 'medium' THEN 3
+        WHEN 'low' THEN 4
+      END,
+      created_at ASC
+  `);
+
+  const results = query.all(agentId) as TaskRecord[];
+  return results;
+}

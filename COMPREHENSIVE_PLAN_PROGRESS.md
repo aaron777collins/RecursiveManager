@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 23:04:00 EST
+Last Updated: 2026-01-18 23:11:22 EST
 
 ## Status
 
@@ -163,8 +163,8 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 1.3.16: Implement createTask(task) with depth validation
 - [x] Task 1.3.17: Implement updateTaskStatus(id, status, version) with optimistic locking
 - [x] Task 1.3.18: Implement getActiveTasks(agentId)
-- [ ] Task 1.3.19: Implement detectTaskDeadlock(taskId) using DFS algorithm
-- [ ] Task 1.3.20: Implement getBlockedTasks(agentId)
+- [x] Task 1.3.19: Implement detectTaskDeadlock(taskId) using DFS algorithm
+- [x] Task 1.3.20: Implement getBlockedTasks(agentId)
 
 ##### Concurrency & Error Handling
 
@@ -532,6 +532,92 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Tasks 1.3.19 & 1.3.20: Implement detectTaskDeadlock() and getBlockedTasks() ✅
+
+**Summary**: Implemented the final two task query API functions: `detectTaskDeadlock()` for detecting circular dependencies in task blocking chains, and `getBlockedTasks()` for retrieving all blocked tasks for an agent. These functions complete the core task management query API.
+
+**What Was Implemented**:
+
+1. **detectTaskDeadlock() Function** (`packages/common/src/db/queries/tasks.ts`):
+   - Implements DFS (Depth-First Search) algorithm to detect circular dependencies
+   - Algorithm:
+     - Maintains `visited` set to track explored nodes
+     - Maintains `path` array to track current traversal path
+     - Detects cycles when a task appears in the current path
+     - Returns array of task IDs forming the cycle, or null if no cycle
+   - Handles edge cases:
+     - Non-existent tasks
+     - Invalid JSON in `blocked_by` field
+     - Self-referencing tasks (A → A)
+     - Complex graphs with multiple blockers
+     - Tasks with non-existent blockers
+   - Comprehensive JSDoc documentation with algorithm explanation and examples
+
+2. **getBlockedTasks() Function** (`packages/common/src/db/queries/tasks.ts`):
+   - Retrieves all tasks with 'blocked' status for a given agent
+   - Uses `idx_tasks_agent_status` index for efficient filtering
+   - Orders results by:
+     1. Priority (urgent → high → medium → low)
+     2. Creation date (oldest first within same priority)
+   - Returns complete TaskRecord objects with all fields
+   - Useful for monitoring agent workload bottlenecks and identifying deadlocks
+
+3. **Comprehensive Test Suite** (`packages/common/src/db/__tests__/queries-tasks.test.ts`):
+   - Added 19 new test cases (11 for detectTaskDeadlock, 8 for getBlockedTasks)
+   - **detectTaskDeadlock() tests**:
+     - No blockers → null
+     - Linear dependency chain (no cycle) → null
+     - Simple 2-task cycle (A → B → A) → cycle detected
+     - Three-way cycle (A → B → C → A) → cycle detected
+     - Self-referencing (A → A) → cycle detected
+     - Multiple blockers with cycle → cycle detected
+     - Non-existent blocker → null (graceful handling)
+     - Invalid JSON in blocked_by → null (graceful handling)
+     - Detect from any starting point in cycle
+     - Complex graph with cycle in branch
+     - Non-existent task → null
+   - **getBlockedTasks() tests**:
+     - No blocked tasks → empty array
+     - Only returns 'blocked' status tasks
+     - Filters by agent ID correctly
+     - Orders by priority (urgent > high > medium > low)
+     - Orders by creation date within same priority
+     - Includes all task fields
+     - Non-existent agent → empty array
+     - Includes blocked tasks at all depths
+   - All 52 tests pass (33 existing + 19 new)
+
+4. **Validation**:
+   - ✅ All 52 tests pass
+   - ✅ TypeScript compilation successful
+   - ✅ Functions follow existing code patterns
+   - ✅ Comprehensive error handling
+   - ✅ Matches edge case specifications from EDGE_CASES_AND_CONTINGENCIES.md
+
+**Key Design Decisions**:
+
+1. **DFS Algorithm**: Used depth-first search for cycle detection as it efficiently identifies cycles in directed graphs with O(V + E) time complexity
+
+2. **Path Extraction**: When cycle detected, extract only the cycle portion from the path (removing prefix before cycle starts)
+
+3. **Error Resilience**: Gracefully handle invalid JSON and missing tasks without throwing errors
+
+4. **Priority Ordering**: Blocked tasks ordered by priority to help agents focus on unblocking high-priority work first
+
+**Files Modified**:
+
+- `packages/common/src/db/queries/tasks.ts` (added detectTaskDeadlock and getBlockedTasks)
+- `packages/common/src/db/__tests__/queries-tasks.test.ts` (added 19 test cases)
+
+**Next Steps**:
+
+- Task 1.3.21: Implement retry with exponential backoff for SQLITE_BUSY
+- Task 1.3.22: Add transaction support for complex operations
+- Task 1.3.23: Implement database health checks
+- Task 1.3.24: Add crash recovery mechanisms
+
+---
 
 ### Task 1.3.16: Implement createTask(task) with depth validation ✅
 

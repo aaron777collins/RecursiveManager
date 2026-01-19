@@ -22,6 +22,8 @@ import {
   getTask,
   updateTaskStatus,
   getActiveTasks,
+  detectTaskDeadlock,
+  getBlockedTasks,
   CreateTaskInput,
 } from '../queries';
 import { TASK_MAX_DEPTH } from '../constants';
@@ -912,6 +914,559 @@ describe('Task Query API', () => {
       expect(ids[1]).toMatch(/^task-(1|5)$/); // Both urgent
       expect(ids[2]).toBe('task-2'); // High
       expect(ids[3]).toBe('task-3'); // Low
+    });
+  });
+
+  describe('detectTaskDeadlock()', () => {
+    /**
+     * Helper function to update task's blocked_by field
+     */
+    function setTaskBlockers(taskId: string, blockedBy: string[]) {
+      const task = getTask(db, taskId);
+      if (!task) throw new Error(`Task not found: ${taskId}`);
+
+      const updateStmt = db.prepare(`
+        UPDATE tasks
+        SET blocked_by = ?
+        WHERE id = ?
+      `);
+
+      updateStmt.run(JSON.stringify(blockedBy), taskId);
+    }
+
+    it('should return null when task has no blockers', () => {
+      const task = createTask(db, {
+        id: 'task-no-blockers',
+        agentId: 'agent-001',
+        title: 'Independent task',
+        taskPath: 'Independent task',
+      });
+
+      const cycle = detectTaskDeadlock(db, task.id);
+      expect(cycle).toBeNull();
+    });
+
+    it('should return null when task has blockers but no circular dependency', () => {
+      // Create task chain: A -> B -> C (no cycle)
+      createTask(db, {
+        id: 'task-a',
+        agentId: 'agent-001',
+        title: 'Task A',
+        taskPath: 'Task A',
+      });
+
+      createTask(db, {
+        id: 'task-b',
+        agentId: 'agent-001',
+        title: 'Task B',
+        taskPath: 'Task B',
+      });
+
+      createTask(db, {
+        id: 'task-c',
+        agentId: 'agent-001',
+        title: 'Task C',
+        taskPath: 'Task C',
+      });
+
+      // Set blockers: A blocks on B, B blocks on C
+      setTaskBlockers('task-a', ['task-b']);
+      setTaskBlockers('task-b', ['task-c']);
+      setTaskBlockers('task-c', []); // C has no blockers
+
+      const cycle = detectTaskDeadlock(db, 'task-a');
+      expect(cycle).toBeNull();
+    });
+
+    it('should detect simple circular dependency (A -> B -> A)', () => {
+      createTask(db, {
+        id: 'task-a',
+        agentId: 'agent-001',
+        title: 'Task A',
+        taskPath: 'Task A',
+      });
+
+      createTask(db, {
+        id: 'task-b',
+        agentId: 'agent-001',
+        title: 'Task B',
+        taskPath: 'Task B',
+      });
+
+      // Create cycle: A -> B -> A
+      setTaskBlockers('task-a', ['task-b']);
+      setTaskBlockers('task-b', ['task-a']);
+
+      const cycle = detectTaskDeadlock(db, 'task-a');
+
+      expect(cycle).not.toBeNull();
+      expect(cycle).toHaveLength(2);
+      expect(cycle).toContain('task-a');
+      expect(cycle).toContain('task-b');
+    });
+
+    it('should detect three-way circular dependency (A -> B -> C -> A)', () => {
+      createTask(db, {
+        id: 'task-a',
+        agentId: 'agent-001',
+        title: 'Task A',
+        taskPath: 'Task A',
+      });
+
+      createTask(db, {
+        id: 'task-b',
+        agentId: 'agent-001',
+        title: 'Task B',
+        taskPath: 'Task B',
+      });
+
+      createTask(db, {
+        id: 'task-c',
+        agentId: 'agent-001',
+        title: 'Task C',
+        taskPath: 'Task C',
+      });
+
+      // Create cycle: A -> B -> C -> A
+      setTaskBlockers('task-a', ['task-b']);
+      setTaskBlockers('task-b', ['task-c']);
+      setTaskBlockers('task-c', ['task-a']);
+
+      const cycle = detectTaskDeadlock(db, 'task-a');
+
+      expect(cycle).not.toBeNull();
+      expect(cycle).toHaveLength(3);
+      expect(cycle).toContain('task-a');
+      expect(cycle).toContain('task-b');
+      expect(cycle).toContain('task-c');
+
+      // Verify the cycle is in the correct order
+      expect(cycle).toEqual(['task-a', 'task-b', 'task-c']);
+    });
+
+    it('should detect self-referencing task (A -> A)', () => {
+      createTask(db, {
+        id: 'task-self',
+        agentId: 'agent-001',
+        title: 'Self-referencing task',
+        taskPath: 'Self-referencing task',
+      });
+
+      // Task blocks on itself
+      setTaskBlockers('task-self', ['task-self']);
+
+      const cycle = detectTaskDeadlock(db, 'task-self');
+
+      expect(cycle).not.toBeNull();
+      expect(cycle).toHaveLength(1);
+      expect(cycle).toEqual(['task-self']);
+    });
+
+    it('should detect cycle even when task has multiple blockers', () => {
+      createTask(db, {
+        id: 'task-a',
+        agentId: 'agent-001',
+        title: 'Task A',
+        taskPath: 'Task A',
+      });
+
+      createTask(db, {
+        id: 'task-b',
+        agentId: 'agent-001',
+        title: 'Task B',
+        taskPath: 'Task B',
+      });
+
+      createTask(db, {
+        id: 'task-c',
+        agentId: 'agent-001',
+        title: 'Task C',
+        taskPath: 'Task C',
+      });
+
+      createTask(db, {
+        id: 'task-d',
+        agentId: 'agent-001',
+        title: 'Task D',
+        taskPath: 'Task D',
+      });
+
+      // A blocks on both B and C, C blocks on D, D blocks on A (creating cycle A->C->D->A)
+      setTaskBlockers('task-a', ['task-b', 'task-c']);
+      setTaskBlockers('task-b', []); // B is independent
+      setTaskBlockers('task-c', ['task-d']);
+      setTaskBlockers('task-d', ['task-a']);
+
+      const cycle = detectTaskDeadlock(db, 'task-a');
+
+      expect(cycle).not.toBeNull();
+      // Cycle should be: A -> C -> D -> A
+      expect(cycle).toContain('task-a');
+      expect(cycle).toContain('task-c');
+      expect(cycle).toContain('task-d');
+      expect(cycle).not.toContain('task-b'); // B is not part of the cycle
+    });
+
+    it('should handle task with non-existent blocker gracefully', () => {
+      createTask(db, {
+        id: 'task-a',
+        agentId: 'agent-001',
+        title: 'Task A',
+        taskPath: 'Task A',
+      });
+
+      // Set blocker to non-existent task
+      setTaskBlockers('task-a', ['non-existent-task']);
+
+      const cycle = detectTaskDeadlock(db, 'task-a');
+
+      // Should return null (no cycle) as the blocker doesn't exist
+      expect(cycle).toBeNull();
+    });
+
+    it('should handle invalid JSON in blocked_by field gracefully', () => {
+      createTask(db, {
+        id: 'task-invalid',
+        agentId: 'agent-001',
+        title: 'Task with invalid JSON',
+        taskPath: 'Task with invalid JSON',
+      });
+
+      // Set invalid JSON directly in database
+      const updateStmt = db.prepare(`
+        UPDATE tasks
+        SET blocked_by = ?
+        WHERE id = ?
+      `);
+      updateStmt.run('invalid json', 'task-invalid');
+
+      const cycle = detectTaskDeadlock(db, 'task-invalid');
+
+      // Should return null and not throw error
+      expect(cycle).toBeNull();
+    });
+
+    it('should detect deadlock from any starting point in the cycle', () => {
+      createTask(db, {
+        id: 'task-a',
+        agentId: 'agent-001',
+        title: 'Task A',
+        taskPath: 'Task A',
+      });
+
+      createTask(db, {
+        id: 'task-b',
+        agentId: 'agent-001',
+        title: 'Task B',
+        taskPath: 'Task B',
+      });
+
+      createTask(db, {
+        id: 'task-c',
+        agentId: 'agent-001',
+        title: 'Task C',
+        taskPath: 'Task C',
+      });
+
+      // Create cycle: A -> B -> C -> A
+      setTaskBlockers('task-a', ['task-b']);
+      setTaskBlockers('task-b', ['task-c']);
+      setTaskBlockers('task-c', ['task-a']);
+
+      // Should detect cycle from any starting point
+      const cycleFromA = detectTaskDeadlock(db, 'task-a');
+      const cycleFromB = detectTaskDeadlock(db, 'task-b');
+      const cycleFromC = detectTaskDeadlock(db, 'task-c');
+
+      expect(cycleFromA).not.toBeNull();
+      expect(cycleFromB).not.toBeNull();
+      expect(cycleFromC).not.toBeNull();
+
+      // All should contain the same tasks (order may vary based on starting point)
+      expect(cycleFromA).toHaveLength(3);
+      expect(cycleFromB).toHaveLength(3);
+      expect(cycleFromC).toHaveLength(3);
+    });
+
+    it('should handle complex graph with cycle in a branch', () => {
+      // Create a more complex dependency graph:
+      //     A
+      //    / \
+      //   B   C
+      //       |
+      //       D
+      //       |
+      //       E -> C (cycle: C -> D -> E -> C)
+
+      createTask(db, { id: 'task-a', agentId: 'agent-001', title: 'A', taskPath: 'A' });
+      createTask(db, { id: 'task-b', agentId: 'agent-001', title: 'B', taskPath: 'B' });
+      createTask(db, { id: 'task-c', agentId: 'agent-001', title: 'C', taskPath: 'C' });
+      createTask(db, { id: 'task-d', agentId: 'agent-001', title: 'D', taskPath: 'D' });
+      createTask(db, { id: 'task-e', agentId: 'agent-001', title: 'E', taskPath: 'E' });
+
+      setTaskBlockers('task-a', ['task-b', 'task-c']);
+      setTaskBlockers('task-b', []);
+      setTaskBlockers('task-c', ['task-d']);
+      setTaskBlockers('task-d', ['task-e']);
+      setTaskBlockers('task-e', ['task-c']); // Creates cycle
+
+      // Detecting from A should find the cycle in the C branch
+      const cycleFromA = detectTaskDeadlock(db, 'task-a');
+      expect(cycleFromA).not.toBeNull();
+      expect(cycleFromA).toContain('task-c');
+      expect(cycleFromA).toContain('task-d');
+      expect(cycleFromA).toContain('task-e');
+
+      // Detecting from B should not find any cycle
+      const cycleFromB = detectTaskDeadlock(db, 'task-b');
+      expect(cycleFromB).toBeNull();
+    });
+
+    it('should return null for non-existent task', () => {
+      const cycle = detectTaskDeadlock(db, 'non-existent-task');
+      expect(cycle).toBeNull();
+    });
+  });
+
+  describe('getBlockedTasks()', () => {
+    it('should return empty array when agent has no blocked tasks', () => {
+      const blockedTasks = getBlockedTasks(db, 'agent-001');
+      expect(blockedTasks).toEqual([]);
+    });
+
+    it('should return only tasks with blocked status', () => {
+      // Create tasks with different statuses
+      createTask(db, {
+        id: 'task-pending',
+        agentId: 'agent-001',
+        title: 'Pending task',
+        taskPath: 'Pending task',
+      });
+
+      const inProgressTask = createTask(db, {
+        id: 'task-in-progress',
+        agentId: 'agent-001',
+        title: 'In progress task',
+        taskPath: 'In progress task',
+      });
+      updateTaskStatus(db, inProgressTask.id, 'in-progress', inProgressTask.version);
+
+      const blockedTask1 = createTask(db, {
+        id: 'task-blocked-1',
+        agentId: 'agent-001',
+        title: 'Blocked task 1',
+        taskPath: 'Blocked task 1',
+      });
+      updateTaskStatus(db, blockedTask1.id, 'blocked', blockedTask1.version);
+
+      const blockedTask2 = createTask(db, {
+        id: 'task-blocked-2',
+        agentId: 'agent-001',
+        title: 'Blocked task 2',
+        taskPath: 'Blocked task 2',
+      });
+      updateTaskStatus(db, blockedTask2.id, 'blocked', blockedTask2.version);
+
+      const completedTask = createTask(db, {
+        id: 'task-completed',
+        agentId: 'agent-001',
+        title: 'Completed task',
+        taskPath: 'Completed task',
+      });
+      updateTaskStatus(db, completedTask.id, 'completed', completedTask.version);
+
+      // Get blocked tasks
+      const blockedTasks = getBlockedTasks(db, 'agent-001');
+
+      expect(blockedTasks).toHaveLength(2);
+      const blockedIds = blockedTasks.map((t) => t.id).sort();
+      expect(blockedIds).toEqual(['task-blocked-1', 'task-blocked-2']);
+
+      // Verify all returned tasks have blocked status
+      expect(blockedTasks.every((t) => t.status === 'blocked')).toBe(true);
+    });
+
+    it('should only return tasks for the specified agent', () => {
+      // Create another agent
+      createAgent(db, {
+        id: 'agent-002',
+        role: 'Designer',
+        displayName: 'Bob Designer',
+        createdBy: null,
+        reportingTo: null,
+        mainGoal: 'Design things',
+        configPath: '/data/agents/ag/agent-002/config.json',
+      });
+
+      // Create blocked tasks for both agents
+      const task1 = createTask(db, {
+        id: 'task-agent1-blocked',
+        agentId: 'agent-001',
+        title: 'Agent 1 blocked task',
+        taskPath: 'Agent 1 blocked task',
+      });
+      updateTaskStatus(db, task1.id, 'blocked', task1.version);
+
+      const task2 = createTask(db, {
+        id: 'task-agent2-blocked',
+        agentId: 'agent-002',
+        title: 'Agent 2 blocked task',
+        taskPath: 'Agent 2 blocked task',
+      });
+      updateTaskStatus(db, task2.id, 'blocked', task2.version);
+
+      // Get blocked tasks for agent-001
+      const agent1Blocked = getBlockedTasks(db, 'agent-001');
+      expect(agent1Blocked).toHaveLength(1);
+      expect(agent1Blocked[0]!.agent_id).toBe('agent-001');
+
+      // Get blocked tasks for agent-002
+      const agent2Blocked = getBlockedTasks(db, 'agent-002');
+      expect(agent2Blocked).toHaveLength(1);
+      expect(agent2Blocked[0]!.agent_id).toBe('agent-002');
+    });
+
+    it('should order blocked tasks by priority (urgent > high > medium > low)', () => {
+      // Create blocked tasks with different priorities
+      const lowTask = createTask(db, {
+        id: 'task-low',
+        agentId: 'agent-001',
+        title: 'Low priority',
+        priority: 'low',
+        taskPath: 'Low priority',
+      });
+      updateTaskStatus(db, lowTask.id, 'blocked', lowTask.version);
+
+      const urgentTask = createTask(db, {
+        id: 'task-urgent',
+        agentId: 'agent-001',
+        title: 'Urgent priority',
+        priority: 'urgent',
+        taskPath: 'Urgent priority',
+      });
+      updateTaskStatus(db, urgentTask.id, 'blocked', urgentTask.version);
+
+      const mediumTask = createTask(db, {
+        id: 'task-medium',
+        agentId: 'agent-001',
+        title: 'Medium priority',
+        priority: 'medium',
+        taskPath: 'Medium priority',
+      });
+      updateTaskStatus(db, mediumTask.id, 'blocked', mediumTask.version);
+
+      const highTask = createTask(db, {
+        id: 'task-high',
+        agentId: 'agent-001',
+        title: 'High priority',
+        priority: 'high',
+        taskPath: 'High priority',
+      });
+      updateTaskStatus(db, highTask.id, 'blocked', highTask.version);
+
+      const blockedTasks = getBlockedTasks(db, 'agent-001');
+
+      expect(blockedTasks).toHaveLength(4);
+      expect(blockedTasks[0]!.id).toBe('task-urgent');
+      expect(blockedTasks[1]!.id).toBe('task-high');
+      expect(blockedTasks[2]!.id).toBe('task-medium');
+      expect(blockedTasks[3]!.id).toBe('task-low');
+    });
+
+    it('should order blocked tasks by creation date within same priority', () => {
+      // Create multiple blocked tasks with same priority
+      const task1 = createTask(db, {
+        id: 'task-high-1',
+        agentId: 'agent-001',
+        title: 'High priority 1',
+        priority: 'high',
+        taskPath: 'High priority 1',
+      });
+      updateTaskStatus(db, task1.id, 'blocked', task1.version);
+
+      // Small delay to ensure different timestamps
+      const startTime = Date.now();
+      while (Date.now() - startTime < 10) {
+        // Small delay
+      }
+
+      const task2 = createTask(db, {
+        id: 'task-high-2',
+        agentId: 'agent-001',
+        title: 'High priority 2',
+        priority: 'high',
+        taskPath: 'High priority 2',
+      });
+      updateTaskStatus(db, task2.id, 'blocked', task2.version);
+
+      const blockedTasks = getBlockedTasks(db, 'agent-001');
+
+      expect(blockedTasks).toHaveLength(2);
+      // Should be ordered by creation time (oldest first)
+      expect(blockedTasks[0]!.id).toBe('task-high-1');
+      expect(blockedTasks[1]!.id).toBe('task-high-2');
+    });
+
+    it('should include all task fields in returned records', () => {
+      const task = createTask(db, {
+        id: 'task-full-blocked',
+        agentId: 'agent-001',
+        title: 'Full blocked task',
+        priority: 'high',
+        taskPath: 'Full blocked task',
+      });
+      updateTaskStatus(db, task.id, 'blocked', task.version);
+
+      const blockedTasks = getBlockedTasks(db, 'agent-001');
+
+      expect(blockedTasks).toHaveLength(1);
+      const returnedTask = blockedTasks[0]!;
+
+      // Verify all fields are present
+      expect(returnedTask.id).toBe('task-full-blocked');
+      expect(returnedTask.agent_id).toBe('agent-001');
+      expect(returnedTask.title).toBe('Full blocked task');
+      expect(returnedTask.status).toBe('blocked');
+      expect(returnedTask.priority).toBe('high');
+      expect(returnedTask.created_at).toBeDefined();
+      expect(returnedTask.blocked_by).toBeDefined();
+      expect(returnedTask.task_path).toBe('Full blocked task');
+      expect(returnedTask.version).toBeGreaterThan(0); // Version incremented by status update
+    });
+
+    it('should work with non-existent agent (return empty array)', () => {
+      const blockedTasks = getBlockedTasks(db, 'non-existent-agent');
+      expect(blockedTasks).toEqual([]);
+    });
+
+    it('should include blocked tasks at all depths', () => {
+      // Create parent task
+      const parentTask = createTask(db, {
+        id: 'task-parent',
+        agentId: 'agent-001',
+        title: 'Parent task',
+        taskPath: 'Parent',
+      });
+      updateTaskStatus(db, parentTask.id, 'blocked', parentTask.version);
+
+      // Create child task
+      const childTask = createTask(db, {
+        id: 'task-child',
+        agentId: 'agent-001',
+        title: 'Child task',
+        parentTaskId: 'task-parent',
+        taskPath: 'Parent / Child',
+      });
+      updateTaskStatus(db, childTask.id, 'blocked', childTask.version);
+
+      const blockedTasks = getBlockedTasks(db, 'agent-001');
+
+      expect(blockedTasks).toHaveLength(2);
+      const parentTask2 = blockedTasks.find((t) => t.id === 'task-parent');
+      const childTask2 = blockedTasks.find((t) => t.id === 'task-child');
+
+      expect(parentTask2?.depth).toBe(0);
+      expect(childTask2?.depth).toBe(1);
     });
   });
 });
