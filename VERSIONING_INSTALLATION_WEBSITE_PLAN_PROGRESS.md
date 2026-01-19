@@ -15,7 +15,7 @@ IN_PROGRESS
 - [x] 1.4 Create update.sh script
 
 ### Phase 2: Installation System
-- [ ] 2.1 Create install.sh script
+- [x] 2.1 Create install.sh script
 - [ ] 2.2 Create uninstall.sh script
 - [ ] 2.3 Update package.json with bin entry
 - [ ] 2.4 Create CLI package structure
@@ -78,6 +78,19 @@ IN_PROGRESS
   - Includes dependency installation (npm/yarn/pnpm detection)
   - Includes build process after update
   - Made script executable (chmod +x)
+
+### Iteration 5 (2026-01-19)
+- Task 2.1: Created install.sh script in scripts/
+  - Implemented one-liner installation support
+  - Added headless mode for CI/CD environments
+  - Dependency checking (Node.js v18+, git, npm/yarn/pnpm)
+  - Shell alias setup for bash, zsh, and fish
+  - Post-install verification
+  - Supports options: --headless, --install-dir, --skip-shell-config, --skip-build, --package-manager, --branch
+  - Colored output in interactive mode
+  - Handles existing installations with confirmation
+  - Made script executable (chmod +x)
+  - Tested help output successfully
 
 ## Notes
 
