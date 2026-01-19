@@ -39,7 +39,7 @@ IN_PROGRESS
 - [x] 5.3 Create .env.example
 
 ### Phase 6: README Updates
-- [ ] 6.1 Update main README.md
+- [x] 6.1 Update main README.md
 
 ### Phase 7: Configuration Management
 - [ ] 7.1 Create config.ts module
@@ -141,7 +141,7 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 5.3: Created .env.example file
+- Task 6.1: Updated main README.md with all required changes
 
 ## Notes
 
@@ -365,3 +365,48 @@ IN_PROGRESS
   - Follows standard .env file format
   - File is tracked in git (not in .gitignore)
   - Phase 5 (Package Structure Updates) is now complete
+
+### Iteration 20 (2026-01-19)
+- Task 6.1: Updated main README.md with all required changes per plan
+  - **Updated badges section**:
+    - Changed Status badge from "Planning" to "Alpha" (orange)
+    - Added Version badge (0.1.0, purple)
+    - Added Documentation badge linking to GitHub Pages
+    - Added Build Status badge for docs.yml workflow
+    - Fixed GitHub username from "yourusername" to "aaron777collins"
+  - **Added Installation section** with:
+    - One-liner installation command
+    - Manual installation steps
+    - Headless installation for CI/CD with options
+  - **Added Quick Start section** (renamed from "Quick Example")
+  - **Added Updating section** with self-update commands:
+    - update --check (check for updates)
+    - update (update to latest)
+    - update VERSION (specific version)
+    - rollback (revert to previous)
+    - update --history (version history)
+  - **Updated Documentation section**:
+    - Added prominent link to GitHub Pages documentation site
+    - Added Quick Links section with direct links to key pages
+    - Kept Planning Documents section for reference
+  - **Updated Project Status section**:
+    - Changed from "Planning & Design" to "Alpha Release (v0.1.0)"
+    - Added "Available Features (v0.1.0)" section listing:
+      - Core System capabilities
+      - Installation & Updates features
+      - CLI Interface commands
+      - Documentation features
+      - CI/CD automation
+    - Changed "Implementation Phases" to "Upcoming Features"
+  - **Updated Community section** (renamed from "Contributing"):
+    - Added Contributing subsection with link to guide
+    - Added Support & Discussion subsection with links
+    - Listed ways to contribute
+  - **Updated Contact section**:
+    - Fixed GitHub URLs (aaron777collins)
+    - Added documentation website link
+  - **Updated footer status**:
+    - Changed from "Planning phase" to "Alpha release"
+    - Added Version: 0.1.0
+    - Noted core features are functional
+  - Phase 6 (README Updates) is now complete

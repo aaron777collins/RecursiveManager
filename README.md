@@ -3,7 +3,10 @@
 > Hierarchical AI agent system that mimics organizational structures for autonomous task management
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Status: Planning](https://img.shields.io/badge/Status-Planning-blue.svg)](https://github.com/yourusername/RecursiveManager)
+[![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-purple.svg)](https://github.com/aaron777collins/RecursiveManager/releases/tag/v0.1.0)
+[![Status: Alpha](https://img.shields.io/badge/Status-Alpha-orange.svg)](https://github.com/aaron777collins/RecursiveManager)
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue.svg)](https://aaron777collins.github.io/RecursiveManager/)
+[![Build Status](https://github.com/aaron777collins/RecursiveManager/actions/workflows/docs.yml/badge.svg)](https://github.com/aaron777collins/RecursiveManager/actions/workflows/docs.yml)
 
 ## Overview
 
@@ -27,7 +30,45 @@ RecursiveManager is a revolutionary AI agent orchestration system that models or
 
 **Business-like structure.** Agents behave like employees in a company: they have roles, goals, managers, and subordinates. They hire, fire, escalate, and coordinate just like real organizations.
 
-## Quick Example
+## Installation
+
+### One-Liner Installation
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash
+```
+
+### Manual Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/aaron777collins/RecursiveManager.git
+cd RecursiveManager
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Link CLI globally
+npm link
+
+# Verify installation
+recursive-manager version
+```
+
+### Headless Installation (CI/CD)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash -s -- \
+  --headless \
+  --install-dir /opt/recursive-manager \
+  --skip-shell-config \
+  --package-manager npm
+```
+
+## Quick Start
 
 ```bash
 # Initialize with a high-level goal
@@ -53,7 +94,39 @@ recursive-manager status
 # └──────────────────────────────────────────────┘
 ```
 
+## Updating
+
+RecursiveManager includes a self-update mechanism:
+
+```bash
+# Check for updates
+recursive-manager update --check
+
+# Update to latest version
+recursive-manager update
+
+# Update to specific version
+recursive-manager update 0.2.0
+
+# Rollback to previous version
+recursive-manager rollback
+
+# View version history
+recursive-manager update --history
+```
+
 ## Documentation
+
+📚 **[Full Documentation](https://aaron777collins.github.io/RecursiveManager/)** - Visit our comprehensive documentation website
+
+### Quick Links
+
+- **[Installation Guide](https://aaron777collins.github.io/RecursiveManager/installation/)** - Detailed installation instructions
+- **[Quick Start](https://aaron777collins.github.io/RecursiveManager/quick-start/)** - Get started quickly
+- **[Configuration](https://aaron777collins.github.io/RecursiveManager/configuration/)** - Configuration options
+- **[CLI Reference](https://aaron777collins.github.io/RecursiveManager/cli-reference/)** - Command-line interface documentation
+- **[API Reference](https://aaron777collins.github.io/RecursiveManager/api-reference/)** - API documentation
+- **[Architecture](https://aaron777collins.github.io/RecursiveManager/architecture/overview/)** - System architecture
 
 ### Planning Documents
 
@@ -142,24 +215,48 @@ Results synthesized into a decision with confidence levels and reasoning.
 
 ## Project Status
 
-**Current Phase**: Planning & Design
+**Current Phase**: Alpha Release (v0.1.0)
 
-This repository contains comprehensive planning documents for the RecursiveManager system. Implementation will begin once the plan is reviewed and approved.
+RecursiveManager is now in **Alpha** status. The core system is functional with the following capabilities:
 
-### Implementation Phases
+### Available Features (v0.1.0)
 
-1. **Phase 1**: Foundation (file system, database, logging)
-2. **Phase 2**: Core agent system (lifecycle, tasks)
-3. **Phase 3**: Execution engine (framework adapters, orchestration)
-4. **Phase 4**: Scheduling (time-based + continuous triggers)
-5. **Phase 5**: Messaging (Slack, Telegram integrations)
-6. **Phase 6**: CLI & UX (commands, wizard, debugging)
-7. **Phase 7**: Observability (tracing, metrics, monitoring)
-8. **Phase 8**: Security & resilience (sandboxing, circuit breakers)
-9. **Phase 9**: Multi-framework support (OpenCode adapter)
-10. **Phase 10**: Documentation & examples
+✅ **Core System**
+- Recursive agent hierarchy with manager-subordinate relationships
+- File-based persistence with agent workspaces
+- Multi-perspective analysis framework (8 perspectives)
+- Decision synthesis with confidence levels
+- Agent locking mechanisms using async-mutex
+- ExecutionPool with worker pool pattern
+- PID file management for process tracking
 
-See [IMPLEMENTATION_PHASES.md](./IMPLEMENTATION_PHASES.md) for details.
+✅ **Installation & Updates**
+- One-liner installation script with headless mode
+- Self-update mechanism via GitHub API
+- Version rollback capability
+- Version history tracking
+
+✅ **CLI Interface**
+- `recursive-manager init` - Initialize with goal
+- `recursive-manager status` - Show org chart
+- `recursive-manager update` - Self-update system
+- `recursive-manager config` - Configuration wizard
+- `recursive-manager debug` - Agent debugging
+
+✅ **Documentation**
+- Comprehensive website with MkDocs Material
+- Architecture documentation
+- API reference
+- CLI reference
+- Development guides
+
+✅ **CI/CD**
+- Automated documentation deployment
+- Release automation on version tags
+
+### Upcoming Features
+
+See [IMPLEMENTATION_PHASES.md](./IMPLEMENTATION_PHASES.md) for the full roadmap.
 
 ## Design Principles
 
@@ -235,20 +332,24 @@ See [Edge Cases document](./EDGE_CASES_AND_CONTINGENCIES.md) for comprehensive e
 # Support Manager follows up
 ```
 
-## Contributing
+## Community
 
-We welcome contributions! This project is in the planning phase. Contributions to the planning documents are especially valuable:
+### Contributing
 
-1. Review the planning documents
-2. Identify gaps or issues
-3. Suggest improvements
-4. Open an issue or PR
+We welcome contributions! See our [Contributing Guide](https://aaron777collins.github.io/RecursiveManager/development/contributing/) for details.
 
-Once implementation begins, we'll need:
-- Developers (TypeScript, Node.js)
-- Technical writers (documentation)
-- Testers (edge case hunters)
-- DevOps engineers (CI/CD, deployment)
+**Ways to Contribute:**
+- Report bugs or suggest features via [GitHub Issues](https://github.com/aaron777collins/RecursiveManager/issues)
+- Improve documentation
+- Submit pull requests for bug fixes or features
+- Share use cases and examples
+- Help test edge cases
+
+### Support & Discussion
+
+- **GitHub Issues**: [Report bugs or request features](https://github.com/aaron777collins/RecursiveManager/issues)
+- **GitHub Discussions**: [Ask questions and share ideas](https://github.com/aaron777collins/RecursiveManager/discussions)
+- **Documentation**: [Full documentation site](https://aaron777collins.github.io/RecursiveManager/)
 
 ## License
 
@@ -263,13 +364,13 @@ This project is inspired by:
 
 ## Contact
 
-- **GitHub**: [RecursiveManager](https://github.com/yourusername/RecursiveManager)
-- **Issues**: [Report bugs or request features](https://github.com/yourusername/RecursiveManager/issues)
+- **GitHub**: [RecursiveManager](https://github.com/aaron777collins/RecursiveManager)
+- **Issues**: [Report bugs or request features](https://github.com/aaron777collins/RecursiveManager/issues)
+- **Documentation**: [https://aaron777collins.github.io/RecursiveManager/](https://aaron777collins.github.io/RecursiveManager/)
 
 ---
 
-**Status**: Planning phase - comprehensive documentation complete, implementation pending
-
+**Version**: 0.1.0 (Alpha)
+**Status**: Alpha release - core features functional, documentation complete
 **Philosophy**: Quality over cost. Multi-perspective analysis. Stateless execution. Business-like structure.
-
 **Goal**: Enable AI agents to coordinate like real organizations, handling complex, long-running projects autonomously.
