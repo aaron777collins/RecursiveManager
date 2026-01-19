@@ -12,7 +12,7 @@ IN_PROGRESS
 - [x] 1.1 Create CHANGELOG.md
 - [x] 1.2 Update package.json version to 0.1.0
 - [x] 1.3 Create version.ts file
-- [ ] 1.4 Create update.sh script
+- [x] 1.4 Create update.sh script
 
 ### Phase 2: Installation System
 - [ ] 2.1 Create install.sh script
@@ -66,6 +66,18 @@ IN_PROGRESS
   - Added getVersionInfo() function
   - Updated common package index.ts to export version information
   - Replaced inline VERSION constant with import from version.ts
+
+### Iteration 4 (2026-01-19)
+- Task 1.4: Created update.sh script in scripts/
+  - Implemented GitHub API integration for fetching releases
+  - Added semantic version comparison functionality
+  - Created backup system before updates
+  - Implemented rollback capability
+  - Added version history tracking in ~/.recursive_manager_version_history
+  - Supports commands: update, update --check, update --list, update --history, rollback
+  - Includes dependency installation (npm/yarn/pnpm detection)
+  - Includes build process after update
+  - Made script executable (chmod +x)
 
 ## Notes
 
