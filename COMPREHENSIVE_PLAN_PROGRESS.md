@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 12:00:00 EST
+Last Updated: 2026-01-19 17:45:00 EST
 
 ## Status
 
@@ -384,7 +384,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 3.2.5: Implement buildReactivePrompt(agent, messages)
 - [x] Task 3.2.6: Implement buildMultiPerspectivePrompt(question, perspectives)
 - [x] Task 3.2.7: Implement execution context preparation (load files, tasks, messages)
-- [ ] Task 3.2.8: Implement result parsing from Claude Code output
+- [x] Task 3.2.8: Implement result parsing from Claude Code output
 - [ ] Task 3.2.9: Add timeout protection (EC-6.2) - default 60 minutes
 - [ ] Task 3.2.10: Add error handling and retry logic
 - [ ] Task 3.2.11: Handle framework unavailability (EC-6.1) with fallback
@@ -7912,3 +7912,77 @@ Tests:       113 passed, 113 total
 - Current prompt building is basic and will be replaced by proper template system in 3.2.3-3.2.6
 - Result parsing is heuristic-based and will be enhanced in 3.2.8 with structured output parsing
 - The implementation provides a solid foundation for upcoming prompt and parsing enhancements
+
+---
+
+## Completed This Iteration (2026-01-19 17:45:00 EST - Task 3.2.8)
+
+### Task 3.2.8: Implement result parsing from Claude Code output
+
+**What was implemented:**
+
+1. **Enhanced parseExecutionResult() method** (ClaudeCodeAdapter:362-450):
+   - Parses both JSON and plain text output formats
+   - Extracts structured metadata (apiCallCount, costUSD, filesCreated, filesModified)
+   - Handles nextExecution timestamp parsing for continuous mode
+   - Falls back gracefully when JSON parsing fails
+
+2. **parseErrors() method** (ClaudeCodeAdapter:452-551):
+   - Parses structured JSON errors from stderr
+   - Extracts error patterns: Error:, TypeError:, FATAL:, ERROR:
+   - Captures stack traces from stderr
+   - Handles empty stderr with meaningful error messages
+   - Supports multiple errors in single stderr stream
+
+3. **parseTextOutput() method** (ClaudeCodeAdapter:553-607):
+   - Extracts file operations from plain text ("Created file:", "Modified file:")
+   - Parses API call counts from text patterns
+   - Handles comma/newline-separated file lists
+
+4. **countCompletedWork() method** (ClaudeCodeAdapter:609-702):
+   - **Task completion detection**:
+     - Prioritizes structured task IDs from JSON output (tasksCompleted array)
+     - Falls back to pattern matching (task-ID + completion indicators)
+     - Cross-references with active tasks to validate completions
+     - Supports patterns: "completed", "done", "finished", markdown checklists [x]
+   - **Message processing detection**:
+     - Prioritizes structured message IDs from JSON output (messagesProcessed array)
+     - Falls back to pattern matching (message-ID + processing indicators)
+     - Conservative estimation when no explicit IDs found
+     - Cross-references with context messages for validation
+
+**Key improvements over previous heuristic approach:**
+- ❌ OLD: Simple regex `/task.*completed/gi` (unreliable, high false positives)
+- ✅ NEW: Structured JSON parsing → fallback to validated pattern matching → cross-referencing
+- ❌ OLD: Assumed all messages processed in reactive mode (oversimplified)
+- ✅ NEW: Counts actual processed message IDs or makes conservative estimates
+
+**Test coverage:**
+- Added 48 comprehensive tests (all passing)
+- Tests for JSON parsing, text fallback, task/message detection
+- Tests for error parsing (JSON, text, empty stderr, multiple errors)
+- Tests for nextExecution parsing and text extraction
+- Tests for edge cases (invalid IDs, partial matches, empty output)
+
+**Files modified:**
+- `packages/adapters/src/adapters/claude-code/index.ts` (+395 lines)
+- `packages/adapters/src/adapters/claude-code/__tests__/ClaudeCodeAdapter.test.ts` (+129 lines)
+
+**Test results:**
+```
+PASS adapters src/adapters/claude-code/__tests__/ClaudeCodeAdapter.test.ts
+Test Suites: 6 passed, 6 total
+Tests:       167 passed, 167 total
+```
+
+**Next tasks:**
+- Task 3.2.9: Add timeout protection (EC-6.2) - default 60 minutes
+- Task 3.2.10: Add error handling and retry logic
+- Task 3.2.11: Handle framework unavailability (EC-6.1) with fallback
+
+**Notes:**
+- Implementation replaced heuristic parsing with robust, multi-layered approach
+- Maintains backward compatibility - no breaking changes
+- Proper TypeScript null-safety throughout
+- Ready for integration with execution orchestrator
+
