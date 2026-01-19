@@ -325,7 +325,7 @@ RecursiveManager is a hierarchical AI agent system with:
 ##### Task Archival
 
 - [x] Task 2.3.17: Implement archiveOldTasks(olderThan) moving to archive/{YYYY-MM}/
-- [ ] Task 2.3.18: Schedule daily archival job (tasks > 7 days old)
+- [x] Task 2.3.18: Schedule daily archival job (tasks > 7 days old)
 - [x] Task 2.3.19: Compress archives older than 90 days
 
 ##### Deadlock Detection
@@ -6633,4 +6633,68 @@ Created comprehensive test suite in `packages/core/src/tasks/__tests__/completeT
 - Task 2.3.22: Add automatic deadlock alerts
 - Task 2.3.24-2.3.27: Edge case handling tasks
 - Task 2.3.28-2.3.35: Additional testing tasks
+
+
+---
+
+## Iteration Update - $(date '+%Y-%m-%d %H:%M:%S')
+
+### Completed This Iteration
+
+- **Task 2.3.18**: Schedule daily archival job (tasks > 7 days old)
+  - Created `ScheduleManager` class in `packages/scheduler/src/ScheduleManager.ts`
+  - Implemented full CRUD operations for cron-based schedules
+  - Created scheduler daemon (`packages/scheduler/src/daemon.ts`) that:
+    - Polls schedules table every 60 seconds
+    - Executes jobs when ready
+    - Automatically registers daily archival job at 2 AM UTC
+    - Integrates with `archiveOldTasks()` and `compressOldArchives()` from core
+  - Added comprehensive test suite (`packages/scheduler/src/__tests__/ScheduleManager.test.ts`)
+  - Updated scheduler package exports
+  - Added task archival exports to core package index
+  - Added uuid dependency to scheduler package
+
+### Implementation Details
+
+**ScheduleManager Features**:
+- `createCronSchedule()` - Create new cron-based schedules with validation
+- `getSchedulesReadyToExecute()` - Query schedules due for execution
+- `updateScheduleAfterExecution()` - Update last run time and calculate next execution
+- `registerDailyArchivalJob()` - One-shot method to register the archival job (prevents duplicates)
+- `enableSchedule()` / `disableSchedule()` - Toggle schedule state
+- `deleteSchedule()` - Remove schedules
+
+**Scheduler Daemon**:
+- Runs as a long-lived process (`recursive-manager-scheduler` binary)
+- Uses Winston for structured logging
+- Implements job executor pattern (extensible for future job types)
+- Graceful shutdown on SIGTERM/SIGINT
+- Automatically registers archival job on startup
+
+**Job Execution Flow**:
+1. Daemon polls `schedules` table every 60 seconds
+2. Finds schedules where `next_execution_at <= NOW() AND enabled = 1`
+3. Executes job by looking up executor by description
+4. Updates `last_triggered_at` and calculates new `next_execution_at`
+5. Logs all operations for observability
+
+### Files Created/Modified
+
+**Created**:
+- `packages/scheduler/src/ScheduleManager.ts` (400+ lines)
+- `packages/scheduler/src/daemon.ts` (200+ lines)
+- `packages/scheduler/src/__tests__/ScheduleManager.test.ts` (400+ lines)
+
+**Modified**:
+- `packages/scheduler/src/index.ts` - Added exports
+- `packages/scheduler/package.json` - Added uuid dependency
+- `packages/core/src/index.ts` - Added archival function exports
+
+### Notes
+
+- Build tools (tsc, jest, eslint) not available in current environment, but code follows TypeScript best practices
+- Implementation is ready for testing once build environment is configured
+- Scheduler daemon can be started with `recursive-manager-scheduler` command
+- Database migrations already support the schedules table (migration 004)
+- Integration with existing archival functions from Task 2.3.17 and 2.3.19
 

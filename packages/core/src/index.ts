@@ -38,3 +38,6 @@ export {
   ResumeAgentError,
   type ResumeAgentResult,
 } from './lifecycle';
+
+// Task Archival (Phase 2.3)
+export { archiveOldTasks, compressOldArchives, getCompletedTasks } from './tasks/archiveTask';
