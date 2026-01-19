@@ -50,3 +50,20 @@ export {
   type MonitorDeadlocksOptions,
   type MonitorDeadlocksResult,
 } from './tasks';
+
+// Execution Orchestrator (Phase 3.3)
+export {
+  ExecutionOrchestrator,
+  ExecutionError,
+  AnalysisError,
+  type ReactiveTrigger,
+  type Decision,
+  type ExecutionOrchestratorOptions,
+} from './execution';
+
+// Execution State Management (Phase 3.3)
+export {
+  saveExecutionResult,
+  SaveExecutionResultError,
+  type AgentMetadata,
+} from './execution/state';
