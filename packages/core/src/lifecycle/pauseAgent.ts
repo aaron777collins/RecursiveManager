@@ -34,6 +34,7 @@ import {
   writeMessageToInbox,
   MessageData,
 } from '../messaging/messageWriter';
+import { blockTasksForPausedAgent, BlockTasksResult } from './taskBlocking';
 
 /**
  * Custom error for pause operation failures
@@ -58,6 +59,7 @@ export interface PauseAgentResult {
   status: 'paused';
   previousStatus: string;
   notificationsSent: number;
+  tasksBlocked: BlockTasksResult;
 }
 
 /**
@@ -265,12 +267,17 @@ If the agent has active tasks, you may want to:
  *    - Update agent status to 'paused'
  *    - Audit log the PAUSE action
  *
- * 3. **Notifications**
+ * 3. **Block Tasks**
+ *    - Block all active tasks (pending, in-progress) by setting status to 'blocked'
+ *    - Add PAUSE_BLOCKER to the blocked_by field
+ *    - Record blocked_since timestamp
+ *
+ * 4. **Notifications**
  *    - Send notification to the paused agent
  *    - Send notification to the manager (if exists)
  *    - Write messages to database and filesystem
  *
- * 4. **Future: Stop Executions** (when scheduler is implemented)
+ * 5. **Future: Stop Executions** (when scheduler is implemented)
  *    - Cancel any running executions
  *    - Clear any pending scheduled executions
  *    - Update scheduler state
@@ -375,7 +382,36 @@ export async function pauseAgent(
       throw new PauseAgentError(`Failed to update agent status: ${error.message}`, agentId, error);
     }
 
-    // STEP 3: NOTIFICATIONS
+    // STEP 3: BLOCK TASKS
+    logger.info('Blocking active tasks for paused agent', { agentId });
+
+    let tasksBlocked: BlockTasksResult;
+    try {
+      tasksBlocked = blockTasksForPausedAgent(db, agentId);
+      logger.info('Task blocking completed', {
+        agentId,
+        totalTasks: tasksBlocked.totalTasks,
+        blockedCount: tasksBlocked.blockedCount,
+        alreadyBlocked: tasksBlocked.alreadyBlocked,
+        errors: tasksBlocked.errors.length,
+      });
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error('Failed to block tasks', {
+        agentId,
+        error: error.message,
+      });
+      // Initialize empty result if blocking fails
+      tasksBlocked = {
+        totalTasks: 0,
+        blockedCount: 0,
+        alreadyBlocked: 0,
+        errors: [{ taskId: 'unknown', error: error.message }],
+      };
+      // Don't throw - task blocking failure is non-critical for pause operation
+    }
+
+    // STEP 4: NOTIFICATIONS
     logger.info('Notifying agent and manager', { agentId });
 
     let notificationsSent = 0;
@@ -390,7 +426,7 @@ export async function pauseAgent(
       // Don't throw - notification failure is non-critical
     }
 
-    // STEP 4: STOP EXECUTIONS (Future implementation)
+    // STEP 5: STOP EXECUTIONS (Future implementation)
     // TODO: When scheduler is implemented (Phase 3+), add logic to:
     // - Cancel any running executions for this agent
     // - Clear any pending scheduled executions
@@ -403,6 +439,7 @@ export async function pauseAgent(
       status: 'paused',
       previousStatus,
       notificationsSent,
+      tasksBlocked,
     };
 
     logger.info('Agent pause completed successfully', result);

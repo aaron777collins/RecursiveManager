@@ -34,6 +34,7 @@ import {
   writeMessageToInbox,
   MessageData,
 } from '../messaging/messageWriter';
+import { unblockTasksForResumedAgent, UnblockTasksResult } from './taskBlocking';
 
 /**
  * Custom error for resume operation failures
@@ -58,6 +59,7 @@ export interface ResumeAgentResult {
   status: 'active';
   previousStatus: string;
   notificationsSent: number;
+  tasksUnblocked: UnblockTasksResult;
 }
 
 /**
@@ -255,12 +257,17 @@ The agent is now active and will process work according to its schedule. No acti
  *    - Update agent status to 'active'
  *    - Audit log the RESUME action
  *
- * 3. **Notifications**
+ * 3. **Unblock Tasks**
+ *    - Unblock tasks that were blocked due to agent pause
+ *    - Remove PAUSE_BLOCKER from the blocked_by field
+ *    - Restore tasks to 'pending' status if no other blockers remain
+ *
+ * 4. **Notifications**
  *    - Send notification to the resumed agent
  *    - Send notification to the manager (if exists)
  *    - Write messages to database and filesystem
  *
- * 4. **Future: Reschedule Executions** (when scheduler is implemented)
+ * 5. **Future: Reschedule Executions** (when scheduler is implemented)
  *    - Add agent back to scheduler queue
  *    - Calculate next execution time based on schedule
  *    - Update scheduler state
@@ -361,7 +368,36 @@ export async function resumeAgent(
       throw new ResumeAgentError(`Failed to update agent status: ${error.message}`, agentId, error);
     }
 
-    // STEP 3: NOTIFICATIONS
+    // STEP 3: UNBLOCK TASKS
+    logger.info('Unblocking tasks for resumed agent', { agentId });
+
+    let tasksUnblocked: UnblockTasksResult;
+    try {
+      tasksUnblocked = unblockTasksForResumedAgent(db, agentId);
+      logger.info('Task unblocking completed', {
+        agentId,
+        totalTasks: tasksUnblocked.totalTasks,
+        unblockedCount: tasksUnblocked.unblockedCount,
+        stillBlocked: tasksUnblocked.stillBlocked,
+        errors: tasksUnblocked.errors.length,
+      });
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error('Failed to unblock tasks', {
+        agentId,
+        error: error.message,
+      });
+      // Initialize empty result if unblocking fails
+      tasksUnblocked = {
+        totalTasks: 0,
+        unblockedCount: 0,
+        stillBlocked: 0,
+        errors: [{ taskId: 'unknown', error: error.message }],
+      };
+      // Don't throw - task unblocking failure is non-critical for resume operation
+    }
+
+    // STEP 4: NOTIFICATIONS
     logger.info('Notifying agent and manager', { agentId });
 
     let notificationsSent = 0;
@@ -376,7 +412,7 @@ export async function resumeAgent(
       // Don't throw - notification failure is non-critical
     }
 
-    // STEP 4: RESCHEDULE EXECUTIONS (Future implementation)
+    // STEP 5: RESCHEDULE EXECUTIONS (Future implementation)
     // TODO: When scheduler is implemented (Phase 4+), add logic to:
     // - Add agent back to scheduler's execution queue
     // - Calculate next execution time based on schedule.json
@@ -390,6 +426,7 @@ export async function resumeAgent(
       status: 'active',
       previousStatus,
       notificationsSent,
+      tasksUnblocked,
     };
 
     logger.info('Agent resume completed successfully', result);

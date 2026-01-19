@@ -39,3 +39,11 @@ export {
   ResumeAgentError,
   type ResumeAgentResult,
 } from './resumeAgent';
+
+export {
+  blockTasksForPausedAgent,
+  unblockTasksForResumedAgent,
+  PAUSE_BLOCKER,
+  type BlockTasksResult,
+  type UnblockTasksResult,
+} from './taskBlocking';

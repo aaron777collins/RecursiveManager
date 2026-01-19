@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 02:45:00 EST
+Last Updated: 2026-01-19 07:50:00 EST
 
 ## Status
 
@@ -264,7 +264,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 2.2.16: Implement pauseAgent(agentId) - set status, stop executions
 - [x] Task 2.2.17: Implement resumeAgent(agentId) - set status, reschedule
-- [ ] Task 2.2.18: Handle task blocking for paused agents
+- [x] Task 2.2.18: Handle task blocking for paused agents
 
 ##### Org Chart
 
@@ -5302,3 +5302,76 @@ Implemented comprehensive notification system for fireAgent operations that noti
 **Task 2.2.15 Status**: ✅ **COMPLETE**
 
 The fireAgent notification system is now fully implemented and tested. All affected agents (fired agent, manager, subordinates) receive appropriate notifications with rich context about the termination and its impact.
+
+---
+
+## Completed This Iteration (2026-01-19 07:50:00 EST)
+
+**Task 2.2.18: Handle task blocking for paused agents**
+
+### Implementation Summary
+
+Implemented comprehensive task blocking/unblocking system for agent pause/resume operations. When an agent is paused, all active tasks are blocked; when resumed, tasks are unblocked appropriately.
+
+### What Was Implemented
+
+1. **Task Blocking Module** (`packages/core/src/lifecycle/taskBlocking.ts`)
+   - Created `blockTasksForPausedAgent()` function
+   - Created `unblockTasksForResumedAgent()` function
+   - Uses special `PAUSE_BLOCKER` constant to identify pause-related blocks
+   - Handles optimistic locking with version field to prevent race conditions
+   - Gracefully handles partial failures
+   - Preserves tasks blocked by other dependencies
+
+2. **Integration with pauseAgent**
+   - Added task blocking step (Step 3) in pause workflow
+   - Updates all active tasks (pending, in-progress) to 'blocked' status
+   - Adds PAUSE_BLOCKER to the blocked_by array
+   - Records blocked_since timestamp
+   - Returns BlockTasksResult in PauseAgentResult
+
+3. **Integration with resumeAgent**
+   - Added task unblocking step (Step 3) in resume workflow
+   - Removes PAUSE_BLOCKER from blocked_by array
+   - Restores tasks to 'pending' if no other blockers remain
+   - Keeps tasks blocked if other dependencies exist
+   - Returns UnblockTasksResult in ResumeAgentResult
+
+### Key Features
+
+- **Multi-reason blocking**: Tasks can be blocked by multiple reasons (pause + dependencies)
+- **Safe unblocking**: Only unblocks tasks if PAUSE_BLOCKER was the only blocker
+- **Version control**: Uses optimistic locking to prevent concurrent modification issues
+- **Error resilience**: Logs errors but continues processing other tasks
+- **Comprehensive logging**: Detailed logging for debugging and audit trails
+
+### Files Modified
+
+- `packages/core/src/lifecycle/taskBlocking.ts` (NEW - 485 lines)
+- `packages/core/src/lifecycle/pauseAgent.ts` (integrated task blocking)
+- `packages/core/src/lifecycle/resumeAgent.ts` (integrated task unblocking)
+- `packages/core/src/lifecycle/index.ts` (exported task blocking functions)
+- `packages/core/src/lifecycle/__tests__/taskBlocking.test.ts` (NEW - comprehensive tests)
+- `COMPREHENSIVE_PLAN_PROGRESS.md` (marked Task 2.2.18 complete)
+
+### Testing Coverage
+
+Created comprehensive test suite with 6 test cases:
+1. Block all active tasks when agent is paused
+2. Handle agent with no active tasks
+3. Add PAUSE_BLOCKER to already blocked tasks
+4. Unblock tasks that were blocked only by pause
+5. Keep tasks blocked by other reasons
+6. Handle agent with no blocked tasks
+
+### Design Decisions
+
+1. **PAUSE_BLOCKER constant**: Special string identifier for pause-related blocks
+2. **JSON array in blocked_by**: Allows multiple blocking reasons per task
+3. **Non-critical errors**: Task blocking failures don't prevent pause/resume
+4. **Direct SQL updates**: Uses prepared statements for performance
+5. **Graceful degradation**: Continues processing if individual tasks fail
+
+**Task 2.2.18 Status**: ✅ **COMPLETE**
+
+The task blocking system is now fully implemented and integrated with pause/resume operations. All active tasks are properly blocked when an agent is paused, and intelligently unblocked when resumed, preserving tasks that have other dependencies.
