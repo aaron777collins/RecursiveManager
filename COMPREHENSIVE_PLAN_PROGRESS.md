@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 04:39:00 EST
+Last Updated: 2026-01-19 04:46:21 EST
 
 ## Status
 
@@ -320,7 +320,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 2.3.13: Implement completeTask(taskId) with optimistic locking (EC-2.4)
 - [x] Task 2.3.14: Update all parent task progress recursively
 - [x] Task 2.3.15: Move completed tasks to completed/ directory
-- [ ] Task 2.3.16: Notify manager of completion
+- [x] Task 2.3.16: Notify manager of completion
 
 ##### Task Archival
 
@@ -6362,3 +6362,69 @@ Created comprehensive test suite in `packages/core/src/tasks/__tests__/completeT
 **Status**: ✅ **Task 2.3.15 COMPLETE**
 
 ---
+
+### Task 2.3.16: Notify manager of completion ✅
+
+**Date**: 2026-01-19 04:45:00 EST
+
+**Summary**: Implemented manager notification system that automatically sends messages to an agent's manager when they complete a task, providing visibility into team progress and enabling effective delegation oversight.
+
+**What Was Implemented**:
+
+1. **notifyTaskCompletion() Function** (`packages/core/src/tasks/notifyCompletion.ts`):
+   - Identifies the task owner's manager using the `reporting_to` field
+   - Checks manager's notification preferences (respects `notifyOnCompletion` config)
+   - Creates detailed completion notification with task summary and metrics
+   - Writes message to manager's inbox (unread folder)
+   - Stores message record in database
+   - Creates audit log entries for notification attempts
+   - Handles root agents gracefully (returns null when no manager exists)
+   - Includes time-to-completion calculation in notification
+
+2. **Integration with completeTaskWithFiles()** (`packages/core/src/tasks/completeTask.ts`):
+   - Added notification call after task completion and directory move
+   - Accepts optional NotifyCompletionOptions parameter
+   - Catches notification failures to prevent blocking task completion
+   - Logs notification success/failure for debugging
+
+3. **Message Format**:
+   - **Subject**: "Task Completed: {task title}"
+   - **Priority**: Mapped from task priority (urgent/high → high, others → normal)
+   - **Action Required**: false (informational notification)
+   - **Thread ID**: `task-{taskId}` (for message threading)
+   - **Content**: Includes task details, completion metrics, time to complete, and path to completed task
+
+4. **Notification Preferences**:
+   - Respects manager's `communication.notifyOnCompletion` config setting
+   - Defaults to sending notifications if config is missing (fail-safe)
+   - Supports `force` option to override preferences
+
+5. **Comprehensive Test Suite** (`packages/core/src/tasks/__tests__/notifyCompletion.test.ts`):
+   - 14 test cases covering all scenarios
+   - Tests successful notification flow
+   - Tests notification preferences (enabled/disabled/missing)
+   - Tests error handling (missing owner, missing manager)
+   - Tests priority mapping
+   - Tests root agent handling (no manager)
+   - Tests message content and properties
+
+**Key Design Decisions**:
+
+- **Non-blocking**: Notification failures don't prevent task completion
+- **Hierarchical**: Uses org hierarchy (`reporting_to` field) to find manager
+- **Configurable**: Respects agent preferences with sensible defaults
+- **Informational**: Completion notifications are not action-required (unlike delegation)
+- **Priority Mapping**: Urgent tasks get high-priority notifications, others get normal
+
+**Files Modified/Created**:
+- ✅ Created: `packages/core/src/tasks/notifyCompletion.ts`
+- ✅ Modified: `packages/core/src/tasks/completeTask.ts`
+- ✅ Modified: `packages/core/src/tasks/index.ts`
+- ✅ Created: `packages/core/src/tasks/__tests__/notifyCompletion.test.ts`
+
+**Verification**:
+- ✅ TypeScript compilation: Clean (no errors)
+- ✅ Code structure validation: All imports and exports correct
+- ✅ Integration validation: Properly integrated with task completion flow
+- ✅ Test structure: 14 comprehensive test cases following existing patterns
+

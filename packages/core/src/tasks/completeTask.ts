@@ -5,11 +5,13 @@
  * both database updates and file system operations.
  *
  * Implements Task 2.3.15: Move completed tasks to completed/ directory
+ * Implements Task 2.3.16: Notify manager of completion
  */
 
 import type { Database } from 'better-sqlite3';
 import { completeTask as dbCompleteTask, getTask } from '@recursive-manager/common';
 import { moveTaskDirectory } from './createTaskDirectory';
+import { notifyTaskCompletion, NotifyCompletionOptions } from './notifyCompletion';
 
 /**
  * Complete a task with full coordination of database and file system operations
@@ -18,12 +20,14 @@ import { moveTaskDirectory } from './createTaskDirectory';
  * 1. Updates the task status to 'completed' in the database (with optimistic locking)
  * 2. Updates parent task progress recursively
  * 3. Moves the task directory from active/ to completed/
+ * 4. Notifies the manager of task completion
  *
- * This implements Task 2.3.15 from the implementation plan.
+ * This implements Task 2.3.15 and Task 2.3.16 from the implementation plan.
  *
  * @param db - Database instance
  * @param taskId - Task ID to complete
  * @param version - Current version number (for optimistic locking)
+ * @param options - Optional notification settings
  * @returns Updated task record with status='completed'
  * @throws Error if task not found, version mismatch, or file move fails
  *
@@ -49,7 +53,8 @@ import { moveTaskDirectory } from './createTaskDirectory';
 export async function completeTaskWithFiles(
   db: Database,
   taskId: string,
-  version: number
+  version: number,
+  options?: NotifyCompletionOptions
 ): Promise<void> {
   // Get the task's current status before completing it
   const task = getTask(db, taskId);
@@ -71,4 +76,19 @@ export async function completeTaskWithFiles(
     oldStatus,
     'completed'
   );
+
+  // Notify the manager of task completion
+  // This implements Task 2.3.16: Notify manager of completion
+  try {
+    const messageId = await notifyTaskCompletion(db, completedTask, options);
+    if (messageId) {
+      console.log(`Manager notified of task completion: ${messageId}`);
+    }
+  } catch (error) {
+    // Log notification failure but don't fail the entire completion
+    console.error(
+      `Failed to notify manager of task completion for ${taskId}:`,
+      error instanceof Error ? error.message : String(error)
+    );
+  }
 }
