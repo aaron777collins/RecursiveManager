@@ -16,6 +16,7 @@ import {
   type AgentConfig,
   type PathOptions,
 } from '@recursive-manager/common';
+import { validateAgentConfigBusinessLogicStrict } from '../validation/business-validation';
 
 /**
  * Error thrown when agent configuration cannot be loaded
@@ -129,6 +130,9 @@ export async function loadAgentConfig(
     // 5. Validate against schema (throws SchemaValidationError if invalid)
     validateAgentConfigStrict(config);
 
+    // 6. Validate business logic (throws BusinessValidationFailure if invalid)
+    validateAgentConfigBusinessLogicStrict(config as AgentConfig);
+
     logger.info('Agent configuration loaded successfully', {
       agentId,
       role: (config as AgentConfig).identity.role,
@@ -138,10 +142,11 @@ export async function loadAgentConfig(
     // 6. Return typed configuration
     return config as AgentConfig;
   } catch (err) {
-    // Re-throw ConfigLoadError and SchemaValidationError as-is
+    // Re-throw ConfigLoadError, SchemaValidationError, and BusinessValidationFailure as-is
     if (
       err instanceof ConfigLoadError ||
-      (err instanceof Error && err.name === 'SchemaValidationError')
+      (err instanceof Error && err.name === 'SchemaValidationError') ||
+      (err instanceof Error && err.name === 'BusinessValidationFailure')
     ) {
       logger.error('Failed to load agent configuration', {
         agentId,
@@ -218,8 +223,12 @@ export async function saveAgentConfig(
 
   try {
     // 1. Validate configuration against schema (throws SchemaValidationError if invalid)
-    logger.debug('Validating agent configuration', { agentId });
+    logger.debug('Validating agent configuration schema', { agentId });
     validateAgentConfigStrict(config);
+
+    // 2. Validate business logic (throws BusinessValidationFailure if invalid)
+    logger.debug('Validating agent configuration business logic', { agentId });
+    validateAgentConfigBusinessLogicStrict(config);
 
     // 2. Resolve the configuration file path
     const configPath = getConfigPath(agentId, options);
@@ -283,10 +292,11 @@ export async function saveAgentConfig(
       version: config.version,
     });
   } catch (err) {
-    // Re-throw ConfigSaveError and SchemaValidationError as-is
+    // Re-throw ConfigSaveError, SchemaValidationError, and BusinessValidationFailure as-is
     if (
       err instanceof ConfigSaveError ||
-      (err instanceof Error && err.name === 'SchemaValidationError')
+      (err instanceof Error && err.name === 'SchemaValidationError') ||
+      (err instanceof Error && err.name === 'BusinessValidationFailure')
     ) {
       logger.error('Failed to save agent configuration', {
         agentId,
@@ -484,10 +494,7 @@ type DeepPartial<T> = {
  * // merged.behavior.continuousMode = undefined (from base)
  * ```
  */
-export function mergeConfigs(
-  base: AgentConfig,
-  override: DeepPartial<AgentConfig>
-): AgentConfig {
+export function mergeConfigs(base: AgentConfig, override: DeepPartial<AgentConfig>): AgentConfig {
   // Helper function to check if a value is a plain object
   const isPlainObject = (value: unknown): value is Record<string, unknown> => {
     return (
@@ -499,10 +506,7 @@ export function mergeConfigs(
   };
 
   // Helper function to deep merge two objects
-  const deepMerge = <T extends Record<string, unknown>>(
-    target: T,
-    source: Partial<T>
-  ): T => {
+  const deepMerge = <T extends Record<string, unknown>>(target: T, source: Partial<T>): T => {
     const result = { ...target };
 
     for (const key in source) {

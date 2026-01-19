@@ -12,10 +12,7 @@
  */
 
 import { generateDefaultConfig } from '../config';
-import {
-  validateAgentConfigStrict,
-  type AgentConfig,
-} from '@recursive-manager/common';
+import { validateAgentConfigStrict, type AgentConfig } from '@recursive-manager/common';
 
 describe('generateDefaultConfig', () => {
   const baseRole = 'Senior Developer';
@@ -72,9 +69,7 @@ describe('generateDefaultConfig', () => {
       expect(config.identity.createdAt <= after).toBe(true);
 
       // Should be valid ISO 8601
-      expect(new Date(config.identity.createdAt).toISOString()).toBe(
-        config.identity.createdAt
-      );
+      expect(new Date(config.identity.createdAt).toISOString()).toBe(config.identity.createdAt);
     });
 
     it('should set reportingTo to null by default', () => {
@@ -324,11 +319,7 @@ describe('generateDefaultConfig', () => {
 
     it('should handle unicode characters in role', () => {
       const unicodeRole = 'Développeur Senior 🚀';
-      const config = generateDefaultConfig(
-        unicodeRole,
-        baseGoal,
-        baseCreatedBy
-      );
+      const config = generateDefaultConfig(unicodeRole, baseGoal, baseCreatedBy);
 
       // Unicode removed from ID, but preserved in role
       expect(config.identity.role).toBe(unicodeRole);

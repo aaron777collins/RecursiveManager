@@ -101,7 +101,9 @@ describe('mergeConfigs', () => {
     it('should merge communication settings', () => {
       const override = {
         communication: {
-          preferredChannels: ['slack', 'email'] as Array<'internal' | 'slack' | 'telegram' | 'email'>,
+          preferredChannels: ['slack', 'email'] as Array<
+            'internal' | 'slack' | 'telegram' | 'email'
+          >,
           slackChannel: '#dev-team',
           notifyManager: {
             onError: false,
@@ -122,9 +124,7 @@ describe('mergeConfigs', () => {
       expect(result.communication?.notifyManager?.onHire).toBe(
         baseConfig.communication?.notifyManager?.onHire
       );
-      expect(result.communication?.updateFrequency).toBe(
-        baseConfig.communication?.updateFrequency
-      );
+      expect(result.communication?.updateFrequency).toBe(baseConfig.communication?.updateFrequency);
     });
   });
 

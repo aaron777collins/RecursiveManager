@@ -111,13 +111,13 @@ describe('loadAgentConfig', () => {
   describe('Error Handling - Missing File', () => {
     it('should throw ConfigLoadError when config file does not exist', async () => {
       // Act & Assert: Attempt to load non-existent config
-      await expect(
-        loadAgentConfig('non-existent-agent', { baseDir: testBaseDir })
-      ).rejects.toThrow(ConfigLoadError);
+      await expect(loadAgentConfig('non-existent-agent', { baseDir: testBaseDir })).rejects.toThrow(
+        ConfigLoadError
+      );
 
-      await expect(
-        loadAgentConfig('non-existent-agent', { baseDir: testBaseDir })
-      ).rejects.toThrow(/configuration file not found/i);
+      await expect(loadAgentConfig('non-existent-agent', { baseDir: testBaseDir })).rejects.toThrow(
+        /configuration file not found/i
+      );
     });
 
     it('should include agentId in ConfigLoadError', async () => {
@@ -157,9 +157,7 @@ describe('loadAgentConfig', () => {
       await fs.writeFile(configPath, 'corrupted json {[}');
 
       // Act & Assert: Should fail to load
-      await expect(
-        loadAgentConfig(testAgentId, { baseDir: testBaseDir })
-      ).rejects.toThrow();
+      await expect(loadAgentConfig(testAgentId, { baseDir: testBaseDir })).rejects.toThrow();
     });
   });
 
@@ -171,9 +169,7 @@ describe('loadAgentConfig', () => {
       await fs.writeFile(configPath, '{ invalid json }');
 
       // Act & Assert: Should throw error (treated as corruption with no recovery)
-      await expect(
-        loadAgentConfig(testAgentId, { baseDir: testBaseDir })
-      ).rejects.toThrow();
+      await expect(loadAgentConfig(testAgentId, { baseDir: testBaseDir })).rejects.toThrow();
     });
 
     it('should throw ConfigLoadError for empty file', async () => {
@@ -183,9 +179,7 @@ describe('loadAgentConfig', () => {
       await fs.writeFile(configPath, '');
 
       // Act & Assert: Should throw error
-      await expect(
-        loadAgentConfig(testAgentId, { baseDir: testBaseDir })
-      ).rejects.toThrow();
+      await expect(loadAgentConfig(testAgentId, { baseDir: testBaseDir })).rejects.toThrow();
     });
   });
 
@@ -205,9 +199,9 @@ describe('loadAgentConfig', () => {
       await atomicWrite(configPath, JSON.stringify(invalidConfig, null, 2));
 
       // Act & Assert: Should throw SchemaValidationError
-      await expect(
-        loadAgentConfig(testAgentId, { baseDir: testBaseDir })
-      ).rejects.toThrow(/validation failed/);
+      await expect(loadAgentConfig(testAgentId, { baseDir: testBaseDir })).rejects.toThrow(
+        /validation failed/
+      );
     });
 
     it('should throw SchemaValidationError for invalid field types', async () => {
@@ -225,9 +219,9 @@ describe('loadAgentConfig', () => {
       await atomicWrite(configPath, JSON.stringify(invalidConfig, null, 2));
 
       // Act & Assert: Should throw SchemaValidationError
-      await expect(
-        loadAgentConfig(testAgentId, { baseDir: testBaseDir })
-      ).rejects.toThrow(/validation failed/);
+      await expect(loadAgentConfig(testAgentId, { baseDir: testBaseDir })).rejects.toThrow(
+        /validation failed/
+      );
     });
 
     it('should throw SchemaValidationError for invalid version format', async () => {
@@ -242,9 +236,9 @@ describe('loadAgentConfig', () => {
       await atomicWrite(configPath, JSON.stringify(invalidConfig, null, 2));
 
       // Act & Assert: Should throw SchemaValidationError
-      await expect(
-        loadAgentConfig(testAgentId, { baseDir: testBaseDir })
-      ).rejects.toThrow(/validation failed/);
+      await expect(loadAgentConfig(testAgentId, { baseDir: testBaseDir })).rejects.toThrow(
+        /validation failed/
+      );
     });
 
     it('should throw SchemaValidationError for invalid agentId pattern', async () => {
@@ -262,9 +256,9 @@ describe('loadAgentConfig', () => {
       await atomicWrite(configPath, JSON.stringify(invalidConfig, null, 2));
 
       // Act & Assert: Should throw SchemaValidationError
-      await expect(
-        loadAgentConfig(testAgentId, { baseDir: testBaseDir })
-      ).rejects.toThrow(/validation failed/);
+      await expect(loadAgentConfig(testAgentId, { baseDir: testBaseDir })).rejects.toThrow(
+        /validation failed/
+      );
     });
   });
 
@@ -281,9 +275,9 @@ describe('loadAgentConfig', () => {
       await atomicWrite(configPath, JSON.stringify(configWithExtra, null, 2));
 
       // Act & Assert: Should reject due to unknown field
-      await expect(
-        loadAgentConfig(testAgentId, { baseDir: testBaseDir })
-      ).rejects.toThrow(/validation failed/);
+      await expect(loadAgentConfig(testAgentId, { baseDir: testBaseDir })).rejects.toThrow(
+        /validation failed/
+      );
     });
 
     it('should handle config with null optional fields', async () => {

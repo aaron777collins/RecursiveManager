@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 01:00:58 EST
+Last Updated: 2026-01-19 02:15:00 EST
 
 ## Status
 
@@ -227,7 +227,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 2.1.2: Implement saveAgentConfig(agentId, config) with atomic write + backup
 - [x] Task 2.1.3: Implement generateDefaultConfig(role, goal) with sensible defaults
 - [x] Task 2.1.4: Implement mergeConfigs(base, override) with proper precedence
-- [ ] Task 2.1.5: Add config validation with detailed error messages
+- [x] Task 2.1.5: Add config validation with detailed error messages
 - [ ] Task 2.1.6: Implement corrupt config recovery (EC-5.2) using backups
 - [ ] Task 2.1.7: Unit tests for config validation (valid/invalid inputs)
 - [ ] Task 2.1.8: Integration tests for config loading + saving
@@ -4472,6 +4472,71 @@ Successfully integrated audit logging into all critical database operations for 
 - Created: `packages/core/src/config/index.ts`
 - Modified: `packages/core/src/index.ts` (exported loadAgentConfig)
 - Created: `packages/core/src/__tests__/loadAgentConfig.test.ts`
+
+---
+
+## Completed This Iteration (2026-01-19 02:15:00 EST)
+
+### Task 2.1.5: Add config validation with detailed error messages ✅
+
+**Implementation Details**:
+
+1. **Business Validation Module** (`packages/core/src/validation/business-validation.ts`):
+   - Comprehensive business logic validation beyond JSON schema validation
+   - Validates cross-field constraints and business rules
+   - Detailed error messages with severity levels (error/warning)
+   - Custom error codes for easy identification and testing
+   - Actionable suggestions for fixing validation errors
+   - Separates errors (blocking) from warnings (informational)
+
+2. **Validation Categories**:
+   - **Permissions Consistency**: Validates hiring permissions, API access, resource limits
+   - **Behavior Settings**: Validates verbosity, execution time, escalation settings, multi-perspective analysis
+   - **Communication Settings**: Validates channel configurations, manager notifications
+   - **Delegation Settings**: Validates delegation thresholds and supervision levels
+   - **Escalation Policy**: Validates escalation permissions and manager relationships
+   - **Resource Constraints**: Validates cost limits and workspace quotas
+
+3. **Key Features**:
+   - `validateAgentConfigBusinessLogic()`: Returns detailed validation result with errors and warnings
+   - `validateAgentConfigBusinessLogicStrict()`: Throws BusinessValidationFailure on error
+   - `BusinessValidationError` interface: Structured error with field, message, severity, code, suggestion
+   - `BusinessValidationFailure` class: Custom error with formatted error output
+   - Integration with `loadAgentConfig()` and `saveAgentConfig()` for automatic validation
+
+4. **Validation Examples**:
+   - Error: canHire=true but maxSubordinates=0
+   - Error: hiringBudget exceeds maxSubordinates
+   - Error: autoEscalateBlockedTasks=true but canEscalate=false
+   - Warning: canHire=false but maxSubordinates>0 (inconsistent but not blocking)
+   - Warning: Slack preferred but slackChannel not configured
+   - Warning: Very high workspace quota or execution time limits
+
+5. **Comprehensive Tests** (`packages/core/src/validation/__tests__/business-validation.test.ts`):
+   - 31 test cases covering all validation scenarios
+   - Tests for permissions, behavior, communication, delegation, escalation, and resource validation
+   - Tests for both error and warning cases
+   - Tests for strict validation mode (throws on error)
+   - All tests passing ✅
+
+6. **Integration**:
+   - Exported from `@recursive-manager/core` package
+   - Used in `loadAgentConfig()` after schema validation
+   - Used in `saveAgentConfig()` before writing to disk
+   - Fixed existing test that had invalid config (hiringBudget > maxSubordinates)
+
+**Files Modified**:
+- `packages/core/src/validation/business-validation.ts` (new file, 520 lines)
+- `packages/core/src/validation/__tests__/business-validation.test.ts` (new file, 697 lines)
+- `packages/core/src/index.ts` (added exports for business validation)
+- `packages/core/src/config/index.ts` (integrated business validation)
+- `packages/core/src/__tests__/saveAgentConfig.test.ts` (fixed invalid test data)
+
+**Test Results**:
+- All 119 tests passing ✅
+- 31 new business validation tests added
+- Build successful ✅
+- No lint errors in new code ✅
 
 ---
 

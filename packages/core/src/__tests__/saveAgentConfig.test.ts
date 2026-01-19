@@ -14,10 +14,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { saveAgentConfig, loadAgentConfig } from '../config';
-import {
-  getConfigPath,
-  type AgentConfig,
-} from '@recursive-manager/common';
+import { getConfigPath, type AgentConfig } from '@recursive-manager/common';
 
 describe('saveAgentConfig', () => {
   const testBaseDir = path.join(__dirname, '../../__test-data__/saveAgentConfig');
@@ -196,7 +193,9 @@ describe('saveAgentConfig', () => {
       const files = await fs.readdir(dirPath);
 
       // Should have config.json and at least one backup file
-      const backupFiles = files.filter((f) => f.startsWith('config.') && f.endsWith('.json') && f !== 'config.json');
+      const backupFiles = files.filter(
+        (f) => f.startsWith('config.') && f.endsWith('.json') && f !== 'config.json'
+      );
       expect(backupFiles.length).toBeGreaterThan(0);
     });
 
@@ -340,9 +339,21 @@ describe('saveAgentConfig', () => {
 
     it('should handle rapid successive saves', async () => {
       // Act: Save multiple times rapidly
-      await saveAgentConfig(testAgentId, { ...validConfig, version: '1.0.0' }, { baseDir: testBaseDir });
-      await saveAgentConfig(testAgentId, { ...validConfig, version: '1.0.1' }, { baseDir: testBaseDir });
-      await saveAgentConfig(testAgentId, { ...validConfig, version: '1.0.2' }, { baseDir: testBaseDir });
+      await saveAgentConfig(
+        testAgentId,
+        { ...validConfig, version: '1.0.0' },
+        { baseDir: testBaseDir }
+      );
+      await saveAgentConfig(
+        testAgentId,
+        { ...validConfig, version: '1.0.1' },
+        { baseDir: testBaseDir }
+      );
+      await saveAgentConfig(
+        testAgentId,
+        { ...validConfig, version: '1.0.2' },
+        { baseDir: testBaseDir }
+      );
 
       // Assert: Latest version is saved
       const loadedConfig = await loadAgentConfig(testAgentId, { baseDir: testBaseDir });
@@ -378,7 +389,7 @@ describe('saveAgentConfig', () => {
         permissions: {
           canHire: true,
           maxSubordinates: 5,
-          hiringBudget: 10000,
+          hiringBudget: 3,
         },
         framework: {
           primary: 'claude-code',
