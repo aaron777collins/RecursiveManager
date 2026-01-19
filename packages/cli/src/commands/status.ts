@@ -58,7 +58,7 @@ export function registerStatusCommand(program: Command): void {
           // Get tasks
           const tasks = getActiveTasks(db, agent.id);
           const pendingCount = tasks.filter((t: TaskRecord) => t.status === 'pending').length;
-          const inProgressCount = tasks.filter((t: TaskRecord) => t.status === 'in_progress').length;
+          const inProgressCount = tasks.filter((t: TaskRecord) => t.status === 'in-progress').length;
           console.log('Tasks:', code(`${pendingCount} pending, ${inProgressCount} in progress`));
 
           // Execution stats

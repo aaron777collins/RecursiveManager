@@ -155,7 +155,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 1.1: Install dependencies cleanly (npm install)
 - [x] 1.2: Run full test suite and capture results
 - [x] 1.2a: Fix TypeScript build errors in core package (blocking tests)
-- [ ] 1.2b: Fix TypeScript build errors in CLI package (blocking tests)
+- [x] 1.2b: Fix TypeScript build errors in CLI package (blocking tests)
 - [ ] 1.3: Fix any remaining test failures in core package
 - [ ] 1.4: Fix any remaining test failures in CLI package
 - [ ] 1.5: Fix any remaining test failures in adapters package
@@ -467,7 +467,7 @@ When build mode begins, it should:
 
 ## Completed This Iteration
 
-- Task 1.2a: Fixed ALL TypeScript build errors in core package. Core package now builds successfully.
+- Task 1.2b: Fixed ALL TypeScript build errors in CLI package. All packages now build successfully.
 
 ## Notes
 
@@ -509,15 +509,31 @@ Fixed 14 TypeScript errors across 7 files in the core package:
 8. **tasks/notifyDeadlock.ts**:
    - Added non-null assertion for `nextTask` (safe due to modulo operation)
 
-### Build Status
+### Build Status (After Task 1.2b)
 
 - Core package: ✅ BUILD SUCCESSFUL (0 errors)
 - Common package: ✅ BUILD SUCCESSFUL
 - Adapters package: ✅ BUILD SUCCESSFUL
 - Scheduler package: ✅ BUILD SUCCESSFUL
 - Docs package: ✅ BUILD SUCCESSFUL
-- CLI package: ❌ 3 TypeScript errors remaining (next task)
+- CLI package: ✅ BUILD SUCCESSFUL (0 errors)
+
+**ALL PACKAGES BUILD SUCCESSFULLY - NO TYPESCRIPT ERRORS**
+
+### Task 1.2b Summary
+
+Fixed 3 TypeScript errors in the CLI package:
+
+1. **src/commands/debug.ts (lines 49, 60)**:
+   - Issue: Passing `DatabaseConnection` object directly to `getAgent()` and `getActiveTasks()`
+   - Fix: Changed `db` variable to `dbConnection`, then passed `dbConnection.db` to functions
+   - Root cause: Functions expect `Database.Database` (raw better-sqlite3 instance), not the wrapper object
+
+2. **src/commands/status.ts (line 61)**:
+   - Issue: Comparing TaskStatus with string `'in_progress'` (underscore)
+   - Fix: Changed to `'in-progress'` (hyphen)
+   - Root cause: TaskStatus type is `'pending' | 'in-progress' | 'blocked' | 'completed' | 'archived'` (hyphens, not underscores)
 
 ### Next Task
 
-Task 1.2b: Fix TypeScript build errors in CLI package (3 errors remaining)
+Task 1.3: Fix any remaining test failures in core package

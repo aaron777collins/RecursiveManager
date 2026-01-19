@@ -38,7 +38,7 @@ export function registerDebugCommand(program: Command): void {
       ) => {
         try {
           const config = loadConfig(options.dataDir);
-          const db = initializeDatabase({ path: config.dbPath });
+          const dbConnection = initializeDatabase({ path: config.dbPath });
 
           try {
             const spinner = options.json
@@ -46,7 +46,7 @@ export function registerDebugCommand(program: Command): void {
               : createSpinner('Loading agent debug information...');
 
             // Load agent from database
-            const agent = getAgent(db, agentId);
+            const agent = getAgent(dbConnection.db, agentId);
             if (!agent) {
               if (spinner) spinner.fail('Agent not found');
               console.error(error(`Agent '${agentId}' not found`));
@@ -57,7 +57,7 @@ export function registerDebugCommand(program: Command): void {
             }
 
             // Load tasks for this agent
-            const tasks = getActiveTasks(db, agentId);
+            const tasks = getActiveTasks(dbConnection.db, agentId);
 
             // Read logs if requested
             let logs: string[] = [];
@@ -205,7 +205,7 @@ export function registerDebugCommand(program: Command): void {
               }
             }
           } finally {
-            db.close();
+            dbConnection.close();
           }
         } catch (err) {
           console.error(error('Debug failed: ' + (err as Error).message));
