@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 19:12:03 EST
+Last Updated: 2026-01-18 19:27:15 EST
 
 ## Status
 
@@ -67,7 +67,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 1.1.2: Create package directories (common, core, cli, scheduler, adapters)
 - [x] Task 1.1.3: Configure root TypeScript with strict mode
 - [x] Task 1.1.4: Set up ESLint + Prettier with TypeScript support
-- [ ] Task 1.1.5: Configure Jest testing framework with TypeScript
+- [x] Task 1.1.5: Configure Jest testing framework with TypeScript
 - [ ] Task 1.1.6: Create GitHub Actions CI/CD workflow (test, lint, build)
 - [ ] Task 1.1.7: Set up documentation site (VitePress or Docusaurus)
 - [ ] Task 1.1.8: Add pre-commit hooks for linting and tests
@@ -481,6 +481,60 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.1.5: Configure Jest testing framework with TypeScript ✅
+
+**Summary**: Configured Jest testing framework with full TypeScript support, including test configurations for all packages and example tests.
+
+**What Was Created**:
+- ✅ Root `jest.config.js` with monorepo-wide settings
+  - Configured ts-jest preset for TypeScript transformation
+  - Set up module name mapping for all packages
+  - Configured 80% coverage thresholds (per quality gates)
+  - Set up coverage collection and reporting (text, lcov, html)
+  - Configured test file patterns and exclusions
+- ✅ Per-package `jest.config.js` files for all 5 packages
+  - common, core, cli, scheduler, adapters
+  - Each with package-specific display names
+  - Configured with proper module path aliases
+  - Individual coverage thresholds enforced
+- ✅ Per-package `tsconfig.eslint.json` files
+  - Extends base tsconfig but includes test files
+  - Allows ESLint to parse test files without including them in builds
+- ✅ Updated all `.eslintrc.json` files to use `tsconfig.eslint.json`
+  - Fixes ESLint parsing errors for test files
+- ✅ Example test files in all packages (`src/__tests__/index.test.ts`)
+  - Basic tests verifying Jest configuration works
+  - Async operation tests
+  - TypeScript type tests
+  - All 15 tests passing (3 per package × 5 packages)
+
+**Testing Results**:
+- ✅ All tests pass: `npm test` - 15/15 tests passing across 5 packages
+- ✅ Test execution time: ~15 seconds for all packages
+- ✅ Linting passes: `npm run lint` - 0 errors with test files included
+- ✅ Build still works: `npm run build` - all packages compile successfully
+- ✅ Coverage reporting works: `npm run test:coverage` generates reports
+- ⚠️ Coverage thresholds fail on placeholder code (expected - will pass as real code is written)
+
+**Files Created** (17 files):
+1. `/jest.config.js` (root)
+2-6. `/packages/{common,core,cli,scheduler,adapters}/jest.config.js`
+7-11. `/packages/{common,core,cli,scheduler,adapters}/tsconfig.eslint.json`
+12-16. `/packages/{common,core,cli,scheduler,adapters}/src/__tests__/index.test.ts`
+17. Updated all package `.eslintrc.json` files
+
+**Key Learnings**:
+- ESLint requires test files in tsconfig for parsing, but build should exclude them
+- Solution: Separate `tsconfig.eslint.json` that includes test files for linting
+- Jest's ts-jest preset handles TypeScript transformation automatically
+- Coverage thresholds are enforced per package and globally
+- Turborepo caches test results for fast re-runs
+
+**Impact**:
+The codebase now has a fully functional testing framework. All future code can be tested with Jest, and the 80% coverage requirement from the quality gates is enforced.
+
+---
 
 ### Task 1.1.4: Set up ESLint + Prettier with TypeScript support ✅
 
