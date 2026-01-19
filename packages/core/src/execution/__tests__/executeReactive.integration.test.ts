@@ -741,7 +741,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       expect(failed).toBe(1);
 
       const rejection = results.find((r) => r.status === 'rejected') as PromiseRejectedResult;
-      expect(rejection.reason.message).toContain('already running');
+      expect(rejection.reason.message).toContain('is already executing');
     });
 
     it('should allow sequential reactive executions', async () => {
