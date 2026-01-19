@@ -145,6 +145,8 @@ export {
   getDatabaseHealth,
   getDatabase,
   DatabasePool,
+  TASK_MAX_DEPTH,
+  AGENT_MAX_HIERARCHY_DEPTH,
   type DatabaseOptions,
   type DatabaseConnection,
   type DatabaseHealthStatus,

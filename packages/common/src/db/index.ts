@@ -538,6 +538,9 @@ export function getDatabase(): DatabaseConnection {
   return DatabasePool.getInstance().getConnection();
 }
 
+// Export constants
+export * from './constants';
+
 // Export query APIs
 export * from './queries';
 

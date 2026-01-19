@@ -92,25 +92,15 @@ function createValidConfig(agentId: string, role: string): AgentConfig {
     permissions: {
       canHire: false,
       canFire: false,
-      canAccessFiles: [],
-      canExecuteCommands: [],
       maxSubordinates: 0,
-      budget: {
-        maxTokensPerExecution: 100000,
-        maxExecutionsPerDay: 100,
-        maxCostPerDay: 10.0,
-      },
+      hiringBudget: 0,
     },
     framework: {
       primary: 'mock-adapter',
-      fallback: null,
-      config: {},
+      fallback: undefined,
     },
     communication: {
-      channels: [],
-      notifyOn: [],
-      escalateTo: null,
-      responseTimeExpectation: '1 hour',
+      preferredChannels: [],
     },
     execution: {
       mode: 'continuous',
@@ -171,11 +161,12 @@ describe('Decision Synthesis', () => {
     // Run migrations
     runMigrations(db, allMigrations);
 
-    // Create database pool
-    dbPool = {
-      getDatabase: () => db,
-      close: async () => db.close(),
-    };
+    // Reset and create database pool
+    DatabasePool.getInstance().reset();
+    dbPool = DatabasePool.getInstance();
+
+    // Override the database instance with our test database
+    (dbPool as any).connection = { db, close: () => db.close(), healthCheck: () => true };
 
     // Create temporary directory for agent files
     agentDir = await fs.mkdtemp(path.join(os.tmpdir(), 'test-agents-'));
@@ -185,11 +176,15 @@ describe('Decision Synthesis', () => {
     adapterRegistry.register(createMockAdapter('mock-adapter', true));
 
     // Create orchestrator instance
-    orchestrator = new ExecutionOrchestrator(dbPool, agentDir, adapterRegistry as any);
+    orchestrator = new ExecutionOrchestrator({
+      database: dbPool,
+      adapterRegistry: adapterRegistry as any,
+    });
   });
 
   afterEach(async () => {
-    await dbPool.close();
+    db.close();
+    dbPool.reset();
     await fs.remove(agentDir);
   });
 

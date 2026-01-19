@@ -43,15 +43,15 @@ IN_PROGRESS
 - [ ] Write integration test for status command (DEFERRED - requires initialized database)
 
 #### 2.3 Implement config Command
-- [ ] Implement config get <key> with nested path support
-- [ ] Implement config set <key> <value> with validation
-- [ ] Implement config list to show all settings
-- [ ] Implement config edit to open in $EDITOR
-- [ ] Create getNestedValue() utility for dot-notation paths
-- [ ] Create setNestedValue() utility for nested config updates
-- [ ] Create validateConfig() with business rules
-- [ ] Replace mock config values with real config loading/saving
-- [ ] Write integration test for config command
+- [x] Implement config get <key> with nested path support
+- [x] Implement config set <key> <value> with validation
+- [x] Implement config list to show all settings
+- [ ] Implement config edit to open in $EDITOR (NOT IMPLEMENTED - deferred as not critical)
+- [x] Create getNestedValue() utility for dot-notation paths
+- [x] Create setNestedValue() utility for nested config updates
+- [x] Create validateConfig() with business rules
+- [x] Replace mock config values with real config loading/saving
+- [x] Write integration test for config command
 
 #### 2.4 Implement debug Command
 - [ ] Load agent from database using getAgent()
@@ -221,6 +221,33 @@ IN_PROGRESS
 - [ ] Verify all GitHub Actions workflows passing on master branch
 
 ## Completed This Iteration
+
+**Iteration 6: Implement config Command**
+- Replaced all mock/hardcoded data in packages/cli/src/commands/config.ts with real configuration management
+- Added utility functions to packages/cli/src/utils/config.ts:
+  - getConfigPath() to get configuration file path
+  - getNestedValue() to support dot-notation paths (e.g., 'execution.workerPoolSize')
+  - setNestedValue() to update nested configuration with automatic type conversion (numbers, booleans)
+  - validateConfig() to validate configuration changes with business rules
+- Implemented command functionality:
+  - --get <key>: Get configuration value with nested path support
+  - --set <key=value>: Set configuration value with validation
+  - --list: List all configuration as JSON
+  - Interactive wizard: Simplified to execution settings and view all
+- Added comprehensive validation:
+  - execution.workerPoolSize: 1-100 range
+  - execution.maxConcurrentTasks: 1-1000 range
+  - Required fields: dataDir, dbPath, rootAgentId
+- Created packages/cli/src/__tests__/config.integration.test.ts with 18 test cases:
+  - Get simple and nested configuration values
+  - Set configuration with type conversion (numbers, booleans, floats, strings)
+  - Validation for min/max values
+  - Error handling for non-existent keys and invalid formats
+  - List all configuration
+  - Create nested paths that don't exist
+- Configuration changes are persisted to config.json
+- Added writeFileSync import for saving configuration
+- Phase 2.3 (Implement config Command) is now COMPLETE (except --edit flag which is deferred)
 
 **Iteration 5: Implement status Command**
 - Replaced all mock/hardcoded data in packages/cli/src/commands/status.ts with real database queries

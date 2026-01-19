@@ -143,11 +143,11 @@ describe('pauseAgent', () => {
       // Check messages in database
       const devMessages = getMessages(db, { agentId: 'dev-001', unreadOnly: true });
       expect(devMessages.length).toBeGreaterThan(0);
-      expect(devMessages.some((m) => m.subject?.includes('Paused'))).toBe(true);
+      expect(devMessages.some((m: any) => m.subject?.includes('Paused'))).toBe(true);
 
       const managerMessages = getMessages(db, { agentId: 'manager-001', unreadOnly: true });
       expect(managerMessages.length).toBeGreaterThan(0);
-      expect(managerMessages.some((m) => m.subject?.includes('Subordinate Paused'))).toBe(true);
+      expect(managerMessages.some((m: any) => m.subject?.includes('Subordinate Paused'))).toBe(true);
     });
 
     it('should send only one notification for root agent', async () => {

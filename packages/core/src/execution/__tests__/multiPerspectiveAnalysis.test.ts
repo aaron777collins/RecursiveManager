@@ -83,25 +83,15 @@ function createValidConfig(agentId: string, role: string): AgentConfig {
     permissions: {
       canHire: false,
       canFire: false,
-      canAccessFiles: [],
-      canExecuteCommands: [],
       maxSubordinates: 0,
-      budget: {
-        maxTokensPerExecution: 100000,
-        maxExecutionsPerDay: 100,
-        maxCostPerDay: 10.0,
-      },
+      hiringBudget: 0,
     },
     framework: {
       primary: 'mock-adapter',
-      fallback: null,
-      config: {},
+      fallback: undefined,
     },
     communication: {
-      channels: [],
-      notifyOn: [],
-      escalateTo: null,
-      responseTimeExpectation: '1 hour',
+      preferredChannels: [],
     },
     behavior: {
       autonomyLevel: 'guided',
@@ -167,7 +157,9 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
     await runMigrations(db, allMigrations);
 
     // Create database pool
-    dbPool = new DatabasePool(dbPath);
+    DatabasePool.getInstance().reset();
+    dbPool = DatabasePool.getInstance();
+    (dbPool as any).connection = { db, close: () => db.close(), healthCheck: () => true };
 
     // Create temporary filesystem directory
     baseDir = tempDir;
@@ -178,16 +170,15 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
     adapterRegistry.register(mockAdapter);
 
     // Create orchestrator
-    orchestrator = new ExecutionOrchestrator(
-      db,
-      baseDir,
-      adapterRegistry as any // Type assertion to avoid complex interface matching
-    );
+    orchestrator = new ExecutionOrchestrator({
+      database: dbPool,
+      adapterRegistry: adapterRegistry as any,
+    });
   });
 
   afterEach(async () => {
     db.close();
-    dbPool.close();
+    dbPool.reset();
     await fs.remove(baseDir);
   });
 
