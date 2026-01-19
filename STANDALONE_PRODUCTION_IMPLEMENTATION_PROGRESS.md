@@ -153,7 +153,9 @@ The plan has 12 phases, but dependencies are:
 ### Phase 1: Fix All Test Failures & Verify Build ⚠️
 
 - [x] 1.1: Install dependencies cleanly (npm install)
-- [ ] 1.2: Run full test suite and capture results
+- [x] 1.2: Run full test suite and capture results
+- [ ] 1.2a: Fix TypeScript build errors in core package (blocking tests)
+- [ ] 1.2b: Fix TypeScript build errors in adapters package (blocking tests)
 - [ ] 1.3: Fix any remaining test failures in core package
 - [ ] 1.4: Fix any remaining test failures in CLI package
 - [ ] 1.5: Fix any remaining test failures in adapters package
@@ -465,10 +467,15 @@ When build mode begins, it should:
 
 ## Completed This Iteration
 
-- Task 1.1: Installed all dependencies cleanly using npm install. Cleaned up partial node_modules directories first, then ran fresh install. Result: 145 packages added, 152 packages audited, 0 vulnerabilities found.
+- Task 1.2: Ran full test suite and captured results. Found that TypeScript build errors are blocking tests from running. The previous commit (6801934) claimed to fix TypeScript errors, but they still exist.
 
 ## Notes
 
-- Initial install had ENOTEMPTY errors due to partial node_modules in packages/adapters
-- Solution: Cleaned all node_modules directories (root and packages/*) before install
-- Clean install successful with zero vulnerabilities - excellent starting point
+- Fixed turbo.json configuration: Changed "tasks" to "pipeline" for Turbo v1.13.4 compatibility
+- Discovered dev dependencies weren't installed initially - had to run npm install --include=dev
+- Now have 1115 packages installed (963 added for dev dependencies)
+- Build errors found in core and adapters packages:
+  - Core package: ~30+ TypeScript errors in execution, messaging, lifecycle, tasks
+  - Adapters package: Type errors in context tests (status field mismatch)
+  - Common package tests: PASSED (all tests passing)
+- Next task: Fix TypeScript build errors in core package (task 1.2a)
