@@ -245,11 +245,11 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 2.2.2: Implement detectCycle(agentId, newManagerId) using graph traversal
 - [x] Task 2.2.3: Implement checkHiringBudget(managerId)
 - [x] Task 2.2.4: Implement checkRateLimit(managerId) - 5 hires/hour max
-- [ ] Task 2.2.5: Implement hireAgent(config) creating all files + DB entries
-- [ ] Task 2.2.6: Create agent directory structure (tasks/, inbox/, outbox/, subordinates/, workspace/)
-- [ ] Task 2.2.7: Initialize config.json, schedule.json, metadata.json, README.md
-- [ ] Task 2.2.8: Update parent's subordinates/registry.json
-- [ ] Task 2.2.9: Update org_hierarchy table
+- [x] Task 2.2.5: Implement hireAgent(config) creating all files + DB entries
+- [x] Task 2.2.6: Create agent directory structure (tasks/, inbox/, outbox/, subordinates/, workspace/)
+- [x] Task 2.2.7: Initialize config.json, schedule.json, metadata.json, README.md
+- [x] Task 2.2.8: Update parent's subordinates/registry.json
+- [x] Task 2.2.9: Update org_hierarchy table
 
 ##### Fire Logic
 
@@ -4891,3 +4891,94 @@ All 9 tasks in Phase 2.1 (Agent Configuration & Validation) are now complete:
 
 Task 2.2.1: Begin Phase 2.2 (Agent Lifecycle Management) - Implement validateHire() checking budget, rate limits, cycles
 
+
+---
+
+## Iteration 2026-01-19 04:45:00 EST - Task 2.2.5: hireAgent Implementation
+
+**Completed This Iteration**:
+- Task 2.2.5: Implement hireAgent(config) creating all files + DB entries ✅
+- Task 2.2.6: Create agent directory structure ✅
+- Task 2.2.7: Initialize config.json, schedule.json, metadata.json, README.md ✅
+- Task 2.2.8: Update parent's subordinates/registry.json ✅
+- Task 2.2.9: Update org_hierarchy table ✅
+
+**Implementation Summary**:
+
+Implemented the complete `hireAgent()` function that orchestrates the full agent hiring workflow:
+
+1. **Core Function** (`packages/core/src/lifecycle/hireAgent.ts`):
+   - 4-step orchestration: Validation → Filesystem → Database → Parent Updates
+   - Comprehensive error handling with HireAgentError
+   - Support for root agents (managerId = null) and subordinates
+   - Automatic reportingTo override to match managerId
+   - Detailed logging at each step
+
+2. **Filesystem Operations**:
+   - Creates complete directory structure (12 subdirectories)
+   - Generates default schedule.json with hybrid mode
+   - Generates default metadata.json with budget tracking
+   - Creates subordinates/registry.json for tracking hires
+   - Generates README.md with agent information
+   - All writes use atomic operations for safety
+
+3. **Database Integration**:
+   - Calls createAgent() for transactional DB operations
+   - Updates org_hierarchy through createAgent()
+   - Audit logging handled automatically
+
+4. **Parent Registry Updates**:
+   - Loads parent's subordinates/registry.json
+   - Adds new subordinate entry with status tracking
+   - Updates summary statistics (active, total, budget)
+   - Handles registry creation if parent has no registry yet
+
+5. **Validation Integration**:
+   - Calls validateHireStrict() if managerId provided
+   - Prevents invalid hires (no permission, budget exceeded, cycles, etc.)
+   - Made validateHire() and validateHireStrict() async for config loading
+
+6. **Comprehensive Test Suite** (`packages/core/src/__tests__/hireAgent.test.ts`):
+   - Root agent hiring tests
+   - Subordinate hiring tests
+   - Multi-level hierarchy tests
+   - Validation failure tests (8 scenarios)
+   - Configuration override tests
+   - Error handling tests
+   - README generation tests
+   - Total: 14 test suites covering all scenarios
+
+7. **Type Safety Fixes**:
+   - Fixed null vs undefined mismatches in logging contexts
+   - Fixed async/await for validateHire functions
+   - Added optional chaining for framework.capabilities
+   - All TypeScript errors resolved (except @types/better-sqlite3 dev dependency)
+
+**Files Created**:
+- `packages/core/src/lifecycle/hireAgent.ts` (598 lines)
+- `packages/core/src/__tests__/hireAgent.test.ts` (644 lines)
+
+**Files Modified**:
+- `packages/core/src/lifecycle/index.ts` (added hireAgent export)
+- `packages/core/src/index.ts` (added hireAgent export)
+- `packages/core/src/lifecycle/validateHire.ts` (made async, fixed Promise handling)
+- `COMPREHENSIVE_PLAN_PROGRESS.md` (marked Tasks 2.2.5-2.2.9 complete)
+
+**Technical Features**:
+- Atomic file operations with createDirs option
+- Proper error wrapping and propagation
+- Support for optional PathOptions throughout
+- Non-critical parent update failures don't block hiring
+- Template-based default generation for all config files
+- Schema-compliant JSON for all generated files
+
+**Testing Strategy**:
+- Unit tests cover each helper function
+- Integration tests verify end-to-end workflow
+- Edge cases tested (self-hire, cycles, budget limits)
+- Error scenarios validated (missing manager, no permissions)
+- Multi-agent hierarchies tested
+
+**Tasks 2.2.5-2.2.9 Status**: ✅ **COMPLETE**
+
+All hiring infrastructure is now complete and ready for CLI integration.

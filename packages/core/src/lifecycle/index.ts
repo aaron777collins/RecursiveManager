@@ -18,3 +18,5 @@ export {
   type ValidationError,
   type HireValidationResult,
 } from './validateHire';
+
+export { hireAgent, HireAgentError } from './hireAgent';

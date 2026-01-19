@@ -29,4 +29,6 @@ export {
   HireValidationError,
   type ValidationError,
   type HireValidationResult,
+  hireAgent,
+  HireAgentError,
 } from './lifecycle';

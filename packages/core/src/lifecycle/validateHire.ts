@@ -264,12 +264,12 @@ export function checkRateLimit(
  * }
  * ```
  */
-export function validateHire(
+export async function validateHire(
   db: Database.Database,
   managerId: string,
   newAgentId: string,
   newAgentConfig?: AgentConfig
-): HireValidationResult {
+): Promise<HireValidationResult> {
   const errors: ValidationError[] = [];
   const warnings: ValidationError[] = [];
 
@@ -299,7 +299,7 @@ export function validateHire(
   // Load manager configuration
   let managerConfig: AgentConfig;
   try {
-    managerConfig = loadAgentConfig(managerId);
+    managerConfig = await loadAgentConfig(managerId);
   } catch (error) {
     errors.push({
       code: 'MANAGER_CONFIG_LOAD_ERROR',
@@ -412,13 +412,13 @@ export function validateHire(
  * @param newAgentConfig - Optional: Configuration of agent being hired
  * @throws HireValidationError if validation fails
  */
-export function validateHireStrict(
+export async function validateHireStrict(
   db: Database.Database,
   managerId: string,
   newAgentId: string,
   newAgentConfig?: AgentConfig
-): void {
-  const result = validateHire(db, managerId, newAgentId, newAgentConfig);
+): Promise<void> {
+  const result = await validateHire(db, managerId, newAgentId, newAgentConfig);
   if (!result.valid) {
     throw new HireValidationError(result.errors, result.warnings);
   }
