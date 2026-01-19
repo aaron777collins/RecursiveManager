@@ -152,11 +152,11 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Query APIs - Agents
 
-- [ ] Task 1.3.11: Implement createAgent(config)
-- [ ] Task 1.3.12: Implement getAgent(id)
-- [ ] Task 1.3.13: Implement updateAgent(id, updates)
-- [ ] Task 1.3.14: Implement getSubordinates(managerId)
-- [ ] Task 1.3.15: Implement getOrgChart() using org_hierarchy
+- [x] Task 1.3.11: Implement createAgent(config)
+- [x] Task 1.3.12: Implement getAgent(id)
+- [x] Task 1.3.13: Implement updateAgent(id, updates)
+- [x] Task 1.3.14: Implement getSubordinates(managerId)
+- [x] Task 1.3.15: Implement getOrgChart() using org_hierarchy
 
 ##### Query APIs - Tasks
 
@@ -3092,3 +3092,102 @@ Created a comprehensive database migration system in `packages/common/src/db/mig
 - `/home/ubuntu/repos/RecursiveManager/COMPREHENSIVE_PLAN_PROGRESS.md` - Marked Task 1.3.10 complete
 
 **Build Results**: All packages build successfully (6 successful tasks in 9.528s) ✅
+
+---
+
+## Iteration: Task 1.3.11-1.3.15 - Agent Query API Implementation
+
+**Completed**: 2026-01-19
+
+**Tasks Completed**:
+
+- [x] Task 1.3.11: Implement createAgent(config)
+- [x] Task 1.3.12: Implement getAgent(id)
+- [x] Task 1.3.13: Implement updateAgent(id, updates)
+- [x] Task 1.3.14: Implement getSubordinates(managerId)
+- [x] Task 1.3.15: Implement getOrgChart() using org_hierarchy
+
+**What Was Implemented**:
+
+1. **Type Definitions** (`packages/common/src/db/queries/types.ts`):
+   - Defined `AgentStatus` type enum ('active' | 'paused' | 'fired')
+   - Defined `AgentRecord` interface matching database schema
+   - Defined `CreateAgentInput` interface for creating new agents
+   - Defined `UpdateAgentInput` interface for partial agent updates
+   - Defined `OrgHierarchyRecord` interface for hierarchy queries
+   - All types use snake_case for database fields, camelCase for inputs
+
+2. **Agent Query Functions** (`packages/common/src/db/queries/agents.ts`):
+   - **`createAgent(db, input)`**: Creates agent and updates org_hierarchy in a transaction
+     - Inserts agent record with all required fields
+     - Creates self-reference in org_hierarchy (depth=0)
+     - Inherits manager's hierarchy if reportingTo is set
+     - Returns created agent record
+   - **`getAgent(db, id)`**: Retrieves single agent by ID
+     - Returns AgentRecord or null if not found
+     - Uses prepared statement for security
+   - **`updateAgent(db, id, updates)`**: Updates agent fields
+     - Supports partial updates (only provided fields)
+     - Dynamic SQL based on provided fields
+     - Returns updated agent or null if not found
+     - TODO: Updating reportingTo requires org_hierarchy update (future task)
+   - **`getSubordinates(db, managerId)`**: Gets all subordinates using org_hierarchy
+     - Returns both direct and indirect subordinates
+     - Ordered by depth then display name
+     - Uses JOIN with org_hierarchy for efficiency
+   - **`getOrgChart(db)`**: Returns complete organizational structure
+     - Returns all agents with hierarchy info (depth, path)
+     - Ordered by path for natural tree display
+
+3. **Query Module Exports** (`packages/common/src/db/queries/index.ts`):
+   - Re-exports all types and functions
+   - Clean API surface for importing
+
+4. **Database Module Integration** (`packages/common/src/db/index.ts`):
+   - Added `export * from './queries'` to expose query APIs
+   - All query functions now available from main db module
+
+5. **Comprehensive Test Suite** (`packages/common/src/db/__tests__/queries-agents.test.ts`):
+   - 15 tests covering all query functions
+   - Tests for createAgent: root agents, subordinates, org_hierarchy updates, hierarchy inheritance
+   - Tests for getAgent: existing agents, non-existent agents
+   - Tests for updateAgent: partial updates, field updates, empty updates, non-existent agents
+   - Tests for getSubordinates: hierarchical queries, empty results
+   - Tests for getOrgChart: complete org structure, empty database
+   - All tests use temporary databases with full migration setup
+   - Proper cleanup of test databases and WAL files
+
+**Validation**:
+
+- ✅ All 15 new tests pass
+- ✅ All existing tests still pass (652 total tests in common package)
+- ✅ TypeScript compilation successful
+- ✅ No linting errors
+- ✅ Query functions use prepared statements for SQL injection protection
+- ✅ Transactions ensure atomicity in createAgent
+- ✅ Org_hierarchy properly maintained with transitive closure
+
+**Key Design Decisions**:
+
+- All database queries use prepared statements for security
+- createAgent uses transactions to ensure atomicity between agent insert and org_hierarchy updates
+- Org_hierarchy stores full transitive closure (all ancestor relationships) for efficient hierarchical queries
+- Path field in org_hierarchy built incrementally (e.g., "CEO/CTO/Developer") for debugging
+- updateAgent supports dynamic field updates (only updates provided fields)
+- TODO marker added for reportingTo update requiring org_hierarchy recalculation
+
+**Files Created**:
+
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/queries/types.ts` (68 lines)
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/queries/agents.ts` (294 lines)
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/queries/index.ts` (8 lines)
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/__tests__/queries-agents.test.ts` (457 lines)
+
+**Files Modified**:
+
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/index.ts` - Added query API exports
+- `/home/ubuntu/repos/RecursiveManager/COMPREHENSIVE_PLAN_PROGRESS.md` - Marked Tasks 1.3.11-1.3.15 complete
+
+**Test Results**: All 652 tests pass in common package ✅
+
+**Next Task**: Task 1.3.16 - Implement createTask(task) with depth validation

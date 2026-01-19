@@ -327,3 +327,6 @@ export class DatabasePool {
     DatabasePool.instance = null;
   }
 }
+
+// Export query APIs
+export * from './queries';
