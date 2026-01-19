@@ -115,3 +115,19 @@ export {
   type ValidationResult,
   type ValidationError,
 } from './schema-validation';
+
+// File Recovery (Phase 1.2)
+export {
+  detectCorruption,
+  detectCorruptionSync,
+  findLatestBackup,
+  findLatestBackupSync,
+  attemptRecovery,
+  attemptRecoverySync,
+  safeLoad,
+  safeLoadSync,
+  CorruptionError,
+  type CorruptionInfo,
+  type RecoveryResult,
+  type RecoveryOptions,
+} from './file-recovery';
