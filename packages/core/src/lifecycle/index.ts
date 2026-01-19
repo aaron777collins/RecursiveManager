@@ -20,3 +20,10 @@ export {
 } from './validateHire';
 
 export { hireAgent, HireAgentError } from './hireAgent';
+
+export {
+  fireAgent,
+  FireAgentError,
+  type FireStrategy,
+  type FireAgentResult,
+} from './fireAgent';
