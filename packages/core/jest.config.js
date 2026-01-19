@@ -22,7 +22,8 @@ module.exports = {
 
   // Module path aliases for internal package references
   moduleNameMapper: {
-    '^@recursive-manager/common$': '<rootDir>/../common/src'
+    '^@recursive-manager/common$': '<rootDir>/../common/src',
+    '^execa$': '<rootDir>/__mocks__/execa.js'
   },
 
   collectCoverageFrom: [
