@@ -549,3 +549,6 @@ export * from './taskIdGenerator';
 
 // Export retry utilities
 export * from './retry';
+
+// Export snapshot management
+export * from './snapshot';

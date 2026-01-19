@@ -65,8 +65,8 @@ IN_PROGRESS
 - [x] Write integration test for debug command (10 test cases)
 
 #### 2.5 Implement rollback Command (NEW FEATURE)
-- [ ] Create packages/common/src/db/snapshot.ts module
-- [ ] Implement createSnapshot() using SQLite backup API
+- [x] Create packages/common/src/db/snapshot.ts module
+- [x] Implement createSnapshot() using SQLite backup API
 - [ ] Create packages/cli/src/commands/rollback.ts
 - [ ] Implement rollback command with snapshot selection
 - [ ] Implement --history flag to list available snapshots
@@ -221,6 +221,29 @@ IN_PROGRESS
 - [ ] Verify all GitHub Actions workflows passing on master branch
 
 ## Completed This Iteration
+
+**Iteration 10: Create Database Snapshot System Module**
+- Created packages/common/src/db/snapshot.ts with comprehensive snapshot management functionality
+- Implemented core snapshot functions:
+  - createSnapshot(): Create database snapshots with metadata (reason, agentId, timestamp)
+  - listSnapshots(): List snapshots with filtering (by agentId) and sorting options
+  - getSnapshot(): Retrieve specific snapshot by ID
+  - restoreSnapshot(): Restore database from snapshot with validation and backup options
+  - deleteSnapshot(): Delete snapshot and its metadata files
+  - validateSnapshot(): Verify snapshot integrity using PRAGMA integrity_check
+  - cleanupSnapshots(): Delete old snapshots, keeping N most recent
+  - getLatestSnapshot(): Get the most recent snapshot
+- Uses better-sqlite3's built-in backup API for atomic snapshot creation
+- Snapshot metadata stored as JSON files alongside snapshot databases
+- Created comprehensive test suite packages/common/src/db/__tests__/snapshot.test.ts:
+  - 29 test cases covering all snapshot operations
+  - Tests for creation, listing, filtering, sorting, restoration, deletion, validation, cleanup
+  - Tests for edge cases (corrupted files, non-existent snapshots, integrity checks)
+  - All 29 tests passing
+- Exported snapshot functions from packages/common/src/db/index.ts
+- TypeScript compilation successful with no errors
+- Phase 2.5 (Implement rollback Command) - 2/9 tasks complete (snapshot.ts module created)
+- Snapshot system ready for integration with CLI rollback command and lifecycle hooks
 
 **Iteration 9: Add Prerequisite Checks to loadConfig()**
 - Enhanced packages/cli/src/utils/config.ts loadConfig() function with comprehensive validation
