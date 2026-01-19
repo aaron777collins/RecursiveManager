@@ -24,7 +24,7 @@ IN_PROGRESS
 - [x] 3.1 Setup MkDocs with Material theme (mkdocs.yml)
 - [x] 3.2 Create documentation directory structure
 - [x] 3.3 Create landing page (index.md)
-- [ ] 3.4 Create custom CSS (extra.css)
+- [x] 3.4 Create custom CSS (extra.css)
 - [ ] 3.5 Create brand icon (icon-white.svg)
 - [ ] 3.6 Port existing documentation
 - [ ] 3.7 Add requirements.txt for MkDocs
@@ -141,7 +141,7 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 3.3: Created landing page (index.md)
+- Task 3.4: Created custom CSS (extra.css)
 
 ## Notes
 
@@ -222,4 +222,35 @@ IN_PROGRESS
   - Verified card-based grid layout renders correctly in HTML output
   - Used Material Design icons (:material-*:) and emoji icons (:rocket:, etc.)
   - All links point to correct documentation pages as defined in mkdocs.yml
+
+### Iteration 12 (2026-01-19)
+- Task 3.4: Created custom CSS (extra.css) based on PortableRalph design patterns
+  - Implemented deep purple color palette (--rm-purple-900 through --rm-purple-100)
+  - Created CSS custom properties for colors, gradients, and shadows
+  - Implemented card-based grid layout system:
+    - Responsive grid with auto-fit minmax columns
+    - Card hover effects with translateY(-4px) transform
+    - Purple gradient top border on hover (scaleX animation)
+    - Enhanced shadows on hover (including purple glow)
+  - Styled code blocks with 8px border radius and drop shadows
+  - Created button styling with gradient backgrounds:
+    - Primary buttons with purple gradient
+    - Secondary buttons with outline style
+    - Hover effects with transform and shadow
+  - Implemented hero section styling with gradient text
+  - Created installation code block styling with left border accent
+  - Customized navigation hover effects
+  - Styled tables with gradient headers
+  - Added scrollbar styling for webkit browsers (purple thumb)
+  - Implemented responsive design for mobile (single column grid, stacked buttons)
+  - Added accessibility improvements (focus states with purple outline)
+  - Created typography refinements (h1/h2/h3 weights, letter spacing)
+  - Added link styling with border-bottom hover effect
+  - Created badge, status indicator, and community link components
+  - Added animation classes (fadeIn keyframes)
+  - Implemented print styles (no shadows, hide buttons)
+  - Customized admonitions, search results, and footer
+  - All styles support both light and dark modes via [data-md-color-scheme="slate"]
+  - Successfully built documentation with `mkdocs build --strict` - no errors
+  - Verified CSS file is correctly referenced in mkdocs.yml
 
