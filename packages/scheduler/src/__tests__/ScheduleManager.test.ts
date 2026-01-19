@@ -25,6 +25,16 @@ describe('ScheduleManager', () => {
     // Apply migrations
     await runMigrations(db, allMigrations);
 
+    // Create test agents required for foreign key constraints
+    const insertAgent = db.prepare(`
+      INSERT INTO agents (id, role, display_name, created_at, status, main_goal, config_path)
+      VALUES (?, ?, ?, CURRENT_TIMESTAMP, 'active', ?, ?)
+    `);
+
+    insertAgent.run('test-agent', 'test', 'Test Agent', 'Test goals', '/tmp/test-agent');
+    insertAgent.run('system', 'system', 'System Agent', 'System operations', '/tmp/system');
+    insertAgent.run('other-agent', 'test', 'Other Agent', 'Test goals', '/tmp/other-agent');
+
     // Create schedule manager
     scheduleManager = new ScheduleManager(db);
   });
@@ -126,12 +136,16 @@ describe('ScheduleManager', () => {
 
   describe('getSchedulesReadyToExecute', () => {
     it('should return empty array when no schedules are ready', () => {
-      // Create a schedule in the future
-      scheduleManager.createCronSchedule({
+      // Create a schedule in the future (Jan 1st at midnight)
+      const scheduleId = scheduleManager.createCronSchedule({
         agentId: 'test-agent',
         description: 'Future job',
-        cronExpression: '0 0 1 1 2099', // Year 2099
+        cronExpression: '0 0 1 1 *', // Jan 1st at midnight every year
       });
+
+      // Manually set next_execution_at to far future to ensure it's not ready
+      const updateStmt = db.prepare('UPDATE schedules SET next_execution_at = ? WHERE id = ?');
+      updateStmt.run('2099-01-01T00:00:00.000Z', scheduleId);
 
       const readySchedules = scheduleManager.getSchedulesReadyToExecute();
       expect(readySchedules).toEqual([]);

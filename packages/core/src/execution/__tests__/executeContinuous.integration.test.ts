@@ -23,16 +23,25 @@ import {
 import { ExecutionOrchestrator } from '../index';
 import { saveAgentConfig } from '../../config';
 
-// Mock types for adapters (avoiding import issues)
+// Mock types for adapters (matching real ExecutionResult from @recursive-manager/adapters)
 type ExecutionResult = {
   success: boolean;
-  agentId: string;
-  mode: 'continuous' | 'reactive';
+  duration: number;
   tasksCompleted: number;
   messagesProcessed: number;
-  duration: number;
-  timestamp: Date;
-  error?: string;
+  errors: Array<{
+    message: string;
+    stack?: string;
+    code?: string;
+  }>;
+  nextExecution?: Date;
+  metadata?: {
+    filesCreated?: string[];
+    filesModified?: string[];
+    apiCallCount?: number;
+    costUSD?: number;
+    output?: string;
+  };
 };
 
 type FrameworkAdapter = {
@@ -54,7 +63,7 @@ class AdapterRegistry {
   async getHealthyAdapter(
     primary: string,
     fallback?: string
-  ): Promise<{ adapter: FrameworkAdapter; usedFallback: boolean } | null> {
+  ): Promise<{ adapter: FrameworkAdapter; usedFallback: boolean } | undefined> {
     const primaryAdapter = this.adapters.get(primary);
     if (primaryAdapter && (await primaryAdapter.checkHealth())) {
       return { adapter: primaryAdapter, usedFallback: false };
@@ -67,7 +76,7 @@ class AdapterRegistry {
       }
     }
 
-    return null;
+    return undefined;
   }
 }
 
@@ -111,9 +120,10 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
     runMigrations(db, allMigrations);
 
     dbPool = {
-      getConnection: () => db,
+      getConnection: () => ({ db, close: () => db.close(), healthCheck: () => true }),
       close: () => db.close(),
-    } as DatabasePool;
+      isInitialized: () => true,
+    } as any as DatabasePool;
 
     testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'exec-continuous-test-'));
     process.env.RECURSIVE_MANAGER_DATA_DIR = testDir;
@@ -123,12 +133,10 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
       async executeAgent(agentId: string, mode: 'continuous' | 'reactive', context: any): Promise<ExecutionResult> {
         return {
           success: true,
-          agentId,
-          mode,
+          duration: 1000,
           tasksCompleted: context.activeTasks?.length || 0,
           messagesProcessed: 0,
-          duration: 1000,
-          timestamp: new Date(),
+          errors: [],
         };
       },
       async checkHealth(): Promise<boolean> {
@@ -185,9 +193,8 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
       const result = await orchestrator.executeContinuous(agentId);
 
       expect(result.success).toBe(true);
-      expect(result.agentId).toBe(agentId);
-      expect(result.mode).toBe('continuous');
       expect(result.tasksCompleted).toBe(1);
+      expect(result.errors).toEqual([]);
 
       const auditLogs = queryAuditLog(db, { agentId });
       expect(auditLogs.length).toBeGreaterThan(0);

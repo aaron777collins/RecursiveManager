@@ -41,6 +41,21 @@ import { auditLog, AuditAction } from './audit';
  * ```
  */
 export function createAgent(db: Database.Database, input: CreateAgentInput): AgentRecord {
+  // Validate agent ID format to prevent injection and path traversal
+  const agentIdPattern = /^[a-z0-9][a-z0-9-]*[a-z0-9]$/;
+  if (!agentIdPattern.test(input.id)) {
+    throw new Error(
+      `Invalid agent ID format: '${input.id}'. ` +
+      `Agent IDs must contain only lowercase letters, numbers, and hyphens, ` +
+      `and cannot start or end with a hyphen.`
+    );
+  }
+
+  // Additional length check
+  if (input.id.length < 2 || input.id.length > 64) {
+    throw new Error(`Agent ID length must be between 2 and 64 characters, got ${input.id.length}`);
+  }
+
   // Prepare statements
   const insertAgent = db.prepare(`
     INSERT INTO agents (
@@ -116,8 +131,10 @@ export function createAgent(db: Database.Database, input: CreateAgentInput): Age
     }
 
     // Audit log successful agent creation
+    // Note: agent_id must be either null or a valid agent ID due to foreign key constraint
+    // For system-created agents (createdBy='system'), we use null since 'system' is not an agent
     auditLog(db, {
-      agentId: input.createdBy,
+      agentId: input.createdBy && input.createdBy !== 'system' ? input.createdBy : null,
       action: AuditAction.HIRE,
       targetAgentId: input.id,
       success: true,
@@ -126,20 +143,23 @@ export function createAgent(db: Database.Database, input: CreateAgentInput): Age
         displayName: input.displayName,
         reportingTo: input.reportingTo,
         mainGoal: input.mainGoal,
+        createdBy: input.createdBy, // Store the original createdBy in details for reference
       },
     });
 
     return agent;
   } catch (error) {
     // Audit log failed agent creation
+    // Note: agent_id must be either null or a valid agent ID due to foreign key constraint
     auditLog(db, {
-      agentId: input.createdBy,
+      agentId: input.createdBy && input.createdBy !== 'system' ? input.createdBy : null,
       action: AuditAction.HIRE,
       targetAgentId: input.id,
       success: false,
       details: {
         role: input.role,
         displayName: input.displayName,
+        createdBy: input.createdBy, // Store the original createdBy in details for reference
         error: error instanceof Error ? error.message : String(error),
       },
     });

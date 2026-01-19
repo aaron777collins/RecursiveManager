@@ -7,6 +7,7 @@
  */
 
 import { execa } from 'execa';
+import * as path from 'path';
 // ExecaChildProcess will be used in Task 3.2.2 for process management
 import {
   FrameworkAdapter,
@@ -324,10 +325,28 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
         '--no-session-persistence', // Don't save session to disk
       ];
 
+      // Validate working directory to prevent malicious path traversal
+      const workingDirResolved = path.resolve(context.workingDir);
+      const workspaceDirResolved = path.resolve(context.workspaceDir);
+      const relativePath = path.relative(workspaceDirResolved, workingDirResolved);
+
+      // Ensure working dir is within workspace (or is workspace itself)
+      if (relativePath && (relativePath.startsWith('..') || path.isAbsolute(relativePath))) {
+        throw new Error(
+          `Invalid working directory: '${context.workingDir}' is outside workspace '${context.workspaceDir}'`
+        );
+      }
+
       // Add working directory if different from workspace
       if (context.workingDir !== context.workspaceDir) {
         // Note: Claude Code doesn't have a --cwd flag, so we'll use cwd option in execa
-        this.logDebug(`Setting working directory to: ${context.workingDir}`);
+        this.logDebug(`Setting working directory to: ${workingDirResolved}`);
+      }
+
+      // Validate prompt for dangerous patterns (basic sanitation)
+      // While execa doesn't use shell by default, we still validate for safety
+      if (prompt.includes('\0') || prompt.includes('\x1b[')) {
+        throw new Error('Invalid characters detected in prompt (null byte or escape sequences)');
       }
 
       // Add the prompt as the final argument

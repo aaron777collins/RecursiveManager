@@ -16,6 +16,7 @@ import { migration004 } from './004_create_schedules_table';
 import { migration005 } from './005_create_audit_log_table';
 import { migration006 } from './006_create_org_hierarchy_table';
 import { migration007 } from './007_add_task_metadata_columns';
+import { migration008 } from './008_add_audit_log_immutability_trigger';
 
 /**
  * All available migrations in order
@@ -31,6 +32,7 @@ export const allMigrations: Migration[] = [
   migration005,
   migration006,
   migration007,
+  migration008,
 ];
 
 /**

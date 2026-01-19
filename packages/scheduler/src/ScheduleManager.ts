@@ -189,22 +189,29 @@ export class ScheduleManager {
     const schedule = this.db
       .prepare(
         `
-      SELECT cron_expression, timezone
+      SELECT cron_expression, timezone, next_execution_at
       FROM schedules
       WHERE id = ?
     `
       )
-      .get(scheduleId) as Pick<ScheduleRecord, 'cron_expression' | 'timezone'> | undefined;
+      .get(scheduleId) as Pick<ScheduleRecord, 'cron_expression' | 'timezone' | 'next_execution_at'> | undefined;
 
     if (!schedule || !schedule.cron_expression) {
       throw new Error(`Schedule ${scheduleId} not found or not a cron schedule`);
     }
 
-    // Calculate next execution
-    const nextExecution = this.calculateNextExecution(
-      schedule.cron_expression,
-      schedule.timezone
-    );
+    // Calculate next execution from the current next_execution_at time
+    // This ensures we move forward from the scheduled time, not from "now"
+    const currentDate = schedule.next_execution_at
+      ? new Date(schedule.next_execution_at)
+      : new Date();
+
+    const interval = parseExpression(schedule.cron_expression, {
+      tz: schedule.timezone,
+      currentDate: currentDate,
+    });
+    const nextDate = interval.next().toDate();
+    const nextExecution = nextDate.toISOString();
 
     // Update the schedule
     const stmt = this.db.prepare(`

@@ -18,6 +18,7 @@ import Database from 'better-sqlite3';
 import {
   type AgentConfig,
   type AgentRecord,
+  type PathOptions,
   getAgent,
   getSubordinates,
   queryAuditLog,
@@ -273,7 +274,8 @@ export async function validateHire(
   db: Database.Database,
   managerId: string,
   newAgentId: string,
-  newAgentConfig?: AgentConfig
+  newAgentConfig?: AgentConfig,
+  options?: PathOptions
 ): Promise<HireValidationResult> {
   const errors: ValidationError[] = [];
   const warnings: ValidationError[] = [];
@@ -304,7 +306,7 @@ export async function validateHire(
   // Load manager configuration
   let managerConfig: AgentConfig;
   try {
-    managerConfig = await loadAgentConfig(managerId);
+    managerConfig = await loadAgentConfig(managerId, options);
   } catch (error) {
     errors.push({
       code: 'MANAGER_CONFIG_LOAD_ERROR',
@@ -421,9 +423,10 @@ export async function validateHireStrict(
   db: Database.Database,
   managerId: string,
   newAgentId: string,
-  newAgentConfig?: AgentConfig
+  newAgentConfig?: AgentConfig,
+  options?: PathOptions
 ): Promise<void> {
-  const result = await validateHire(db, managerId, newAgentId, newAgentConfig);
+  const result = await validateHire(db, managerId, newAgentId, newAgentConfig, options);
   if (!result.valid) {
     throw new HireValidationError(result.errors, result.warnings);
   }

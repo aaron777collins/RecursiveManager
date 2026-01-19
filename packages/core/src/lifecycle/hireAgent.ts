@@ -398,7 +398,7 @@ export async function hireAgent(
       logger.debug('Validating hire preconditions', { agentId, managerId });
 
       try {
-        await validateHireStrict(db, managerId, agentId, options);
+        await validateHireStrict(db, managerId, agentId, config, options);
         logger.debug('Hire validation passed', { agentId, managerId });
       } catch (err) {
         // Re-throw HireValidationError as-is
