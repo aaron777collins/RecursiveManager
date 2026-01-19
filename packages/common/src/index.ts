@@ -150,6 +150,19 @@ export {
   type DatabaseOptions,
   type DatabaseConnection,
   type DatabaseHealthStatus,
+  // Snapshot management (Phase 2.5)
+  createSnapshot,
+  listSnapshots,
+  getSnapshot,
+  restoreSnapshot,
+  deleteSnapshot,
+  validateSnapshot,
+  cleanupSnapshots,
+  getLatestSnapshot,
+  type Snapshot,
+  type CreateSnapshotOptions,
+  type ListSnapshotsOptions,
+  type RestoreSnapshotOptions,
 } from './db';
 
 // Database Migrations (Phase 1.3)

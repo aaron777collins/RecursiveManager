@@ -67,10 +67,10 @@ IN_PROGRESS
 #### 2.5 Implement rollback Command (NEW FEATURE)
 - [x] Create packages/common/src/db/snapshot.ts module
 - [x] Implement createSnapshot() using SQLite backup API
-- [ ] Create packages/cli/src/commands/rollback.ts
-- [ ] Implement rollback command with snapshot selection
-- [ ] Implement --history flag to list available snapshots
-- [ ] Add snapshot validation and pre-rollback backup
+- [x] Create packages/cli/src/commands/rollback.ts
+- [x] Implement rollback command with snapshot selection
+- [x] Implement --history flag to list available snapshots
+- [x] Add snapshot validation and pre-rollback backup
 - [ ] Integrate snapshot creation in hireAgent lifecycle
 - [ ] Integrate snapshot creation in fireAgent lifecycle
 - [ ] Write integration tests for rollback
@@ -221,6 +221,37 @@ IN_PROGRESS
 - [ ] Verify all GitHub Actions workflows passing on master branch
 
 ## Completed This Iteration
+
+**Iteration 11: Implement Rollback CLI Command**
+- Created packages/cli/src/commands/rollback.ts with full rollback functionality
+- Implemented core rollback command features:
+  - `rollback [snapshot-id]`: Restore database from a specific snapshot
+  - `rollback --history`: List all available snapshots with filtering and sorting
+  - Interactive snapshot selection when no ID provided (shows top 10 most recent)
+  - Snapshot information display (ID, reason, created date, size, agent ID, schema version)
+  - Confirmation prompt before restore with clear warning about data loss
+  - Pre-restore integrity validation (--no-validate to skip)
+  - Automatic backup creation before restore (--no-backup to skip)
+  - JSON output support for programmatic use (--json flag)
+  - Filter snapshots by agent ID (--agent-id flag)
+  - Limit number of snapshots shown (--limit flag, default 20)
+  - Custom data directory support (--data-dir flag)
+- Integrated with @recursive-manager/common snapshot functions:
+  - listSnapshots() for history and interactive selection
+  - getSnapshot() to load snapshot metadata
+  - validateSnapshot() for integrity checking
+  - restoreSnapshot() to perform the actual restore
+- Added comprehensive error handling:
+  - Snapshot not found errors with helpful suggestions
+  - Integrity validation failures with option to skip
+  - Database restoration failures with proper cleanup
+  - User cancellation handling for interactive mode
+- Registered rollback command in packages/cli/src/cli.ts
+- Updated packages/common/src/index.ts to export snapshot functions and types
+- TypeScript compilation successful with no errors
+- CLI package builds successfully
+- Phase 2.5 (Implement rollback Command) - 6/9 tasks complete (CLI command implemented)
+- Rollback command ready for use, lifecycle integration and integration tests remain
 
 **Iteration 10: Create Database Snapshot System Module**
 - Created packages/common/src/db/snapshot.ts with comprehensive snapshot management functionality

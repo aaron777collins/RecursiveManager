@@ -13,6 +13,7 @@ import { registerStatusCommand } from './commands/status';
 import { registerUpdateCommand } from './commands/update';
 import { registerConfigCommand } from './commands/config';
 import { registerDebugCommand } from './commands/debug';
+import { registerRollbackCommand } from './commands/rollback';
 
 const program = new Command();
 
@@ -27,6 +28,7 @@ registerStatusCommand(program);
 registerUpdateCommand(program);
 registerConfigCommand(program);
 registerDebugCommand(program);
+registerRollbackCommand(program);
 
 // Parse command line arguments
 program.parse(process.argv);
