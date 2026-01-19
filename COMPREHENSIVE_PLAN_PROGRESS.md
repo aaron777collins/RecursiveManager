@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 04:32:18 EST
+Last Updated: 2026-01-19 04:39:00 EST
 
 ## Status
 
@@ -319,7 +319,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 2.3.13: Implement completeTask(taskId) with optimistic locking (EC-2.4)
 - [x] Task 2.3.14: Update all parent task progress recursively
-- [ ] Task 2.3.15: Move completed tasks to completed/ directory
+- [x] Task 2.3.15: Move completed tasks to completed/ directory
 - [ ] Task 2.3.16: Notify manager of completion
 
 ##### Task Archival
@@ -6288,5 +6288,77 @@ Enhanced the `delegateTask()` function to verify that the delegation target agen
 5. **Root agent restrictions**: Root agents can only delegate to their subordinate tree
 
 **Status**: ✅ **Task 2.3.10 COMPLETE**
+
+---
+
+### Completed This Iteration (2026-01-19 04:38:00 EST)
+
+**Task 2.3.15: Move completed tasks to completed/ directory**
+
+#### Summary
+
+Implemented high-level task completion functionality that coordinates both database updates and file system operations. Created `completeTaskWithFiles()` function that atomically completes a task in the database and moves its directory from `active/` (or any status directory) to `completed/`.
+
+#### Implementation Details
+
+1. **New Module Created**: `packages/core/src/tasks/completeTask.ts`
+   - Provides `completeTaskWithFiles(db, taskId, version)` function
+   - Orchestrates database and file system operations
+   - Maintains optimistic locking from database layer
+
+2. **Function Workflow**:
+   - Retrieves task to get current status before completion
+   - Calls `completeTask()` from `@recursive-manager/common` (database layer)
+   - Updates parent task progress recursively (already implemented in Task 2.3.14)
+   - Calls `moveTaskDirectory()` to relocate task folder to `completed/`
+   - Throws error if task not found, version mismatch, or file move fails
+
+3. **Architecture Preservation**:
+   - Maintains separation between database layer (`packages/common`) and orchestration layer (`packages/core`)
+   - Reuses existing `moveTaskDirectory()` function (implemented earlier)
+   - Reuses existing `completeTask()` database function
+   - No modifications to existing functions required
+
+4. **Export and Integration**:
+   - Exported from `packages/core/src/tasks/index.ts`
+   - Available for use by CLI, scheduler, and other high-level modules
+
+#### Testing
+
+Created comprehensive test suite in `packages/core/src/tasks/__tests__/completeTask.test.ts`:
+
+1. **Happy Path Test**: Complete task and verify directory moved from `in-progress/` to `completed/`
+2. **Parent Progress Test**: Verify parent task progress updates when subtask completes
+3. **Error Handling Tests**:
+   - Task not found throws appropriate error
+   - Version mismatch (optimistic locking) throws error
+   - Task remains in original status on failure
+4. **Edge Case Test**: Handle task already in completed directory gracefully
+
+#### Files Modified/Created
+
+**Created**:
+- `/packages/core/src/tasks/completeTask.ts` (new module)
+- `/packages/core/src/tasks/__tests__/completeTask.test.ts` (test suite)
+
+**Modified**:
+- `/packages/core/src/tasks/index.ts` (added export for `completeTaskWithFiles`)
+
+#### Technical Notes
+
+- The function is async because `moveTaskDirectory()` performs file system operations
+- Optimistic locking is handled by the database layer (`completeTask()` function)
+- Task directory movement is atomic (uses `fs.rename()` internally)
+- Function correctly handles tasks in any status (pending, in-progress, blocked, etc.)
+- Parent task progress updates are recursive and handled by database layer
+
+#### Use Cases Enabled
+
+1. **Manual task completion**: CLI commands can now complete tasks and move directories
+2. **Agent task completion**: Agents can mark their work complete with proper file management
+3. **Scheduler operations**: Automated task completion maintains proper directory structure
+4. **Audit trail**: All completions are logged with directory movement context
+
+**Status**: ✅ **Task 2.3.15 COMPLETE**
 
 ---

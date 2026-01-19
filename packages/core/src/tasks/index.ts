@@ -15,3 +15,5 @@ export {
   notifyTaskDelegation,
   NotifyDelegationOptions,
 } from './notifyDelegation';
+
+export { completeTaskWithFiles } from './completeTask';
