@@ -186,11 +186,95 @@ export function getAgent(db: Database.Database, id: string): AgentRecord | null 
 }
 
 /**
+ * Update org_hierarchy for an agent and all their descendants when reporting structure changes
+ *
+ * This function performs the following operations:
+ * 1. Deletes all existing hierarchy entries for the agent (except self-reference)
+ * 2. Rebuilds the agent's hierarchy based on new manager
+ * 3. Recursively updates all descendants' hierarchies
+ *
+ * This ensures the org_hierarchy materialized view stays consistent when agents
+ * are reassigned to new managers (e.g., during fire operations with orphan reassignment).
+ *
+ * @param db - Database instance (must be within a transaction)
+ * @param agentId - Agent whose hierarchy needs updating
+ * @param newManagerId - New manager agent ID (null for root-level agents)
+ * @param agentRole - Agent's role (used for path construction)
+ *
+ * @example
+ * ```typescript
+ * db.transaction(() => {
+ *   updateAgent(db, 'dev-001', { reportingTo: 'cto-002' });
+ *   updateOrgHierarchyForAgent(db, 'dev-001', 'cto-002', 'Developer');
+ * })();
+ * ```
+ */
+function updateOrgHierarchyForAgent(
+  db: Database.Database,
+  agentId: string,
+  newManagerId: string | null,
+  agentRole: string
+): void {
+  // Prepare statements
+  const deleteNonSelfHierarchy = db.prepare(`
+    DELETE FROM org_hierarchy
+    WHERE agent_id = ?
+      AND ancestor_id != agent_id
+  `);
+
+  const insertOrgHierarchy = db.prepare(`
+    INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path)
+    VALUES (?, ?, ?, ?)
+  `);
+
+  const getManagerHierarchy = db.prepare(`
+    SELECT agent_id, ancestor_id, depth, path
+    FROM org_hierarchy
+    WHERE agent_id = ?
+  `);
+
+  const getDirectSubordinates = db.prepare(`
+    SELECT id, role
+    FROM agents
+    WHERE reporting_to = ?
+      AND id != ?
+  `);
+
+  // Step 1: Delete all existing hierarchy entries except self-reference
+  deleteNonSelfHierarchy.run(agentId);
+
+  // Step 2: Rebuild hierarchy based on new manager
+  if (newManagerId) {
+    const managerHierarchy = getManagerHierarchy.all(newManagerId) as OrgHierarchyRecord[];
+
+    for (const entry of managerHierarchy) {
+      // Add each of the manager's ancestors as this agent's ancestors
+      // with depth+1 (one level further from the root)
+      const newDepth = entry.depth + 1;
+      const newPath = `${entry.path}/${agentRole}`;
+
+      insertOrgHierarchy.run(agentId, entry.ancestor_id, newDepth, newPath);
+    }
+  }
+
+  // Step 3: Recursively update all direct subordinates
+  // Their hierarchy needs to be rebuilt based on this agent's new hierarchy
+  const subordinates = getDirectSubordinates.all(agentId, agentId) as Array<{
+    id: string;
+    role: string;
+  }>;
+
+  for (const subordinate of subordinates) {
+    updateOrgHierarchyForAgent(db, subordinate.id, agentId, subordinate.role);
+  }
+}
+
+/**
  * Update an agent's information
  *
- * Note: Updating reportingTo requires updating org_hierarchy, which is
- * currently not implemented. This will be added in a future task when
- * agent reorganization is needed.
+ * When reportingTo changes, this function automatically updates the org_hierarchy
+ * materialized view to reflect the new reporting structure for both the agent
+ * and all their descendants.
  *
  * @param db - Database instance
  * @param id - Agent ID
@@ -229,8 +313,6 @@ export function updateAgent(
     values.push(updates.displayName);
   }
   if (updates.reportingTo !== undefined) {
-    // TODO: When reportingTo changes, we need to update org_hierarchy
-    // This is complex and will be implemented when agent reorganization is needed
     fields.push('reporting_to = ?');
     values.push(updates.reportingTo);
   }
@@ -270,12 +352,34 @@ export function updateAgent(
     WHERE id = ?
   `);
 
-  try {
-    const result = query.run(...values);
+  // Check if we need to update org_hierarchy (reportingTo changed)
+  const needsOrgHierarchyUpdate =
+    updates.reportingTo !== undefined && updates.reportingTo !== currentAgent.reporting_to;
 
-    // If no rows were updated, agent doesn't exist
-    if (result.changes === 0) {
-      return null;
+  try {
+    // If org_hierarchy needs updating, use a transaction
+    if (needsOrgHierarchyUpdate) {
+      const transaction = db.transaction(() => {
+        const result = query.run(...values);
+
+        // If no rows were updated, agent doesn't exist
+        if (result.changes === 0) {
+          throw new Error(`Agent ${id} not found`);
+        }
+
+        // Update org_hierarchy for this agent and all descendants
+        updateOrgHierarchyForAgent(db, id, updates.reportingTo!, currentAgent.role);
+      });
+
+      transaction();
+    } else {
+      // Simple update without org_hierarchy changes
+      const result = query.run(...values);
+
+      // If no rows were updated, agent doesn't exist
+      if (result.changes === 0) {
+        return null;
+      }
     }
 
     // Determine audit action based on status change

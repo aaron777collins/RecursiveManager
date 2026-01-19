@@ -162,7 +162,7 @@ export {
 } from './db/migrations';
 
 // Default Migrations
-export { allMigrations, getMigrations } from './db/migrations';
+export { allMigrations, getMigrations } from './db/migrations/index';
 
 // Database Queries (Phase 1.3)
 export {

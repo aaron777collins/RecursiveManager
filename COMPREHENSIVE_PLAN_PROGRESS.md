@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 02:55:24 EST
+Last Updated: 2026-01-19 03:10:00 EST
 
 ## Status
 
@@ -270,7 +270,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 2.2.19: Implement getOrgChart() querying org_hierarchy
 - [x] Task 2.2.20: Add org chart visualization formatting
-- [ ] Task 2.2.21: Implement real-time org chart updates on hire/fire
+- [x] Task 2.2.21: Implement real-time org chart updates on hire/fire
 
 ##### Edge Case Handling
 
@@ -5518,3 +5518,73 @@ Task 2.2.21: Implement real-time org chart updates on hire/fire
 - This requires updating org_hierarchy when reporting relationships change
 - Current limitation documented in code: orphan reassignment doesn't update org_hierarchy
 - Will need trigger mechanism or manual refresh in updateAgent()
+
+---
+
+## Completed This Iteration (2026-01-19 03:10:00 EST)
+
+### Task 2.2.21: Implement real-time org chart updates on hire/fire
+
+**What Was Implemented**:
+
+Implemented automatic org_hierarchy updates when agents' reporting relationships change. This was the missing piece from the fire operation that was documented as a known limitation.
+
+**Changes Made**:
+
+1. **Added `updateOrgHierarchyForAgent()` helper function** in `packages/common/src/db/queries/agents.ts`:
+   - Deletes all non-self hierarchy entries for the agent
+   - Rebuilds hierarchy based on new manager
+   - Recursively updates all descendants' hierarchies
+   - Ensures org_hierarchy materialized view stays consistent
+
+2. **Enhanced `updateAgent()` function**:
+   - Detects when `reportingTo` field changes
+   - Wraps update in transaction when org_hierarchy needs updating
+   - Calls `updateOrgHierarchyForAgent()` to cascade updates
+   - Removed TODO comment about missing implementation
+
+3. **Fixed export issue** in `src/index.ts`:
+   - Changed `export { allMigrations, getMigrations } from './db/migrations'`
+   - To `export { allMigrations, getMigrations } from './db/migrations/index'`
+   - This fixed TypeScript compilation errors
+
+**Test Coverage**:
+
+Created comprehensive test suite with 5 test cases in `src/db/queries/__tests__/org-hierarchy-update.test.ts`:
+- ✅ Updating reportingTo updates org_hierarchy for agent
+- ✅ Updating reportingTo updates org_hierarchy for all descendants (cascade)
+- ✅ Reassigning to null makes agent root-level
+- ✅ getSubordinates returns correct results after reassignment
+- ✅ getOrgChart returns correct hierarchy after reassignment
+
+All 5 new tests pass ✅
+All 21 existing agent tests still pass ✅
+
+**Implementation Details**:
+
+The recursive update algorithm works as follows:
+1. Delete all ancestor relationships (except self-reference)
+2. If new manager exists, copy all manager's ancestors with depth+1
+3. For each direct subordinate, recursively repeat steps 1-2
+
+This ensures that when an agent is reassigned:
+- Their hierarchy is correct
+- All their subordinates' hierarchies are also updated
+- The org_hierarchy view remains consistent
+- Queries like getSubordinates() and getOrgChart() return accurate results
+
+**Impact**:
+
+This completes the real-time org chart updates feature:
+- ✅ Hire operations properly update org_hierarchy (already implemented)
+- ✅ Fire operations with orphan reassignment now update org_hierarchy (newly implemented)
+- ✅ Org chart queries return accurate data after any reporting change
+
+**Status**: ✅ **COMPLETE**
+
+### Next Task
+
+Task 2.2.22: Prevent agent from hiring itself (EC-1.1)
+- Implement validation in hireAgent() to check if agent is hiring itself
+- Add appropriate error message
+- Add test coverage
