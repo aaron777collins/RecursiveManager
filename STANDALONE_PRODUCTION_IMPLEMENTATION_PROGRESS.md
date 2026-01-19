@@ -158,7 +158,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 1.2b: Fix TypeScript build errors in CLI package (blocking tests)
 - [x] 1.3: Fix any remaining test failures in core package
 - [x] 1.4: Fix any remaining test failures in CLI package
-- [ ] 1.5: Fix any remaining test failures in adapters package
+- [x] 1.5: Fix any remaining test failures in adapters package
 - [ ] 1.6: Fix any remaining test failures in scheduler package
 - [ ] 1.7: Run ESLint and fix all errors (plan says 6 errors)
 - [ ] 1.8: Verify 100% test pass rate
@@ -467,9 +467,45 @@ When build mode begins, it should:
 
 ## Completed This Iteration
 
-- Task 1.4: Fixed all remaining test failures in CLI package (115/115 tests passing)
+- Task 1.5: Fixed all remaining test failures in adapters package (253/253 tests passing)
 
 ## Notes
+
+### Task 1.5 Summary (COMPLETE)
+
+**Adapters Package Test Failures Fixed:**
+
+Fixed 3 TypeScript compilation errors in `packages/adapters/src/context/__tests__/index.test.ts`:
+
+1. **Task status fix** (line 161):
+   - Changed `status: 'in_progress'` to `'in-progress'` (hyphenated format)
+   - TaskStatus type uses hyphens, not underscores
+
+2. **Message priority type fix** (lines 262, 281):
+   - Added `as const` to priority field: `priority: 'normal' as const`
+   - MessageRecord requires literal type, not generic string
+
+3. **Message channel type fix** (lines 263, 282):
+   - Added `as const` to channel field: `channel: 'internal' as const`
+   - MessageRecord requires literal type `"internal" | "slack" | "telegram" | "email"`
+
+4. **Task blocked_by field fix** (lines 173, 197):
+   - Changed `blocked_by: null` to `blocked_by: '[]'`
+   - TaskRecord.blocked_by is a JSON string (not nullable)
+
+5. **Message optional fields fix** (lines 267-270, 287):
+   - Changed `thread_id: null` to `thread_id: undefined` (and other optional fields)
+   - MessageInput optional fields should be `undefined`, not `null`
+
+6. **Test assertion fix** (line 216):
+   - Updated expected status from `'in_progress'` to `'in-progress'` in test assertion
+   - Matches actual API behavior
+
+**Test Results:**
+- Before: 1 compilation error suite + 1 runtime failure (252 passed, 1 failed, 253 total)
+- After: ALL 253 tests passing ✅
+
+**Status: ALL ADAPTERS PACKAGE TESTS PASSING**
 
 ### Task 1.3 Summary (COMPLETE)
 
