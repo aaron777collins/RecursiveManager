@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 20:22:59 EST
+Last Updated: 2026-01-18 20:28:50 EST
 
 ## Status
 
@@ -106,7 +106,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### JSON Schema Definition
 
-- [ ] Task 1.2.10: Define agent-config.schema.json (identity, goal, permissions, framework, communication, behavior, metadata)
+- [x] Task 1.2.10: Define agent-config.schema.json (identity, goal, permissions, framework, communication, behavior, metadata)
 - [ ] Task 1.2.11: Define schedule.schema.json (mode, continuous, timeBased, reactive, pauseConditions)
 - [ ] Task 1.2.12: Define task.schema.json (task, hierarchy, delegation, progress, context, execution)
 - [ ] Task 1.2.13: Define message.schema.json (frontmatter fields)
@@ -532,6 +532,149 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.2.10: Define agent-config.schema.json ✅
+
+**Summary**: Created comprehensive JSON Schema for agent configuration with complete validation rules. Includes all fields from specification with proper type checking, format validation, and 20 passing tests.
+
+**What Was Implemented**:
+
+- ✅ Created `packages/common/src/schemas/agent-config.schema.json` (16KB, 380 lines)
+  - Complete JSON Schema Draft-07 definition
+  - Schema ID: https://recursivemanager.dev/schemas/agent-config.schema.json
+  - Title and description metadata
+- ✅ Required top-level fields defined:
+  - `version` - Semantic version pattern (e.g., "1.0.0")
+  - `identity` - Agent identity and organizational info
+  - `goal` - Main goal, sub-goals, and success criteria
+  - `permissions` - Resource limits and capabilities
+  - `framework` - AI framework configuration
+- ✅ Optional sections with defaults:
+  - `communication` - Channel preferences and notification settings
+  - `behavior` - Multi-perspective analysis, escalation, delegation policies
+  - `metadata` - Tags, priority, estimated completion, notes
+- ✅ Identity section (required):
+  - `id` - Unique agent ID (alphanumeric, hyphens, underscores only)
+  - `role` - Agent role in organization
+  - `displayName` - Human-readable name
+  - `createdAt` - ISO 8601 date-time
+  - `createdBy` - Creator agent ID
+  - `reportingTo` - Manager ID (null for root agent)
+- ✅ Goal section (required):
+  - `mainGoal` - Primary objective
+  - `subGoals` - Array of sub-goals (optional)
+  - `successCriteria` - Success criteria array (optional)
+- ✅ Permissions section (required):
+  - `canHire`, `canFire`, `canEscalate` - Boolean permissions
+  - `maxSubordinates`, `hiringBudget` - Integer limits (minimum 0)
+  - `canAccessExternalAPIs` - External API access flag
+  - `allowedDomains` - Hostname array for allowed domains
+  - `workspaceQuotaMB` - Storage quota (default 1024MB)
+  - `maxExecutionMinutes` - Timeout limit (default 60 minutes)
+- ✅ Framework section (required):
+  - `primary` - Primary framework (enum: claude-code, opencode)
+  - `fallback` - Fallback framework (optional)
+  - `capabilities` - Required capabilities array
+- ✅ Communication section (optional):
+  - `preferredChannels` - Array of channels (internal, slack, telegram, email)
+  - `slackChannel`, `telegramChatId`, `emailAddress` - Integration settings
+  - `notifyManager` - Notification triggers object
+  - `updateFrequency` - Status update frequency (enum)
+- ✅ Behavior section (optional):
+  - `multiPerspectiveAnalysis` - MPA settings with perspectives and triggers
+  - `escalationPolicy` - Auto-escalation rules
+  - `delegation` - Task delegation behavior
+- ✅ Metadata section (optional):
+  - `tags` - Categorization tags
+  - `priority` - Priority level (low, medium, high, critical)
+  - `estimatedCompletionDays` - Time estimate
+  - `actualStartDate` - ISO 8601 date
+  - `notes` - Additional notes
+  - Allows additional properties for extensibility
+- ✅ Validation features:
+  - Type checking (string, integer, boolean, array, object)
+  - Format validation (date-time, date, email, hostname)
+  - Pattern matching (version, agent ID)
+  - Enum validation (frameworks, channels, perspectives, priorities)
+  - Range validation (minimum values for integers)
+  - Required vs optional fields
+  - Additional properties control (strict for most, flexible for metadata)
+- ✅ Exported from `@recursive-manager/common` package
+  - Added to index.ts with proper TypeScript import
+  - Available for use in validation functions
+  - Schema file copied to dist/ directory on build
+- ✅ Comprehensive test suite (20 tests, all passing)
+  - Schema structure validation (metadata, compilation, required fields)
+  - Valid configuration tests (minimal, complete, null reportingTo, all frameworks)
+  - Invalid configuration tests (missing fields, bad formats, invalid enums)
+  - Default values tests (optional fields omitted)
+  - Enum validation tests (all channels, perspectives, thresholds)
+  - Edge cases (negative values, additional properties, email format)
+
+**Files Created/Modified**:
+
+1. `packages/common/src/schemas/agent-config.schema.json` (380 lines) - JSON Schema definition
+2. `packages/common/src/__tests__/agent-config-schema.test.ts` (515 lines) - Comprehensive tests
+3. `packages/common/src/index.ts` - Updated exports to include schema
+4. `packages/common/tsconfig.json` - Updated include pattern to support JSON imports
+
+**Testing Results**:
+
+- ✅ 20/20 schema validation tests passing
+- ✅ 289/289 total tests passing in common package (269 previous + 20 new)
+- ✅ All tests complete in ~3 seconds
+- ✅ ESLint passes with TypeScript strict mode
+- ✅ TypeScript compilation successful
+- ✅ Schema file correctly copied to dist/schemas/
+- ✅ Test coverage includes:
+  - Schema metadata and compilation
+  - Minimal and complete valid configurations
+  - All required and optional fields
+  - Format validation (date-time, email, hostname, pattern)
+  - Enum validation (all possible values)
+  - Range validation (negative value rejection)
+  - Additional properties handling
+  - Invalid configuration detection with detailed errors
+
+**Key Design Decisions**:
+
+1. **JSON Schema Draft-07**: Standard, widely-supported schema version
+2. **Strict validation**: No additional properties allowed at top level (except metadata)
+3. **Semantic versioning**: Version field uses regex pattern for proper SemVer format
+4. **Agent ID pattern**: Allows alphanumeric, hyphens, and underscores only (security)
+5. **Null reportingTo**: Supports root agents with null manager
+6. **Default values**: Sensible defaults specified in schema for optional fields
+7. **Format validation**: Uses ajv-formats for date-time, email, hostname validation
+8. **Enum types**: Comprehensive enums for frameworks, channels, perspectives, priorities
+9. **Extensible metadata**: Allows additional properties in metadata section for custom fields
+10. **Multi-perspective support**: Defines all 8 perspective types from plan
+
+**Schema Coverage**:
+
+Implements all fields from FILE_STRUCTURE_SPEC.md section 1 (config.json):
+
+- ✅ $schema reference
+- ✅ version field
+- ✅ identity (id, role, displayName, createdAt, createdBy, reportingTo)
+- ✅ goal (mainGoal, subGoals, successCriteria)
+- ✅ permissions (all 9 permission fields)
+- ✅ framework (primary, fallback, capabilities)
+- ✅ communication (channels, integrations, notifyManager, updateFrequency)
+- ✅ behavior (multiPerspectiveAnalysis, escalationPolicy, delegation)
+- ✅ metadata (tags, priority, estimatedCompletionDays, actualStartDate, notes)
+
+**Integration Points**:
+
+Will be used by:
+
+- Task 1.2.16: validateAgentConfig() function (uses this schema with AJV)
+- Task 2.1: Agent configuration management (load/save with validation)
+- Task 2.2: Agent lifecycle (validate config during hire operation)
+- All future agent configuration operations
+
+**Next Task**: Task 1.2.11 - Define schedule.schema.json
+
+---
 
 ### Task 1.2.9: Create path validation utilities ✅
 

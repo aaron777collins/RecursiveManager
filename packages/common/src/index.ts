@@ -88,3 +88,9 @@ export {
   type PathValidationOptions,
   type PathValidationResult,
 } from './path-utils';
+
+// JSON Schemas (Phase 1.2)
+// Export schemas as importable JSON for validation
+import agentConfigSchema from './schemas/agent-config.schema.json';
+
+export { agentConfigSchema };

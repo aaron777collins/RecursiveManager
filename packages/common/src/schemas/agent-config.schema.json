@@ -1,0 +1,406 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://recursivemanager.dev/schemas/agent-config.schema.json",
+  "title": "Agent Configuration",
+  "description": "Schema for RecursiveManager agent configuration files",
+  "type": "object",
+  "required": ["version", "identity", "goal", "permissions", "framework"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "version": {
+      "type": "string",
+      "description": "Configuration schema version",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "default": "1.0.0"
+    },
+    "identity": {
+      "type": "object",
+      "description": "Agent identity and organizational information",
+      "required": ["id", "role", "displayName", "createdAt", "createdBy"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique agent identifier",
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9-_]+$"
+        },
+        "role": {
+          "type": "string",
+          "description": "Agent's role in the organization",
+          "minLength": 1
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Human-readable display name",
+          "minLength": 1
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO 8601 timestamp of agent creation",
+          "format": "date-time"
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "ID of agent that created this agent",
+          "minLength": 1
+        },
+        "reportingTo": {
+          "type": ["string", "null"],
+          "description": "ID of manager agent (null for root)",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "goal": {
+      "type": "object",
+      "description": "Agent's goals and success criteria",
+      "required": ["mainGoal"],
+      "properties": {
+        "mainGoal": {
+          "type": "string",
+          "description": "Primary goal of the agent",
+          "minLength": 1
+        },
+        "subGoals": {
+          "type": "array",
+          "description": "List of sub-goals",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        },
+        "successCriteria": {
+          "type": "array",
+          "description": "Criteria for determining success",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
+    "permissions": {
+      "type": "object",
+      "description": "Agent permissions and resource limits",
+      "required": ["canHire", "maxSubordinates", "hiringBudget"],
+      "properties": {
+        "canHire": {
+          "type": "boolean",
+          "description": "Whether agent can hire subordinates",
+          "default": false
+        },
+        "maxSubordinates": {
+          "type": "integer",
+          "description": "Maximum number of subordinates",
+          "minimum": 0,
+          "default": 0
+        },
+        "hiringBudget": {
+          "type": "integer",
+          "description": "Number of agents this agent can hire",
+          "minimum": 0,
+          "default": 0
+        },
+        "canFire": {
+          "type": "boolean",
+          "description": "Whether agent can fire subordinates",
+          "default": false
+        },
+        "canEscalate": {
+          "type": "boolean",
+          "description": "Whether agent can escalate to manager",
+          "default": true
+        },
+        "canAccessExternalAPIs": {
+          "type": "boolean",
+          "description": "Whether agent can access external APIs",
+          "default": false
+        },
+        "allowedDomains": {
+          "type": "array",
+          "description": "List of allowed external domains",
+          "items": {
+            "type": "string",
+            "format": "hostname"
+          },
+          "default": []
+        },
+        "workspaceQuotaMB": {
+          "type": "integer",
+          "description": "Workspace storage quota in megabytes",
+          "minimum": 0,
+          "default": 1024
+        },
+        "maxExecutionMinutes": {
+          "type": "integer",
+          "description": "Maximum execution time per run in minutes",
+          "minimum": 1,
+          "default": 60
+        }
+      },
+      "additionalProperties": false
+    },
+    "framework": {
+      "type": "object",
+      "description": "AI framework configuration",
+      "required": ["primary"],
+      "properties": {
+        "primary": {
+          "type": "string",
+          "description": "Primary AI framework to use",
+          "enum": ["claude-code", "opencode"]
+        },
+        "fallback": {
+          "type": "string",
+          "description": "Fallback framework if primary is unavailable",
+          "enum": ["claude-code", "opencode"]
+        },
+        "capabilities": {
+          "type": "array",
+          "description": "Required framework capabilities",
+          "items": {
+            "type": "string",
+            "enum": [
+              "code-generation",
+              "file-operations",
+              "bash-execution",
+              "web-browsing",
+              "multi-perspective-analysis"
+            ]
+          },
+          "default": ["code-generation", "file-operations"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "communication": {
+      "type": "object",
+      "description": "Communication preferences and channels",
+      "properties": {
+        "preferredChannels": {
+          "type": "array",
+          "description": "Preferred communication channels",
+          "items": {
+            "type": "string",
+            "enum": ["internal", "slack", "telegram", "email"]
+          },
+          "default": ["internal"]
+        },
+        "slackChannel": {
+          "type": "string",
+          "description": "Slack channel for notifications"
+        },
+        "telegramChatId": {
+          "type": "string",
+          "description": "Telegram chat ID"
+        },
+        "emailAddress": {
+          "type": "string",
+          "description": "Email address for notifications",
+          "format": "email"
+        },
+        "notifyManager": {
+          "type": "object",
+          "description": "Manager notification preferences",
+          "properties": {
+            "onTaskComplete": {
+              "type": "boolean",
+              "default": true
+            },
+            "onError": {
+              "type": "boolean",
+              "default": true
+            },
+            "onHire": {
+              "type": "boolean",
+              "default": true
+            },
+            "onFire": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "default": {
+            "onTaskComplete": true,
+            "onError": true,
+            "onHire": true,
+            "onFire": true
+          },
+          "additionalProperties": false
+        },
+        "updateFrequency": {
+          "type": "string",
+          "description": "How often to send status updates",
+          "enum": ["never", "daily", "weekly", "on-completion"],
+          "default": "daily"
+        }
+      },
+      "default": {
+        "preferredChannels": ["internal"],
+        "updateFrequency": "daily"
+      },
+      "additionalProperties": false
+    },
+    "behavior": {
+      "type": "object",
+      "description": "Agent behavior configuration",
+      "properties": {
+        "multiPerspectiveAnalysis": {
+          "type": "object",
+          "description": "Multi-perspective analysis settings",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Whether to use multi-perspective analysis",
+              "default": false
+            },
+            "perspectives": {
+              "type": "array",
+              "description": "Perspectives to consider",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "security",
+                  "performance",
+                  "maintainability",
+                  "cost",
+                  "scalability",
+                  "usability",
+                  "reliability",
+                  "simplicity"
+                ]
+              },
+              "default": []
+            },
+            "triggerOn": {
+              "type": "array",
+              "description": "Events that trigger multi-perspective analysis",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "hire",
+                  "fire",
+                  "major-decision",
+                  "task-planning",
+                  "architecture-change",
+                  "budget-decision"
+                ]
+              },
+              "default": []
+            }
+          },
+          "default": {
+            "enabled": false,
+            "perspectives": [],
+            "triggerOn": []
+          },
+          "additionalProperties": false
+        },
+        "escalationPolicy": {
+          "type": "object",
+          "description": "When and how to escalate to manager",
+          "properties": {
+            "autoEscalateAfterFailures": {
+              "type": "integer",
+              "description": "Auto-escalate after N consecutive failures",
+              "minimum": 0,
+              "default": 3
+            },
+            "escalateOnBlockedTask": {
+              "type": "boolean",
+              "description": "Escalate when task is blocked",
+              "default": true
+            },
+            "escalateOnBudgetExceeded": {
+              "type": "boolean",
+              "description": "Escalate when budget is exceeded",
+              "default": true
+            }
+          },
+          "default": {
+            "autoEscalateAfterFailures": 3,
+            "escalateOnBlockedTask": true,
+            "escalateOnBudgetExceeded": true
+          },
+          "additionalProperties": false
+        },
+        "delegation": {
+          "type": "object",
+          "description": "Task delegation behavior",
+          "properties": {
+            "delegateThreshold": {
+              "type": "string",
+              "description": "When to delegate tasks",
+              "enum": ["never", "trivial", "non-trivial", "complex", "always"],
+              "default": "non-trivial"
+            },
+            "keepWhenDelegating": {
+              "type": "boolean",
+              "description": "Keep task ownership when delegating",
+              "default": true
+            },
+            "supervisionLevel": {
+              "type": "string",
+              "description": "Level of supervision for delegated tasks",
+              "enum": ["minimal", "moderate", "strict"],
+              "default": "moderate"
+            }
+          },
+          "default": {
+            "delegateThreshold": "non-trivial",
+            "keepWhenDelegating": true,
+            "supervisionLevel": "moderate"
+          },
+          "additionalProperties": false
+        }
+      },
+      "default": {},
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata about the agent",
+      "properties": {
+        "tags": {
+          "type": "array",
+          "description": "Tags for categorization",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        },
+        "priority": {
+          "type": "string",
+          "description": "Agent priority level",
+          "enum": ["low", "medium", "high", "critical"],
+          "default": "medium"
+        },
+        "estimatedCompletionDays": {
+          "type": "integer",
+          "description": "Estimated days to complete goal",
+          "minimum": 0
+        },
+        "actualStartDate": {
+          "type": "string",
+          "description": "ISO 8601 date when agent actually started work",
+          "format": "date"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Additional notes about this agent"
+        }
+      },
+      "default": {},
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}
