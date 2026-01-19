@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 21:30:00 EST
+Last Updated: 2026-01-18 21:21:21 EST
 
 ## Status
 
@@ -124,7 +124,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 1.2.20: Unit tests for atomic writes (crash simulation)
 - [x] Task 1.2.21: Unit tests for backup creation and restoration
-- [ ] Task 1.2.22: Unit tests for schema validation (valid/invalid inputs)
+- [x] Task 1.2.22: Unit tests for schema validation (valid/invalid inputs)
 - [ ] Task 1.2.23: Integration tests for full file lifecycle
 - [ ] Task 1.2.24: Edge case tests (disk full, permissions, corruption)
 
@@ -568,6 +568,57 @@ RecursiveManager is a hierarchical AI agent system with:
 - All 40 file recovery tests passing
 - Total: 61 tests, 0 failures
 - Coverage includes both happy paths and error scenarios
+
+---
+
+### Task 1.2.22: Unit tests for schema validation (valid/invalid inputs) ✅
+
+**Summary**: Created comprehensive unit tests for the four remaining schema validation functions (task, message, metadata, subordinates). Following the existing pattern from agent-config and schedule schema tests, implemented 93 new tests covering schema structure validation, valid configurations, invalid configurations, enum validation, and edge cases.
+
+**What Was Implemented**:
+
+- ✅ Created `packages/common/src/__tests__/task-schema.test.ts` (21 tests):
+  - Schema structure validation (metadata, compilation, required properties)
+  - Valid configurations (minimal, complete, blocked status)
+  - Invalid configurations (missing fields, format violations, enum violations, negative values)
+  - Enum validation (all status, priority, supervision level, reporting frequency values)
+  - Edge cases (empty arrays, parent task references, maximum depth)
+
+- ✅ Created `packages/common/src/__tests__/message-schema.test.ts` (26 tests):
+  - Schema structure validation
+  - Valid configurations (minimal, complete, threaded, Telegram, email)
+  - Invalid configurations (missing fields, ID format, agent ID format, enum violations, timestamp format)
+  - Enum validation (all priority and channel values)
+  - Edge cases (empty arrays, external metadata with additional properties, multiple attachments, archived messages)
+
+- ✅ Created `packages/common/src/__tests__/metadata-schema.test.ts` (23 tests):
+  - Schema structure validation
+  - Valid configurations (minimal, complete, error status)
+  - Invalid configurations (missing fields, version format, enum violations, negative values, percentUsed > 100)
+  - Enum validation (runtime status, execution type, execution result, health status)
+  - Edge cases (empty arrays, fractional values, zero budget and quota)
+
+- ✅ Created `packages/common/src/__tests__/subordinates-schema.test.ts` (23 tests):
+  - Schema structure validation
+  - Valid configurations (minimal, complete with mixed statuses, fired subordinate details)
+  - Invalid configurations (missing fields, version format, agent ID format, enum violations, negative values)
+  - Enum validation (all subordinate status and health status values)
+  - Edge cases (empty subordinates array, fired subordinate with details, zero budget, mixed statuses)
+
+**Test Execution Results**:
+
+- All 93 new schema validation tests passing
+- Total test suite: 467 tests passing (16 test suites)
+- 100% of schema validation functions now have comprehensive test coverage
+- All tests follow established patterns from agent-config and schedule schema tests
+- Coverage includes schema structure, valid/invalid inputs, enum validation, and edge cases
+
+**Files Created**:
+
+1. `/packages/common/src/__tests__/task-schema.test.ts` (589 lines)
+2. `/packages/common/src/__tests__/message-schema.test.ts` (507 lines)
+3. `/packages/common/src/__tests__/metadata-schema.test.ts` (565 lines)
+4. `/packages/common/src/__tests__/subordinates-schema.test.ts` (512 lines)
 
 ---
 
