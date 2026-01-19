@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 21:01:40 EST
+Last Updated: 2026-01-18 21:30:00 EST
 
 ## Status
 
@@ -118,11 +118,11 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 1.2.16: Implement validateAgentConfig() with detailed error messages
 - [x] Task 1.2.17: Implement validation for all schema types
 - [x] Task 1.2.18: Add error recovery from corrupt files (EC-5.2: File Corruption)
-- [ ] Task 1.2.19: Implement backup restoration logic
+- [x] Task 1.2.19: Implement backup restoration logic
 
 ##### Testing
 
-- [ ] Task 1.2.20: Unit tests for atomic writes (crash simulation)
+- [x] Task 1.2.20: Unit tests for atomic writes (crash simulation)
 - [ ] Task 1.2.21: Unit tests for backup creation and restoration
 - [ ] Task 1.2.22: Unit tests for schema validation (valid/invalid inputs)
 - [ ] Task 1.2.23: Integration tests for full file lifecycle
@@ -2350,6 +2350,56 @@ Tests: 23 passed, 23 total
 2. Gathering feedback on design decisions
 3. Documenting any required changes
 4. Updating the task list if architecture changes are needed
+
+### Task 1.2.19: Implement backup restoration logic ✅
+
+**Summary**: Verified that backup restoration logic was already fully implemented in the previous iteration. The file-recovery module includes comprehensive functions for finding, validating, and restoring from backups.
+
+**What Was Verified**:
+
+- ✅ `findLatestBackup()` and `findLatestBackupSync()` - Find latest valid backup file
+- ✅ `attemptRecovery()` and `attemptRecoverySync()` - Main recovery orchestration functions
+- ✅ `safeLoad()` and `safeLoadSync()` - High-level convenience functions
+- ✅ Corruption detection for parse errors, validation failures, and read errors
+- ✅ Custom validation support for backup integrity checking
+- ✅ Detailed `RecoveryResult` and `CorruptionInfo` return types
+- ✅ Comprehensive test coverage in `file-recovery.test.ts`
+
+**Location**: `/home/ubuntu/repos/RecursiveManager/packages/common/src/file-recovery.ts`
+
+---
+
+### Task 1.2.20: Unit tests for atomic writes (crash simulation) ✅
+
+**Summary**: Implemented comprehensive crash simulation tests for atomic write operations. Since fs/promises module properties are read-only and cannot be mocked directly, created behavioral tests that verify atomicity guarantees through realistic failure scenarios.
+
+**What Was Implemented**:
+
+- ✅ Added 9 new crash simulation tests to `file-io.test.ts` (200+ lines)
+- ✅ **Large file atomicity test** - Verified 10MB writes maintain atomicity
+- ✅ **Read-only parent directory test** - Verified original files preserved on write failures
+- ✅ **Rapid sequential overwrites test** - 20 sequential writes without corruption
+- ✅ **Concurrent writes to same file** - Last writer wins, no temp files left
+- ✅ **Mix of successful and failed writes** - Partial failure handling
+- ✅ **Different encoding atomicity** - UTF-8, ASCII without corruption
+- ✅ **Deeply nested paths** - Directory creation during atomic writes
+- ✅ **Binary data integrity** - Buffer writes without corruption
+- ✅ **Temp file visibility** - Readers never see intermediate .tmp files
+- ✅ All 30 tests pass (21 existing + 9 new crash simulation tests)
+
+**Test Coverage**:
+
+- Atomicity guarantees under realistic failure modes
+- Proper temp file cleanup in all scenarios
+- Existing file preservation when writes fail
+- Large files, concurrent access, encoding changes
+- Deep directory creation and binary data
+
+**Files Modified**:
+
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/__tests__/file-io.test.ts`
+
+**Test Results**: All 30 tests passing
 
 ---
 
