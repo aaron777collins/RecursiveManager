@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 04:46:21 EST
+Last Updated: 2026-01-19 20:15:00 EST
 
 ## Status
 
@@ -324,7 +324,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Task Archival
 
-- [ ] Task 2.3.17: Implement archiveOldTasks(olderThan) moving to archive/{YYYY-MM}/
+- [x] Task 2.3.17: Implement archiveOldTasks(olderThan) moving to archive/{YYYY-MM}/
 - [ ] Task 2.3.18: Schedule daily archival job (tasks > 7 days old)
 - [ ] Task 2.3.19: Compress archives older than 90 days
 
@@ -6427,4 +6427,58 @@ Created comprehensive test suite in `packages/core/src/tasks/__tests__/completeT
 - ✅ Code structure validation: All imports and exports correct
 - ✅ Integration validation: Properly integrated with task completion flow
 - ✅ Test structure: 14 comprehensive test cases following existing patterns
+
+
+
+---
+
+### Completed This Iteration (2026-01-19 20:15:00 EST)
+
+**Task 2.3.17**: Implement archiveOldTasks(olderThan) moving to archive/{YYYY-MM}/
+
+**Implementation Summary**:
+
+1. **archiveOldTasks() Function** (`packages/core/src/tasks/archiveTask.ts`):
+   - Queries completed tasks older than specified number of days (default: 7)
+   - Calculates archive directory based on completion date: archive/{YYYY-MM}
+   - Moves task directories from completed/ to archive/{YYYY-MM}/
+   - Updates task status to 'archived' in database
+   - Handles errors gracefully, continues processing even if one task fails
+   - Returns count of successfully archived tasks
+
+2. **getCompletedTasks() Function** (`packages/core/src/tasks/archiveTask.ts`):
+   - Helper function to query completed tasks
+   - Supports filtering by agent ID or returning all completed tasks
+   - Orders results by completion date (oldest first)
+   - Used by archiveOldTasks() to find tasks to archive
+
+3. **Comprehensive Test Suite** (`packages/core/src/tasks/__tests__/archiveTask.test.ts`):
+   - Tests archiving tasks older than 7 days
+   - Tests that recent tasks are not archived
+   - Tests proper organization into archive/{YYYY-MM} directories
+   - Tests error handling and partial failure scenarios
+   - Tests getCompletedTasks() with and without agent filtering
+   - Tests ordering by completion date
+
+**Key Design Decisions**:
+
+- **Date-based organization**: Archive directories organized by year-month (YYYY-MM) based on task completion date
+- **Graceful error handling**: Continues processing remaining tasks even if one fails
+- **Database + filesystem**: Updates both database status ('archived') and moves directories
+- **Reuses existing infrastructure**: Uses moveTaskDirectory() function from createTaskDirectory.ts
+- **Configurable cutoff**: Accepts olderThanDays parameter (default: 7 for daily jobs)
+
+**Files Modified/Created**:
+- ✅ Created: `packages/core/src/tasks/archiveTask.ts`
+- ✅ Modified: `packages/core/src/tasks/index.ts` (exported new functions)
+- ✅ Created: `packages/core/src/tasks/__tests__/archiveTask.test.ts`
+
+**Verification**:
+- ✅ TypeScript compilation: Clean (no errors)
+- ✅ Code structure validation: All imports and exports correct
+- ✅ Follows existing patterns: Matches style of completeTask.ts and other task modules
+
+**Next Tasks**:
+- Task 2.3.18: Schedule daily archival job (tasks > 7 days old)
+- Task 2.3.19: Compress archives older than 90 days
 

@@ -22,3 +22,5 @@ export {
 } from './notifyCompletion';
 
 export { completeTaskWithFiles } from './completeTask';
+
+export { archiveOldTasks, getCompletedTasks } from './archiveTask';
