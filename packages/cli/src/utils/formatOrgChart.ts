@@ -86,7 +86,7 @@ function formatAgentEntry(
   entry: OrgChartEntry,
   options: FormatOptions
 ): string {
-  const { agent, depth } = entry;
+  const { agent } = entry;
   const { showStatus = true, showCreatedAt = false, showStats = false, useColor = true } = options;
 
   const parts: string[] = [];
@@ -142,7 +142,7 @@ export function formatAsTree(
   orgChart: OrgChartEntry[],
   options: FormatOptions = {}
 ): string {
-  const { maxDepth = 0, useColor = true } = options;
+  const { maxDepth = 0 } = options;
 
   if (orgChart.length === 0) {
     return 'No agents found.';
@@ -165,10 +165,11 @@ export function formatAsTree(
 
   for (let i = 0; i < orgChart.length; i++) {
     const entry = orgChart[i];
-    if (maxDepth > 0 && entry.depth > maxDepth) continue;
+    if (!entry || (maxDepth > 0 && entry.depth > maxDepth)) continue;
 
     const { depth } = entry;
-    const isLast = i === orgChart.length - 1 || (i + 1 < orgChart.length && orgChart[i + 1].depth < depth);
+    const nextEntry = orgChart[i + 1];
+    const isLast = i === orgChart.length - 1 || (nextEntry && nextEntry.depth < depth);
 
     // Build prefix based on depth
     let prefix = '';
@@ -258,9 +259,7 @@ export function formatAsTable(
     ? orgChart.filter(e => e.depth <= maxDepth)
     : orgChart;
 
-  // Calculate column widths
-  const maxNameLen = Math.max(8, ...filtered.map(e => e.agent.display_name.length));
-  const maxRoleLen = Math.max(8, ...filtered.map(e => e.agent.role.length));
+  // Column widths will be calculated dynamically from actual data
 
   // Build header
   const headers: string[] = ['DEPTH'];
@@ -303,7 +302,9 @@ export function formatAsTable(
   const colWidths = headers.map((header, i) => {
     const contentWidths = rows.map(row => {
       // Remove ANSI codes for width calculation
-      const content = row[i].replace(/\x1b\[[0-9;]*m/g, '');
+      const cellContent = row[i];
+      if (!cellContent) return 0;
+      const content = cellContent.replace(/\x1b\[[0-9;]*m/g, '');
       return content.length;
     });
     return Math.max(header.length, ...contentWidths);
@@ -313,7 +314,7 @@ export function formatAsTable(
   const lines: string[] = [];
 
   // Header row
-  const headerRow = headers.map((h, i) => h.padEnd(colWidths[i])).join(' | ');
+  const headerRow = headers.map((h, i) => h.padEnd(colWidths[i] || 0)).join(' | ');
   lines.push(headerRow);
 
   // Separator
@@ -325,7 +326,7 @@ export function formatAsTable(
     const formattedRow = row.map((cell, i) => {
       // Calculate actual visible width (excluding ANSI codes)
       const visibleWidth = cell.replace(/\x1b\[[0-9;]*m/g, '').length;
-      const padding = colWidths[i] - visibleWidth;
+      const padding = (colWidths[i] || 0) - visibleWidth;
       return cell + ' '.repeat(Math.max(0, padding));
     }).join(' | ');
     lines.push(formattedRow);
