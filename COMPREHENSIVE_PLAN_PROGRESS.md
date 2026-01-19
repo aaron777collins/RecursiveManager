@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 23:00:00 EST
+Last Updated: 2026-01-18 23:04:00 EST
 
 ## Status
 
@@ -162,7 +162,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 1.3.16: Implement createTask(task) with depth validation
 - [x] Task 1.3.17: Implement updateTaskStatus(id, status, version) with optimistic locking
-- [ ] Task 1.3.18: Implement getActiveTasks(agentId)
+- [x] Task 1.3.18: Implement getActiveTasks(agentId)
 - [ ] Task 1.3.19: Implement detectTaskDeadlock(taskId) using DFS algorithm
 - [ ] Task 1.3.20: Implement getBlockedTasks(agentId)
 
@@ -3357,3 +3357,87 @@ The function uses a sophisticated CASE statement to manage timestamps:
 **Test Results**: All 675 tests pass ✅
 
 **Next Task**: Task 1.3.18 - Implement getActiveTasks(agentId)
+
+---
+
+**Completed This Iteration** (2026-01-18 23:04:00):
+
+**Task 1.3.18: Implement getActiveTasks(agentId)**
+
+**Implementation Summary**:
+
+Successfully implemented the `getActiveTasks` function to retrieve all active (non-completed, non-archived) tasks for a given agent, sorted by priority and creation date.
+
+**What Was Implemented**:
+
+1. **Core Function** (`packages/common/src/db/queries/tasks.ts`):
+   - `getActiveTasks(db, agentId)` function to query active tasks
+   - Returns tasks with status: 'pending', 'in-progress', or 'blocked'
+   - Excludes 'completed' and 'archived' tasks
+   - Ordered by priority (urgent → high → medium → low) using CASE expression
+   - Secondary ordering by created_at (oldest first) within same priority
+   - Uses existing `idx_tasks_agent_status` index for efficient filtering
+   - Returns array of TaskRecord objects
+   - Comprehensive JSDoc documentation with examples
+
+2. **Export Updates** (`packages/common/src/db/queries/index.ts`):
+   - Function automatically exported via existing `export * from './tasks'`
+
+3. **Comprehensive Test Suite** (`packages/common/src/db/__tests__/queries-tasks.test.ts`):
+   - Added import for getActiveTasks
+   - 11 new test cases covering all aspects:
+     - Returns empty array when agent has no tasks
+     - Returns only active tasks (excludes completed and archived)
+     - Filters tasks by agent ID correctly
+     - Orders tasks by priority (urgent > high > medium > low)
+     - Orders tasks by creation date within same priority
+     - Includes all task fields in returned records
+     - Includes tasks at all depths (parent and child tasks)
+     - Handles agent with no active tasks but some completed tasks
+     - Works with non-existent agent (returns empty array)
+     - Handles mixed priorities and statuses correctly
+     - Total tests: 11 new tests for getActiveTasks
+
+**Key Design Features**:
+
+- **Efficient Querying**: Leverages idx_tasks_agent_status index for optimal performance
+- **Smart Ordering**: Priority-based with creation date as secondary sort
+- **Comprehensive Filtering**: Correctly excludes inactive tasks
+- **Type Safety**: Returns properly typed TaskRecord[] array
+- **Edge Case Handling**: Works correctly with empty results, non-existent agents
+
+**SQL Implementation**:
+
+The query uses:
+
+- WHERE clause filtering on agent_id and status IN ('pending', 'in-progress', 'blocked')
+- ORDER BY with CASE expression mapping priority strings to numeric values
+- Secondary ordering by created_at ASC for consistent chronological ordering
+
+**Edge Cases Handled**:
+
+1. Agent has no tasks → Returns empty array
+2. Agent has only completed/archived tasks → Returns empty array
+3. Non-existent agent → Returns empty array (no error)
+4. Multiple priorities → Sorted correctly
+5. Same priority → Sorted by creation date (oldest first)
+6. Parent and child tasks → Both included if active
+7. Multiple agents → Correctly filters by agent_id
+
+**Files Modified**:
+
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/queries/tasks.ts` - Added getActiveTasks function (57 lines)
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/__tests__/queries-tasks.test.ts` - Added 11 comprehensive tests (334 lines)
+- `/home/ubuntu/repos/RecursiveManager/COMPREHENSIVE_PLAN_PROGRESS.md` - Marked Task 1.3.18 complete
+
+**Validation**:
+
+- ✅ All 33 tests in queries-tasks.test.ts pass (11 new + 22 existing)
+- ✅ TypeScript compilation successful
+- ✅ Build successful (tsc + schema copy)
+- ✅ Function uses existing database index for efficiency
+- ✅ Returns correct data types and ordering
+
+**Test Results**: All 33 tests in queries-tasks.test.ts pass ✅
+
+**Next Task**: Task 1.3.19 - Implement detectTaskDeadlock(taskId) using DFS algorithm

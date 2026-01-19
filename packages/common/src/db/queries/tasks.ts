@@ -304,3 +304,64 @@ export function updateTaskStatus(
 
   return updatedTask;
 }
+
+/**
+ * Get all active tasks for an agent
+ *
+ * Returns all tasks assigned to the agent that are not completed or archived.
+ * Active tasks include those with status: 'pending', 'in-progress', or 'blocked'.
+ *
+ * The query uses the idx_tasks_agent_status index for efficient filtering.
+ *
+ * @param db - Database instance
+ * @param agentId - Agent ID to query tasks for
+ * @returns Array of active task records, ordered by priority (urgent->high->medium->low) and creation date
+ *
+ * @example
+ * ```typescript
+ * const activeTasks = getActiveTasks(db, 'agent-001');
+ * console.log(`Agent has ${activeTasks.length} active tasks`);
+ *
+ * activeTasks.forEach(task => {
+ *   console.log(`- [${task.status}] ${task.title}`);
+ * });
+ * ```
+ */
+export function getActiveTasks(db: Database.Database, agentId: string): TaskRecord[] {
+  const query = db.prepare(`
+    SELECT
+      id,
+      agent_id,
+      title,
+      status,
+      priority,
+      created_at,
+      started_at,
+      completed_at,
+      parent_task_id,
+      depth,
+      percent_complete,
+      subtasks_completed,
+      subtasks_total,
+      delegated_to,
+      delegated_at,
+      blocked_by,
+      blocked_since,
+      task_path,
+      version
+    FROM tasks
+    WHERE agent_id = ?
+      AND status IN ('pending', 'in-progress', 'blocked')
+    ORDER BY
+      CASE priority
+        WHEN 'urgent' THEN 1
+        WHEN 'high' THEN 2
+        WHEN 'medium' THEN 3
+        WHEN 'low' THEN 4
+      END,
+      created_at ASC
+  `);
+
+  const results = query.all(agentId) as TaskRecord[];
+  return results;
+}

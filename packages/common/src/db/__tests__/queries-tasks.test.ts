@@ -16,7 +16,14 @@ import * as fs from 'fs';
 import { initializeDatabase } from '../index';
 import { runMigrations } from '../migrations';
 import { allMigrations } from '../migrations/index';
-import { createAgent, createTask, getTask, updateTaskStatus, CreateTaskInput } from '../queries';
+import {
+  createAgent,
+  createTask,
+  getTask,
+  updateTaskStatus,
+  getActiveTasks,
+  CreateTaskInput,
+} from '../queries';
 import { TASK_MAX_DEPTH } from '../constants';
 
 describe('Task Query API', () => {
@@ -570,6 +577,341 @@ describe('Task Query API', () => {
       const process2Retry = updateTaskStatus(db, task.id, 'blocked', refreshedTask.version);
       expect(process2Retry.status).toBe('blocked');
       expect(process2Retry.version).toBe(2);
+    });
+  });
+
+  describe('getActiveTasks()', () => {
+    it('should return empty array when agent has no tasks', () => {
+      const tasks = getActiveTasks(db, 'agent-001');
+      expect(tasks).toEqual([]);
+    });
+
+    it('should return only active tasks (pending, in-progress, blocked)', () => {
+      // Create tasks with different statuses
+      createTask(db, {
+        id: 'task-pending',
+        agentId: 'agent-001',
+        title: 'Pending task',
+        taskPath: 'Pending task',
+      });
+
+      const inProgressTask = createTask(db, {
+        id: 'task-in-progress',
+        agentId: 'agent-001',
+        title: 'In progress task',
+        taskPath: 'In progress task',
+      });
+
+      const blockedTask = createTask(db, {
+        id: 'task-blocked',
+        agentId: 'agent-001',
+        title: 'Blocked task',
+        taskPath: 'Blocked task',
+      });
+
+      const completedTask = createTask(db, {
+        id: 'task-completed',
+        agentId: 'agent-001',
+        title: 'Completed task',
+        taskPath: 'Completed task',
+      });
+
+      const archivedTask = createTask(db, {
+        id: 'task-archived',
+        agentId: 'agent-001',
+        title: 'Archived task',
+        taskPath: 'Archived task',
+      });
+
+      // Update statuses
+      updateTaskStatus(db, inProgressTask.id, 'in-progress', inProgressTask.version);
+      updateTaskStatus(db, blockedTask.id, 'blocked', blockedTask.version);
+      updateTaskStatus(db, completedTask.id, 'completed', completedTask.version);
+      updateTaskStatus(db, archivedTask.id, 'archived', archivedTask.version);
+
+      // Get active tasks
+      const activeTasks = getActiveTasks(db, 'agent-001');
+
+      // Should return only pending, in-progress, and blocked tasks
+      expect(activeTasks).toHaveLength(3);
+      const activeIds = activeTasks.map((t) => t.id).sort();
+      expect(activeIds).toEqual(['task-blocked', 'task-in-progress', 'task-pending'].sort());
+    });
+
+    it('should only return tasks for the specified agent', () => {
+      // Create another agent
+      createAgent(db, {
+        id: 'agent-002',
+        role: 'Designer',
+        displayName: 'Bob Designer',
+        createdBy: null,
+        reportingTo: null,
+        mainGoal: 'Design things',
+        configPath: '/data/agents/ag/agent-002/config.json',
+      });
+
+      // Create tasks for both agents
+      createTask(db, {
+        id: 'task-agent1-1',
+        agentId: 'agent-001',
+        title: 'Agent 1 task 1',
+        taskPath: 'Agent 1 task 1',
+      });
+
+      createTask(db, {
+        id: 'task-agent1-2',
+        agentId: 'agent-001',
+        title: 'Agent 1 task 2',
+        taskPath: 'Agent 1 task 2',
+      });
+
+      createTask(db, {
+        id: 'task-agent2-1',
+        agentId: 'agent-002',
+        title: 'Agent 2 task 1',
+        taskPath: 'Agent 2 task 1',
+      });
+
+      // Get tasks for agent-001
+      const agent1Tasks = getActiveTasks(db, 'agent-001');
+      expect(agent1Tasks).toHaveLength(2);
+      expect(agent1Tasks.every((t) => t.agent_id === 'agent-001')).toBe(true);
+
+      // Get tasks for agent-002
+      const agent2Tasks = getActiveTasks(db, 'agent-002');
+      expect(agent2Tasks).toHaveLength(1);
+      expect(agent2Tasks[0]!.agent_id).toBe('agent-002');
+    });
+
+    it('should order tasks by priority (urgent > high > medium > low)', () => {
+      // Create tasks with different priorities
+      createTask(db, {
+        id: 'task-low',
+        agentId: 'agent-001',
+        title: 'Low priority',
+        priority: 'low',
+        taskPath: 'Low priority',
+      });
+
+      createTask(db, {
+        id: 'task-urgent',
+        agentId: 'agent-001',
+        title: 'Urgent priority',
+        priority: 'urgent',
+        taskPath: 'Urgent priority',
+      });
+
+      createTask(db, {
+        id: 'task-medium',
+        agentId: 'agent-001',
+        title: 'Medium priority',
+        priority: 'medium',
+        taskPath: 'Medium priority',
+      });
+
+      createTask(db, {
+        id: 'task-high',
+        agentId: 'agent-001',
+        title: 'High priority',
+        priority: 'high',
+        taskPath: 'High priority',
+      });
+
+      const activeTasks = getActiveTasks(db, 'agent-001');
+
+      expect(activeTasks).toHaveLength(4);
+      expect(activeTasks[0]!.id).toBe('task-urgent');
+      expect(activeTasks[1]!.id).toBe('task-high');
+      expect(activeTasks[2]!.id).toBe('task-medium');
+      expect(activeTasks[3]!.id).toBe('task-low');
+    });
+
+    it('should order tasks by creation date within same priority', () => {
+      // Create multiple tasks with same priority at different times
+      createTask(db, {
+        id: 'task-high-1',
+        agentId: 'agent-001',
+        title: 'High priority 1',
+        priority: 'high',
+        taskPath: 'High priority 1',
+      });
+
+      // Small delay to ensure different timestamps
+      const startTime = Date.now();
+      while (Date.now() - startTime < 10) {
+        // Small delay
+      }
+
+      createTask(db, {
+        id: 'task-high-2',
+        agentId: 'agent-001',
+        title: 'High priority 2',
+        priority: 'high',
+        taskPath: 'High priority 2',
+      });
+
+      while (Date.now() - startTime < 20) {
+        // Small delay
+      }
+
+      createTask(db, {
+        id: 'task-high-3',
+        agentId: 'agent-001',
+        title: 'High priority 3',
+        priority: 'high',
+        taskPath: 'High priority 3',
+      });
+
+      const activeTasks = getActiveTasks(db, 'agent-001');
+
+      expect(activeTasks).toHaveLength(3);
+      // Should be ordered by creation time (oldest first)
+      expect(activeTasks[0]!.id).toBe('task-high-1');
+      expect(activeTasks[1]!.id).toBe('task-high-2');
+      expect(activeTasks[2]!.id).toBe('task-high-3');
+    });
+
+    it('should include all task fields in returned records', () => {
+      createTask(db, {
+        id: 'task-full',
+        agentId: 'agent-001',
+        title: 'Full task',
+        priority: 'high',
+        taskPath: 'Full task',
+      });
+
+      const activeTasks = getActiveTasks(db, 'agent-001');
+
+      expect(activeTasks).toHaveLength(1);
+      const returnedTask = activeTasks[0]!;
+
+      // Verify all fields are present
+      expect(returnedTask.id).toBe('task-full');
+      expect(returnedTask.agent_id).toBe('agent-001');
+      expect(returnedTask.title).toBe('Full task');
+      expect(returnedTask.status).toBe('pending');
+      expect(returnedTask.priority).toBe('high');
+      expect(returnedTask.created_at).toBeDefined();
+      expect(returnedTask.started_at).toBeNull();
+      expect(returnedTask.completed_at).toBeNull();
+      expect(returnedTask.parent_task_id).toBeNull();
+      expect(returnedTask.depth).toBe(0);
+      expect(returnedTask.percent_complete).toBe(0);
+      expect(returnedTask.subtasks_completed).toBe(0);
+      expect(returnedTask.subtasks_total).toBe(0);
+      expect(returnedTask.delegated_to).toBeNull();
+      expect(returnedTask.delegated_at).toBeNull();
+      expect(returnedTask.blocked_by).toBe('[]');
+      expect(returnedTask.blocked_since).toBeNull();
+      expect(returnedTask.task_path).toBe('Full task');
+      expect(returnedTask.version).toBe(0);
+    });
+
+    it('should include tasks at all depths', () => {
+      // Create parent task
+      createTask(db, {
+        id: 'task-parent',
+        agentId: 'agent-001',
+        title: 'Parent task',
+        taskPath: 'Parent',
+      });
+
+      // Create child task
+      createTask(db, {
+        id: 'task-child',
+        agentId: 'agent-001',
+        title: 'Child task',
+        parentTaskId: 'task-parent',
+        taskPath: 'Parent / Child',
+      });
+
+      const activeTasks = getActiveTasks(db, 'agent-001');
+
+      expect(activeTasks).toHaveLength(2);
+      const parentTask = activeTasks.find((t) => t.id === 'task-parent');
+      const childTask = activeTasks.find((t) => t.id === 'task-child');
+
+      expect(parentTask?.depth).toBe(0);
+      expect(childTask?.depth).toBe(1);
+    });
+
+    it('should handle agent with no active tasks but some completed tasks', () => {
+      // Create a task and mark it as completed
+      const task = createTask(db, {
+        id: 'task-only-completed',
+        agentId: 'agent-001',
+        title: 'Completed task',
+        taskPath: 'Completed task',
+      });
+
+      updateTaskStatus(db, task.id, 'completed', task.version);
+
+      const activeTasks = getActiveTasks(db, 'agent-001');
+
+      expect(activeTasks).toEqual([]);
+    });
+
+    it('should work with non-existent agent (return empty array)', () => {
+      const activeTasks = getActiveTasks(db, 'non-existent-agent');
+      expect(activeTasks).toEqual([]);
+    });
+
+    it('should handle mixed priorities and statuses correctly', () => {
+      // Create a variety of tasks
+      createTask(db, {
+        id: 'task-1',
+        agentId: 'agent-001',
+        title: 'Urgent pending',
+        priority: 'urgent',
+        taskPath: 'Urgent pending',
+      });
+
+      const task2 = createTask(db, {
+        id: 'task-2',
+        agentId: 'agent-001',
+        title: 'High in-progress',
+        priority: 'high',
+        taskPath: 'High in-progress',
+      });
+      updateTaskStatus(db, task2.id, 'in-progress', task2.version);
+
+      createTask(db, {
+        id: 'task-3',
+        agentId: 'agent-001',
+        title: 'Low pending',
+        priority: 'low',
+        taskPath: 'Low pending',
+      });
+
+      const task4 = createTask(db, {
+        id: 'task-4',
+        agentId: 'agent-001',
+        title: 'Medium completed',
+        priority: 'medium',
+        taskPath: 'Medium completed',
+      });
+      updateTaskStatus(db, task4.id, 'completed', task4.version);
+
+      const task5 = createTask(db, {
+        id: 'task-5',
+        agentId: 'agent-001',
+        title: 'Urgent blocked',
+        priority: 'urgent',
+        taskPath: 'Urgent blocked',
+      });
+      updateTaskStatus(db, task5.id, 'blocked', task5.version);
+
+      const activeTasks = getActiveTasks(db, 'agent-001');
+
+      // Should return 4 tasks (all except the completed one)
+      expect(activeTasks).toHaveLength(4);
+
+      // Verify correct ordering: urgent tasks first, then high, then low
+      const ids = activeTasks.map((t) => t.id);
+      expect(ids[0]).toMatch(/^task-(1|5)$/); // Both urgent
+      expect(ids[1]).toMatch(/^task-(1|5)$/); // Both urgent
+      expect(ids[2]).toBe('task-2'); // High
+      expect(ids[3]).toBe('task-3'); // Low
     });
   });
 });
