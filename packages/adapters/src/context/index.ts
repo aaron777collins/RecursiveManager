@@ -14,9 +14,10 @@ import {
   getAgentDirectory,
   PathOptions,
   type AgentConfig,
+  loadAgentConfig,
+  getActiveTasks,
+  getMessages,
 } from '@recursive-manager/common';
-import { loadAgentConfig } from '@recursive-manager/core';
-import { getActiveTasks, getMessages } from '@recursive-manager/common';
 import type {
   ExecutionContext,
   ExecutionMode,

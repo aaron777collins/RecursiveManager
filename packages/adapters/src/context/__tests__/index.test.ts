@@ -17,11 +17,8 @@ import {
 import type { ExecutionContext } from '../../types';
 
 // Mock dependencies
-jest.mock('@recursive-manager/core', () => ({
-  loadAgentConfig: jest.fn(),
-}));
-
 jest.mock('@recursive-manager/common', () => ({
+  loadAgentConfig: jest.fn(),
   getActiveTasks: jest.fn(),
   getMessages: jest.fn(),
   getWorkspacePath: jest.fn(),
@@ -33,8 +30,8 @@ jest.mock('fs/promises', () => ({
   readdir: jest.fn(),
 }));
 
-import { loadAgentConfig } from '@recursive-manager/core';
 import {
+  loadAgentConfig,
   getActiveTasks,
   getMessages,
   getWorkspacePath,

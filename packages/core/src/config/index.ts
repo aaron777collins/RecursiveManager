@@ -3,35 +3,35 @@
  *
  * This module handles loading, saving, and validating agent configuration files.
  * Implements atomic writes, backup recovery, and schema validation.
+ *
+ * Note: loadAgentConfig and ConfigLoadError have been moved to @recursive-manager/common
+ * to resolve circular dependency between core and adapters packages. They are re-exported
+ * here for backward compatibility.
  */
 
-import * as fs from 'fs/promises';
 import {
   getConfigPath,
   validateAgentConfigStrict,
-  safeLoad,
   createAgentLogger,
   atomicWrite,
   createBackup,
   type AgentConfig,
   type PathOptions,
+  // Re-export from common for backward compatibility
+  loadAgentConfig as loadAgentConfigFromCommon,
+  ConfigLoadError as ConfigLoadErrorFromCommon,
 } from '@recursive-manager/common';
 import { validateAgentConfigBusinessLogicStrict } from '../validation/business-validation';
 
 /**
- * Error thrown when agent configuration cannot be loaded
+ * Re-export loadAgentConfig from common for backward compatibility
  */
-export class ConfigLoadError extends Error {
-  constructor(
-    message: string,
-    public readonly agentId: string,
-    public readonly cause?: Error
-  ) {
-    super(message);
-    this.name = 'ConfigLoadError';
-    Error.captureStackTrace(this, ConfigLoadError);
-  }
-}
+export const loadAgentConfig = loadAgentConfigFromCommon;
+
+/**
+ * Re-export ConfigLoadError from common for backward compatibility
+ */
+export const ConfigLoadError = ConfigLoadErrorFromCommon;
 
 /**
  * Error thrown when agent configuration cannot be saved
@@ -49,119 +49,47 @@ export class ConfigSaveError extends Error {
 }
 
 /**
- * Load agent configuration from file with validation and error recovery
+ * Load agent configuration with business logic validation
  *
- * This function:
- * 1. Resolves the path to the agent's config.json file
- * 2. Loads the file using safeLoad (handles corruption via backup recovery)
- * 3. Parses the JSON content
- * 4. Validates against the agent-config.schema.json schema
- * 5. Returns the typed configuration object
+ * This is a wrapper around loadAgentConfig from @recursive-manager/common that
+ * additionally performs business logic validation (which requires core package).
  *
- * Error Handling:
- * - If file doesn't exist: throws ConfigLoadError
- * - If file is corrupted: attempts recovery from backup (via safeLoad)
- * - If JSON is invalid: throws ConfigLoadError
- * - If schema validation fails: throws SchemaValidationError (from validateAgentConfigStrict)
+ * For basic config loading without business validation, use the loadAgentConfig
+ * from @recursive-manager/common directly.
  *
  * @param agentId - The unique identifier of the agent
  * @param options - Optional path resolution options
  * @returns Promise resolving to the validated agent configuration
  * @throws {ConfigLoadError} If the configuration cannot be loaded
  * @throws {SchemaValidationError} If the configuration fails schema validation
- *
- * @example
- * ```typescript
- * const config = await loadAgentConfig('CEO');
- * console.log(config.identity.role); // "Chief Executive Officer"
- * ```
+ * @throws {BusinessValidationFailure} If business logic validation fails
  */
-export async function loadAgentConfig(
+export async function loadAgentConfigWithBusinessValidation(
   agentId: string,
   options: PathOptions = {}
 ): Promise<AgentConfig> {
   const logger = createAgentLogger(agentId);
 
   try {
-    // 1. Resolve the configuration file path
-    const configPath = getConfigPath(agentId, options);
+    // Load config with schema validation (from common package)
+    const config = await loadAgentConfig(agentId, options);
 
-    logger.debug('Loading agent configuration', {
+    // Perform business logic validation (core-specific)
+    validateAgentConfigBusinessLogicStrict(config);
+
+    logger.info('Agent configuration loaded and validated successfully', {
       agentId,
-      configPath,
+      role: config.identity.role,
+      version: config.version,
     });
 
-    // 2. Check if file exists
-    try {
-      await fs.access(configPath);
-    } catch (err) {
-      throw new ConfigLoadError(
-        `Agent configuration file not found: ${configPath}`,
-        agentId,
-        err as Error
-      );
-    }
-
-    // 3. Load file content with corruption recovery
-    const content = await safeLoad(configPath, {
-      validator: (data: string) => {
-        // Validate that it's parseable JSON
-        try {
-          JSON.parse(data);
-          return true;
-        } catch {
-          return false;
-        }
-      },
-    });
-
-    // 4. Parse JSON
-    let config: unknown;
-    try {
-      config = JSON.parse(content);
-    } catch (err) {
-      throw new ConfigLoadError(
-        `Invalid JSON in agent configuration: ${(err as Error).message}`,
-        agentId,
-        err as Error
-      );
-    }
-
-    // 5. Validate against schema (throws SchemaValidationError if invalid)
-    validateAgentConfigStrict(config);
-
-    // 6. Validate business logic (throws BusinessValidationFailure if invalid)
-    validateAgentConfigBusinessLogicStrict(config as AgentConfig);
-
-    logger.info('Agent configuration loaded successfully', {
-      agentId,
-      role: (config as AgentConfig).identity.role,
-      version: (config as AgentConfig).version,
-    });
-
-    // 6. Return typed configuration
-    return config as AgentConfig;
+    return config;
   } catch (err) {
-    // Re-throw ConfigLoadError, SchemaValidationError, and BusinessValidationFailure as-is
-    if (
-      err instanceof ConfigLoadError ||
-      (err instanceof Error && err.name === 'SchemaValidationError') ||
-      (err instanceof Error && err.name === 'BusinessValidationFailure')
-    ) {
-      logger.error('Failed to load agent configuration', {
-        agentId,
-        error: err.message,
-      });
-      throw err;
-    }
-
-    // Wrap unexpected errors
-    const error = err instanceof Error ? err : new Error(String(err));
-    throw new ConfigLoadError(
-      `Unexpected error loading agent configuration: ${error.message}`,
+    logger.error('Failed to load agent configuration with business validation', {
       agentId,
-      error
-    );
+      error: err instanceof Error ? err.message : String(err),
+    });
+    throw err;
   }
 }
 

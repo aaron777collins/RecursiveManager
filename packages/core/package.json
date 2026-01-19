@@ -20,6 +20,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@recursive-manager/adapters": "*",
     "@recursive-manager/common": "*",
     "async-mutex": "^0.4.0",
     "better-sqlite3": "^9.2.2",

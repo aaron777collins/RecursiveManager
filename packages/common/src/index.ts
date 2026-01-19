@@ -242,3 +242,6 @@ export {
   type AgentBehavior,
   type AgentMetadata,
 } from './types/agent-config';
+
+// Config Loader (Phase 2.1 - moved from core to resolve circular dependency)
+export { loadAgentConfig, ConfigLoadError } from './config-loader';
