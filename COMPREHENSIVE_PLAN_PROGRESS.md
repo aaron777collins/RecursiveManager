@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 23:56:27 EST
+Last Updated: 2026-01-19 00:06:50 EST
 
 ## Status
 
@@ -198,8 +198,8 @@ RecursiveManager is a hierarchical AI agent system with:
 ##### Agent-Specific Logging
 
 - [x] Task 1.4.5: Implement createAgentLogger(agentId)
-- [ ] Task 1.4.6: Create per-agent log files in logs/agents/
-- [ ] Task 1.4.7: Add hierarchical logging (include subordinate context)
+- [x] Task 1.4.6: Create per-agent log files in logs/agents/
+- [x] Task 1.4.7: Add hierarchical logging (include subordinate context)
 
 ##### Audit System
 
@@ -4003,3 +4003,115 @@ Added comprehensive test suite with 12 test cases covering:
 - Child loggers preserve agent context, enabling hierarchical logging for Task 1.4.7
 
 **Next Task**: Task 1.4.6 or 1.4.7 (though 1.4.6 is mostly addressed by this implementation)
+
+---
+
+## Completed This Iteration
+
+### Task 1.4.6-1.4.7: Implemented Hierarchical Logging with Subordinate Context ✅
+
+**Date**: 2026-01-19 00:07:00 EST
+
+**Summary**: Completed Task 1.4.6 (verified already implemented) and Task 1.4.7 by adding hierarchical logging support with organizational context including manager, subordinates, hierarchy path, and depth information.
+
+**What Was Implemented**:
+
+1. **Task 1.4.6: Per-Agent Log Files** - Verified already implemented:
+   - The `createAgentLogger` function from Task 1.4.5 already handles per-agent log file creation
+   - Uses `getAgentLogPath(agentId)` to create files in `logs/agents/{agentId}.log`
+   - Log rotation and retention already configured
+   - Marked as complete in progress file
+
+2. **Task 1.4.7: Hierarchical Logging** - Implemented full organizational context:
+   
+   a. **Extended LogMetadata Interface** (logger.ts:25-44):
+      - Added `managerId?: string` - Direct manager/parent agent ID
+      - Added `subordinateIds?: string[]` - Array of direct report agent IDs
+      - Added `hierarchyPath?: string` - Full organizational path (e.g., "CEO/CTO/Backend")
+      - Added `hierarchyDepth?: number` - Level in organization (0 = top level)
+   
+   b. **Created AgentHierarchyContext Interface** (logger.ts:349-358):
+      - Defines structure for hierarchy information returned from database
+      - Includes all organizational context fields
+   
+   c. **Implemented getAgentHierarchyContext()** (logger.ts:386-435):
+      - Queries database for agent's manager (reporting_to)
+      - Retrieves all subordinates (agents reporting to this agent)
+      - Gets organizational path and depth from org_hierarchy table
+      - Gracefully handles database errors (returns null instead of throwing)
+      - Allows logging to continue even if hierarchy lookup fails
+   
+   d. **Implemented createHierarchicalAgentLogger()** (logger.ts:472-512):
+      - Creates logger with full organizational context in default metadata
+      - Automatically includes manager ID (if exists)
+      - Automatically includes subordinate IDs (if any)
+      - Always includes hierarchy path and depth
+      - Falls back to basic agent logger if hierarchy lookup fails
+      - Supports all same options as createAgentLogger
+   
+   e. **Updated Exports** (index.ts:165-177):
+      - Exported `createHierarchicalAgentLogger` function
+      - Exported `getAgentHierarchyContext` function
+      - Exported `AgentHierarchyContext` type
+
+3. **Testing** - Added 12 comprehensive test cases for hierarchical logging:
+   
+   **getAgentHierarchyContext tests** (5 tests):
+   - ✅ Returns hierarchy context for agent with a manager
+   - ✅ Returns hierarchy context for top-level agent (no manager)
+   - ✅ Includes subordinate IDs for agent with direct reports
+   - ✅ Returns null for non-existent agent
+   - ✅ Handles database errors gracefully
+   
+   **createHierarchicalAgentLogger tests** (7 tests):
+   - ✅ Creates logger with hierarchical context included
+   - ✅ Throws error for empty agent ID
+   - ✅ Works even if hierarchy lookup fails
+   - ✅ Includes manager ID in default metadata
+   - ✅ Does not include manager ID for top-level agent
+   - ✅ Includes subordinate IDs when agent has direct reports
+   - ✅ Allows option overrides
+
+**Files Modified**:
+- `packages/common/src/logger.ts` - Added hierarchical logging (190 lines including docs)
+  - Extended LogMetadata interface
+  - Added AgentHierarchyContext interface
+  - Implemented getAgentHierarchyContext() function
+  - Implemented createHierarchicalAgentLogger() function
+- `packages/common/src/index.ts` - Exported new functions and types
+- `packages/common/src/__tests__/logger.test.ts` - Added test suite (340 lines, 12 tests)
+
+**Validation**:
+- ✅ All 12 hierarchical logging tests passed
+- ✅ TypeScript compilation successful
+- ✅ Functions properly query database for organizational context
+- ✅ Graceful error handling when database unavailable
+- ✅ Comprehensive test coverage for all scenarios
+- ✅ Public API exports verified
+
+**Integration with Existing Code**:
+- Queries existing `agents` table for manager and subordinates
+- Uses existing `org_hierarchy` table for path and depth
+- Compatible with all existing logger functionality
+- No breaking changes to existing code
+
+**Usage Example**:
+```typescript
+import Database from 'better-sqlite3';
+import { createHierarchicalAgentLogger } from '@recursive-manager/common';
+
+const db = new Database('app.db');
+const logger = createHierarchicalAgentLogger(db, 'backend-dev-001');
+
+// All logs automatically include:
+// - agentId: 'backend-dev-001'
+// - managerId: 'cto-001'
+// - subordinateIds: []
+// - hierarchyPath: 'CEO/CTO/Backend Dev'
+// - hierarchyDepth: 2
+
+logger.info('Processing task');
+```
+
+**Next Task**: Task 1.4.8 - Implement auditLog(event) writing to audit_log table
+

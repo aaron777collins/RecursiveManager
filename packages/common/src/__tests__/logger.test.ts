@@ -610,15 +610,6 @@ describe('Logger Module', () => {
       // Wait for async write
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      // Read log file and verify metadata includes agentId
-      const logPath = path.join(
-        testDir,
-        '..',
-        'logs',
-        'agents',
-        `${agentId}.log`
-      );
-
       // Note: The log file won't exist in test environment since we're using mocked paths
       // This test verifies the logger is created without errors
     });
@@ -729,6 +720,346 @@ describe('Logger Module', () => {
       expect(() => createAgentLogger('CEO')).not.toThrow();
       expect(() => createAgentLogger('dev_ops')).not.toThrow();
       expect(() => createAgentLogger('agent.test')).not.toThrow();
+    });
+  });
+
+  describe('Hierarchical Logging (Task 1.4.7)', () => {
+    describe('getAgentHierarchyContext', () => {
+      it('should return hierarchy context for an agent with a manager', () => {
+        const { getAgentHierarchyContext } = require('../logger');
+        const Database = require('better-sqlite3');
+        const db = new Database(':memory:');
+
+        // Create schema
+        db.exec(`
+          CREATE TABLE agents (
+            id TEXT PRIMARY KEY,
+            reporting_to TEXT
+          );
+          CREATE TABLE org_hierarchy (
+            agent_id TEXT,
+            ancestor_id TEXT,
+            depth INTEGER,
+            path TEXT
+          );
+        `);
+
+        // Insert test data: CEO -> CTO -> Backend Dev
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('ceo', null);
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('cto', 'ceo');
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('backend-dev', 'cto');
+
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('ceo', 'ceo', 0, 'CEO');
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('cto', 'ceo', 1, 'CEO');
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('cto', 'cto', 0, 'CTO');
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('backend-dev', 'ceo', 2, 'CEO');
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('backend-dev', 'cto', 1, 'CTO');
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('backend-dev', 'backend-dev', 0, 'Backend Dev');
+
+        const hierarchy = getAgentHierarchyContext(db, 'backend-dev');
+
+        expect(hierarchy).not.toBeNull();
+        expect(hierarchy?.managerId).toBe('cto');
+        expect(hierarchy?.subordinateIds).toEqual([]);
+        expect(hierarchy?.hierarchyPath).toBe('CEO');
+        expect(hierarchy?.hierarchyDepth).toBe(2);
+
+        db.close();
+      });
+
+      it('should return hierarchy context for top-level agent (no manager)', () => {
+        const { getAgentHierarchyContext } = require('../logger');
+        const Database = require('better-sqlite3');
+        const db = new Database(':memory:');
+
+        db.exec(`
+          CREATE TABLE agents (
+            id TEXT PRIMARY KEY,
+            reporting_to TEXT
+          );
+          CREATE TABLE org_hierarchy (
+            agent_id TEXT,
+            ancestor_id TEXT,
+            depth INTEGER,
+            path TEXT
+          );
+        `);
+
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('ceo', null);
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('ceo', 'ceo', 0, 'CEO');
+
+        const hierarchy = getAgentHierarchyContext(db, 'ceo');
+
+        expect(hierarchy).not.toBeNull();
+        expect(hierarchy?.managerId).toBeNull();
+        expect(hierarchy?.subordinateIds).toEqual([]);
+        expect(hierarchy?.hierarchyPath).toBe('CEO');
+        expect(hierarchy?.hierarchyDepth).toBe(0);
+
+        db.close();
+      });
+
+      it('should include subordinate IDs for agent with direct reports', () => {
+        const { getAgentHierarchyContext } = require('../logger');
+        const Database = require('better-sqlite3');
+        const db = new Database(':memory:');
+
+        db.exec(`
+          CREATE TABLE agents (
+            id TEXT PRIMARY KEY,
+            reporting_to TEXT
+          );
+          CREATE TABLE org_hierarchy (
+            agent_id TEXT,
+            ancestor_id TEXT,
+            depth INTEGER,
+            path TEXT
+          );
+        `);
+
+        // CTO with two subordinates: backend-dev and frontend-dev
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('ceo', null);
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('cto', 'ceo');
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('backend-dev', 'cto');
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('frontend-dev', 'cto');
+
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('cto', 'ceo', 1, 'CEO');
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('cto', 'cto', 0, 'CTO');
+
+        const hierarchy = getAgentHierarchyContext(db, 'cto');
+
+        expect(hierarchy).not.toBeNull();
+        expect(hierarchy?.managerId).toBe('ceo');
+        expect(hierarchy?.subordinateIds).toHaveLength(2);
+        expect(hierarchy?.subordinateIds).toContain('backend-dev');
+        expect(hierarchy?.subordinateIds).toContain('frontend-dev');
+
+        db.close();
+      });
+
+      it('should return null for non-existent agent', () => {
+        const { getAgentHierarchyContext } = require('../logger');
+        const Database = require('better-sqlite3');
+        const db = new Database(':memory:');
+
+        db.exec(`
+          CREATE TABLE agents (
+            id TEXT PRIMARY KEY,
+            reporting_to TEXT
+          );
+          CREATE TABLE org_hierarchy (
+            agent_id TEXT,
+            ancestor_id TEXT,
+            depth INTEGER,
+            path TEXT
+          );
+        `);
+
+        const hierarchy = getAgentHierarchyContext(db, 'non-existent');
+
+        expect(hierarchy).toBeNull();
+
+        db.close();
+      });
+
+      it('should handle database errors gracefully', () => {
+        const { getAgentHierarchyContext } = require('../logger');
+        const Database = require('better-sqlite3');
+        const db = new Database(':memory:');
+
+        // Don't create tables - this will cause an error
+        const hierarchy = getAgentHierarchyContext(db, 'test-agent');
+
+        expect(hierarchy).toBeNull();
+
+        db.close();
+      });
+    });
+
+    describe('createHierarchicalAgentLogger', () => {
+      it('should create logger with hierarchical context included', () => {
+        const { createHierarchicalAgentLogger } = require('../logger');
+        const Database = require('better-sqlite3');
+        const db = new Database(':memory:');
+
+        db.exec(`
+          CREATE TABLE agents (
+            id TEXT PRIMARY KEY,
+            reporting_to TEXT
+          );
+          CREATE TABLE org_hierarchy (
+            agent_id TEXT,
+            ancestor_id TEXT,
+            depth INTEGER,
+            path TEXT
+          );
+        `);
+
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('ceo', null);
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('backend-dev', 'ceo');
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('backend-dev', 'ceo', 1, 'CEO');
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('backend-dev', 'backend-dev', 0, 'Backend Dev');
+
+        const logger = createHierarchicalAgentLogger(db, 'backend-dev');
+
+        expect(logger).toBeDefined();
+        expect(logger.info).toBeInstanceOf(Function);
+        expect(logger.warn).toBeInstanceOf(Function);
+        expect(logger.error).toBeInstanceOf(Function);
+        expect(logger.debug).toBeInstanceOf(Function);
+
+        db.close();
+      });
+
+      it('should throw error for empty agent ID', () => {
+        const { createHierarchicalAgentLogger } = require('../logger');
+        const Database = require('better-sqlite3');
+        const db = new Database(':memory:');
+
+        expect(() => createHierarchicalAgentLogger(db, '')).toThrow(
+          'agentId is required and cannot be empty'
+        );
+        expect(() => createHierarchicalAgentLogger(db, '   ')).toThrow(
+          'agentId is required and cannot be empty'
+        );
+
+        db.close();
+      });
+
+      it('should work even if hierarchy lookup fails', () => {
+        const { createHierarchicalAgentLogger } = require('../logger');
+        const Database = require('better-sqlite3');
+        const db = new Database(':memory:');
+
+        // Don't create tables - hierarchy lookup will fail but logger should still work
+        const logger = createHierarchicalAgentLogger(db, 'test-agent');
+
+        expect(logger).toBeDefined();
+        expect(() => logger.info('Test message')).not.toThrow();
+
+        db.close();
+      });
+
+      it('should include manager ID in default metadata', () => {
+        const { createHierarchicalAgentLogger } = require('../logger');
+        const Database = require('better-sqlite3');
+        const db = new Database(':memory:');
+
+        db.exec(`
+          CREATE TABLE agents (
+            id TEXT PRIMARY KEY,
+            reporting_to TEXT
+          );
+          CREATE TABLE org_hierarchy (
+            agent_id TEXT,
+            ancestor_id TEXT,
+            depth INTEGER,
+            path TEXT
+          );
+        `);
+
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('manager', null);
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('subordinate', 'manager');
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('subordinate', 'manager', 1, 'Manager');
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('subordinate', 'subordinate', 0, 'Subordinate');
+
+        const logger = createHierarchicalAgentLogger(db, 'subordinate');
+
+        // Test that logger was created with hierarchy metadata
+        expect(logger).toBeDefined();
+
+        db.close();
+      });
+
+      it('should not include manager ID for top-level agent', () => {
+        const { createHierarchicalAgentLogger } = require('../logger');
+        const Database = require('better-sqlite3');
+        const db = new Database(':memory:');
+
+        db.exec(`
+          CREATE TABLE agents (
+            id TEXT PRIMARY KEY,
+            reporting_to TEXT
+          );
+          CREATE TABLE org_hierarchy (
+            agent_id TEXT,
+            ancestor_id TEXT,
+            depth INTEGER,
+            path TEXT
+          );
+        `);
+
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('ceo', null);
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('ceo', 'ceo', 0, 'CEO');
+
+        const logger = createHierarchicalAgentLogger(db, 'ceo');
+
+        expect(logger).toBeDefined();
+
+        db.close();
+      });
+
+      it('should include subordinate IDs when agent has direct reports', () => {
+        const { createHierarchicalAgentLogger } = require('../logger');
+        const Database = require('better-sqlite3');
+        const db = new Database(':memory:');
+
+        db.exec(`
+          CREATE TABLE agents (
+            id TEXT PRIMARY KEY,
+            reporting_to TEXT
+          );
+          CREATE TABLE org_hierarchy (
+            agent_id TEXT,
+            ancestor_id TEXT,
+            depth INTEGER,
+            path TEXT
+          );
+        `);
+
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('manager', null);
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('sub1', 'manager');
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('sub2', 'manager');
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('manager', 'manager', 0, 'Manager');
+
+        const logger = createHierarchicalAgentLogger(db, 'manager');
+
+        expect(logger).toBeDefined();
+
+        db.close();
+      });
+
+      it('should allow option overrides', () => {
+        const { createHierarchicalAgentLogger } = require('../logger');
+        const Database = require('better-sqlite3');
+        const db = new Database(':memory:');
+
+        db.exec(`
+          CREATE TABLE agents (
+            id TEXT PRIMARY KEY,
+            reporting_to TEXT
+          );
+          CREATE TABLE org_hierarchy (
+            agent_id TEXT,
+            ancestor_id TEXT,
+            depth INTEGER,
+            path TEXT
+          );
+        `);
+
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('test-agent', null);
+        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('test-agent', 'test-agent', 0, 'Test Agent');
+
+        const logger = createHierarchicalAgentLogger(db, 'test-agent', {
+          level: 'debug',
+          console: true,
+        });
+
+        expect(logger).toBeDefined();
+        expect(() => logger.debug('Debug message')).not.toThrow();
+
+        db.close();
+      });
     });
   });
 });

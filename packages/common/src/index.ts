@@ -165,10 +165,13 @@ export {
 export {
   createLogger,
   createAgentLogger,
+  createHierarchicalAgentLogger,
+  getAgentHierarchyContext,
   generateTraceId,
   logger,
   type Logger,
   type LogLevel,
   type LogMetadata,
   type LoggerOptions,
+  type AgentHierarchyContext,
 } from './logger';
