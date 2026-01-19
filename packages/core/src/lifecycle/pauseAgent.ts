@@ -17,10 +17,7 @@
  */
 
 import Database from 'better-sqlite3';
-import {
-  PathOptions,
-  createAgentLogger,
-} from '@recursive-manager/common';
+import { PathOptions, createAgentLogger } from '@recursive-manager/common';
 import {
   getAgent,
   updateAgent,
@@ -29,11 +26,7 @@ import {
   MessageInput,
 } from '@recursive-manager/common';
 import { auditLog, AuditAction } from '@recursive-manager/common';
-import {
-  generateMessageId,
-  writeMessageToInbox,
-  MessageData,
-} from '../messaging/messageWriter';
+import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 import { blockTasksForPausedAgent, BlockTasksResult } from './taskBlocking';
 
 /**
@@ -86,7 +79,8 @@ async function notifyAgentAndManager(
     managerId: agent.reporting_to ?? undefined,
   });
 
-  const notifications: Array<{ agentId: string; message: MessageData; dbMessage: MessageInput }> = [];
+  const notifications: Array<{ agentId: string; message: MessageData; dbMessage: MessageInput }> =
+    [];
 
   // 1. Notification to the paused agent
   const agentMessageId = generateMessageId();
@@ -462,6 +456,10 @@ export async function pauseAgent(
       agentId,
       error: error.message,
     });
-    throw new PauseAgentError(`Unexpected error during agent pause: ${error.message}`, agentId, error);
+    throw new PauseAgentError(
+      `Unexpected error during agent pause: ${error.message}`,
+      agentId,
+      error
+    );
   }
 }

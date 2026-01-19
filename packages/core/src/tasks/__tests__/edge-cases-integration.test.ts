@@ -113,9 +113,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
           title: `Task at depth ${depth}`,
           priority: 'medium',
           parentTaskId,
-          taskPath: parentTaskId
-            ? `${parentTaskId}/task-depth-${depth}`
-            : `task-depth-${depth}`,
+          taskPath: parentTaskId ? `${parentTaskId}/task-depth-${depth}` : `task-depth-${depth}`,
         });
 
         expect(task.depth).toBe(depth);
@@ -142,9 +140,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
           title: `Task at depth ${depth}`,
           priority: 'medium',
           parentTaskId,
-          taskPath: parentTaskId
-            ? `${parentTaskId}/task-depth-${depth}`
-            : `task-depth-${depth}`,
+          taskPath: parentTaskId ? `${parentTaskId}/task-depth-${depth}` : `task-depth-${depth}`,
         });
         parentTaskId = task.id;
       }
@@ -305,9 +301,9 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
       ).resolves.not.toThrow();
 
       // Verify agent was fired
-      const agentRecord = db
-        .prepare('SELECT status FROM agents WHERE id = ?')
-        .get(agent) as { status: string };
+      const agentRecord = db.prepare('SELECT status FROM agents WHERE id = ?').get(agent) as {
+        status: string;
+      };
       expect(agentRecord.status).toBe('fired');
     });
 
@@ -402,9 +398,9 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
       });
 
       // Verify agent A was fired
-      const agentARecord = db
-        .prepare('SELECT status FROM agents WHERE id = ?')
-        .get(agentA) as { status: string };
+      const agentARecord = db.prepare('SELECT status FROM agents WHERE id = ?').get(agentA) as {
+        status: string;
+      };
       expect(agentARecord.status).toBe('fired');
 
       // Task A should be reassigned or archived (depending on implementation)
@@ -539,12 +535,14 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
 
     it('should handle multiple agents creating tasks simultaneously', () => {
       // Create multiple agents
-      const agents = Array.from({ length: 10 }, (_, i) =>
-        createAgent(db, {
-          name: `Agent ${i}`,
-          role: 'Worker',
-          managerId: null,
-        }).id
+      const agents = Array.from(
+        { length: 10 },
+        (_, i) =>
+          createAgent(db, {
+            name: `Agent ${i}`,
+            role: 'Worker',
+            managerId: null,
+          }).id
       );
 
       // Each agent creates multiple tasks
@@ -701,11 +699,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
         createTask(db, {
           agentId: agent,
           title: `Query test ${i}`,
-          priority: priorities[i % priorities.length] as
-            | 'low'
-            | 'medium'
-            | 'high'
-            | 'critical',
+          priority: priorities[i % priorities.length] as 'low' | 'medium' | 'high' | 'critical',
           taskPath: `query-test-${i}`,
         });
 

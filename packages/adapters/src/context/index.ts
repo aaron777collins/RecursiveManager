@@ -18,12 +18,7 @@ import {
   getActiveTasks,
   getMessages,
 } from '@recursive-manager/common';
-import type {
-  ExecutionContext,
-  ExecutionMode,
-  TaskSchema,
-  Message,
-} from '../types';
+import type { ExecutionContext, ExecutionMode, TaskSchema, Message } from '../types';
 
 /**
  * Error thrown when execution context cannot be loaded
@@ -189,10 +184,7 @@ export async function loadConfig(
  * @returns Array of active tasks
  * @throws {ContextLoadError} If tasks cannot be loaded
  */
-export async function loadTasks(
-  db: Database,
-  agentId: string
-): Promise<TaskSchema[]> {
+export async function loadTasks(db: Database, agentId: string): Promise<TaskSchema[]> {
   try {
     const tasks = getActiveTasks(db, agentId);
     return tasks.map(convertTaskToSchema);
@@ -253,11 +245,7 @@ export async function loadWorkspaceFiles(
     const maxFiles = options.maxWorkspaceFiles ?? 100;
     const maxDepth = options.maxWorkspaceDepth ?? 3;
 
-    const files = await enumerateWorkspaceFiles(
-      workspaceDir,
-      maxDepth,
-      maxFiles
-    );
+    const files = await enumerateWorkspaceFiles(workspaceDir, maxDepth, maxFiles);
 
     return files;
   } catch (err) {

@@ -39,7 +39,7 @@ export function registerInitCommand(program: Command): void {
         // 3. Set up configuration
         // 4. Create root manager agent with goal
 
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated delay
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated delay
 
         spinner.succeed('RecursiveManager initialized successfully');
         console.log();
@@ -51,10 +51,11 @@ export function registerInitCommand(program: Command): void {
 
         console.log();
         console.log(info('Next steps:'));
-        console.log('  1. Run ' + code('recursive-manager status') + ' to view the organization chart');
+        console.log(
+          '  1. Run ' + code('recursive-manager status') + ' to view the organization chart'
+        );
         console.log('  2. Run ' + code('recursive-manager config') + ' to adjust settings');
         console.log();
-
       } catch (err) {
         console.error(error('Initialization failed: ' + (err as Error).message));
         process.exit(1);

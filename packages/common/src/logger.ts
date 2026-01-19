@@ -126,10 +126,7 @@ class WinstonLogger implements Logger {
         new winston.transports.Console({
           format: json
             ? winston.format.json()
-            : winston.format.combine(
-                winston.format.colorize(),
-                winston.format.simple()
-              ),
+            : winston.format.combine(winston.format.colorize(), winston.format.simple()),
         })
       );
     }
@@ -319,10 +316,7 @@ export function createLogger(options?: LoggerOptions): Logger {
  * });
  * ```
  */
-export function createAgentLogger(
-  agentId: string,
-  options?: Partial<LoggerOptions>
-): Logger {
+export function createAgentLogger(agentId: string, options?: Partial<LoggerOptions>): Logger {
   if (!agentId || agentId.trim() === '') {
     throw new Error('agentId is required and cannot be empty');
   }

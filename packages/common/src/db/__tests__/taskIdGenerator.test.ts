@@ -213,7 +213,8 @@ describe('Task ID Generator', () => {
       });
 
       it('should handle long titles', () => {
-        const longTitle = 'This is a very long task title that exceeds fifty characters and should be truncated';
+        const longTitle =
+          'This is a very long task title that exceeds fifty characters and should be truncated';
         const id = generateTaskId(db, 'test-agent-001', longTitle);
 
         expect(id).toMatch(/^task-1-/);

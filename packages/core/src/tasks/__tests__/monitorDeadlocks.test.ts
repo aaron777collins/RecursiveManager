@@ -558,10 +558,7 @@ describe('monitorDeadlocks', () => {
         status: 'blocked',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
-        'invalid json{{{',
-        taskC.id
-      );
+      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run('invalid json{{{', taskC.id);
 
       const result = await monitorDeadlocks(db, { dataDir: testDir });
 
@@ -644,43 +641,47 @@ describe('monitorDeadlocks', () => {
   describe('Agent Notification Preferences', () => {
     it('should respect agent notification preferences', async () => {
       // Disable deadlock notifications for agentA
-      await saveAgentConfig(agentA, {
-        version: '1.0.0',
-        identity: {
-          id: agentA,
-          role: 'Worker',
-          displayName: 'Agent A',
-          createdAt: new Date().toISOString(),
-          createdBy: 'test',
-          reportingTo: null,
+      await saveAgentConfig(
+        agentA,
+        {
+          version: '1.0.0',
+          identity: {
+            id: agentA,
+            role: 'Worker',
+            displayName: 'Agent A',
+            createdAt: new Date().toISOString(),
+            createdBy: 'test',
+            reportingTo: null,
+          },
+          goal: {
+            mainGoal: 'Test work',
+          },
+          permissions: {
+            canHire: false,
+            maxSubordinates: 0,
+            hiringBudget: 0,
+          },
+          framework: {
+            primary: 'claude-code',
+            fallbacks: [],
+          },
+          communication: {
+            notifyOnCompletion: true,
+            notifyOnDelegation: true,
+            notifyOnDeadlock: false, // Disable deadlock notifications
+          },
+          behavior: {
+            executionMode: 'continuous',
+            autonomy: 'low',
+            escalationThreshold: 3,
+          },
+          metadata: {
+            version: 1,
+            updatedAt: new Date().toISOString(),
+          },
         },
-        goal: {
-          mainGoal: 'Test work',
-        },
-        permissions: {
-          canHire: false,
-          maxSubordinates: 0,
-          hiringBudget: 0,
-        },
-        framework: {
-          primary: 'claude-code',
-          fallbacks: [],
-        },
-        communication: {
-          notifyOnCompletion: true,
-          notifyOnDelegation: true,
-          notifyOnDeadlock: false, // Disable deadlock notifications
-        },
-        behavior: {
-          executionMode: 'continuous',
-          autonomy: 'low',
-          escalationThreshold: 3,
-        },
-        metadata: {
-          version: 1,
-          updatedAt: new Date().toISOString(),
-        },
-      }, testDir);
+        testDir
+      );
 
       // Create deadlock: A -> B -> A
       const taskA = createTask(db, {

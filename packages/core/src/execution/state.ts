@@ -5,10 +5,7 @@
  * after each execution.
  */
 
-import {
-  type ExecutionResult,
-  type ExecutionMode,
-} from '@recursive-manager/adapters';
+import { type ExecutionResult, type ExecutionMode } from '@recursive-manager/adapters';
 import {
   updateAgent,
   getMetadataPath,
@@ -100,11 +97,7 @@ export async function saveExecutionResult(
     const metadata = await loadMetadata(agentId);
 
     // Update execution statistics
-    const updatedMetadata = updateMetadataWithResult(
-      metadata,
-      result,
-      mode
-    );
+    const updatedMetadata = updateMetadataWithResult(metadata, result, mode);
 
     // Save updated metadata atomically
     const metadataPath = getMetadataPath(agentId);
@@ -120,9 +113,7 @@ export async function saveExecutionResult(
     });
 
     // Update database if health score changed significantly
-    const healthScoreDelta = Math.abs(
-      updatedMetadata.healthScore - metadata.healthScore
-    );
+    const healthScoreDelta = Math.abs(updatedMetadata.healthScore - metadata.healthScore);
     if (healthScoreDelta >= 10) {
       await updateAgent(agentId, {
         lastActivityAt: new Date(),
@@ -188,22 +179,16 @@ function updateMetadataWithResult(
 
   // Update execution counts
   const executionCount = metadata.executionCount + 1;
-  const successCount = result.success
-    ? metadata.successCount + 1
-    : metadata.successCount;
-  const failureCount = result.success
-    ? metadata.failureCount
-    : metadata.failureCount + 1;
+  const successCount = result.success ? metadata.successCount + 1 : metadata.successCount;
+  const failureCount = result.success ? metadata.failureCount : metadata.failureCount + 1;
 
   // Update execution time statistics
   const totalExecutionTime = metadata.totalExecutionTime + result.duration;
   const averageExecutionTime = totalExecutionTime / executionCount;
 
   // Update task and message statistics
-  const totalTasksCompleted =
-    metadata.totalTasksCompleted + result.tasksCompleted;
-  const totalMessagesProcessed =
-    metadata.totalMessagesProcessed + result.messagesProcessed;
+  const totalTasksCompleted = metadata.totalTasksCompleted + result.tasksCompleted;
+  const totalMessagesProcessed = metadata.totalMessagesProcessed + result.messagesProcessed;
 
   // Calculate health score based on recent execution success
   // Use exponential moving average to give more weight to recent executions
@@ -217,9 +202,7 @@ function updateMetadataWithResult(
     totalExecutionTime,
     averageExecutionTime,
     lastExecution: now,
-    lastSuccessfulExecution: result.success
-      ? now
-      : metadata.lastSuccessfulExecution,
+    lastSuccessfulExecution: result.success ? now : metadata.lastSuccessfulExecution,
     lastResult: {
       success: result.success,
       duration: result.duration,

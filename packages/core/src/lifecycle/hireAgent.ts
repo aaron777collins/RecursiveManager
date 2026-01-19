@@ -309,9 +309,7 @@ async function updateParentSubordinatesRegistry(
       newAgentId: newAgent.id,
       error: (err as Error).message,
     });
-    throw new Error(
-      `Failed to update parent subordinates registry: ${(err as Error).message}`
-    );
+    throw new Error(`Failed to update parent subordinates registry: ${(err as Error).message}`);
   }
 }
 

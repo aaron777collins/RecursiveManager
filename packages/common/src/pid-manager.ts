@@ -154,11 +154,7 @@ export async function readPidFile(
 
     // Validate required fields
     if (!pidInfo.pid || !pidInfo.processName || !pidInfo.createdAt) {
-      throw new PidError(
-        'PID file is malformed: missing required fields',
-        processName,
-        pidPath
-      );
+      throw new PidError('PID file is malformed: missing required fields', processName, pidPath);
     }
 
     return pidInfo;
@@ -237,10 +233,7 @@ export async function writePidFile(
  * @param options - PID options
  * @throws {PidError} If removal fails (except ENOENT)
  */
-export async function removePidFile(
-  processName: string,
-  options: PidOptions = {}
-): Promise<void> {
+export async function removePidFile(processName: string, options: PidOptions = {}): Promise<void> {
   const pidPath = getPidFilePath(processName, options);
 
   try {

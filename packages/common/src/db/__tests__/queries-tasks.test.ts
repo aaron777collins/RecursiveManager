@@ -441,11 +441,13 @@ describe('Task Query API', () => {
       });
 
       // Manually set task A to be blocked by task B (which doesn't exist yet)
-      db.prepare(`
+      db.prepare(
+        `
         UPDATE tasks
         SET blocked_by = ?, status = 'blocked', blocked_since = ?
         WHERE id = ?
-      `).run(JSON.stringify(['task-b']), new Date().toISOString(), 'task-a');
+      `
+      ).run(JSON.stringify(['task-b']), new Date().toISOString(), 'task-a');
 
       // Now try to create task B blocked by task A
       // This should fail because it would create a cycle: B -> A -> B
@@ -488,11 +490,13 @@ describe('Task Query API', () => {
       });
 
       // Now manually set task A to be blocked by task C (to set up the cycle scenario)
-      db.prepare(`
+      db.prepare(
+        `
         UPDATE tasks
         SET blocked_by = ?, status = 'blocked', blocked_since = ?
         WHERE id = ?
-      `).run(JSON.stringify(['task-c']), new Date().toISOString(), 'task-a');
+      `
+      ).run(JSON.stringify(['task-c']), new Date().toISOString(), 'task-a');
 
       // Try to create task D blocked by task A
       // This should work since there's no cycle involving D
@@ -523,11 +527,13 @@ describe('Task Query API', () => {
       });
 
       // Manually make task A block itself
-      db.prepare(`
+      db.prepare(
+        `
         UPDATE tasks
         SET blocked_by = ?, status = 'blocked', blocked_since = ?
         WHERE id = ?
-      `).run(JSON.stringify(['task-a']), new Date().toISOString(), 'task-a');
+      `
+      ).run(JSON.stringify(['task-a']), new Date().toISOString(), 'task-a');
 
       // Try to create task B blocked by task A
       // This should fail because A is blocked by itself, and adding B blocked by A

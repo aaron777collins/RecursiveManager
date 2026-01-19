@@ -95,7 +95,10 @@ export function loadConfig(): RecursiveManagerConfig {
     maxAgentsPerManager: parseInt(process.env.MAX_AGENTS_PER_MANAGER || '10', 10),
     agentTimeoutMs: parseInt(process.env.AGENT_TIMEOUT_MS || '300000', 10),
     workerPoolSize: parseInt(process.env.WORKER_POOL_SIZE || '5', 10),
-    continuousExecutionIntervalMs: parseInt(process.env.CONTINUOUS_EXECUTION_INTERVAL_MS || '5000', 10),
+    continuousExecutionIntervalMs: parseInt(
+      process.env.CONTINUOUS_EXECUTION_INTERVAL_MS || '5000',
+      10
+    ),
     defaultFramework: process.env.DEFAULT_FRAMEWORK || 'claude-code',
     claudeCodePath: process.env.CLAUDE_CODE_PATH || 'claude',
   };

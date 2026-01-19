@@ -455,7 +455,8 @@ export function getAuditStats(
     totalEvents: counts.total,
     successCount: counts.success_count || 0,
     failureCount: counts.failure_count || 0,
-    successRate: counts.total > 0 ? Math.round(((counts.success_count || 0) / counts.total) * 100) : 0,
+    successRate:
+      counts.total > 0 ? Math.round(((counts.success_count || 0) / counts.total) * 100) : 0,
     actionCounts,
   };
 }

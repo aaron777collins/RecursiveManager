@@ -59,9 +59,11 @@ describe('notifyTaskDelegation', () => {
     }).id;
 
     // Create org hierarchy relationship
-    db.prepare(
-      `INSERT INTO org_hierarchy (agent_id, ancestor_id, depth) VALUES (?, ?, ?)`
-    ).run(delegatedAgentId, ownerAgentId, 1);
+    db.prepare(`INSERT INTO org_hierarchy (agent_id, ancestor_id, depth) VALUES (?, ?, ?)`).run(
+      delegatedAgentId,
+      ownerAgentId,
+      1
+    );
 
     // Create default agent configs with notifications enabled
     const ownerConfig: AgentConfig = {

@@ -332,9 +332,7 @@ describe('Logger Module', () => {
       const parsed = JSON.parse(content.trim().split('\n')[0] as string);
 
       // Winston format: YYYY-MM-DD HH:mm:ss.SSS
-      expect(parsed.timestamp).toMatch(
-        /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/
-      );
+      expect(parsed.timestamp).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}$/);
 
       // Verify it's a valid timestamp format
       expect(parsed.timestamp).toBeDefined();
@@ -958,10 +956,7 @@ describe('Logger Module', () => {
   });
 
   describe('Log Rotation Integration (Task 1.4.13)', () => {
-    const testDir = path.join(
-      os.tmpdir(),
-      `logger-rotation-integration-test-${Date.now()}`
-    );
+    const testDir = path.join(os.tmpdir(), `logger-rotation-integration-test-${Date.now()}`);
 
     beforeEach(() => {
       if (!fs.existsSync(testDir)) {
@@ -1142,13 +1137,7 @@ describe('Logger Module', () => {
         json: true,
       });
 
-      const messages = [
-        'Message 1',
-        'Message 2',
-        'Message 3',
-        'Message 4',
-        'Message 5',
-      ];
+      const messages = ['Message 1', 'Message 2', 'Message 3', 'Message 4', 'Message 5'];
 
       messages.forEach((msg) => logger.info(msg));
 
@@ -1199,10 +1188,7 @@ describe('Logger Module', () => {
 
       expect(logFiles.length).toBeGreaterThan(0);
 
-      const content = fs.readFileSync(
-        path.join(testDir, logFiles[0] as string),
-        'utf-8'
-      );
+      const content = fs.readFileSync(path.join(testDir, logFiles[0] as string), 'utf-8');
       expect(content).toContain('Parent message');
       expect(content).toContain('Child message');
     });
@@ -1249,10 +1235,7 @@ describe('Logger Module', () => {
       expect(logFiles.length).toBeGreaterThan(0);
 
       // Verify content exists
-      const content = fs.readFileSync(
-        path.join(testDir, logFiles[0] as string),
-        'utf-8'
-      );
+      const content = fs.readFileSync(path.join(testDir, logFiles[0] as string), 'utf-8');
       expect(content.length).toBeGreaterThan(0);
     });
 
@@ -1279,10 +1262,7 @@ describe('Logger Module', () => {
 
       expect(logFiles.length).toBeGreaterThan(0);
 
-      const content = fs.readFileSync(
-        path.join(testDir, logFiles[0] as string),
-        'utf-8'
-      );
+      const content = fs.readFileSync(path.join(testDir, logFiles[0] as string), 'utf-8');
       const parsed = JSON.parse(content.trim());
 
       expect(parsed.metadata.traceId).toBe('trace-123');
@@ -1313,17 +1293,13 @@ describe('Logger Module', () => {
     it('should throw error for empty agent ID', () => {
       const { createAgentLogger } = require('../logger');
 
-      expect(() => createAgentLogger('')).toThrow(
-        'agentId is required and cannot be empty'
-      );
+      expect(() => createAgentLogger('')).toThrow('agentId is required and cannot be empty');
     });
 
     it('should throw error for whitespace-only agent ID', () => {
       const { createAgentLogger } = require('../logger');
 
-      expect(() => createAgentLogger('   ')).toThrow(
-        'agentId is required and cannot be empty'
-      );
+      expect(() => createAgentLogger('   ')).toThrow('agentId is required and cannot be empty');
     });
 
     it('should have file output enabled by default', () => {
@@ -1445,12 +1421,24 @@ describe('Logger Module', () => {
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('cto', 'ceo');
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('backend-dev', 'cto');
 
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('ceo', 'ceo', 0, 'CEO');
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('cto', 'ceo', 1, 'CEO');
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('cto', 'cto', 0, 'CTO');
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('backend-dev', 'ceo', 2, 'CEO');
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('backend-dev', 'cto', 1, 'CTO');
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('backend-dev', 'backend-dev', 0, 'Backend Dev');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('ceo', 'ceo', 0, 'CEO');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('cto', 'ceo', 1, 'CEO');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('cto', 'cto', 0, 'CTO');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('backend-dev', 'ceo', 2, 'CEO');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('backend-dev', 'cto', 1, 'CTO');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('backend-dev', 'backend-dev', 0, 'Backend Dev');
 
         const hierarchy = getAgentHierarchyContext(db, 'backend-dev');
 
@@ -1482,7 +1470,9 @@ describe('Logger Module', () => {
         `);
 
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('ceo', null);
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('ceo', 'ceo', 0, 'CEO');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('ceo', 'ceo', 0, 'CEO');
 
         const hierarchy = getAgentHierarchyContext(db, 'ceo');
 
@@ -1517,10 +1507,17 @@ describe('Logger Module', () => {
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('ceo', null);
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('cto', 'ceo');
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('backend-dev', 'cto');
-        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('frontend-dev', 'cto');
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run(
+          'frontend-dev',
+          'cto'
+        );
 
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('cto', 'ceo', 1, 'CEO');
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('cto', 'cto', 0, 'CTO');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('cto', 'ceo', 1, 'CEO');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('cto', 'cto', 0, 'CTO');
 
         const hierarchy = getAgentHierarchyContext(db, 'cto');
 
@@ -1593,8 +1590,12 @@ describe('Logger Module', () => {
 
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('ceo', null);
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('backend-dev', 'ceo');
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('backend-dev', 'ceo', 1, 'CEO');
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('backend-dev', 'backend-dev', 0, 'Backend Dev');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('backend-dev', 'ceo', 1, 'CEO');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('backend-dev', 'backend-dev', 0, 'Backend Dev');
 
         const logger = createHierarchicalAgentLogger(db, 'backend-dev');
 
@@ -1655,9 +1656,16 @@ describe('Logger Module', () => {
         `);
 
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('manager', null);
-        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('subordinate', 'manager');
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('subordinate', 'manager', 1, 'Manager');
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('subordinate', 'subordinate', 0, 'Subordinate');
+        db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run(
+          'subordinate',
+          'manager'
+        );
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('subordinate', 'manager', 1, 'Manager');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('subordinate', 'subordinate', 0, 'Subordinate');
 
         const logger = createHierarchicalAgentLogger(db, 'subordinate');
 
@@ -1686,7 +1694,9 @@ describe('Logger Module', () => {
         `);
 
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('ceo', null);
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('ceo', 'ceo', 0, 'CEO');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('ceo', 'ceo', 0, 'CEO');
 
         const logger = createHierarchicalAgentLogger(db, 'ceo');
 
@@ -1716,7 +1726,9 @@ describe('Logger Module', () => {
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('manager', null);
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('sub1', 'manager');
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('sub2', 'manager');
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('manager', 'manager', 0, 'Manager');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('manager', 'manager', 0, 'Manager');
 
         const logger = createHierarchicalAgentLogger(db, 'manager');
 
@@ -1744,7 +1756,9 @@ describe('Logger Module', () => {
         `);
 
         db.prepare('INSERT INTO agents (id, reporting_to) VALUES (?, ?)').run('test-agent', null);
-        db.prepare('INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)').run('test-agent', 'test-agent', 0, 'Test Agent');
+        db.prepare(
+          'INSERT INTO org_hierarchy (agent_id, ancestor_id, depth, path) VALUES (?, ?, ?, ?)'
+        ).run('test-agent', 'test-agent', 0, 'Test Agent');
 
         const logger = createHierarchicalAgentLogger(db, 'test-agent', {
           level: 'debug',

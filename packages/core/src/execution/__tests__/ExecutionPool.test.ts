@@ -101,10 +101,7 @@ describe('ExecutionPool', () => {
       });
 
       it('should handle async task execution', async () => {
-        const result = await pool.execute(
-          'agent-1',
-          createDelayedTask('delayed-result', 50)
-        );
+        const result = await pool.execute('agent-1', createDelayedTask('delayed-result', 50));
         expect(result).toBe('delayed-result');
       });
     });

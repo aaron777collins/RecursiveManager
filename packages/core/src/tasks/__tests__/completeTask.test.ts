@@ -160,9 +160,9 @@ describe('completeTaskWithFiles', () => {
     });
 
     it('should throw error if task not found', async () => {
-      await expect(
-        completeTaskWithFiles(db, 'nonexistent-task', 1)
-      ).rejects.toThrow('Task not found: nonexistent-task');
+      await expect(completeTaskWithFiles(db, 'nonexistent-task', 1)).rejects.toThrow(
+        'Task not found: nonexistent-task'
+      );
     });
 
     it('should throw error on version mismatch (optimistic locking)', async () => {
@@ -194,9 +194,7 @@ describe('completeTaskWithFiles', () => {
       });
 
       // Try to complete with wrong version number
-      await expect(completeTaskWithFiles(db, task.id, 999)).rejects.toThrow(
-        'version mismatch'
-      );
+      await expect(completeTaskWithFiles(db, task.id, 999)).rejects.toThrow('version mismatch');
 
       // Verify task is still pending
       const unchangedTask = getTask(db, task.id);

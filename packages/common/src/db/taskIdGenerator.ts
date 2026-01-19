@@ -29,21 +29,23 @@ import Database from 'better-sqlite3';
  * ```
  */
 export function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    // Replace spaces with hyphens
-    .replace(/\s+/g, '-')
-    // Remove all non-alphanumeric characters except hyphens
-    .replace(/[^a-z0-9-]/g, '')
-    // Replace multiple consecutive hyphens with a single hyphen
-    .replace(/-+/g, '-')
-    // Remove leading/trailing hyphens
-    .replace(/^-+|-+$/g, '')
-    // Limit length to 50 characters for readability
-    .substring(0, 50)
-    // Remove trailing hyphen if substring cut in the middle
-    .replace(/-+$/, '');
+  return (
+    text
+      .toLowerCase()
+      .trim()
+      // Replace spaces with hyphens
+      .replace(/\s+/g, '-')
+      // Remove all non-alphanumeric characters except hyphens
+      .replace(/[^a-z0-9-]/g, '')
+      // Replace multiple consecutive hyphens with a single hyphen
+      .replace(/-+/g, '-')
+      // Remove leading/trailing hyphens
+      .replace(/^-+|-+$/g, '')
+      // Limit length to 50 characters for readability
+      .substring(0, 50)
+      // Remove trailing hyphen if substring cut in the middle
+      .replace(/-+$/, '')
+  );
 }
 
 /**
@@ -120,11 +122,7 @@ export function getNextTaskNumber(db: Database.Database, agentId: string): numbe
  * // Returns: 'task-1-fix-bug' (different agent, starts at 1)
  * ```
  */
-export function generateTaskId(
-  db: Database.Database,
-  agentId: string,
-  title: string
-): string {
+export function generateTaskId(db: Database.Database, agentId: string, title: string): string {
   const number = getNextTaskNumber(db, agentId);
   const slug = slugify(title);
 

@@ -25,7 +25,7 @@ export function registerStatusCommand(program: Command): void {
         // 2. Format based on options
         // 3. Display organization chart
 
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulated delay
+        await new Promise((resolve) => setTimeout(resolve, 500)); // Simulated delay
 
         spinner.succeed('Agent hierarchy loaded');
         console.log();
@@ -58,9 +58,10 @@ export function registerStatusCommand(program: Command): void {
           console.log();
         }
 
-        console.log(info('Use ' + code('recursive-manager status --agent-id <id>') + ' for details'));
+        console.log(
+          info('Use ' + code('recursive-manager status --agent-id <id>') + ' for details')
+        );
         console.log();
-
       } catch (err) {
         console.error(error('Failed to load status: ' + (err as Error).message));
         process.exit(1);

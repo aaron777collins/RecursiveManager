@@ -6,7 +6,13 @@
  */
 
 import Database from 'better-sqlite3';
-import { TaskRecord, getAgent, createMessage, auditLog, AuditAction } from '@recursive-manager/common';
+import {
+  TaskRecord,
+  getAgent,
+  createMessage,
+  auditLog,
+  AuditAction,
+} from '@recursive-manager/common';
 import { loadAgentConfig } from '../config';
 import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 
@@ -71,9 +77,7 @@ export async function notifyTaskDelegation(
       const agentConfig = await loadAgentConfig(task.delegated_to, dataDir);
 
       // Check if notifications are configured and delegation notifications are disabled
-      if (
-        agentConfig.communication?.notifyOnDelegation === false
-      ) {
+      if (agentConfig.communication?.notifyOnDelegation === false) {
         // Agent has explicitly disabled delegation notifications
         return null;
       }

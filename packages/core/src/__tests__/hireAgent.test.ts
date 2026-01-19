@@ -495,9 +495,9 @@ describe('hireAgent', () => {
       // Use an invalid base directory (read-only)
       const readOnlyDir = '/invalid-readonly-path';
 
-      await expect(
-        hireAgent(db, null, config, { baseDir: readOnlyDir })
-      ).rejects.toThrow(HireAgentError);
+      await expect(hireAgent(db, null, config, { baseDir: readOnlyDir })).rejects.toThrow(
+        HireAgentError
+      );
 
       // Verify agent was NOT created in database
       const agent = getAgent(db, 'agent-001');

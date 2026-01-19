@@ -11,28 +11,15 @@ export {
   TaskContext,
 } from './createTaskDirectory';
 
-export {
-  notifyTaskDelegation,
-  NotifyDelegationOptions,
-} from './notifyDelegation';
+export { notifyTaskDelegation, NotifyDelegationOptions } from './notifyDelegation';
 
-export {
-  notifyTaskCompletion,
-  NotifyCompletionOptions,
-} from './notifyCompletion';
+export { notifyTaskCompletion, NotifyCompletionOptions } from './notifyCompletion';
 
 export { completeTaskWithFiles } from './completeTask';
 
-export {
-  archiveOldTasks,
-  getCompletedTasks,
-  compressOldArchives,
-} from './archiveTask';
+export { archiveOldTasks, getCompletedTasks, compressOldArchives } from './archiveTask';
 
-export {
-  notifyDeadlock,
-  NotifyDeadlockOptions,
-} from './notifyDeadlock';
+export { notifyDeadlock, NotifyDeadlockOptions } from './notifyDeadlock';
 
 export {
   monitorDeadlocks,

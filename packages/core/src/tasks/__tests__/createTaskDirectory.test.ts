@@ -13,11 +13,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs-extra';
 import os from 'os';
-import {
-  createTaskDirectory,
-  moveTaskDirectory,
-  TaskContext,
-} from '../createTaskDirectory';
+import { createTaskDirectory, moveTaskDirectory, TaskContext } from '../createTaskDirectory';
 import {
   createTask,
   createAgent,

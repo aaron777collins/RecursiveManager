@@ -79,8 +79,16 @@ describe('formatOrgChart', () => {
       const orgChart: OrgChartEntry[] = [
         createMockEntry({ display_name: 'CEO', role: 'CEO' }, 0, 'CEO'),
         createMockEntry({ display_name: 'CTO', role: 'CTO' }, 1, 'CEO/CTO'),
-        createMockEntry({ display_name: 'Backend Dev', role: 'backend-dev' }, 2, 'CEO/CTO/backend-dev'),
-        createMockEntry({ display_name: 'Frontend Dev', role: 'frontend-dev' }, 2, 'CEO/CTO/frontend-dev'),
+        createMockEntry(
+          { display_name: 'Backend Dev', role: 'backend-dev' },
+          2,
+          'CEO/CTO/backend-dev'
+        ),
+        createMockEntry(
+          { display_name: 'Frontend Dev', role: 'frontend-dev' },
+          2,
+          'CEO/CTO/frontend-dev'
+        ),
         createMockEntry({ display_name: 'CFO', role: 'CFO' }, 1, 'CEO/CFO'),
       ];
 
@@ -121,9 +129,9 @@ describe('formatOrgChart', () => {
       ];
 
       const result = formatAsTree(orgChart, { useColor: false, showStatus: true });
-      expect(result).toContain('● Active');  // active
-      expect(result).toContain('◐ Paused');  // paused
-      expect(result).toContain('○ Fired');   // fired
+      expect(result).toContain('● Active'); // active
+      expect(result).toContain('◐ Paused'); // paused
+      expect(result).toContain('○ Fired'); // fired
     });
 
     it('should show creation dates when requested', () => {
@@ -138,11 +146,14 @@ describe('formatOrgChart', () => {
 
     it('should show statistics when requested', () => {
       const orgChart: OrgChartEntry[] = [
-        createMockEntry({
-          display_name: 'CEO',
-          total_executions: 10,
-          total_runtime_minutes: 120
-        }, 0),
+        createMockEntry(
+          {
+            display_name: 'CEO',
+            total_executions: 10,
+            total_runtime_minutes: 120,
+          },
+          0
+        ),
       ];
 
       const result = formatAsTree(orgChart, { useColor: false, showStats: true });
@@ -151,11 +162,14 @@ describe('formatOrgChart', () => {
 
     it('should not show stats for agents with zero executions', () => {
       const orgChart: OrgChartEntry[] = [
-        createMockEntry({
-          display_name: 'CEO',
-          total_executions: 0,
-          total_runtime_minutes: 0
-        }, 0),
+        createMockEntry(
+          {
+            display_name: 'CEO',
+            total_executions: 0,
+            total_runtime_minutes: 0,
+          },
+          0
+        ),
       ];
 
       const result = formatAsTree(orgChart, { useColor: false, showStats: true });
@@ -304,9 +318,7 @@ describe('formatOrgChart', () => {
   });
 
   describe('formatOrgChart (main function)', () => {
-    const sampleOrgChart: OrgChartEntry[] = [
-      createMockEntry({ display_name: 'CEO' }, 0),
-    ];
+    const sampleOrgChart: OrgChartEntry[] = [createMockEntry({ display_name: 'CEO' }, 0)];
 
     it('should delegate to formatAsTree for tree format', () => {
       const result = formatOrgChart(sampleOrgChart, 'tree', { useColor: false });

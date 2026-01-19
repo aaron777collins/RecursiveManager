@@ -13,11 +13,7 @@ import Database from 'better-sqlite3';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as tar from 'tar';
-import {
-  archiveOldTasks,
-  getCompletedTasks,
-  compressOldArchives,
-} from '../archiveTask';
+import { archiveOldTasks, getCompletedTasks, compressOldArchives } from '../archiveTask';
 import { initializeDatabase, createTask, completeTask } from '@recursive-manager/common';
 import { createAgent } from '../../lifecycle/hireAgent';
 
@@ -93,11 +89,16 @@ describe('Task Archival - Integration Tests', () => {
         const agentDir = path.join(tempDir, 'agents', agent.id);
         const archiveDir = path.join(agentDir, 'tasks', 'archive', yearMonth, id);
 
-        const exists = await fs.access(archiveDir).then(() => true).catch(() => false);
+        const exists = await fs
+          .access(archiveDir)
+          .then(() => true)
+          .catch(() => false);
         expect(exists).toBe(true);
 
         // Verify task status is 'archived'
-        const task = db.prepare('SELECT status FROM tasks WHERE id = ?').get(id) as { status: string };
+        const task = db.prepare('SELECT status FROM tasks WHERE id = ?').get(id) as {
+          status: string;
+        };
         expect(task.status).toBe('archived');
       }
     });
@@ -153,8 +154,18 @@ describe('Task Archival - Integration Tests', () => {
       const jan2024 = path.join(agentDir, '2024-01', task1.id);
       const feb2024 = path.join(agentDir, '2024-02', task2.id);
 
-      expect(await fs.access(jan2024).then(() => true).catch(() => false)).toBe(true);
-      expect(await fs.access(feb2024).then(() => true).catch(() => false)).toBe(true);
+      expect(
+        await fs
+          .access(jan2024)
+          .then(() => true)
+          .catch(() => false)
+      ).toBe(true);
+      expect(
+        await fs
+          .access(feb2024)
+          .then(() => true)
+          .catch(() => false)
+      ).toBe(true);
     });
   });
 
@@ -207,7 +218,8 @@ describe('Task Archival - Integration Tests', () => {
       }
 
       // Verify no tasks have status 'completed' anymore
-      const completedTasks = db.prepare('SELECT COUNT(*) as count FROM tasks WHERE agent_id = ? AND status = ?')
+      const completedTasks = db
+        .prepare('SELECT COUNT(*) as count FROM tasks WHERE agent_id = ? AND status = ?')
         .get(agent.id, 'completed') as { count: number };
       expect(completedTasks.count).toBe(0);
     });
@@ -245,7 +257,9 @@ describe('Task Archival - Integration Tests', () => {
       await archiveOldTasks(db, 7);
 
       // Verify task is archived
-      const archivedTask = db.prepare('SELECT status FROM tasks WHERE id = ?').get(task.id) as { status: string };
+      const archivedTask = db.prepare('SELECT status FROM tasks WHERE id = ?').get(task.id) as {
+        status: string;
+      };
       expect(archivedTask.status).toBe('archived');
 
       // Try to complete the task again (should fail or do nothing)
@@ -254,7 +268,9 @@ describe('Task Archival - Integration Tests', () => {
       }).toThrow();
 
       // Verify status is still archived
-      const stillArchived = db.prepare('SELECT status FROM tasks WHERE id = ?').get(task.id) as { status: string };
+      const stillArchived = db.prepare('SELECT status FROM tasks WHERE id = ?').get(task.id) as {
+        status: string;
+      };
       expect(stillArchived.status).toBe('archived');
     });
   });
@@ -321,18 +337,70 @@ describe('Task Archival - Integration Tests', () => {
       // Verify each agent has their own archive directory
       const yearMonth = `${tenDaysAgo.getFullYear()}-${String(tenDaysAgo.getMonth() + 1).padStart(2, '0')}`;
 
-      const agent1Archive = path.join(tempDir, 'agents', agent1.id, 'tasks', 'archive', yearMonth, task1.id);
-      const agent2Archive = path.join(tempDir, 'agents', agent2.id, 'tasks', 'archive', yearMonth, task2.id);
+      const agent1Archive = path.join(
+        tempDir,
+        'agents',
+        agent1.id,
+        'tasks',
+        'archive',
+        yearMonth,
+        task1.id
+      );
+      const agent2Archive = path.join(
+        tempDir,
+        'agents',
+        agent2.id,
+        'tasks',
+        'archive',
+        yearMonth,
+        task2.id
+      );
 
-      expect(await fs.access(agent1Archive).then(() => true).catch(() => false)).toBe(true);
-      expect(await fs.access(agent2Archive).then(() => true).catch(() => false)).toBe(true);
+      expect(
+        await fs
+          .access(agent1Archive)
+          .then(() => true)
+          .catch(() => false)
+      ).toBe(true);
+      expect(
+        await fs
+          .access(agent2Archive)
+          .then(() => true)
+          .catch(() => false)
+      ).toBe(true);
 
       // Verify tasks don't cross-contaminate
-      const agent1HasTask2 = path.join(tempDir, 'agents', agent1.id, 'tasks', 'archive', yearMonth, task2.id);
-      const agent2HasTask1 = path.join(tempDir, 'agents', agent2.id, 'tasks', 'archive', yearMonth, task1.id);
+      const agent1HasTask2 = path.join(
+        tempDir,
+        'agents',
+        agent1.id,
+        'tasks',
+        'archive',
+        yearMonth,
+        task2.id
+      );
+      const agent2HasTask1 = path.join(
+        tempDir,
+        'agents',
+        agent2.id,
+        'tasks',
+        'archive',
+        yearMonth,
+        task1.id
+      );
 
-      expect(await fs.access(agent1HasTask2).then(() => true).catch(() => false)).toBe(false);
-      expect(await fs.access(agent2HasTask1).then(() => true).catch(() => false)).toBe(false);
+      expect(
+        await fs
+          .access(agent1HasTask2)
+          .then(() => true)
+          .catch(() => false)
+      ).toBe(false);
+      expect(
+        await fs
+          .access(agent2HasTask1)
+          .then(() => true)
+          .catch(() => false)
+      ).toBe(false);
     });
   });
 
@@ -378,21 +446,46 @@ describe('Task Archival - Integration Tests', () => {
       expect(archivedCount).toBe(1);
 
       // Verify task is archived
-      const archivedTask = db.prepare('SELECT status FROM tasks WHERE id = ?').get(task.id) as { status: string };
+      const archivedTask = db.prepare('SELECT status FROM tasks WHERE id = ?').get(task.id) as {
+        status: string;
+      };
       expect(archivedTask.status).toBe('archived');
 
       // Verify directory moved to archive
-      const archiveDir = path.join(tempDir, 'agents', agent.id, 'tasks', 'archive', yearMonth, task.id);
-      expect(await fs.access(archiveDir).then(() => true).catch(() => false)).toBe(true);
+      const archiveDir = path.join(
+        tempDir,
+        'agents',
+        agent.id,
+        'tasks',
+        'archive',
+        yearMonth,
+        task.id
+      );
+      expect(
+        await fs
+          .access(archiveDir)
+          .then(() => true)
+          .catch(() => false)
+      ).toBe(true);
 
       // Step 2: Compress the archive
       const compressedCount = await compressOldArchives(db, 90);
       expect(compressedCount).toBe(1);
 
       // Verify directory is replaced with .tar.gz
-      expect(await fs.access(archiveDir).then(() => true).catch(() => false)).toBe(false);
+      expect(
+        await fs
+          .access(archiveDir)
+          .then(() => true)
+          .catch(() => false)
+      ).toBe(false);
       const tarballPath = `${archiveDir}.tar.gz`;
-      expect(await fs.access(tarballPath).then(() => true).catch(() => false)).toBe(true);
+      expect(
+        await fs
+          .access(tarballPath)
+          .then(() => true)
+          .catch(() => false)
+      ).toBe(true);
 
       // Verify tarball contents
       const extractDir = path.join(tempDir, 'extract-test');
@@ -481,7 +574,9 @@ describe('Task Archival - Edge Cases', () => {
       expect(archivedCount).toBeGreaterThanOrEqual(1);
 
       // Verify task2 was archived successfully
-      const task2Status = db.prepare('SELECT status FROM tasks WHERE id = ?').get(task2.id) as { status: string };
+      const task2Status = db.prepare('SELECT status FROM tasks WHERE id = ?').get(task2.id) as {
+        status: string;
+      };
       expect(task2Status.status).toBe('archived');
     });
 
@@ -564,7 +659,15 @@ describe('Task Archival - Edge Cases', () => {
 
       // Create empty archive directory
       const yearMonth = `${hundredDaysAgo.getFullYear()}-${String(hundredDaysAgo.getMonth() + 1).padStart(2, '0')}`;
-      const archiveDir = path.join(tempDir, 'agents', agent.id, 'tasks', 'archive', yearMonth, task.id);
+      const archiveDir = path.join(
+        tempDir,
+        'agents',
+        agent.id,
+        'tasks',
+        'archive',
+        yearMonth,
+        task.id
+      );
       await fs.mkdir(archiveDir, { recursive: true });
 
       // Mark as archived in DB
@@ -606,7 +709,15 @@ describe('Task Archival - Edge Cases', () => {
 
       // Create archive directory with a 1MB file
       const yearMonth = `${hundredDaysAgo.getFullYear()}-${String(hundredDaysAgo.getMonth() + 1).padStart(2, '0')}`;
-      const archiveDir = path.join(tempDir, 'agents', agent.id, 'tasks', 'archive', yearMonth, task.id);
+      const archiveDir = path.join(
+        tempDir,
+        'agents',
+        agent.id,
+        'tasks',
+        'archive',
+        yearMonth,
+        task.id
+      );
       await fs.mkdir(archiveDir, { recursive: true });
 
       // Create a 1MB file with repeated content
@@ -657,7 +768,15 @@ describe('Task Archival - Edge Cases', () => {
 
       // Create archive directory with files containing special characters
       const yearMonth = `${hundredDaysAgo.getFullYear()}-${String(hundredDaysAgo.getMonth() + 1).padStart(2, '0')}`;
-      const archiveDir = path.join(tempDir, 'agents', agent.id, 'tasks', 'archive', yearMonth, task.id);
+      const archiveDir = path.join(
+        tempDir,
+        'agents',
+        agent.id,
+        'tasks',
+        'archive',
+        yearMonth,
+        task.id
+      );
       await fs.mkdir(archiveDir, { recursive: true });
 
       // Create files with various special characters
@@ -819,8 +938,14 @@ describe('Task Archival - Edge Cases', () => {
 
       // Verify all files exist with correct content
       const file1 = await fs.readFile(path.join(extractDir, task.id, 'a', 'file1.txt'), 'utf-8');
-      const file2 = await fs.readFile(path.join(extractDir, task.id, 'a', 'b', 'file2.txt'), 'utf-8');
-      const file3 = await fs.readFile(path.join(extractDir, task.id, 'a', 'b', 'c', 'file3.txt'), 'utf-8');
+      const file2 = await fs.readFile(
+        path.join(extractDir, task.id, 'a', 'b', 'file2.txt'),
+        'utf-8'
+      );
+      const file3 = await fs.readFile(
+        path.join(extractDir, task.id, 'a', 'b', 'c', 'file3.txt'),
+        'utf-8'
+      );
 
       expect(file1).toBe('level 1');
       expect(file2).toBe('level 2');
@@ -874,7 +999,8 @@ describe('Task Archival - Edge Cases', () => {
       expect(duration).toBeLessThan(10000);
 
       // Verify all tasks are archived
-      const archivedTasks = db.prepare('SELECT COUNT(*) as count FROM tasks WHERE agent_id = ? AND status = ?')
+      const archivedTasks = db
+        .prepare('SELECT COUNT(*) as count FROM tasks WHERE agent_id = ? AND status = ?')
         .get(agent.id, 'archived') as { count: number };
       expect(archivedTasks.count).toBe(taskCount);
     });

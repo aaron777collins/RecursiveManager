@@ -8,10 +8,7 @@ import inquirer from 'inquirer';
 /**
  * Confirm action with user
  */
-export async function confirm(
-  message: string,
-  defaultValue: boolean = false
-): Promise<boolean> {
+export async function confirm(message: string, defaultValue: boolean = false): Promise<boolean> {
   const { confirmed } = await inquirer.prompt([
     {
       type: 'confirm',
@@ -125,10 +122,7 @@ export async function number(
 /**
  * Show editor for long text input
  */
-export async function editor(
-  message: string,
-  defaultValue?: string
-): Promise<string> {
+export async function editor(message: string, defaultValue?: string): Promise<string> {
   const { value } = await inquirer.prompt([
     {
       type: 'editor',

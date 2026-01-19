@@ -46,7 +46,11 @@ type ExecutionResult = {
 
 type FrameworkAdapter = {
   name: string;
-  executeAgent(agentId: string, mode: 'continuous' | 'reactive', context: any): Promise<ExecutionResult>;
+  executeAgent(
+    agentId: string,
+    mode: 'continuous' | 'reactive',
+    context: any
+  ): Promise<ExecutionResult>;
   checkHealth(): Promise<boolean>;
   supportsFeature(_feature: string): boolean;
   getCapabilities(): any[];
@@ -81,7 +85,11 @@ class AdapterRegistry {
 }
 
 // Helper to create valid AgentConfig
-function createValidConfig(agentId: string, role: string, framework: string = 'mock-adapter'): AgentConfig {
+function createValidConfig(
+  agentId: string,
+  role: string,
+  framework: string = 'mock-adapter'
+): AgentConfig {
   return {
     version: '1.0.0',
     identity: {
@@ -130,7 +138,11 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
 
     mockAdapter = {
       name: 'mock-adapter',
-      async executeAgent(agentId: string, mode: 'continuous' | 'reactive', context: any): Promise<ExecutionResult> {
+      async executeAgent(
+        agentId: string,
+        mode: 'continuous' | 'reactive',
+        context: any
+      ): Promise<ExecutionResult> {
         return {
           success: true,
           duration: 1000,
@@ -350,9 +362,7 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
       await new Promise((resolve) => setTimeout(resolve, 10));
       expect(execution1Started).toBe(true);
 
-      await expect(orchestrator.executeContinuous(agentId)).rejects.toThrow(
-        'is already executing'
-      );
+      await expect(orchestrator.executeContinuous(agentId)).rejects.toThrow('is already executing');
 
       await execution1Promise;
     });
@@ -401,8 +411,8 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
       await expect(orchestrator.executeContinuous(agentId)).rejects.toThrow('Execution failed');
 
       const auditLogs = queryAuditLog(db, { agentId });
-      const failureLog = auditLogs.find((log: AuditEventRecord) =>
-        log.action === 'execute' && log.success === 0
+      const failureLog = auditLogs.find(
+        (log: AuditEventRecord) => log.action === 'execute' && log.success === 0
       );
       expect(failureLog).toBeDefined();
     });

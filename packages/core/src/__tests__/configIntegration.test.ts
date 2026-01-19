@@ -41,12 +41,9 @@ describe('Config Integration Tests (Task 2.1.9)', () => {
   describe('Generate → Merge → Save → Load Roundtrip', () => {
     it('should complete full workflow with minimal overrides', async () => {
       // Step 1: Generate default config
-      const defaultConfig = generateDefaultConfig(
-        'Backend Developer',
-        'Build REST API',
-        'CTO',
-        { id: 'test-backend-dev' }
-      );
+      const defaultConfig = generateDefaultConfig('Backend Developer', 'Build REST API', 'CTO', {
+        id: 'test-backend-dev',
+      });
 
       // Step 2: Merge with custom overrides
       const overrides = {
@@ -105,8 +102,15 @@ describe('Config Integration Tests (Task 2.1.9)', () => {
 
       // Step 5: Verify all nested fields preserved
       expect(loadedConfig).toEqual(mergedConfig);
-      expect(loadedConfig.goal.subGoals).toEqual(['Deploy services', 'Monitor systems', 'Maintain uptime']);
-      expect(loadedConfig.goal.successCriteria).toEqual(['99.9% uptime', 'Zero downtime deployments']);
+      expect(loadedConfig.goal.subGoals).toEqual([
+        'Deploy services',
+        'Monitor systems',
+        'Maintain uptime',
+      ]);
+      expect(loadedConfig.goal.successCriteria).toEqual([
+        '99.9% uptime',
+        'Zero downtime deployments',
+      ]);
       expect(loadedConfig.permissions.canHire).toBe(true);
       expect(loadedConfig.permissions.canFire).toBe(true);
       expect(() => validateAgentConfigStrict(loadedConfig)).not.toThrow();
@@ -350,7 +354,9 @@ describe('Config Integration Tests (Task 2.1.9)', () => {
       expect(() => validateAgentConfigStrict(merged)).not.toThrow();
 
       // Save should validate before writing
-      await expect(saveAgentConfig('test-validate', merged, { baseDir: testBaseDir })).resolves.not.toThrow();
+      await expect(
+        saveAgentConfig('test-validate', merged, { baseDir: testBaseDir })
+      ).resolves.not.toThrow();
 
       // Load should return valid config
       const loaded = await loadAgentConfig('test-validate', { baseDir: testBaseDir });

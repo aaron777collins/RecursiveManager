@@ -133,14 +133,10 @@ describe('Execution Context Preparation', () => {
     });
 
     it('should throw ContextLoadError on failure', async () => {
-      mockLoadAgentConfig.mockRejectedValue(
-        new Error('Config not found')
-      );
+      mockLoadAgentConfig.mockRejectedValue(new Error('Config not found'));
 
       await expect(loadConfig('test-agent')).rejects.toThrow(ContextLoadError);
-      await expect(loadConfig('test-agent')).rejects.toThrow(
-        'Failed to load agent configuration'
-      );
+      await expect(loadConfig('test-agent')).rejects.toThrow('Failed to load agent configuration');
     });
 
     it('should pass options to loadAgentConfig', async () => {
@@ -242,12 +238,8 @@ describe('Execution Context Preparation', () => {
         throw new Error('Database error');
       });
 
-      await expect(loadTasks(mockDb, 'test-agent')).rejects.toThrow(
-        ContextLoadError
-      );
-      await expect(loadTasks(mockDb, 'test-agent')).rejects.toThrow(
-        'Failed to load active tasks'
-      );
+      await expect(loadTasks(mockDb, 'test-agent')).rejects.toThrow(ContextLoadError);
+      await expect(loadTasks(mockDb, 'test-agent')).rejects.toThrow('Failed to load active tasks');
     });
 
     it('should handle empty task list', async () => {
@@ -340,12 +332,8 @@ describe('Execution Context Preparation', () => {
         throw new Error('Database error');
       });
 
-      await expect(loadMessages(mockDb, 'test-agent')).rejects.toThrow(
-        ContextLoadError
-      );
-      await expect(loadMessages(mockDb, 'test-agent')).rejects.toThrow(
-        'Failed to load messages'
-      );
+      await expect(loadMessages(mockDb, 'test-agent')).rejects.toThrow(ContextLoadError);
+      await expect(loadMessages(mockDb, 'test-agent')).rejects.toThrow('Failed to load messages');
     });
 
     it('should handle empty message list', async () => {
@@ -412,9 +400,7 @@ describe('Execution Context Preparation', () => {
         throw new Error('Path error');
       });
 
-      await expect(loadWorkspaceFiles('test-agent')).rejects.toThrow(
-        ContextLoadError
-      );
+      await expect(loadWorkspaceFiles('test-agent')).rejects.toThrow(ContextLoadError);
     });
   });
 
@@ -436,11 +422,7 @@ describe('Execution Context Preparation', () => {
     });
 
     it('should load complete execution context successfully', async () => {
-      const context = await loadExecutionContext(
-        mockDb,
-        'test-agent',
-        'continuous'
-      );
+      const context = await loadExecutionContext(mockDb, 'test-agent', 'continuous');
 
       expect(context).toMatchObject({
         agentId: 'test-agent',
@@ -455,11 +437,7 @@ describe('Execution Context Preparation', () => {
     });
 
     it('should load context for reactive mode', async () => {
-      const context = await loadExecutionContext(
-        mockDb,
-        'test-agent',
-        'reactive'
-      );
+      const context = await loadExecutionContext(mockDb, 'test-agent', 'reactive');
 
       expect(context.mode).toBe('reactive');
     });
@@ -473,11 +451,7 @@ describe('Execution Context Preparation', () => {
       mockGetActiveTasks.mockReturnValue(mockTasks);
       mockGetMessages.mockReturnValue(mockMessages);
 
-      const context = await loadExecutionContext(
-        mockDb,
-        'test-agent',
-        'continuous'
-      );
+      const context = await loadExecutionContext(mockDb, 'test-agent', 'continuous');
 
       expect(context.config).toBeDefined();
       expect(context.activeTasks).toHaveLength(1);
@@ -485,13 +459,11 @@ describe('Execution Context Preparation', () => {
     });
 
     it('should throw ContextLoadError if config loading fails', async () => {
-      mockLoadAgentConfig.mockRejectedValue(
-        new Error('Config error')
-      );
+      mockLoadAgentConfig.mockRejectedValue(new Error('Config error'));
 
-      await expect(
-        loadExecutionContext(mockDb, 'test-agent', 'continuous')
-      ).rejects.toThrow(ContextLoadError);
+      await expect(loadExecutionContext(mockDb, 'test-agent', 'continuous')).rejects.toThrow(
+        ContextLoadError
+      );
     });
 
     it('should throw ContextLoadError if task loading fails', async () => {
@@ -499,9 +471,9 @@ describe('Execution Context Preparation', () => {
         throw new Error('Task error');
       });
 
-      await expect(
-        loadExecutionContext(mockDb, 'test-agent', 'continuous')
-      ).rejects.toThrow(ContextLoadError);
+      await expect(loadExecutionContext(mockDb, 'test-agent', 'continuous')).rejects.toThrow(
+        ContextLoadError
+      );
     });
 
     it('should pass options to all loaders', async () => {

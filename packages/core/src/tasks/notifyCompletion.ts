@@ -6,7 +6,13 @@
  */
 
 import Database from 'better-sqlite3';
-import { TaskRecord, getAgent, createMessage, auditLog, AuditAction } from '@recursive-manager/common';
+import {
+  TaskRecord,
+  getAgent,
+  createMessage,
+  auditLog,
+  AuditAction,
+} from '@recursive-manager/common';
 import { loadAgentConfig } from '../config';
 import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 

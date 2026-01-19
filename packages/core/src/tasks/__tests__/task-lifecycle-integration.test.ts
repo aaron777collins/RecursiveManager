@@ -219,12 +219,7 @@ describe('Task Lifecycle Integration Tests', () => {
       });
 
       // STEP 1: DELEGATE - Manager delegates to subordinate
-      const delegatedTask = delegateTask(
-        db,
-        managerTask.id,
-        'developer-001',
-        managerTask.version
-      );
+      const delegatedTask = delegateTask(db, managerTask.id, 'developer-001', managerTask.version);
 
       // Verify delegation
       expect(delegatedTask.delegated_to).toBe('developer-001');
@@ -485,9 +480,7 @@ describe('Task Lifecycle Integration Tests', () => {
 
       // Should not throw when completing task with no parent
       const inProgress = updateTaskStatus(db, task.id, 'in-progress', task.version);
-      await expect(
-        completeTaskWithFiles(db, task.id, inProgress.version)
-      ).resolves.not.toThrow();
+      await expect(completeTaskWithFiles(db, task.id, inProgress.version)).resolves.not.toThrow();
 
       const completed = getTask(db, task.id);
       expect(completed?.status).toBe('completed');

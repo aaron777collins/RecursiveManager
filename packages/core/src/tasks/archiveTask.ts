@@ -47,10 +47,7 @@ const gzip = promisify(zlib.gzip);
  * console.log(`Archived ${count30} tasks older than 30 days`);
  * ```
  */
-export async function archiveOldTasks(
-  db: Database,
-  olderThanDays: number = 7
-): Promise<number> {
+export async function archiveOldTasks(db: Database, olderThanDays: number = 7): Promise<number> {
   // Calculate the cutoff date
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
@@ -115,12 +112,7 @@ export async function archiveOldTasks(
       const archiveStatus = `archive/${year}-${month}`;
 
       // Move the task directory from completed/ to archive/{YYYY-MM}/
-      await moveTaskDirectory(
-        task.agent_id,
-        task.id,
-        'completed',
-        archiveStatus
-      );
+      await moveTaskDirectory(task.agent_id, task.id, 'completed', archiveStatus);
 
       // Update the database status
       const now = new Date().toISOString();
@@ -158,10 +150,7 @@ export async function archiveOldTasks(
  * });
  * ```
  */
-export function getCompletedTasks(
-  db: Database,
-  agentId?: string
-): TaskRecord[] {
+export function getCompletedTasks(db: Database, agentId?: string): TaskRecord[] {
   let query;
   let params: string[];
 
@@ -305,13 +294,7 @@ export async function compressOldArchives(
 
       // Construct the task directory path
       const agentDir = getAgentDirectory(task.agent_id);
-      const taskDir = path.join(
-        agentDir,
-        'tasks',
-        'archive',
-        archiveYearMonth,
-        task.id
-      );
+      const taskDir = path.join(agentDir, 'tasks', 'archive', archiveYearMonth, task.id);
 
       // Check if the directory exists (and hasn't been compressed already)
       try {
@@ -364,10 +347,7 @@ export async function compressOldArchives(
  * @param sourceDir - Directory to compress
  * @param outputFile - Output .tar.gz file path
  */
-async function compressDirectory(
-  sourceDir: string,
-  outputFile: string
-): Promise<void> {
+async function compressDirectory(sourceDir: string, outputFile: string): Promise<void> {
   // Create a simple archive by recursively reading all files and their contents
   const files = await getAllFilesRecursive(sourceDir);
 

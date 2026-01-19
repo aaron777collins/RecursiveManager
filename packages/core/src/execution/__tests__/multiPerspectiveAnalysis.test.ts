@@ -32,7 +32,11 @@ type ExecutionResult = {
 
 type FrameworkAdapter = {
   name: string;
-  executeAgent(agentId: string, mode: 'continuous' | 'reactive', context: any): Promise<ExecutionResult>;
+  executeAgent(
+    agentId: string,
+    mode: 'continuous' | 'reactive',
+    context: any
+  ): Promise<ExecutionResult>;
   checkHealth(): Promise<boolean>;
   supportsFeature(_feature: string): boolean;
   getCapabilities(): any[];
@@ -114,13 +118,14 @@ function createValidConfig(agentId: string, role: string): AgentConfig {
 }
 
 // Mock adapter for testing
-function createMockAdapter(
-  name: string,
-  isHealthy: boolean = true
-): FrameworkAdapter {
+function createMockAdapter(name: string, isHealthy: boolean = true): FrameworkAdapter {
   return {
     name,
-    async executeAgent(_agentId: string, _mode: 'continuous' | 'reactive', _context: any): Promise<ExecutionResult> {
+    async executeAgent(
+      _agentId: string,
+      _mode: 'continuous' | 'reactive',
+      _context: any
+    ): Promise<ExecutionResult> {
       return {
         success: true,
         agentId: _agentId,
@@ -334,7 +339,10 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
       const question = 'Should we implement feature X?';
       const perspectives = ['Engineer'];
 
-      const decision = await shortTimeoutOrchestrator.runMultiPerspectiveAnalysis(question, perspectives);
+      const decision = await shortTimeoutOrchestrator.runMultiPerspectiveAnalysis(
+        question,
+        perspectives
+      );
 
       // Should return safe default decision
       expect(decision).toBeDefined();
@@ -343,7 +351,9 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
       expect(decision.perspectives).toEqual(perspectives);
       expect(decision.perspectiveResults).toHaveLength(0);
       expect(decision.warnings).toBeDefined();
-      expect(decision.warnings).toContain('Analysis failed or timed out. Using safe default decision.');
+      expect(decision.warnings).toContain(
+        'Analysis failed or timed out. Using safe default decision.'
+      );
     });
 
     it('should include error information in rationale on failure', async () => {
@@ -357,7 +367,10 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
       const question = 'Complex question';
       const perspectives = ['Engineer'];
 
-      const decision = await shortTimeoutOrchestrator.runMultiPerspectiveAnalysis(question, perspectives);
+      const decision = await shortTimeoutOrchestrator.runMultiPerspectiveAnalysis(
+        question,
+        perspectives
+      );
 
       expect(decision.rationale).toContain('Analysis failed');
     });
@@ -467,10 +480,9 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
       ];
 
       for (const perspective of perspectives) {
-        const decision = await orchestrator.runMultiPerspectiveAnalysis(
-          'Test question',
-          [perspective]
-        );
+        const decision = await orchestrator.runMultiPerspectiveAnalysis('Test question', [
+          perspective,
+        ]);
 
         expect(decision.perspectiveResults).toHaveLength(1);
         expect(decision.perspectiveResults[0].perspective).toBe(perspective);
@@ -493,7 +505,7 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
       const decision = await orchestrator.runMultiPerspectiveAnalysis('Test', perspectives);
 
       expect(decision.perspectiveResults).toHaveLength(3);
-      expect(decision.perspectiveResults.every(r => r.perspective === 'Engineer')).toBe(true);
+      expect(decision.perspectiveResults.every((r) => r.perspective === 'Engineer')).toBe(true);
     });
   });
 
@@ -504,16 +516,11 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
     });
 
     it('should work with orchestrator created with default timeout', async () => {
-      const defaultOrchestrator = new ExecutionOrchestrator(
-        db,
-        baseDir,
-        adapterRegistry as any
-      );
+      const defaultOrchestrator = new ExecutionOrchestrator(db, baseDir, adapterRegistry as any);
 
-      const decision = await defaultOrchestrator.runMultiPerspectiveAnalysis(
-        'Test question',
-        ['Engineer']
-      );
+      const decision = await defaultOrchestrator.runMultiPerspectiveAnalysis('Test question', [
+        'Engineer',
+      ]);
 
       expect(decision).toBeDefined();
     });
@@ -526,10 +533,9 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis', () => {
         5000 // 5 seconds
       );
 
-      const decision = await customOrchestrator.runMultiPerspectiveAnalysis(
-        'Test question',
-        ['Engineer']
-      );
+      const decision = await customOrchestrator.runMultiPerspectiveAnalysis('Test question', [
+        'Engineer',
+      ]);
 
       expect(decision).toBeDefined();
     });

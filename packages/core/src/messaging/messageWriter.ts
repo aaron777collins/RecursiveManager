@@ -139,9 +139,7 @@ export async function writeMessagesInBatch(
   options: { dataDir?: string } = {}
 ): Promise<string[]> {
   const results = await Promise.allSettled(
-    messages.map(({ agentId, message }) =>
-      writeMessageToInbox(agentId, message, options)
-    )
+    messages.map(({ agentId, message }) => writeMessageToInbox(agentId, message, options))
   );
 
   const paths: string[] = [];
@@ -153,9 +151,7 @@ export async function writeMessagesInBatch(
     } else {
       const message = messages[index];
       errors.push(
-        new Error(
-          `Failed to write message to ${message?.agentId ?? 'unknown'}: ${result.reason}`
-        )
+        new Error(`Failed to write message to ${message?.agentId ?? 'unknown'}: ${result.reason}`)
       );
     }
   });
@@ -163,10 +159,7 @@ export async function writeMessagesInBatch(
   // If some messages failed, log but don't throw
   // This allows partial success in notification scenarios
   if (errors.length > 0) {
-    console.warn(
-      `${errors.length}/${messages.length} messages failed to write:`,
-      errors
-    );
+    console.warn(`${errors.length}/${messages.length} messages failed to write:`, errors);
   }
 
   return paths;

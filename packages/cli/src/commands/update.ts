@@ -83,15 +83,15 @@ export function registerUpdateCommand(program: Command): void {
             console.log();
             console.log(success('RecursiveManager has been updated successfully!'));
             console.log();
-            console.log(info('Restart any running RecursiveManager processes to use the new version'));
+            console.log(
+              info('Restart any running RecursiveManager processes to use the new version')
+            );
             console.log();
-
           } catch (err) {
             spinner.fail('Update failed');
             throw err;
           }
         }
-
       } catch (err) {
         console.error(error('Update failed: ' + (err as Error).message));
         console.log();

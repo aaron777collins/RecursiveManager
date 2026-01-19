@@ -50,7 +50,11 @@ type ExecutionResult = {
 
 type FrameworkAdapter = {
   name: string;
-  executeAgent(agentId: string, mode: 'continuous' | 'reactive', context: any): Promise<ExecutionResult>;
+  executeAgent(
+    agentId: string,
+    mode: 'continuous' | 'reactive',
+    context: any
+  ): Promise<ExecutionResult>;
   checkHealth(): Promise<boolean>;
   supportsFeature(_feature: string): boolean;
   getCapabilities(): any[];
@@ -85,7 +89,11 @@ class AdapterRegistry {
 }
 
 // Helper to create valid AgentConfig
-function createValidConfig(agentId: string, role: string, framework: string = 'mock-adapter'): AgentConfig {
+function createValidConfig(
+  agentId: string,
+  role: string,
+  framework: string = 'mock-adapter'
+): AgentConfig {
   return {
     version: '1.0.0',
     identity: {
@@ -172,9 +180,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       };
 
       // Launch 10 executions for the same agent
-      const executions = Array.from({ length: 10 }, () =>
-        pool.execute(agentId, executeAgent)
-      );
+      const executions = Array.from({ length: 10 }, () => pool.execute(agentId, executeAgent));
 
       await Promise.all(executions);
 
@@ -304,13 +310,13 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
 
       const executions = [
         pool.execute('agent-1', () => executeAgent('agent-1', false)),
-        pool.execute('agent-2', () => executeAgent('agent-2', true)).catch(() =>
-          results.push({ agentId: 'agent-2', success: false })
-        ),
+        pool
+          .execute('agent-2', () => executeAgent('agent-2', true))
+          .catch(() => results.push({ agentId: 'agent-2', success: false })),
         pool.execute('agent-3', () => executeAgent('agent-3', false)),
-        pool.execute('agent-4', () => executeAgent('agent-4', true)).catch(() =>
-          results.push({ agentId: 'agent-4', success: false })
-        ),
+        pool
+          .execute('agent-4', () => executeAgent('agent-4', true))
+          .catch(() => results.push({ agentId: 'agent-4', success: false })),
       ];
 
       await Promise.all(executions);
@@ -390,9 +396,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       await Promise.all(processes.map((name) => acquirePidLock(name)));
 
       // All should be running
-      const runningStatus = await Promise.all(
-        processes.map((name) => isProcessRunningByPid(name))
-      );
+      const runningStatus = await Promise.all(processes.map((name) => isProcessRunningByPid(name)));
       expect(runningStatus.every((status) => status !== null)).toBe(true);
 
       // Clean up
@@ -430,7 +434,10 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
     beforeEach(() => {
       mockAdapter = {
         name: 'mock-adapter',
-        async executeAgent(agentId: string, mode: 'continuous' | 'reactive'): Promise<ExecutionResult> {
+        async executeAgent(
+          agentId: string,
+          mode: 'continuous' | 'reactive'
+        ): Promise<ExecutionResult> {
           // Simulate some work
           await new Promise((resolve) => setTimeout(resolve, 50));
           return {
@@ -494,9 +501,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Try to start second execution - should fail
-      await expect(orchestrator.executeContinuous(agentId)).rejects.toThrow(
-        'is already executing'
-      );
+      await expect(orchestrator.executeContinuous(agentId)).rejects.toThrow('is already executing');
 
       // Wait for first execution to complete
       const result1 = await exec1Promise;
@@ -598,9 +603,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       }
 
       // Execute all agents with some executing same agent multiple times
-      const executions = [
-        ...agents.map((agentId) => orchestrator.executeContinuous(agentId)),
-      ];
+      const executions = [...agents.map((agentId) => orchestrator.executeContinuous(agentId))];
 
       const results = await Promise.all(executions);
 
@@ -618,7 +621,10 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
     beforeEach(() => {
       mockAdapter = {
         name: 'mock-adapter',
-        async executeAgent(agentId: string, mode: 'continuous' | 'reactive'): Promise<ExecutionResult> {
+        async executeAgent(
+          agentId: string,
+          mode: 'continuous' | 'reactive'
+        ): Promise<ExecutionResult> {
           await new Promise((resolve) => setTimeout(resolve, 30));
           return {
             success: true,
@@ -675,9 +681,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Try second execution - should fail at lock level
-      await expect(orchestrator.executeContinuous(agentId)).rejects.toThrow(
-        'is already executing'
-      );
+      await expect(orchestrator.executeContinuous(agentId)).rejects.toThrow('is already executing');
 
       await exec1Promise;
 

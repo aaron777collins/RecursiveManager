@@ -579,9 +579,7 @@ describe('fireAgent()', () => {
       const messages = getMessages(db, { agentId: 'ceo-001' });
       expect(messages.length).toBeGreaterThan(0);
 
-      const firedNotification = messages.find((m) =>
-        m.subject?.includes('Termination Notice')
-      );
+      const firedNotification = messages.find((m) => m.subject?.includes('Termination Notice'));
       expect(firedNotification).toBeDefined();
       expect(firedNotification?.priority).toBe('high');
       expect(firedNotification?.action_required).toBe(true);
@@ -654,9 +652,7 @@ describe('fireAgent()', () => {
       const messages = getMessages(db, { agentId: 'dev-001' });
       expect(messages.length).toBeGreaterThan(0);
 
-      const managerChangeNotification = messages.find((m) =>
-        m.subject?.includes('Manager Change')
-      );
+      const managerChangeNotification = messages.find((m) => m.subject?.includes('Manager Change'));
       expect(managerChangeNotification).toBeDefined();
       expect(managerChangeNotification?.priority).toBe('high');
       expect(managerChangeNotification?.action_required).toBe(true);
@@ -686,9 +682,7 @@ describe('fireAgent()', () => {
       const messages = getMessages(db, { agentId: 'dev-001' });
       expect(messages.length).toBeGreaterThan(0);
 
-      const cascadeNotification = messages.find((m) =>
-        m.subject?.includes('Cascade Termination')
-      );
+      const cascadeNotification = messages.find((m) => m.subject?.includes('Cascade Termination'));
       expect(cascadeNotification).toBeDefined();
       expect(cascadeNotification?.priority).toBe('urgent');
       expect(cascadeNotification?.action_required).toBe(true);

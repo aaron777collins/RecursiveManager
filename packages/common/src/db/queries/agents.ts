@@ -46,8 +46,8 @@ export function createAgent(db: Database.Database, input: CreateAgentInput): Age
   if (!agentIdPattern.test(input.id)) {
     throw new Error(
       `Invalid agent ID format: '${input.id}'. ` +
-      `Agent IDs must contain only lowercase letters, numbers, and hyphens, ` +
-      `and cannot start or end with a hyphen.`
+        `Agent IDs must contain only lowercase letters, numbers, and hyphens, ` +
+        `and cannot start or end with a hyphen.`
     );
   }
 

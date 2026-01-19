@@ -106,10 +106,7 @@ export class ExecutionPool {
    * @param execute - Function to execute
    * @returns Promise with execution result
    */
-  private async executeTask<T>(
-    agentId: string,
-    execute: () => Promise<T>
-  ): Promise<T> {
+  private async executeTask<T>(agentId: string, execute: () => Promise<T>): Promise<T> {
     this.active.add(agentId);
 
     try {
@@ -148,9 +145,7 @@ export class ExecutionPool {
     this.totalQueueWaitTime += queueWaitTime;
 
     // Execute the queued task
-    this.executeTask(task.agentId, task.execute)
-      .then(task.resolve)
-      .catch(task.reject);
+    this.executeTask(task.agentId, task.execute).then(task.resolve).catch(task.reject);
   }
 
   /**
@@ -203,10 +198,7 @@ export class ExecutionPool {
       maxConcurrent: this.maxConcurrent,
       totalProcessed: this.totalProcessed,
       totalFailed: this.totalFailed,
-      avgQueueWaitTime:
-        this.totalProcessed > 0
-          ? this.totalQueueWaitTime / this.totalProcessed
-          : 0,
+      avgQueueWaitTime: this.totalProcessed > 0 ? this.totalQueueWaitTime / this.totalProcessed : 0,
       activeAgents: Array.from(this.active),
     };
   }
@@ -221,9 +213,7 @@ export class ExecutionPool {
     while (this.queue.length > 0) {
       const task = this.queue.shift();
       if (task) {
-        task.reject(
-          new Error('Task cancelled: execution pool queue was cleared')
-        );
+        task.reject(new Error('Task cancelled: execution pool queue was cleared'));
       }
     }
   }

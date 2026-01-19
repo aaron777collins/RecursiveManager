@@ -5,11 +5,7 @@
  * and contain all necessary information for agent execution.
  */
 
-import {
-  buildContinuousPrompt,
-  buildReactivePrompt,
-  buildMultiPerspectivePrompt,
-} from '../index';
+import { buildContinuousPrompt, buildReactivePrompt, buildMultiPerspectivePrompt } from '../index';
 import type { AgentConfig } from '@recursive-manager/common';
 import type { ExecutionContext, TaskSchema, Message } from '../../types';
 
@@ -563,8 +559,12 @@ describe('Prompt Integration', () => {
     const context = createMockContext('continuous', { activeTasks: [task] });
 
     // Different agents, same structure expected
-    const agent1 = createMockAgentConfig({ identity: { ...createMockAgentConfig().identity, displayName: 'Agent 1' } });
-    const agent2 = createMockAgentConfig({ identity: { ...createMockAgentConfig().identity, displayName: 'Agent 2' } });
+    const agent1 = createMockAgentConfig({
+      identity: { ...createMockAgentConfig().identity, displayName: 'Agent 1' },
+    });
+    const agent2 = createMockAgentConfig({
+      identity: { ...createMockAgentConfig().identity, displayName: 'Agent 2' },
+    });
 
     const prompt1 = buildContinuousPrompt(agent1, [task], context);
     const prompt2 = buildContinuousPrompt(agent2, [task], context);

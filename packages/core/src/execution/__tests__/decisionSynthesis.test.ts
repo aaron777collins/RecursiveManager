@@ -41,7 +41,11 @@ type ExecutionResult = {
 
 type FrameworkAdapter = {
   name: string;
-  executeAgent(agentId: string, mode: 'continuous' | 'reactive', context: any): Promise<ExecutionResult>;
+  executeAgent(
+    agentId: string,
+    mode: 'continuous' | 'reactive',
+    context: any
+  ): Promise<ExecutionResult>;
   checkHealth(): Promise<boolean>;
   supportsFeature(_feature: string): boolean;
   getCapabilities(): any[];
@@ -125,7 +129,11 @@ function createValidConfig(agentId: string, role: string): AgentConfig {
 function createMockAdapter(name: string, healthy = true): FrameworkAdapter {
   return {
     name,
-    async executeAgent(_agentId: string, mode: 'continuous' | 'reactive', _context: any): Promise<ExecutionResult> {
+    async executeAgent(
+      _agentId: string,
+      mode: 'continuous' | 'reactive',
+      _context: any
+    ): Promise<ExecutionResult> {
       return {
         success: true,
         agentId: _agentId,
@@ -177,11 +185,7 @@ describe('Decision Synthesis', () => {
     adapterRegistry.register(createMockAdapter('mock-adapter', true));
 
     // Create orchestrator instance
-    orchestrator = new ExecutionOrchestrator(
-      dbPool,
-      agentDir,
-      adapterRegistry as any
-    );
+    orchestrator = new ExecutionOrchestrator(dbPool, agentDir, adapterRegistry as any);
   });
 
   afterEach(async () => {
@@ -225,27 +229,21 @@ describe('Decision Synthesis', () => {
     });
 
     it('should not trigger strong rejection with confidence <= 0.8', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Should we proceed?',
-        [
-          'Technical (approve with 0.9)',
-          'Security (reject with 0.8)', // Exactly 0.8, should not trigger strong rejection
-          'UX (approve with 0.85)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Should we proceed?', [
+        'Technical (approve with 0.9)',
+        'Security (reject with 0.8)', // Exactly 0.8, should not trigger strong rejection
+        'UX (approve with 0.85)',
+      ]);
 
       // Should use majority approval rule instead
       expect(decision.recommendation).not.toBe('reject');
     });
 
     it('should include strong rejection perspective in rationale', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Deploy to production?',
-        [
-          'Technical (approve)',
-          'Security (reject with confidence 0.95, critical vulnerability found)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Deploy to production?', [
+        'Technical (approve)',
+        'Security (reject with confidence 0.95, critical vulnerability found)',
+      ]);
 
       expect(decision.recommendation).toBe('reject');
       expect(decision.rationale).toContain('Security');
@@ -257,11 +255,7 @@ describe('Decision Synthesis', () => {
     it('should approve when majority (>50%) of perspectives approve', async () => {
       const decision = await orchestrator.runMultiPerspectiveAnalysis(
         'Should we implement this feature?',
-        [
-          'Technical (yes, recommend)',
-          'Business (yes, proceed)',
-          'UX (no, reject)',
-        ]
+        ['Technical (yes, recommend)', 'Business (yes, proceed)', 'UX (no, reject)']
       );
 
       expect(decision.recommendation).toBe('approve');
@@ -270,29 +264,23 @@ describe('Decision Synthesis', () => {
     });
 
     it('should cap confidence at 0.95 for majority approval', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Deploy feature?',
-        [
-          'Technical (yes, approve with 1.0 confidence)',
-          'Business (yes, approve with 1.0 confidence)',
-          'UX (yes, approve with 1.0 confidence)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Deploy feature?', [
+        'Technical (yes, approve with 1.0 confidence)',
+        'Business (yes, approve with 1.0 confidence)',
+        'UX (yes, approve with 1.0 confidence)',
+      ]);
 
       expect(decision.recommendation).toBe('approve');
       expect(decision.confidence).toBeLessThanOrEqual(0.95);
     });
 
     it('should include warnings when minority perspectives reject', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Launch product?',
-        [
-          'Technical (approve)',
-          'Business (approve)',
-          'Legal (approve)',
-          'Security (reject)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Launch product?', [
+        'Technical (approve)',
+        'Business (approve)',
+        'Legal (approve)',
+        'Security (reject)',
+      ]);
 
       expect(decision.recommendation).toBe('approve');
       expect(decision.warnings).toBeDefined();
@@ -301,14 +289,11 @@ describe('Decision Synthesis', () => {
     });
 
     it('should calculate average confidence from approvals', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Proceed with update?',
-        [
-          'Perspective A (approve with confidence 0.8)',
-          'Perspective B (approve with confidence 0.6)',
-          'Perspective C (approve with confidence 0.7)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Proceed with update?', [
+        'Perspective A (approve with confidence 0.8)',
+        'Perspective B (approve with confidence 0.6)',
+        'Perspective C (approve with confidence 0.7)',
+      ]);
 
       expect(decision.recommendation).toBe('approve');
       // Average of 0.8, 0.6, 0.7 = 0.7
@@ -316,15 +301,12 @@ describe('Decision Synthesis', () => {
     });
 
     it('should work with exactly majority (not just >50%)', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Deploy?',
-        [
-          'Technical (approve)',
-          'Business (approve)',
-          'Security (reject)',
-          'UX (reject)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Deploy?', [
+        'Technical (approve)',
+        'Business (approve)',
+        'Security (reject)',
+        'UX (reject)',
+      ]);
 
       // With equal approvals/rejections, should not use majority approval rule
       expect(decision.recommendation).not.toBe('approve');
@@ -333,26 +315,20 @@ describe('Decision Synthesis', () => {
 
   describe('Rule 3: Conditional Approval', () => {
     it('should return conditional when perspectives suggest conditions', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Deploy to production?',
-        [
-          'Technical (conditional, provided that tests pass)',
-          'Security (conditional, if security audit is complete)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Deploy to production?', [
+        'Technical (conditional, provided that tests pass)',
+        'Security (conditional, if security audit is complete)',
+      ]);
 
       expect(decision.recommendation).toBe('conditional');
       expect(decision.warnings).toBeDefined();
-      expect(decision.warnings?.some(w => w.includes('conditional'))).toBe(true);
+      expect(decision.warnings?.some((w) => w.includes('conditional'))).toBe(true);
     });
 
     it('should reduce confidence by 0.9 multiplier for conditional decisions', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Release version?',
-        [
-          'Technical (conditional with 0.9 confidence, if tests pass)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Release version?', [
+        'Technical (conditional with 0.9 confidence, if tests pass)',
+      ]);
 
       expect(decision.recommendation).toBe('conditional');
       // 0.9 * 0.9 = 0.81
@@ -360,46 +336,34 @@ describe('Decision Synthesis', () => {
     });
 
     it('should detect "if" keyword as conditional', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Merge PR?',
-        [
-          'Reviewer (approve if CI passes)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Merge PR?', [
+        'Reviewer (approve if CI passes)',
+      ]);
 
       expect(decision.recommendation).toBe('conditional');
     });
 
     it('should detect "provided that" as conditional', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Deploy?',
-        [
-          'Technical (proceed provided that backups are ready)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Deploy?', [
+        'Technical (proceed provided that backups are ready)',
+      ]);
 
       expect(decision.recommendation).toBe('conditional');
     });
 
     it('should detect "with conditions" as conditional', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Launch feature?',
-        [
-          'Product (approve with conditions)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Launch feature?', [
+        'Product (approve with conditions)',
+      ]);
 
       expect(decision.recommendation).toBe('conditional');
     });
 
     it('should include perspective names in conditional rationale', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Release?',
-        [
-          'Technical Review (conditional)',
-          'Security Audit (conditional)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Release?', [
+        'Technical Review (conditional)',
+        'Security Audit (conditional)',
+      ]);
 
       expect(decision.recommendation).toBe('conditional');
       expect(decision.rationale).toContain('Technical Review');
@@ -409,61 +373,49 @@ describe('Decision Synthesis', () => {
 
   describe('Rule 4: No Clear Consensus', () => {
     it('should require review when majority are neutral', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Should we do this?',
-        [
-          'Perspective A (maybe)',
-          'Perspective B (unclear)',
-          'Perspective C (uncertain)',
-          'Perspective D (approve)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Should we do this?', [
+        'Perspective A (maybe)',
+        'Perspective B (unclear)',
+        'Perspective C (uncertain)',
+        'Perspective D (approve)',
+      ]);
 
       expect(decision.recommendation).toBe('review_required');
       expect(decision.confidence).toBe(0.4); // Low confidence
       expect(decision.warnings).toBeDefined();
-      expect(decision.warnings?.some(w => w.includes('consensus'))).toBe(true);
+      expect(decision.warnings?.some((w) => w.includes('consensus'))).toBe(true);
     });
 
     it('should require review when approvals equal rejections', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Proceed?',
-        [
-          'Technical (approve)',
-          'Business (approve)',
-          'Security (reject)',
-          'Legal (reject)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Proceed?', [
+        'Technical (approve)',
+        'Business (approve)',
+        'Security (reject)',
+        'Legal (reject)',
+      ]);
 
       expect(decision.recommendation).toBe('review_required');
       expect(decision.confidence).toBe(0.4);
-      expect(decision.warnings?.some(w => w.includes('review'))).toBe(true);
+      expect(decision.warnings?.some((w) => w.includes('review'))).toBe(true);
     });
 
     it('should set confidence to 0.4 for no consensus', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Deploy?',
-        [
-          'Perspective 1 (neutral)',
-          'Perspective 2 (neutral)',
-          'Perspective 3 (neutral)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Deploy?', [
+        'Perspective 1 (neutral)',
+        'Perspective 2 (neutral)',
+        'Perspective 3 (neutral)',
+      ]);
 
       expect(decision.recommendation).toBe('review_required');
       expect(decision.confidence).toBe(0.4);
     });
 
     it('should include vote counts in rationale', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Action?',
-        [
-          'A (approve)',
-          'B (reject)',
-          'C (neutral)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Action?', [
+        'A (approve)',
+        'B (reject)',
+        'C (neutral)',
+      ]);
 
       expect(decision.recommendation).toBe('review_required');
       expect(decision.rationale).toMatch(/Approvals: \d+/);
@@ -472,43 +424,34 @@ describe('Decision Synthesis', () => {
     });
 
     it('should recommend human review in warnings', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Decision needed',
-        [
-          'Option 1 (maybe)',
-          'Option 2 (uncertain)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Decision needed', [
+        'Option 1 (maybe)',
+        'Option 2 (uncertain)',
+      ]);
 
       expect(decision.recommendation).toBe('review_required');
-      expect(decision.warnings?.some(w => w.toLowerCase().includes('human'))).toBe(true);
+      expect(decision.warnings?.some((w) => w.toLowerCase().includes('human'))).toBe(true);
     });
   });
 
   describe('Fallback: Majority Rejection', () => {
     it('should reject when more rejections than approvals', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Deploy now?',
-        [
-          'Technical (no, reject)',
-          'Security (no, reject)',
-          'UX (yes, approve)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Deploy now?', [
+        'Technical (no, reject)',
+        'Security (no, reject)',
+        'UX (yes, approve)',
+      ]);
 
       expect(decision.recommendation).toBe('reject');
       expect(decision.confidence).toBeGreaterThan(0);
     });
 
     it('should calculate average confidence from rejections', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Proceed?',
-        [
-          'A (reject with 0.6 confidence)',
-          'B (reject with 0.8 confidence)',
-          'C (approve with 0.5 confidence)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Proceed?', [
+        'A (reject with 0.6 confidence)',
+        'B (reject with 0.8 confidence)',
+        'C (approve with 0.5 confidence)',
+      ]);
 
       expect(decision.recommendation).toBe('reject');
       // Average of 0.6 and 0.8 = 0.7
@@ -516,29 +459,23 @@ describe('Decision Synthesis', () => {
     });
 
     it('should work with multiple rejections vs single approval', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Deploy?',
-        [
-          'Security (reject)',
-          'Legal (reject)',
-          'Operations (reject)',
-          'Business (approve)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Deploy?', [
+        'Security (reject)',
+        'Legal (reject)',
+        'Operations (reject)',
+        'Business (approve)',
+      ]);
 
       expect(decision.recommendation).toBe('reject');
       expect(decision.perspectives).toHaveLength(4);
     });
 
     it('should include rejection count in rationale', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Launch?',
-        [
-          'A (no)',
-          'B (no)',
-          'C (yes)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Launch?', [
+        'A (no)',
+        'B (no)',
+        'C (yes)',
+      ]);
 
       expect(decision.recommendation).toBe('reject');
       expect(decision.rationale).toContain('2');
@@ -548,12 +485,9 @@ describe('Decision Synthesis', () => {
 
   describe('Final Fallback: Uncertain Decision', () => {
     it('should return uncertain when no clear decision path applies', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Edge case scenario',
-        [
-          'Perspective (ambiguous response without clear keywords)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Edge case scenario', [
+        'Perspective (ambiguous response without clear keywords)',
+      ]);
 
       // This should hit the final fallback
       expect(['uncertain', 'review_required']).toContain(decision.recommendation);
@@ -561,10 +495,7 @@ describe('Decision Synthesis', () => {
 
     it('should set confidence to 0.3 for uncertain decisions', async () => {
       // Create a scenario that hits the final fallback
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Unclear scenario',
-        []
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Unclear scenario', []);
 
       if (decision.recommendation === 'uncertain') {
         expect(decision.confidence).toBe(0.3);
@@ -572,20 +503,14 @@ describe('Decision Synthesis', () => {
     });
 
     it('should include warnings for uncertain decisions', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Complex edge case',
-        []
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Complex edge case', []);
 
       expect(decision.warnings).toBeDefined();
       expect(decision.warnings!.length).toBeGreaterThan(0);
     });
 
     it('should recommend manual review in rationale', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Ambiguous case',
-        []
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Ambiguous case', []);
 
       expect(decision.rationale.toLowerCase()).toContain('review');
     });
@@ -593,133 +518,97 @@ describe('Decision Synthesis', () => {
 
   describe('Keyword Classification', () => {
     it('should detect "approve" keyword', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question?',
-        [
-          'Reviewer (I approve this change)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question?', [
+        'Reviewer (I approve this change)',
+      ]);
 
       expect(decision.recommendation).toBe('approve');
     });
 
     it('should detect "recommend" keyword', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question?',
-        [
-          'Advisor (I recommend proceeding)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question?', [
+        'Advisor (I recommend proceeding)',
+      ]);
 
       expect(decision.recommendation).toBe('approve');
     });
 
     it('should detect "proceed" keyword', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question?',
-        [
-          'Manager (proceed with the plan)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question?', [
+        'Manager (proceed with the plan)',
+      ]);
 
       expect(decision.recommendation).toBe('approve');
     });
 
     it('should detect "yes" keyword', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question?',
-        [
-          'Reviewer (yes, this looks good)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question?', [
+        'Reviewer (yes, this looks good)',
+      ]);
 
       expect(decision.recommendation).toBe('approve');
     });
 
     it('should detect "reject" keyword', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question?',
-        [
-          'Reviewer (I reject this proposal)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question?', [
+        'Reviewer (I reject this proposal)',
+      ]);
 
       expect(['reject', 'review_required']).toContain(decision.recommendation);
     });
 
     it('should detect "deny" keyword', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question?',
-        [
-          'Security (deny access)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question?', [
+        'Security (deny access)',
+      ]);
 
       expect(['reject', 'review_required']).toContain(decision.recommendation);
     });
 
     it('should detect "don\'t" keyword', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question?',
-        [
-          'Expert (don\'t do this)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question?', [
+        "Expert (don't do this)",
+      ]);
 
       expect(['reject', 'review_required']).toContain(decision.recommendation);
     });
 
     it('should detect "no" keyword', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question?',
-        [
-          'Reviewer (no, this is not acceptable)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question?', [
+        'Reviewer (no, this is not acceptable)',
+      ]);
 
       expect(['reject', 'review_required']).toContain(decision.recommendation);
     });
 
     it('should detect "against" keyword', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question?',
-        [
-          'Advisor (I am against this approach)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question?', [
+        'Advisor (I am against this approach)',
+      ]);
 
       expect(['reject', 'review_required']).toContain(decision.recommendation);
     });
 
     it('should handle case-insensitive keyword matching', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question?',
-        [
-          'Reviewer (APPROVE this change)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question?', [
+        'Reviewer (APPROVE this change)',
+      ]);
 
       expect(decision.recommendation).toBe('approve');
     });
 
     it('should classify as neutral when no keywords match', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question?',
-        [
-          'Reviewer (this is interesting)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question?', [
+        'Reviewer (this is interesting)',
+      ]);
 
       expect(['review_required', 'uncertain']).toContain(decision.recommendation);
     });
 
     it('should prioritize reject keywords over others in same response', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question?',
-        [
-          'Reviewer (I approve the concept but reject the implementation)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question?', [
+        'Reviewer (I approve the concept but reject the implementation)',
+      ]);
 
       // Should detect reject keyword
       expect(['reject', 'review_required']).toContain(decision.recommendation);
@@ -728,10 +617,9 @@ describe('Decision Synthesis', () => {
 
   describe('Decision Structure Validation', () => {
     it('should always return valid Decision object', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Test question',
-        ['Perspective A']
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Test question', [
+        'Perspective A',
+      ]);
 
       expect(decision).toHaveProperty('recommendation');
       expect(decision).toHaveProperty('confidence');
@@ -742,20 +630,14 @@ describe('Decision Synthesis', () => {
 
     it('should include all perspectives in result', async () => {
       const perspectives = ['Tech', 'Business', 'UX'];
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question',
-        perspectives
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question', perspectives);
 
       expect(decision.perspectives).toEqual(perspectives);
       expect(decision.perspectiveResults).toHaveLength(perspectives.length);
     });
 
     it('should include perspective results with all required fields', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question',
-        ['Technical']
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question', ['Technical']);
 
       expect(decision.perspectiveResults[0]).toHaveProperty('perspective');
       expect(decision.perspectiveResults[0]).toHaveProperty('response');
@@ -763,30 +645,24 @@ describe('Decision Synthesis', () => {
     });
 
     it('should have confidence in valid range [0, 1]', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question',
-        ['Technical', 'Security']
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question', [
+        'Technical',
+        'Security',
+      ]);
 
       expect(decision.confidence).toBeGreaterThanOrEqual(0);
       expect(decision.confidence).toBeLessThanOrEqual(1);
     });
 
     it('should always have non-empty rationale', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question',
-        ['Perspective']
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question', ['Perspective']);
 
       expect(decision.rationale).toBeTruthy();
       expect(decision.rationale.length).toBeGreaterThan(0);
     });
 
     it('should have warnings as array or undefined', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Question',
-        ['A', 'B']
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Question', ['A', 'B']);
 
       if (decision.warnings !== undefined) {
         expect(Array.isArray(decision.warnings)).toBe(true);
@@ -796,16 +672,13 @@ describe('Decision Synthesis', () => {
 
   describe('Complex Scenarios', () => {
     it('should handle mixed recommendations with varying confidences', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Complex decision',
-        [
-          'Technical (approve with 0.9)',
-          'Security (reject with 0.7)',
-          'Business (approve with 0.6)',
-          'Legal (conditional with 0.8)',
-          'UX (approve with 0.5)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Complex decision', [
+        'Technical (approve with 0.9)',
+        'Security (reject with 0.7)',
+        'Business (approve with 0.6)',
+        'Legal (conditional with 0.8)',
+        'UX (approve with 0.5)',
+      ]);
 
       expect(decision).toBeDefined();
       expect(decision.recommendation).toBeTruthy();
@@ -832,7 +705,7 @@ describe('Decision Synthesis', () => {
         'Operations',
         'Product',
         'Engineering',
-      ].map(p => `${p} (approve)`);
+      ].map((p) => `${p} (approve)`);
 
       const decision = await orchestrator.runMultiPerspectiveAnalysis(
         'Large decision',
@@ -844,24 +717,18 @@ describe('Decision Synthesis', () => {
     });
 
     it('should handle all neutral responses', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Neutral test',
-        [
-          'A (maybe)',
-          'B (unclear)',
-          'C (uncertain)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Neutral test', [
+        'A (maybe)',
+        'B (unclear)',
+        'C (uncertain)',
+      ]);
 
       expect(decision.recommendation).toBe('review_required');
       expect(decision.confidence).toBe(0.4);
     });
 
     it('should handle empty perspectives gracefully', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Empty test',
-        []
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Empty test', []);
 
       expect(decision).toBeDefined();
       expect(decision.recommendation).toBeTruthy();
@@ -871,51 +738,39 @@ describe('Decision Synthesis', () => {
 
   describe('Confidence Calculation', () => {
     it('should calculate average for approvals', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Test',
-        [
-          'A (approve with 0.8)',
-          'B (approve with 0.6)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Test', [
+        'A (approve with 0.8)',
+        'B (approve with 0.6)',
+      ]);
 
       expect(decision.recommendation).toBe('approve');
       expect(decision.confidence).toBeCloseTo(0.7, 1);
     });
 
     it('should calculate average for rejections', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Test',
-        [
-          'A (reject with 0.7)',
-          'B (reject with 0.5)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Test', [
+        'A (reject with 0.7)',
+        'B (reject with 0.5)',
+      ]);
 
       expect(decision.recommendation).toBe('reject');
       expect(decision.confidence).toBeCloseTo(0.6, 1);
     });
 
     it('should reduce confidence for conditionals', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Test',
-        [
-          'A (conditional with 1.0)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Test', [
+        'A (conditional with 1.0)',
+      ]);
 
       expect(decision.recommendation).toBe('conditional');
       expect(decision.confidence).toBeCloseTo(0.9, 1); // 1.0 * 0.9
     });
 
     it('should use high confidence from strong rejection', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Test',
-        [
-          'A (approve)',
-          'B (reject with 0.95)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Test', [
+        'A (approve)',
+        'B (reject with 0.95)',
+      ]);
 
       expect(decision.recommendation).toBe('reject');
       expect(decision.confidence).toBeGreaterThan(0.8);
@@ -924,14 +779,11 @@ describe('Decision Synthesis', () => {
 
   describe('Warning Generation', () => {
     it('should generate warning for minority rejections in approval', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Test',
-        [
-          'A (approve)',
-          'B (approve)',
-          'C (reject)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Test', [
+        'A (approve)',
+        'B (approve)',
+        'C (reject)',
+      ]);
 
       expect(decision.recommendation).toBe('approve');
       expect(decision.warnings).toBeDefined();
@@ -939,42 +791,33 @@ describe('Decision Synthesis', () => {
     });
 
     it('should generate warning for conditional approvals', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Test',
-        ['A (conditional)']
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Test', ['A (conditional)']);
 
       expect(decision.recommendation).toBe('conditional');
       expect(decision.warnings).toBeDefined();
-      expect(decision.warnings?.some(w => w.includes('conditional'))).toBe(true);
+      expect(decision.warnings?.some((w) => w.includes('conditional'))).toBe(true);
     });
 
     it('should generate warning for no consensus', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Test',
-        [
-          'A (neutral)',
-          'B (neutral)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Test', [
+        'A (neutral)',
+        'B (neutral)',
+      ]);
 
       expect(decision.recommendation).toBe('review_required');
       expect(decision.warnings).toBeDefined();
-      expect(decision.warnings?.some(w => w.includes('consensus'))).toBe(true);
+      expect(decision.warnings?.some((w) => w.includes('consensus'))).toBe(true);
     });
 
     it('should generate warning for strong rejection', async () => {
-      const decision = await orchestrator.runMultiPerspectiveAnalysis(
-        'Test',
-        [
-          'A (approve)',
-          'B (reject with 0.95)',
-        ]
-      );
+      const decision = await orchestrator.runMultiPerspectiveAnalysis('Test', [
+        'A (approve)',
+        'B (reject with 0.95)',
+      ]);
 
       expect(decision.recommendation).toBe('reject');
       expect(decision.warnings).toBeDefined();
-      expect(decision.warnings?.some(w => w.toLowerCase().includes('rejection'))).toBe(true);
+      expect(decision.warnings?.some((w) => w.toLowerCase().includes('rejection'))).toBe(true);
     });
   });
 });

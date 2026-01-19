@@ -103,11 +103,7 @@ export class HireValidationError extends Error {
  * - If we encounter newAgentId, there's a cycle
  * - If we reach null (root) or max depth, no cycle
  */
-export function detectCycle(
-  db: Database.Database,
-  newAgentId: string,
-  managerId: string
-): boolean {
+export function detectCycle(db: Database.Database, newAgentId: string, managerId: string): boolean {
   // Self-hire check (EC-1.1)
   if (newAgentId === managerId) {
     return true;
@@ -205,10 +201,7 @@ export function checkHiringBudget(
  * @param managerId - ID of the agent doing the hiring
  * @returns Validation errors if rate limit exceeded
  */
-export function checkRateLimit(
-  db: Database.Database,
-  managerId: string
-): ValidationError[] {
+export function checkRateLimit(db: Database.Database, managerId: string): ValidationError[] {
   const errors: ValidationError[] = [];
   const RATE_LIMIT = 5; // Max hires per hour
   const WINDOW_HOURS = 1;
@@ -385,10 +378,7 @@ export async function validateHire(
 
   if (newAgentConfig) {
     // Validate new agent's reportingTo matches managerId
-    if (
-      newAgentConfig.identity.reportingTo &&
-      newAgentConfig.identity.reportingTo !== managerId
-    ) {
+    if (newAgentConfig.identity.reportingTo && newAgentConfig.identity.reportingTo !== managerId) {
       warnings.push({
         code: 'REPORTING_MISMATCH',
         message: `New agent's reportingTo (${newAgentConfig.identity.reportingTo}) doesn't match managerId (${managerId})`,

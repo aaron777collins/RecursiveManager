@@ -474,7 +474,10 @@ describe('ClaudeCodeAdapter Integration Tests', () => {
 
       // Create additional test files
       await fs.writeFile(path.join(testWorkspace, 'data.json'), JSON.stringify({ test: true }));
-      await fs.writeFile(path.join(testWorkspace, 'README.md'), '# Test Project\n\nThis is a test.');
+      await fs.writeFile(
+        path.join(testWorkspace, 'README.md'),
+        '# Test Project\n\nThis is a test.'
+      );
       await fs.mkdir(path.join(testWorkspace, 'src'));
       await fs.writeFile(path.join(testWorkspace, 'src', 'index.js'), 'console.log("test");');
 

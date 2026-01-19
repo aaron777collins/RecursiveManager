@@ -17,10 +17,7 @@
  */
 
 import Database from 'better-sqlite3';
-import {
-  PathOptions,
-  createAgentLogger,
-} from '@recursive-manager/common';
+import { PathOptions, createAgentLogger } from '@recursive-manager/common';
 import {
   getAgent,
   updateAgent,
@@ -29,11 +26,7 @@ import {
   MessageInput,
 } from '@recursive-manager/common';
 import { auditLog, AuditAction } from '@recursive-manager/common';
-import {
-  generateMessageId,
-  writeMessageToInbox,
-  MessageData,
-} from '../messaging/messageWriter';
+import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 import { unblockTasksForResumedAgent, UnblockTasksResult } from './taskBlocking';
 
 /**
@@ -86,7 +79,8 @@ async function notifyAgentAndManager(
     managerId: agent.reporting_to ?? undefined,
   });
 
-  const notifications: Array<{ agentId: string; message: MessageData; dbMessage: MessageInput }> = [];
+  const notifications: Array<{ agentId: string; message: MessageData; dbMessage: MessageInput }> =
+    [];
 
   // 1. Notification to the resumed agent
   const agentMessageId = generateMessageId();
@@ -309,7 +303,10 @@ export async function resumeAgent(
     }
 
     if (agent.status !== 'paused') {
-      throw new ResumeAgentError(`Cannot resume agent with status '${agent.status}'. Only paused agents can be resumed.`, agentId);
+      throw new ResumeAgentError(
+        `Cannot resume agent with status '${agent.status}'. Only paused agents can be resumed.`,
+        agentId
+      );
     }
 
     const previousStatus = agent.status;
@@ -449,6 +446,10 @@ export async function resumeAgent(
       agentId,
       error: error.message,
     });
-    throw new ResumeAgentError(`Unexpected error during agent resume: ${error.message}`, agentId, error);
+    throw new ResumeAgentError(
+      `Unexpected error during agent resume: ${error.message}`,
+      agentId,
+      error
+    );
   }
 }

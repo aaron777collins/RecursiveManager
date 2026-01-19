@@ -16,10 +16,7 @@ import {
   ExecutionResult,
   Capability,
 } from '../../types';
-import {
-  buildContinuousPrompt,
-  buildReactivePrompt,
-} from '../../prompts';
+import { buildContinuousPrompt, buildReactivePrompt } from '../../prompts';
 
 /**
  * Options for configuring the ClaudeCodeAdapter
@@ -249,9 +246,7 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
     // Retry loop with exponential backoff
     while (attempt < this.maxRetries) {
       try {
-        this.logDebug(
-          `Executing agent ${agentId} (attempt ${attempt + 1}/${this.maxRetries})`
-        );
+        this.logDebug(`Executing agent ${agentId} (attempt ${attempt + 1}/${this.maxRetries})`);
         return await this.executeInternal(agentId, mode, context);
       } catch (error) {
         lastError = error;
@@ -383,11 +378,7 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
    *
    * @private
    */
-  private buildPrompt(
-    _agentId: string,
-    mode: ExecutionMode,
-    context: ExecutionContext
-  ): string {
+  private buildPrompt(_agentId: string, mode: ExecutionMode, context: ExecutionContext): string {
     const { config, activeTasks, messages } = context;
 
     // Use the appropriate template based on execution mode
@@ -678,9 +669,7 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
       if (parsedOutput.tasksCompleted && Array.isArray(parsedOutput.tasksCompleted)) {
         // Cross-reference with active tasks to ensure they're valid
         const completedTaskIds = new Set(parsedOutput.tasksCompleted);
-        tasksCompleted = context.activeTasks.filter((task) =>
-          completedTaskIds.has(task.id)
-        ).length;
+        tasksCompleted = context.activeTasks.filter((task) => completedTaskIds.has(task.id)).length;
       } else {
         // Fall back to pattern matching in output
         // Look for task IDs from context.activeTasks in the output

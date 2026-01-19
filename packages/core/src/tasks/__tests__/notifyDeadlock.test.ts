@@ -293,10 +293,7 @@ describe('notifyDeadlock', () => {
       // Read message content and verify it mentions both tasks
       const inboxPathA = getInboxPath(agentA, testDir);
       const inboxFilesA = await fs.readdir(inboxPathA);
-      const messageContentA = await fs.readFile(
-        path.join(inboxPathA, inboxFilesA[0]),
-        'utf-8'
-      );
+      const messageContentA = await fs.readFile(path.join(inboxPathA, inboxFilesA[0]), 'utf-8');
       expect(messageContentA).toContain('Your tasks are involved');
       expect(messageContentA).toContain('Task A1');
       expect(messageContentA).toContain('Task A2');
@@ -306,43 +303,47 @@ describe('notifyDeadlock', () => {
   describe('Agent Preferences', () => {
     it('should respect agent notification preferences (notifyOnDeadlock = false)', async () => {
       // Disable deadlock notifications for agentA
-      const config = await saveAgentConfig(agentA, {
-        version: '1.0.0',
-        identity: {
-          id: agentA,
-          role: 'Worker',
-          displayName: 'Agent A',
-          createdAt: new Date().toISOString(),
-          createdBy: 'test',
-          reportingTo: null,
+      const config = await saveAgentConfig(
+        agentA,
+        {
+          version: '1.0.0',
+          identity: {
+            id: agentA,
+            role: 'Worker',
+            displayName: 'Agent A',
+            createdAt: new Date().toISOString(),
+            createdBy: 'test',
+            reportingTo: null,
+          },
+          goal: {
+            mainGoal: 'Test work',
+          },
+          permissions: {
+            canHire: false,
+            maxSubordinates: 0,
+            hiringBudget: 0,
+          },
+          framework: {
+            primary: 'claude-code',
+            fallbacks: [],
+          },
+          communication: {
+            notifyOnCompletion: true,
+            notifyOnDelegation: true,
+            notifyOnDeadlock: false, // Disable deadlock notifications
+          },
+          behavior: {
+            executionMode: 'continuous',
+            autonomy: 'low',
+            escalationThreshold: 3,
+          },
+          metadata: {
+            version: 1,
+            updatedAt: new Date().toISOString(),
+          },
         },
-        goal: {
-          mainGoal: 'Test work',
-        },
-        permissions: {
-          canHire: false,
-          maxSubordinates: 0,
-          hiringBudget: 0,
-        },
-        framework: {
-          primary: 'claude-code',
-          fallbacks: [],
-        },
-        communication: {
-          notifyOnCompletion: true,
-          notifyOnDelegation: true,
-          notifyOnDeadlock: false, // Disable deadlock notifications
-        },
-        behavior: {
-          executionMode: 'continuous',
-          autonomy: 'low',
-          escalationThreshold: 3,
-        },
-        metadata: {
-          version: 1,
-          updatedAt: new Date().toISOString(),
-        },
-      }, testDir);
+        testDir
+      );
 
       // Create tasks forming a deadlock: A -> B -> A
       const taskA = createTask(db, {
@@ -387,43 +388,47 @@ describe('notifyDeadlock', () => {
 
     it('should send notification when force = true even if notifications disabled', async () => {
       // Disable deadlock notifications for agentA
-      await saveAgentConfig(agentA, {
-        version: '1.0.0',
-        identity: {
-          id: agentA,
-          role: 'Worker',
-          displayName: 'Agent A',
-          createdAt: new Date().toISOString(),
-          createdBy: 'test',
-          reportingTo: null,
+      await saveAgentConfig(
+        agentA,
+        {
+          version: '1.0.0',
+          identity: {
+            id: agentA,
+            role: 'Worker',
+            displayName: 'Agent A',
+            createdAt: new Date().toISOString(),
+            createdBy: 'test',
+            reportingTo: null,
+          },
+          goal: {
+            mainGoal: 'Test work',
+          },
+          permissions: {
+            canHire: false,
+            maxSubordinates: 0,
+            hiringBudget: 0,
+          },
+          framework: {
+            primary: 'claude-code',
+            fallbacks: [],
+          },
+          communication: {
+            notifyOnCompletion: true,
+            notifyOnDelegation: true,
+            notifyOnDeadlock: false, // Disable deadlock notifications
+          },
+          behavior: {
+            executionMode: 'continuous',
+            autonomy: 'low',
+            escalationThreshold: 3,
+          },
+          metadata: {
+            version: 1,
+            updatedAt: new Date().toISOString(),
+          },
         },
-        goal: {
-          mainGoal: 'Test work',
-        },
-        permissions: {
-          canHire: false,
-          maxSubordinates: 0,
-          hiringBudget: 0,
-        },
-        framework: {
-          primary: 'claude-code',
-          fallbacks: [],
-        },
-        communication: {
-          notifyOnCompletion: true,
-          notifyOnDelegation: true,
-          notifyOnDeadlock: false, // Disable deadlock notifications
-        },
-        behavior: {
-          executionMode: 'continuous',
-          autonomy: 'low',
-          escalationThreshold: 3,
-        },
-        metadata: {
-          version: 1,
-          updatedAt: new Date().toISOString(),
-        },
-      }, testDir);
+        testDir
+      );
 
       // Create tasks forming a deadlock
       const taskA = createTask(db, {
@@ -611,10 +616,7 @@ describe('notifyDeadlock', () => {
       // Read message content
       const inboxPathA = getInboxPath(agentA, testDir);
       const inboxFilesA = await fs.readdir(inboxPathA);
-      const messageContentA = await fs.readFile(
-        path.join(inboxPathA, inboxFilesA[0]),
-        'utf-8'
-      );
+      const messageContentA = await fs.readFile(path.join(inboxPathA, inboxFilesA[0]), 'utf-8');
 
       // Verify required sections
       expect(messageContentA).toContain('Task Deadlock Detected');

@@ -39,7 +39,8 @@ describe('Audit Query API', () => {
 
     // Insert test agents for foreign key constraints
     const now = new Date().toISOString();
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO agents (id, role, display_name, status, created_by, reporting_to, main_goal, config_path, created_at)
       VALUES
         ('ceo-001', 'CEO', 'Test CEO', 'active', NULL, NULL, 'Lead company', '/data/agents/c/ceo-001/config.json', ?),
@@ -49,7 +50,8 @@ describe('Audit Query API', () => {
         ('test-agent', 'Worker', 'Test Agent', 'active', 'ceo-001', 'ceo-001', 'Work', '/data/agents/t/test-agent/config.json', ?),
         ('worker-001', 'Worker', 'Test Worker 1', 'active', 'ceo-001', 'ceo-001', 'Work', '/data/agents/w/worker-001/config.json', ?),
         ('worker-005', 'Worker', 'Test Worker 5', 'active', 'ceo-001', 'ceo-001', 'Work', '/data/agents/w/worker-005/config.json', ?)
-    `).run(now, now, now, now, now, now, now);
+    `
+    ).run(now, now, now, now, now, now, now);
   });
 
   afterEach(() => {

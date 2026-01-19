@@ -709,7 +709,11 @@ describe('ClaudeCodeAdapter', () => {
       (timeoutError as any).timedOut = true;
       mockedExeca.mockRejectedValueOnce(timeoutError);
 
-      const result = await shortTimeoutAdapter.executeAgent('test-agent-001', 'continuous', context);
+      const result = await shortTimeoutAdapter.executeAgent(
+        'test-agent-001',
+        'continuous',
+        context
+      );
 
       expect(result.success).toBe(false);
       expect(result.errors.length).toBeGreaterThan(0);
@@ -1019,11 +1023,9 @@ describe('ClaudeCodeAdapter', () => {
       expect(mockedExeca).toHaveBeenCalledTimes(4); // health + 3 attempts
     });
 
-    it(
-      'should identify various transient error codes',
-      async () => {
-        const adapter = new ClaudeCodeAdapter({ maxRetries: 2, debug: false });
-        const context = createMockContext();
+    it('should identify various transient error codes', async () => {
+      const adapter = new ClaudeCodeAdapter({ maxRetries: 2, debug: false });
+      const context = createMockContext();
 
       const transientCodes = ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'EAGAIN', 'EBUSY'];
 
@@ -1047,9 +1049,7 @@ describe('ClaudeCodeAdapter', () => {
         expect(result.success).toBe(true);
         expect(mockedExeca).toHaveBeenCalledTimes(3); // health + 2 attempts
       }
-      },
-      10000
-    ); // Increase timeout for this test (5 error codes × ~1s backoff each)
+    }, 10000); // Increase timeout for this test (5 error codes × ~1s backoff each)
   });
 
   describe('comprehensive error scenarios - Task 3.2.14', () => {
@@ -1710,9 +1710,7 @@ describe('ClaudeCodeAdapter', () => {
 
         const transientError = new Error('Connection refused');
         (transientError as any).code = 'ECONNREFUSED';
-        mockedExeca
-          .mockRejectedValueOnce(transientError)
-          .mockRejectedValueOnce(transientError);
+        mockedExeca.mockRejectedValueOnce(transientError).mockRejectedValueOnce(transientError);
 
         const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
 

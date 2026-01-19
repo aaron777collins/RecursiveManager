@@ -143,7 +143,9 @@ export function buildMultiPerspectivePrompt(
 
   // Section 1: Analysis Setup
   sections.push('# Multi-Perspective Analysis Request');
-  sections.push(`You are analyzing the following question from the perspective of a **${perspective}**:`);
+  sections.push(
+    `You are analyzing the following question from the perspective of a **${perspective}**:`
+  );
   sections.push('');
   sections.push(`> ${question}`);
 
@@ -209,7 +211,9 @@ function buildContextSection(context: ExecutionContext): string {
 
   lines.push('# Current Context');
   lines.push('');
-  lines.push(`**Mode**: ${context.mode === 'continuous' ? 'Continuous (Task-focused)' : 'Reactive (Message-focused)'}`);
+  lines.push(
+    `**Mode**: ${context.mode === 'continuous' ? 'Continuous (Task-focused)' : 'Reactive (Message-focused)'}`
+  );
   lines.push(`**Workspace**: ${context.workspaceDir}`);
   lines.push(`**Active Tasks**: ${context.activeTasks.length}`);
   lines.push(`**Unread Messages**: ${context.messages.length}`);
@@ -278,7 +282,9 @@ function buildContinuousInstructions(_tasks: TaskSchema[]): string {
   lines.push('');
   lines.push('## Your Mission');
   lines.push('');
-  lines.push('Work on the **highest priority pending task** from the list above. Follow these steps:');
+  lines.push(
+    'Work on the **highest priority pending task** from the list above. Follow these steps:'
+  );
   lines.push('');
   lines.push('1. **Select Task**: Choose the highest priority task that is in "pending" status');
   lines.push('2. **Understand Requirements**: Read the task description carefully');
@@ -290,7 +296,9 @@ function buildContinuousInstructions(_tasks: TaskSchema[]): string {
   lines.push('## Task Management');
   lines.push('');
   lines.push('- If a task is too large, **break it into subtasks** and delegate as needed');
-  lines.push('- If you encounter blockers, **update the task status to "blocked"** and explain why');
+  lines.push(
+    '- If you encounter blockers, **update the task status to "blocked"** and explain why'
+  );
   lines.push('- If you need help from your manager, **escalate** by sending them a message');
   lines.push('- If a task requires a subordinate, **hire** one with appropriate skills');
   lines.push('');
@@ -318,7 +326,7 @@ function buildNoTasksSection(): string {
   lines.push('## What to Do');
   lines.push('');
   lines.push('1. Check your workspace for any pending work or issues');
-  lines.push('2. Review your subordinates\' progress (if you have any)');
+  lines.push("2. Review your subordinates' progress (if you have any)");
   lines.push('3. Send a status update to your manager');
   lines.push('4. Wait for new task assignments');
 
@@ -335,7 +343,9 @@ function buildWorkspaceSection(context: ExecutionContext): string {
   lines.push('# Workspace');
   lines.push('');
   lines.push(`**Directory**: ${context.workspaceDir}`);
-  lines.push(`**Files**: ${context.workspaceFiles.length} file${context.workspaceFiles.length === 1 ? '' : 's'}`);
+  lines.push(
+    `**Files**: ${context.workspaceFiles.length} file${context.workspaceFiles.length === 1 ? '' : 's'}`
+  );
 
   if (context.workspaceFiles.length > 0 && context.workspaceFiles.length <= 20) {
     lines.push('');
@@ -378,11 +388,13 @@ function buildBehaviorSection(agent: AgentConfig): string {
       lines.push('- A task is blocked and you cannot proceed');
     }
 
-    lines.push('- You need resources or permissions you don\'t have');
+    lines.push("- You need resources or permissions you don't have");
     lines.push('- You encounter errors or issues beyond your expertise');
 
     if (agent.behavior.escalationPolicy.autoEscalateAfterFailures) {
-      lines.push(`- After ${agent.behavior.escalationPolicy.autoEscalateAfterFailures} consecutive failures`);
+      lines.push(
+        `- After ${agent.behavior.escalationPolicy.autoEscalateAfterFailures} consecutive failures`
+      );
     }
   }
 
@@ -407,12 +419,13 @@ function buildMessageListSection(messages: Message[]): string {
   });
 
   sortedMessages.forEach((msg, index) => {
-    const channelEmoji = {
-      internal: '📨',
-      slack: '💬',
-      telegram: '📱',
-      email: '✉️',
-    }[msg.channel] || '📬';
+    const channelEmoji =
+      {
+        internal: '📨',
+        slack: '💬',
+        telegram: '📱',
+        email: '✉️',
+      }[msg.channel] || '📬';
 
     lines.push(`## Message ${index + 1}`);
     lines.push('');
@@ -441,7 +454,9 @@ function buildReactiveInstructions(_agent: AgentConfig): string {
   lines.push('');
   lines.push('## Your Mission');
   lines.push('');
-  lines.push('Respond to the messages above in a timely and appropriate manner. Follow these guidelines:');
+  lines.push(
+    'Respond to the messages above in a timely and appropriate manner. Follow these guidelines:'
+  );
   lines.push('');
   lines.push('1. **Read Carefully**: Understand what each message is asking or informing');
   lines.push('2. **Prioritize**: Handle urgent messages first');

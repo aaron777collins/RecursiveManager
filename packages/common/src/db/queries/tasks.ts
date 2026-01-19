@@ -146,7 +146,7 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
     if (blockedBy.includes(taskId)) {
       throw new Error(
         `Cannot create task: circular dependency detected. ` +
-        `Task "${input.title}" (${taskId}) cannot be blocked by itself.`
+          `Task "${input.title}" (${taskId}) cannot be blocked by itself.`
       );
     }
 
@@ -162,7 +162,7 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
       if (blockerTask.status === 'completed' || blockerTask.status === 'archived') {
         throw new Error(
           `Cannot block on task "${blockerTask.title}" (${blockerTaskId}): task is already ${blockerTask.status}. ` +
-          `Remove this task from the blockedBy list.`
+            `Remove this task from the blockedBy list.`
         );
       }
     }
@@ -186,8 +186,8 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
       if (blockerDeps.includes(taskId)) {
         throw new Error(
           `Cannot create task: circular dependency detected. ` +
-          `Task "${input.title}" would be blocked by "${blockerTask.title}" (${blockerTaskId}), ` +
-          `but "${blockerTask.title}" is already blocked by task ID "${taskId}".`
+            `Task "${input.title}" would be blocked by "${blockerTask.title}" (${blockerTaskId}), ` +
+            `but "${blockerTask.title}" is already blocked by task ID "${taskId}".`
         );
       }
 
@@ -237,8 +237,8 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
       if (hasCycle(blockerTaskId)) {
         throw new Error(
           `Cannot create task: circular dependency detected. ` +
-          `Creating task "${input.title}" (${taskId}) with blocker "${blockerTask.title}" (${blockerTaskId}) ` +
-          `would create a circular dependency chain.`
+            `Creating task "${input.title}" (${taskId}) with blocker "${blockerTask.title}" (${blockerTaskId}) ` +
+            `would create a circular dependency chain.`
         );
       }
     }
@@ -462,7 +462,8 @@ export function updateTaskStatus(
     }
 
     // Determine audit action based on status
-    const auditAction = status === 'completed' ? AuditAction.TASK_COMPLETE : AuditAction.TASK_UPDATE;
+    const auditAction =
+      status === 'completed' ? AuditAction.TASK_COMPLETE : AuditAction.TASK_UPDATE;
 
     // Audit log successful task status update
     auditLog(db, {
@@ -635,11 +636,7 @@ export function updateParentTaskProgress(db: Database.Database, parentTaskId: st
  * }
  * ```
  */
-export function completeTask(
-  db: Database.Database,
-  id: string,
-  version: number
-): TaskRecord {
+export function completeTask(db: Database.Database, id: string, version: number): TaskRecord {
   const completedTask = updateTaskStatus(db, id, 'completed', version);
 
   // Update parent task progress recursively (Task 2.3.14)

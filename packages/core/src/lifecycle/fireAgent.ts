@@ -37,11 +37,7 @@ import {
 } from '@recursive-manager/common';
 import { auditLog, AuditAction } from '@recursive-manager/common';
 import { loadAgentConfig } from '../config';
-import {
-  generateMessageId,
-  writeMessageToInbox,
-  MessageData,
-} from '../messaging/messageWriter';
+import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 
 /**
  * Strategy for handling orphaned subordinates when an agent is fired
@@ -455,7 +451,7 @@ async function handleAbandonedTasks(
 
   logger.info('Found active tasks to handle', {
     agentId,
-    taskCount: activeTasks.length
+    taskCount: activeTasks.length,
   });
 
   let reassigned = 0;
@@ -539,17 +535,11 @@ async function handleAbandonedTasks(
     for (const task of activeTasks) {
       try {
         // Update task status to archived
-        updateTaskStatus(
-          db,
-          task.id,
-          'archived',
-          task.version,
-          {
-            note: `Task archived because agent ${agentId} was fired with no manager`,
-            archivedFrom: agentId,
-            archivedAt: new Date().toISOString(),
-          }
-        );
+        updateTaskStatus(db, task.id, 'archived', task.version, {
+          note: `Task archived because agent ${agentId} was fired with no manager`,
+          archivedFrom: agentId,
+          archivedAt: new Date().toISOString(),
+        });
 
         // Audit log the archival
         auditLog(db, {
@@ -619,7 +609,8 @@ async function notifyAffectedAgents(
     subordinatesCount: subordinates.length,
   });
 
-  const notifications: Array<{ agentId: string; message: MessageData; dbMessage: MessageInput }> = [];
+  const notifications: Array<{ agentId: string; message: MessageData; dbMessage: MessageInput }> =
+    [];
 
   // 1. Notification to the fired agent
   const firedAgentMessageId = generateMessageId();
@@ -706,13 +697,17 @@ Your subordinate **${firedAgent.display_name}** (${firedAgent.role}) has been te
 
 ## Impact
 
-${subordinates.length > 0 ? `
+${
+  subordinates.length > 0
+    ? `
 ### Subordinates Handled
 
 The fired agent had ${subordinates.length} direct report(s). The following action was taken:
 
 ${strategy === 'reassign' ? `- All subordinates have been **reassigned** to you` : strategy === 'promote' ? `- All subordinates have been **promoted** to report to you` : `- All subordinates have been **cascade-fired**`}
-` : '- No subordinates were affected (agent had no direct reports)'}
+`
+    : '- No subordinates were affected (agent had no direct reports)'
+}
 
 ### Tasks
 
@@ -1170,6 +1165,10 @@ export async function fireAgent(
       agentId,
       error: error.message,
     });
-    throw new FireAgentError(`Unexpected error during agent fire: ${error.message}`, agentId, error);
+    throw new FireAgentError(
+      `Unexpected error during agent fire: ${error.message}`,
+      agentId,
+      error
+    );
   }
 }

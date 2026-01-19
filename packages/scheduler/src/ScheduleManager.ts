@@ -90,10 +90,7 @@ export class ScheduleManager {
     const enabled = input.enabled !== false ? 1 : 0;
 
     // Calculate next execution time
-    const nextExecution = this.calculateNextExecution(
-      input.cronExpression,
-      timezone
-    );
+    const nextExecution = this.calculateNextExecution(input.cronExpression, timezone);
 
     const stmt = this.db.prepare(`
       INSERT INTO schedules (
@@ -131,10 +128,7 @@ export class ScheduleManager {
    * @param timezone - The timezone (default: UTC)
    * @returns ISO 8601 timestamp of next execution
    */
-  private calculateNextExecution(
-    cronExpression: string,
-    timezone: string = 'UTC'
-  ): string {
+  private calculateNextExecution(cronExpression: string, timezone: string = 'UTC'): string {
     const interval = parseExpression(cronExpression, {
       tz: timezone,
       currentDate: new Date(),
@@ -194,7 +188,9 @@ export class ScheduleManager {
       WHERE id = ?
     `
       )
-      .get(scheduleId) as Pick<ScheduleRecord, 'cron_expression' | 'timezone' | 'next_execution_at'> | undefined;
+      .get(scheduleId) as
+      | Pick<ScheduleRecord, 'cron_expression' | 'timezone' | 'next_execution_at'>
+      | undefined;
 
     if (!schedule || !schedule.cron_expression) {
       throw new Error(`Schedule ${scheduleId} not found or not a cron schedule`);

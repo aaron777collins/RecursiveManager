@@ -366,7 +366,13 @@ describe('Config Validation (Task 2.1.7)', () => {
       const result = validateAgentConfig(config);
       expect(result.valid).toBe(false);
       expect(result.errors).toBeDefined();
-      expect(result.errors!.some((e) => e.message.toLowerCase().includes('additional') || e.message.toLowerCase().includes('unknown'))).toBe(true);
+      expect(
+        result.errors!.some(
+          (e) =>
+            e.message.toLowerCase().includes('additional') ||
+            e.message.toLowerCase().includes('unknown')
+        )
+      ).toBe(true);
     });
 
     it('should reject config with unknown nested properties in identity', () => {
@@ -505,9 +511,7 @@ describe('Config Validation (Task 2.1.7)', () => {
     });
 
     it('should not throw for valid config with validateAgentConfigBusinessLogicStrict', () => {
-      expect(() =>
-        validateAgentConfigBusinessLogicStrict(validMinimalConfig)
-      ).not.toThrow();
+      expect(() => validateAgentConfigBusinessLogicStrict(validMinimalConfig)).not.toThrow();
     });
 
     it('should return warnings for potentially problematic configs', () => {
@@ -556,9 +560,7 @@ describe('Config Validation (Task 2.1.7)', () => {
     });
 
     it('should not throw with strict validation on valid config', () => {
-      expect(() =>
-        validateAgentConfigBusinessLogicStrict(validMinimalConfig)
-      ).not.toThrow();
+      expect(() => validateAgentConfigBusinessLogicStrict(validMinimalConfig)).not.toThrow();
     });
   });
 

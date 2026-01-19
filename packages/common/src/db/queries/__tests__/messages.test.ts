@@ -37,13 +37,15 @@ describe('Message Query Functions', () => {
 
     // Insert test agents for foreign key constraints
     const now = new Date().toISOString();
-    db.prepare(`
+    db.prepare(
+      `
       INSERT INTO agents (id, role, display_name, status, created_by, reporting_to, main_goal, config_path, created_at)
       VALUES
         ('agent-001', 'CEO', 'Test CEO', 'active', NULL, NULL, 'Lead company', '/data/agents/a/agent-001/config.json', ?),
         ('agent-002', 'CTO', 'Test CTO', 'active', 'agent-001', 'agent-001', 'Lead tech', '/data/agents/a/agent-002/config.json', ?),
         ('system', 'System', 'System', 'active', NULL, NULL, 'System operations', '/data/agents/s/system/config.json', ?)
-    `).run(now, now, now);
+    `
+    ).run(now, now, now);
   });
 
   afterEach(() => {

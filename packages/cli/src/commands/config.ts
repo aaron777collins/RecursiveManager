@@ -51,7 +51,7 @@ export function registerConfigCommand(program: Command): void {
           }
 
           const spinner = createSpinner(`Setting ${key}...`);
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 500));
           spinner.succeed(`Set ${key} = ${value}`);
           console.log();
         } else if (options.reset) {
@@ -63,7 +63,7 @@ export function registerConfigCommand(program: Command): void {
 
           if (shouldReset) {
             const spinner = createSpinner('Resetting configuration...');
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise((resolve) => setTimeout(resolve, 500));
             spinner.succeed('Configuration reset to defaults');
             console.log();
           } else {
@@ -75,17 +75,14 @@ export function registerConfigCommand(program: Command): void {
           console.log(info('Interactive Configuration Wizard'));
           console.log();
 
-          const action = await select(
-            'What would you like to configure?',
-            [
-              { name: 'Agent Settings', value: 'agents' },
-              { name: 'Execution Settings', value: 'execution' },
-              { name: 'Logging Settings', value: 'logging' },
-              { name: 'Framework Settings', value: 'framework' },
-              { name: 'View All Settings', value: 'view' },
-              { name: 'Reset to Defaults', value: 'reset' },
-            ]
-          );
+          const action = await select('What would you like to configure?', [
+            { name: 'Agent Settings', value: 'agents' },
+            { name: 'Execution Settings', value: 'execution' },
+            { name: 'Logging Settings', value: 'logging' },
+            { name: 'Framework Settings', value: 'framework' },
+            { name: 'View All Settings', value: 'view' },
+            { name: 'Reset to Defaults', value: 'reset' },
+          ]);
 
           console.log();
 
@@ -96,7 +93,7 @@ export function registerConfigCommand(program: Command): void {
               await number('Agent timeout (ms):', 300000);
 
               const spinner = createSpinner('Saving agent settings...');
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await new Promise((resolve) => setTimeout(resolve, 500));
               spinner.succeed('Agent settings saved');
               console.log();
               console.log(success('Configuration updated successfully'));
@@ -107,7 +104,7 @@ export function registerConfigCommand(program: Command): void {
               await number('Execution interval (ms):', 5000);
 
               const execSpinner = createSpinner('Saving execution settings...');
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await new Promise((resolve) => setTimeout(resolve, 500));
               execSpinner.succeed('Execution settings saved');
               console.log();
               console.log(success('Configuration updated successfully'));
@@ -117,7 +114,7 @@ export function registerConfigCommand(program: Command): void {
               await select('Log level:', ['debug', 'info', 'warn', 'error']);
 
               const logSpinner = createSpinner('Saving logging settings...');
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await new Promise((resolve) => setTimeout(resolve, 500));
               logSpinner.succeed('Logging settings saved');
               console.log();
               console.log(success('Configuration updated successfully'));
@@ -127,7 +124,7 @@ export function registerConfigCommand(program: Command): void {
               await input('Default framework:', 'claude-code');
 
               const frameworkSpinner = createSpinner('Saving framework settings...');
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await new Promise((resolve) => setTimeout(resolve, 500));
               frameworkSpinner.succeed('Framework settings saved');
               console.log();
               console.log(success('Configuration updated successfully'));
@@ -154,7 +151,7 @@ export function registerConfigCommand(program: Command): void {
 
               if (shouldReset) {
                 const resetSpinner = createSpinner('Resetting configuration...');
-                await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise((resolve) => setTimeout(resolve, 500));
                 resetSpinner.succeed('Configuration reset to defaults');
                 console.log();
                 console.log(success('All settings reset successfully'));
@@ -166,7 +163,6 @@ export function registerConfigCommand(program: Command): void {
 
           console.log();
         }
-
       } catch (err) {
         console.error(error('Configuration failed: ' + (err as Error).message));
         process.exit(1);

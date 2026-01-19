@@ -27,11 +27,7 @@ export { ClaudeCodeAdapter } from './adapters/claude-code';
 export type { ClaudeCodeAdapterOptions } from './adapters/claude-code';
 
 // Prompt templates
-export {
-  buildContinuousPrompt,
-  buildReactivePrompt,
-  buildMultiPerspectivePrompt,
-} from './prompts';
+export { buildContinuousPrompt, buildReactivePrompt, buildMultiPerspectivePrompt } from './prompts';
 
 // Execution context preparation
 export {

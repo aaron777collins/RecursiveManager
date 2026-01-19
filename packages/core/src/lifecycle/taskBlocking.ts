@@ -75,10 +75,7 @@ export interface UnblockTasksResult {
  * console.log(`Blocked ${result.blockedCount} tasks`);
  * ```
  */
-export function blockTasksForPausedAgent(
-  db: Database.Database,
-  agentId: string
-): BlockTasksResult {
+export function blockTasksForPausedAgent(db: Database.Database, agentId: string): BlockTasksResult {
   const logger = createAgentLogger(agentId);
 
   logger.info('Blocking tasks for paused agent', { agentId });
@@ -180,12 +177,7 @@ export function blockTasksForPausedAgent(
       } else {
         // Task is pending or in-progress, set to blocked
         const blockedSince = task.blocked_since ?? now;
-        const updateResult = blockTaskStmt.run(
-          newBlockedBy,
-          blockedSince,
-          task.id,
-          task.version
-        );
+        const updateResult = blockTaskStmt.run(newBlockedBy, blockedSince, task.id, task.version);
 
         if (updateResult.changes === 0) {
           // Version mismatch - task was modified concurrently
@@ -330,7 +322,7 @@ export function unblockTasksForResumedAgent(
       }
 
       // Remove PAUSE_BLOCKER from the list
-      blockedBy = blockedBy.filter(b => b !== PAUSE_BLOCKER);
+      blockedBy = blockedBy.filter((b) => b !== PAUSE_BLOCKER);
 
       // Update the task
       if (blockedBy.length === 0) {

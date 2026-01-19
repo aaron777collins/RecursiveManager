@@ -6,7 +6,11 @@
 
 import Database from 'better-sqlite3';
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { blockTasksForPausedAgent, unblockTasksForResumedAgent, PAUSE_BLOCKER } from '../taskBlocking';
+import {
+  blockTasksForPausedAgent,
+  unblockTasksForResumedAgent,
+  PAUSE_BLOCKER,
+} from '../taskBlocking';
 import { initDatabase, createAgent, createTask, getTask } from '@recursive-manager/common';
 
 describe('Task Blocking for Paused Agents', () => {

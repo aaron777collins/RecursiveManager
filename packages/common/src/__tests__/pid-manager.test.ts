@@ -215,9 +215,7 @@ describe('PID Manager', () => {
       // Write invalid JSON
       await fs.writeFile(filePath, 'not valid json');
 
-      await expect(readPidFile(processName, { baseDir: testDir })).rejects.toThrow(
-        PidError
-      );
+      await expect(readPidFile(processName, { baseDir: testDir })).rejects.toThrow(PidError);
     });
 
     it('should throw PidError for PID file missing required fields', async () => {
@@ -230,12 +228,8 @@ describe('PID Manager', () => {
       // Write incomplete PID info
       await fs.writeFile(filePath, JSON.stringify({ pid: 12345 }));
 
-      await expect(readPidFile(processName, { baseDir: testDir })).rejects.toThrow(
-        PidError
-      );
-      await expect(readPidFile(processName, { baseDir: testDir })).rejects.toThrow(
-        'malformed'
-      );
+      await expect(readPidFile(processName, { baseDir: testDir })).rejects.toThrow(PidError);
+      await expect(readPidFile(processName, { baseDir: testDir })).rejects.toThrow('malformed');
     });
 
     it('should validate all required fields', async () => {
@@ -249,18 +243,11 @@ describe('PID Manager', () => {
         filePath,
         JSON.stringify({ pid: 12345, createdAt: new Date().toISOString() })
       );
-      await expect(readPidFile(processName, { baseDir: testDir })).rejects.toThrow(
-        PidError
-      );
+      await expect(readPidFile(processName, { baseDir: testDir })).rejects.toThrow(PidError);
 
       // Missing createdAt
-      await fs.writeFile(
-        filePath,
-        JSON.stringify({ pid: 12345, processName: 'test-daemon' })
-      );
-      await expect(readPidFile(processName, { baseDir: testDir })).rejects.toThrow(
-        PidError
-      );
+      await fs.writeFile(filePath, JSON.stringify({ pid: 12345, processName: 'test-daemon' }));
+      await expect(readPidFile(processName, { baseDir: testDir })).rejects.toThrow(PidError);
     });
   });
 
@@ -277,9 +264,7 @@ describe('PID Manager', () => {
     });
 
     it('should not throw for non-existent file', async () => {
-      await expect(
-        removePidFile('non-existent', { baseDir: testDir })
-      ).resolves.not.toThrow();
+      await expect(removePidFile('non-existent', { baseDir: testDir })).resolves.not.toThrow();
     });
 
     it('should handle multiple removals gracefully', async () => {
@@ -307,9 +292,7 @@ describe('PID Manager', () => {
     });
 
     it('should not throw for non-existent file', () => {
-      expect(() =>
-        removePidFileSync('non-existent', { baseDir: testDir })
-      ).not.toThrow();
+      expect(() => removePidFileSync('non-existent', { baseDir: testDir })).not.toThrow();
     });
 
     it('should be usable in synchronous context (exit handlers)', async () => {
@@ -426,9 +409,7 @@ describe('PID Manager', () => {
       await acquirePidLock(processName, { baseDir: testDir });
 
       // Try to acquire second lock
-      await expect(acquirePidLock(processName, { baseDir: testDir })).rejects.toThrow(
-        PidError
-      );
+      await expect(acquirePidLock(processName, { baseDir: testDir })).rejects.toThrow(PidError);
       await expect(acquirePidLock(processName, { baseDir: testDir })).rejects.toThrow(
         'already running'
       );
@@ -637,9 +618,7 @@ describe('PID Manager', () => {
       const cleanup1 = await acquirePidLock(processName, { baseDir: testDir });
 
       // Try to start second instance
-      await expect(acquirePidLock(processName, { baseDir: testDir })).rejects.toThrow(
-        PidError
-      );
+      await expect(acquirePidLock(processName, { baseDir: testDir })).rejects.toThrow(PidError);
 
       // Cleanup first instance
       await cleanup1();

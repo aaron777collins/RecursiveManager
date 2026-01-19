@@ -139,9 +139,7 @@ export class ExecutionOrchestrator {
 
         // Check agent status
         if (agent.status !== 'active') {
-          throw new ExecutionError(
-            `Agent is not active (status: ${agent.status})`
-          );
+          throw new ExecutionError(`Agent is not active (status: ${agent.status})`);
         }
 
         // Load execution context (config, tasks, messages, workspace)
@@ -243,10 +241,7 @@ export class ExecutionOrchestrator {
    * @returns Promise resolving to execution result
    * @throws ExecutionError if execution fails
    */
-  async executeReactive(
-    agentId: string,
-    trigger: ReactiveTrigger
-  ): Promise<ExecutionResult> {
+  async executeReactive(agentId: string, trigger: ReactiveTrigger): Promise<ExecutionResult> {
     // Execute through the pool to enforce max concurrent limit
     return this.executionPool.execute(agentId, async () => {
       const logger = createAgentLogger(agentId);
@@ -275,9 +270,7 @@ export class ExecutionOrchestrator {
 
         // Check agent status
         if (agent.status !== 'active') {
-          throw new ExecutionError(
-            `Agent is not active (status: ${agent.status})`
-          );
+          throw new ExecutionError(`Agent is not active (status: ${agent.status})`);
         }
 
         // Load execution context (config, tasks, messages, workspace)
@@ -383,10 +376,7 @@ export class ExecutionOrchestrator {
    * @returns Promise resolving to synthesized decision
    * @throws AnalysisError if analysis fails or times out
    */
-  async runMultiPerspectiveAnalysis(
-    question: string,
-    perspectives: string[]
-  ): Promise<Decision> {
+  async runMultiPerspectiveAnalysis(question: string, perspectives: string[]): Promise<Decision> {
     const logger = createAgentLogger('multi-perspective-analysis');
     logger.info('Starting multi-perspective analysis', {
       question: question.substring(0, 100),
@@ -411,10 +401,7 @@ export class ExecutionOrchestrator {
           }));
 
           // Synthesize decision from multiple perspective results (EC-8.1)
-          const synthesizedDecision = this.synthesizeDecision(
-            question,
-            perspectiveResults
-          );
+          const synthesizedDecision = this.synthesizeDecision(question, perspectiveResults);
 
           return synthesizedDecision;
         },
@@ -444,12 +431,8 @@ export class ExecutionOrchestrator {
         confidence: 0.3,
         perspectives,
         perspectiveResults: [],
-        rationale: `Analysis failed: ${
-          error instanceof Error ? error.message : String(error)
-        }`,
-        warnings: [
-          'Analysis failed or timed out. Using safe default decision.',
-        ],
+        rationale: `Analysis failed: ${error instanceof Error ? error.message : String(error)}`,
+        warnings: ['Analysis failed or timed out. Using safe default decision.'],
       };
     }
   }
@@ -482,8 +465,7 @@ export class ExecutionOrchestrator {
       const response = result.response.toLowerCase();
 
       // Classify recommendation type based on keywords
-      let recommendation: 'approve' | 'reject' | 'conditional' | 'neutral' =
-        'neutral';
+      let recommendation: 'approve' | 'reject' | 'conditional' | 'neutral' = 'neutral';
 
       if (
         response.includes('approve') ||
@@ -516,15 +498,10 @@ export class ExecutionOrchestrator {
     });
 
     logger.info('Analyzed perspective recommendations', {
-      approvals: analyzedResults.filter((r) => r.recommendation === 'approve')
-        .length,
-      rejections: analyzedResults.filter((r) => r.recommendation === 'reject')
-        .length,
-      conditionals: analyzedResults.filter(
-        (r) => r.recommendation === 'conditional'
-      ).length,
-      neutrals: analyzedResults.filter((r) => r.recommendation === 'neutral')
-        .length,
+      approvals: analyzedResults.filter((r) => r.recommendation === 'approve').length,
+      rejections: analyzedResults.filter((r) => r.recommendation === 'reject').length,
+      conditionals: analyzedResults.filter((r) => r.recommendation === 'conditional').length,
+      neutrals: analyzedResults.filter((r) => r.recommendation === 'neutral').length,
     });
 
     const warnings: string[] = [];
@@ -546,33 +523,22 @@ export class ExecutionOrchestrator {
         perspectives: perspectiveResults.map((r) => r.perspective),
         perspectiveResults,
         rationale: `Strong rejection from ${strongRejection.perspective} perspective (confidence: ${strongRejection.confidence}). ${strongRejection.response}`,
-        warnings: [
-          `High-confidence rejection from ${strongRejection.perspective} perspective`,
-        ],
+        warnings: [`High-confidence rejection from ${strongRejection.perspective} perspective`],
       };
     }
 
     // Rule 2: Majority approve => approve
-    const approvals = analyzedResults.filter(
-      (r) => r.recommendation === 'approve'
-    );
-    const rejections = analyzedResults.filter(
-      (r) => r.recommendation === 'reject'
-    );
-    const conditionals = analyzedResults.filter(
-      (r) => r.recommendation === 'conditional'
-    );
-    const neutrals = analyzedResults.filter(
-      (r) => r.recommendation === 'neutral'
-    );
+    const approvals = analyzedResults.filter((r) => r.recommendation === 'approve');
+    const rejections = analyzedResults.filter((r) => r.recommendation === 'reject');
+    const conditionals = analyzedResults.filter((r) => r.recommendation === 'conditional');
+    const neutrals = analyzedResults.filter((r) => r.recommendation === 'neutral');
 
     const totalResponses = analyzedResults.length;
     const majorityThreshold = totalResponses / 2;
 
     if (approvals.length > majorityThreshold) {
       // Calculate average confidence from approvals
-      const avgConfidence =
-        approvals.reduce((sum, r) => sum + r.confidence, 0) / approvals.length;
+      const avgConfidence = approvals.reduce((sum, r) => sum + r.confidence, 0) / approvals.length;
 
       logger.info('Majority approval', {
         approvals: approvals.length,
@@ -599,17 +565,14 @@ export class ExecutionOrchestrator {
     // Rule 3: Conditionals => approve with conditions
     if (conditionals.length > 0) {
       const avgConfidence =
-        conditionals.reduce((sum, r) => sum + r.confidence, 0) /
-        conditionals.length;
+        conditionals.reduce((sum, r) => sum + r.confidence, 0) / conditionals.length;
 
       logger.info('Conditional approval', {
         conditionals: conditionals.length,
         confidence: avgConfidence,
       });
 
-      warnings.push(
-        `Conditional approval requires careful consideration of constraints`
-      );
+      warnings.push(`Conditional approval requires careful consideration of constraints`);
 
       return {
         recommendation: 'conditional',
@@ -648,8 +611,7 @@ export class ExecutionOrchestrator {
     // Fallback: More rejections than approvals => reject
     if (rejections.length > approvals.length) {
       const avgConfidence =
-        rejections.reduce((sum, r) => sum + r.confidence, 0) /
-        rejections.length;
+        rejections.reduce((sum, r) => sum + r.confidence, 0) / rejections.length;
 
       logger.info('Majority rejection', {
         rejections: rejections.length,
@@ -699,10 +661,7 @@ export class ExecutionOrchestrator {
     return Promise.race([
       fn(),
       new Promise<T>((_, reject) =>
-        setTimeout(
-          () => reject(new ExecutionError(timeoutMessage)),
-          timeoutMs
-        )
+        setTimeout(() => reject(new ExecutionError(timeoutMessage)), timeoutMs)
       ),
     ]);
   }

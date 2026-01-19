@@ -37,7 +37,11 @@ type ExecutionResult = {
 
 type FrameworkAdapter = {
   name: string;
-  executeAgent(agentId: string, mode: 'continuous' | 'reactive', context: any): Promise<ExecutionResult>;
+  executeAgent(
+    agentId: string,
+    mode: 'continuous' | 'reactive',
+    context: any
+  ): Promise<ExecutionResult>;
   checkHealth(): Promise<boolean>;
   supportsFeature(_feature: string): boolean;
   getCapabilities(): any[];
@@ -72,7 +76,11 @@ class AdapterRegistry {
 }
 
 // Helper to create valid AgentConfig
-function createValidConfig(agentId: string, role: string, framework: string = 'mock-adapter'): AgentConfig {
+function createValidConfig(
+  agentId: string,
+  role: string,
+  framework: string = 'mock-adapter'
+): AgentConfig {
   return {
     version: '1.0.0',
     identity: {
@@ -120,7 +128,11 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
 
     mockAdapter = {
       name: 'mock-adapter',
-      async executeAgent(agentId: string, mode: 'continuous' | 'reactive', context: any): Promise<ExecutionResult> {
+      async executeAgent(
+        agentId: string,
+        mode: 'continuous' | 'reactive',
+        context: any
+      ): Promise<ExecutionResult> {
         return {
           success: true,
           agentId,
@@ -589,7 +601,11 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
     it('should use fallback adapter when primary is unhealthy', async () => {
       const fallbackAdapter: FrameworkAdapter = {
         name: 'fallback-adapter',
-        async executeAgent(agentId: string, mode: 'continuous' | 'reactive', context: any): Promise<ExecutionResult> {
+        async executeAgent(
+          agentId: string,
+          mode: 'continuous' | 'reactive',
+          context: any
+        ): Promise<ExecutionResult> {
           return {
             success: true,
             agentId,
@@ -695,7 +711,11 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       // Make execution slow to test concurrency
       const slowAdapter: FrameworkAdapter = {
         name: 'slow-adapter',
-        async executeAgent(agentId: string, mode: 'continuous' | 'reactive', context: any): Promise<ExecutionResult> {
+        async executeAgent(
+          agentId: string,
+          mode: 'continuous' | 'reactive',
+          context: any
+        ): Promise<ExecutionResult> {
           await new Promise((resolve) => setTimeout(resolve, 500));
           return {
             success: true,

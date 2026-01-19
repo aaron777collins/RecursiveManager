@@ -8,12 +8,14 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as zlib from 'zlib';
 import { promisify } from 'util';
+import { archiveOldTasks, getCompletedTasks, compressOldArchives } from '../archiveTask';
 import {
-  archiveOldTasks,
-  getCompletedTasks,
-  compressOldArchives,
-} from '../archiveTask';
-import { initializeDatabase, createTask, completeTask, createAgent, runMigrations } from '@recursive-manager/common';
+  initializeDatabase,
+  createTask,
+  completeTask,
+  createAgent,
+  runMigrations,
+} from '@recursive-manager/common';
 import { allMigrations } from '@recursive-manager/common/dist/db/migrations';
 
 const gunzip = promisify(zlib.gunzip);
@@ -77,11 +79,13 @@ describe('archiveOldTasks', () => {
     // Manually update the completed_at timestamp to 10 days ago
     const tenDaysAgo = new Date();
     tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET completed_at = ?
       WHERE id = ?
-    `).run(tenDaysAgo.toISOString(), task1.id);
+    `
+    ).run(tenDaysAgo.toISOString(), task1.id);
 
     // Create a recent completed task (2 days ago)
     const task2 = createTask(db, {
@@ -96,11 +100,13 @@ describe('archiveOldTasks', () => {
     // Manually update the completed_at timestamp to 2 days ago
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET completed_at = ?
       WHERE id = ?
-    `).run(twoDaysAgo.toISOString(), task2.id);
+    `
+    ).run(twoDaysAgo.toISOString(), task2.id);
 
     // Archive tasks older than 7 days
     const archivedCount = await archiveOldTasks(db, 7);
@@ -109,21 +115,17 @@ describe('archiveOldTasks', () => {
     expect(archivedCount).toBe(1);
 
     // Verify the task status was updated to 'archived'
-    const archivedTask = db
-      .prepare('SELECT * FROM tasks WHERE id = ?')
-      .get(task1.id) as any;
+    const archivedTask = db.prepare('SELECT * FROM tasks WHERE id = ?').get(task1.id) as any;
     expect(archivedTask.status).toBe('archived');
 
     // Verify the recent task is still 'completed'
-    const recentTask = db
-      .prepare('SELECT * FROM tasks WHERE id = ?')
-      .get(task2.id) as any;
+    const recentTask = db.prepare('SELECT * FROM tasks WHERE id = ?').get(task2.id) as any;
     expect(recentTask.status).toBe('completed');
   });
 
   it('should handle empty result set gracefully', async () => {
     // Create a test agent with no tasks
-    void await createAgent(
+    void (await createAgent(
       db,
       {
         id: 'test-agent-empty',
@@ -134,7 +136,7 @@ describe('archiveOldTasks', () => {
         frameworkPreference: 'claude-code',
       },
       { baseDir: tempDir }
-    );
+    ));
 
     // Archive tasks (should return 0)
     const archivedCount = await archiveOldTasks(db, 7);
@@ -169,11 +171,13 @@ describe('archiveOldTasks', () => {
 
     // Set completion date to January 2024
     const completionDate = new Date('2024-01-15T10:00:00Z');
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET completed_at = ?
       WHERE id = ?
-    `).run(completionDate.toISOString(), task.id);
+    `
+    ).run(completionDate.toISOString(), task.id);
 
     // Archive the task
     const archivedCount = await archiveOldTasks(db, 7);
@@ -184,9 +188,7 @@ describe('archiveOldTasks', () => {
     // The directory should be: {agentDir}/tasks/archive/2024-01/{taskId}
     // We can't easily verify the file system move in this test without mocking,
     // but we can verify the database update
-    const archivedTask = db
-      .prepare('SELECT * FROM tasks WHERE id = ?')
-      .get(task.id) as any;
+    const archivedTask = db.prepare('SELECT * FROM tasks WHERE id = ?').get(task.id) as any;
     expect(archivedTask.status).toBe('archived');
   });
 
@@ -227,11 +229,13 @@ describe('archiveOldTasks', () => {
     // Set both to old completion dates
     const tenDaysAgo = new Date();
     tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET completed_at = ?
       WHERE id IN (?, ?)
-    `).run(tenDaysAgo.toISOString(), task1.id, task2.id);
+    `
+    ).run(tenDaysAgo.toISOString(), task1.id, task2.id);
 
     // Archive the tasks
     // Note: Both should succeed in this test, but the function is designed to
@@ -427,11 +431,13 @@ describe('getCompletedTasks', () => {
     // Set completion date to 10 days ago
     const tenDaysAgo = new Date();
     tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET completed_at = ?
       WHERE id = ?
-    `).run(tenDaysAgo.toISOString(), task1.id);
+    `
+    ).run(tenDaysAgo.toISOString(), task1.id);
 
     const task2 = createTask(db, {
       agentId: agent.id,
@@ -444,11 +450,13 @@ describe('getCompletedTasks', () => {
     // Set completion date to 5 days ago
     const fiveDaysAgo = new Date();
     fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 5);
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET completed_at = ?
       WHERE id = ?
-    `).run(fiveDaysAgo.toISOString(), task2.id);
+    `
+    ).run(fiveDaysAgo.toISOString(), task2.id);
 
     // Get completed tasks (should be ordered oldest first)
     const tasks = getCompletedTasks(db, agent.id);
@@ -523,33 +531,26 @@ describe('compressOldArchives', () => {
     // Set completion date to 100 days ago
     const hundredDaysAgo = new Date();
     hundredDaysAgo.setDate(hundredDaysAgo.getDate() - 100);
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET completed_at = ?
       WHERE id = ?
-    `).run(hundredDaysAgo.toISOString(), task.id);
+    `
+    ).run(hundredDaysAgo.toISOString(), task.id);
 
     // Archive the task first
     await archiveOldTasks(db, 7);
 
     // Verify task is archived
-    const archivedTask = db
-      .prepare('SELECT * FROM tasks WHERE id = ?')
-      .get(task.id) as any;
+    const archivedTask = db.prepare('SELECT * FROM tasks WHERE id = ?').get(task.id) as any;
     expect(archivedTask.status).toBe('archived');
 
     // Create some files in the archived task directory
     const archiveYearMonth = `${hundredDaysAgo.getFullYear()}-${String(
       hundredDaysAgo.getMonth() + 1
     ).padStart(2, '0')}`;
-    const taskDir = path.join(
-      tempDir,
-      agent.id,
-      'tasks',
-      'archive',
-      archiveYearMonth,
-      task.id
-    );
+    const taskDir = path.join(tempDir, agent.id, 'tasks', 'archive', archiveYearMonth, task.id);
 
     await fs.mkdir(taskDir, { recursive: true });
     await fs.writeFile(path.join(taskDir, 'test.txt'), 'test content');
@@ -605,11 +606,13 @@ describe('compressOldArchives', () => {
     // Set completion date to 30 days ago (less than 90)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET completed_at = ?
       WHERE id = ?
-    `).run(thirtyDaysAgo.toISOString(), task.id);
+    `
+    ).run(thirtyDaysAgo.toISOString(), task.id);
 
     // Archive the task first
     await archiveOldTasks(db, 7);
@@ -618,14 +621,7 @@ describe('compressOldArchives', () => {
     const archiveYearMonth = `${thirtyDaysAgo.getFullYear()}-${String(
       thirtyDaysAgo.getMonth() + 1
     ).padStart(2, '0')}`;
-    const taskDir = path.join(
-      tempDir,
-      agent.id,
-      'tasks',
-      'archive',
-      archiveYearMonth,
-      task.id
-    );
+    const taskDir = path.join(tempDir, agent.id, 'tasks', 'archive', archiveYearMonth, task.id);
 
     await fs.mkdir(taskDir, { recursive: true });
     await fs.writeFile(path.join(taskDir, 'test.txt'), 'test content');
@@ -680,11 +676,13 @@ describe('compressOldArchives', () => {
     // Set completion date to 100 days ago
     const hundredDaysAgo = new Date();
     hundredDaysAgo.setDate(hundredDaysAgo.getDate() - 100);
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET completed_at = ?
       WHERE id = ?
-    `).run(hundredDaysAgo.toISOString(), task.id);
+    `
+    ).run(hundredDaysAgo.toISOString(), task.id);
 
     // Archive the task
     await archiveOldTasks(db, 7);
@@ -693,14 +691,7 @@ describe('compressOldArchives', () => {
     const archiveYearMonth = `${hundredDaysAgo.getFullYear()}-${String(
       hundredDaysAgo.getMonth() + 1
     ).padStart(2, '0')}`;
-    const taskDir = path.join(
-      tempDir,
-      agent.id,
-      'tasks',
-      'archive',
-      archiveYearMonth,
-      task.id
-    );
+    const taskDir = path.join(tempDir, agent.id, 'tasks', 'archive', archiveYearMonth, task.id);
 
     await fs.mkdir(taskDir, { recursive: true });
     await fs.writeFile(path.join(taskDir, 'test.txt'), 'test content');
@@ -758,18 +749,22 @@ describe('compressOldArchives', () => {
     // Set completion date to 100 days ago
     const hundredDaysAgo = new Date();
     hundredDaysAgo.setDate(hundredDaysAgo.getDate() - 100);
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET completed_at = ?
       WHERE id = ?
-    `).run(hundredDaysAgo.toISOString(), task.id);
+    `
+    ).run(hundredDaysAgo.toISOString(), task.id);
 
     // Mark as archived in database (but don't create directory)
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET status = 'archived'
       WHERE id = ?
-    `).run(task.id);
+    `
+    ).run(task.id);
 
     // Run compression (should handle missing directory)
     const compressedCount = await compressOldArchives(db, 90);
@@ -806,11 +801,13 @@ describe('compressOldArchives', () => {
     // Set completion date to 100 days ago
     const hundredDaysAgo = new Date();
     hundredDaysAgo.setDate(hundredDaysAgo.getDate() - 100);
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET completed_at = ?
       WHERE id = ?
-    `).run(hundredDaysAgo.toISOString(), task.id);
+    `
+    ).run(hundredDaysAgo.toISOString(), task.id);
 
     // Archive the task
     await archiveOldTasks(db, 7);
@@ -819,14 +816,7 @@ describe('compressOldArchives', () => {
     const archiveYearMonth = `${hundredDaysAgo.getFullYear()}-${String(
       hundredDaysAgo.getMonth() + 1
     ).padStart(2, '0')}`;
-    const taskDir = path.join(
-      tempDir,
-      agent.id,
-      'tasks',
-      'archive',
-      archiveYearMonth,
-      task.id
-    );
+    const taskDir = path.join(tempDir, agent.id, 'tasks', 'archive', archiveYearMonth, task.id);
 
     await fs.mkdir(taskDir, { recursive: true });
     await fs.writeFile(path.join(taskDir, 'file1.txt'), 'content 1');
@@ -834,10 +824,7 @@ describe('compressOldArchives', () => {
 
     // Create subdirectory with file
     await fs.mkdir(path.join(taskDir, 'subdir'), { recursive: true });
-    await fs.writeFile(
-      path.join(taskDir, 'subdir', 'file3.txt'),
-      'content 3'
-    );
+    await fs.writeFile(path.join(taskDir, 'subdir', 'file3.txt'), 'content 3');
 
     // Compress the archive
     await compressOldArchives(db, 90);
@@ -912,11 +899,13 @@ describe('compressOldArchives', () => {
     // Set both to old completion dates
     const hundredDaysAgo = new Date();
     hundredDaysAgo.setDate(hundredDaysAgo.getDate() - 100);
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE tasks
       SET completed_at = ?
       WHERE id IN (?, ?)
-    `).run(hundredDaysAgo.toISOString(), task1.id, task2.id);
+    `
+    ).run(hundredDaysAgo.toISOString(), task1.id, task2.id);
 
     // Archive both tasks
     await archiveOldTasks(db, 7);
@@ -925,14 +914,7 @@ describe('compressOldArchives', () => {
     const archiveYearMonth = `${hundredDaysAgo.getFullYear()}-${String(
       hundredDaysAgo.getMonth() + 1
     ).padStart(2, '0')}`;
-    const task2Dir = path.join(
-      tempDir,
-      agent.id,
-      'tasks',
-      'archive',
-      archiveYearMonth,
-      task2.id
-    );
+    const task2Dir = path.join(tempDir, agent.id, 'tasks', 'archive', archiveYearMonth, task2.id);
 
     await fs.mkdir(task2Dir, { recursive: true });
     await fs.writeFile(path.join(task2Dir, 'test.txt'), 'test content');

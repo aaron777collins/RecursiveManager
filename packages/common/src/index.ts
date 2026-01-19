@@ -6,12 +6,7 @@
  */
 
 // Version information (Phase 1.1)
-export {
-  VERSION,
-  RELEASE_DATE,
-  RELEASE_URL,
-  getVersionInfo,
-} from './version';
+export { VERSION, RELEASE_DATE, RELEASE_URL, getVersionInfo } from './version';
 
 // File I/O utilities (Phase 1.2)
 export {
@@ -254,11 +249,7 @@ export {
 export { loadAgentConfig, ConfigLoadError } from './config-loader';
 
 // Global Configuration (Phase 7.1 - Environment-based configuration)
-export {
-  loadConfig,
-  config,
-  type RecursiveManagerConfig,
-} from './config';
+export { loadConfig, config, type RecursiveManagerConfig } from './config';
 
 // PID Manager (Phase 3.4)
 export {

@@ -82,10 +82,7 @@ function getStatusIndicator(status: string): string {
 /**
  * Format a single agent entry with optional metadata
  */
-function formatAgentEntry(
-  entry: OrgChartEntry,
-  options: FormatOptions
-): string {
+function formatAgentEntry(entry: OrgChartEntry, options: FormatOptions): string {
   const { agent } = entry;
   const { showStatus = true, showCreatedAt = false, showStats = false, useColor = true } = options;
 
@@ -138,10 +135,7 @@ function formatAgentEntry(
  * └─● CFO (Eve)
  * ```
  */
-export function formatAsTree(
-  orgChart: OrgChartEntry[],
-  options: FormatOptions = {}
-): string {
+export function formatAsTree(orgChart: OrgChartEntry[], options: FormatOptions = {}): string {
   const { maxDepth = 0 } = options;
 
   if (orgChart.length === 0) {
@@ -209,10 +203,7 @@ export function formatAsTree(
  *   ● CFO (Eve)
  * ```
  */
-export function formatAsIndented(
-  orgChart: OrgChartEntry[],
-  options: FormatOptions = {}
-): string {
+export function formatAsIndented(orgChart: OrgChartEntry[], options: FormatOptions = {}): string {
   const { maxDepth = 0 } = options;
 
   if (orgChart.length === 0) {
@@ -244,20 +235,21 @@ export function formatAsIndented(
  * 2     | ●      | Charlie          | Backend Dev     | 2026-01-19
  * ```
  */
-export function formatAsTable(
-  orgChart: OrgChartEntry[],
-  options: FormatOptions = {}
-): string {
-  const { maxDepth = 0, showStatus = true, showCreatedAt = true, showStats = true, useColor = true } = options;
+export function formatAsTable(orgChart: OrgChartEntry[], options: FormatOptions = {}): string {
+  const {
+    maxDepth = 0,
+    showStatus = true,
+    showCreatedAt = true,
+    showStats = true,
+    useColor = true,
+  } = options;
 
   if (orgChart.length === 0) {
     return 'No agents found.';
   }
 
   // Filter by max depth
-  const filtered = maxDepth > 0
-    ? orgChart.filter(e => e.depth <= maxDepth)
-    : orgChart;
+  const filtered = maxDepth > 0 ? orgChart.filter((e) => e.depth <= maxDepth) : orgChart;
 
   // Column widths will be calculated dynamically from actual data
 
@@ -300,7 +292,7 @@ export function formatAsTable(
 
   // Calculate column widths (account for ANSI codes)
   const colWidths = headers.map((header, i) => {
-    const contentWidths = rows.map(row => {
+    const contentWidths = rows.map((row) => {
       // Remove ANSI codes for width calculation
       const cellContent = row[i];
       if (!cellContent) return 0;
@@ -318,17 +310,19 @@ export function formatAsTable(
   lines.push(headerRow);
 
   // Separator
-  const separator = colWidths.map(w => '-'.repeat(w)).join('-+-');
+  const separator = colWidths.map((w) => '-'.repeat(w)).join('-+-');
   lines.push(separator);
 
   // Data rows
   for (const row of rows) {
-    const formattedRow = row.map((cell, i) => {
-      // Calculate actual visible width (excluding ANSI codes)
-      const visibleWidth = cell.replace(/\x1b\[[0-9;]*m/g, '').length;
-      const padding = (colWidths[i] || 0) - visibleWidth;
-      return cell + ' '.repeat(Math.max(0, padding));
-    }).join(' | ');
+    const formattedRow = row
+      .map((cell, i) => {
+        // Calculate actual visible width (excluding ANSI codes)
+        const visibleWidth = cell.replace(/\x1b\[[0-9;]*m/g, '').length;
+        const padding = (colWidths[i] || 0) - visibleWidth;
+        return cell + ' '.repeat(Math.max(0, padding));
+      })
+      .join(' | ');
     lines.push(formattedRow);
   }
 
@@ -338,15 +332,10 @@ export function formatAsTable(
 /**
  * Format org chart as JSON
  */
-export function formatAsJSON(
-  orgChart: OrgChartEntry[],
-  options: FormatOptions = {}
-): string {
+export function formatAsJSON(orgChart: OrgChartEntry[], options: FormatOptions = {}): string {
   const { maxDepth = 0 } = options;
 
-  const filtered = maxDepth > 0
-    ? orgChart.filter(e => e.depth <= maxDepth)
-    : orgChart;
+  const filtered = maxDepth > 0 ? orgChart.filter((e) => e.depth <= maxDepth) : orgChart;
 
   return JSON.stringify(filtered, null, 2);
 }
