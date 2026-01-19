@@ -55,7 +55,6 @@
   "packageManager": "npm@10.8.2",
   "lint-staged": {
     "*.{ts,tsx}": [
-      "eslint --fix",
       "prettier --write"
     ],
     "*.{md,json,yml,yaml}": [

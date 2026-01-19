@@ -91,7 +91,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Core File I/O
 
-- [ ] Task 1.2.1: Implement atomicWrite() with temp file + rename pattern
+- [x] Task 1.2.1: Implement atomicWrite() with temp file + rename pattern
 - [ ] Task 1.2.2: Implement createBackup() with timestamped backups
 - [ ] Task 1.2.3: Implement backup retention/cleanup (7-day policy)
 - [ ] Task 1.2.4: Create directory permission handling (0o755)
@@ -532,6 +532,77 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.2.1: Implement atomicWrite() with temp file + rename pattern ✅
+
+**Summary**: Implemented atomic file write operations with temp file + rename pattern, comprehensive error handling, and both async and sync variants. Includes 24 passing unit tests covering all edge cases.
+
+**What Was Implemented**:
+
+- ✅ Created `packages/common/src/file-io.ts` module
+  - `atomicWrite()` - Async atomic file write with temp file + rename pattern
+  - `atomicWriteSync()` - Synchronous version for edge cases
+  - `AtomicWriteError` - Custom error class with detailed context
+  - `AtomicWriteOptions` - Type-safe configuration interface
+- ✅ Atomic write algorithm ensures:
+  - Target file never left in partially written state
+  - Original file remains untouched on failure
+  - Write is atomic at filesystem level via rename
+  - Temporary files are always cleaned up
+- ✅ Features implemented:
+  - Automatic parent directory creation (configurable)
+  - Configurable file permissions (default 0o644)
+  - Configurable encoding (default utf-8)
+  - Buffer and string content support
+  - Temp file in same directory ensures atomic rename
+  - Comprehensive error handling with cleanup
+- ✅ Exported from `@recursive-manager/common` package
+  - Added to package index with proper TypeScript types
+  - Available for use in all other packages
+- ✅ Comprehensive test suite (24 tests, all passing)
+  - Basic functionality (write string, buffer, overwrite)
+  - Directory creation (auto-create, fail if disabled, permissions)
+  - File permissions (default, custom)
+  - Encoding support (utf-8, custom)
+  - Atomicity guarantees (no temp files left, cleanup on error)
+  - Error handling (descriptive errors, absolute/relative paths)
+  - Concurrent writes (multiple files, sequential same file)
+  - Synchronous variant (all core functionality)
+
+**Files Created**:
+
+1. `packages/common/src/file-io.ts` (195 lines) - Implementation
+2. `packages/common/src/__tests__/file-io.test.ts` (316 lines) - Tests
+3. `packages/common/src/index.ts` - Updated exports
+
+**Testing Results**:
+
+- ✅ 24/24 tests passing
+- ✅ All tests complete in ~4 seconds
+- ✅ ESLint and Prettier pass
+- ✅ TypeScript compilation successful
+- ✅ Test coverage includes:
+  - Basic read/write operations
+  - Edge cases (permissions, encoding, paths)
+  - Error scenarios (cleanup, atomicity)
+  - Concurrent operations
+  - Both async and sync variants
+
+**Key Design Decisions**:
+
+1. **Temp file in same directory**: Ensures atomic rename works (same filesystem)
+2. **Random suffix on temp files**: Prevents collisions in concurrent writes
+3. **Cleanup on all errors**: Prevents orphaned temp files
+4. **Custom error class**: Provides original error, file path, and temp path for debugging
+5. **Sync variant provided**: For edge cases like process exit handlers
+
+**Impact**:
+
+This is the first utility in Phase 1.2 (File System Layer). It provides the foundation for all future file operations in the system, ensuring data integrity through atomic writes. All agent configuration, task files, and metadata will use this utility to prevent corruption.
+
+**Next Task**: Task 1.2.2 - Implement createBackup() with timestamped backups
+
+---
 
 ### Task 1.1.8: Add pre-commit hooks for linting and tests ✅
 

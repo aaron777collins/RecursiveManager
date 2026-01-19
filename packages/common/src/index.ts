@@ -7,5 +7,5 @@
 
 export const VERSION = '0.1.0';
 
-// Placeholder - actual exports will be added in Phase 1.2+
-export {};
+// File I/O utilities (Phase 1.2)
+export { atomicWrite, atomicWriteSync, AtomicWriteError, type AtomicWriteOptions } from './file-io';
