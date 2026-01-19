@@ -432,3 +432,123 @@ export function generateDefaultConfig(
 
   return config;
 }
+
+/**
+ * Deep partial type that makes all nested properties optional recursively
+ */
+type DeepPartial<T> = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [P in keyof T]?: T[P] extends Array<any>
+    ? T[P] // Arrays are not made partial
+    : T[P] extends object
+      ? DeepPartial<T[P]>
+      : T[P];
+};
+
+/**
+ * Merge two agent configurations with proper precedence
+ *
+ * This function performs a deep merge of two agent configurations, where:
+ * 1. The override config takes precedence over the base config
+ * 2. Nested objects are merged recursively (not replaced entirely)
+ * 3. Arrays in override replace arrays in base (no array merging)
+ * 4. Primitive values in override replace those in base
+ * 5. Undefined values in override don't replace defined values in base
+ * 6. Null values in override DO replace values in base
+ *
+ * Use cases:
+ * - Applying custom configuration overrides to default configs
+ * - Updating agent configs while preserving existing values
+ * - Templating configs with partial overrides
+ *
+ * @param base - The base configuration (defaults)
+ * @param override - The override configuration (custom values)
+ * @returns A new configuration object with override applied to base
+ *
+ * @example
+ * ```typescript
+ * const base = generateDefaultConfig("Developer", "Build features", "CEO");
+ * const override = {
+ *   permissions: {
+ *     canHire: true,
+ *     maxSubordinates: 5,
+ *   },
+ *   behavior: {
+ *     verbosity: 3,
+ *   },
+ * };
+ * const merged = mergeConfigs(base, override);
+ * // merged.permissions.canHire = true (from override)
+ * // merged.permissions.workspaceQuotaMB = 1024 (from base)
+ * // merged.behavior.verbosity = 3 (from override)
+ * // merged.behavior.continuousMode = undefined (from base)
+ * ```
+ */
+export function mergeConfigs(
+  base: AgentConfig,
+  override: DeepPartial<AgentConfig>
+): AgentConfig {
+  // Helper function to check if a value is a plain object
+  const isPlainObject = (value: unknown): value is Record<string, unknown> => {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      !Array.isArray(value) &&
+      Object.prototype.toString.call(value) === '[object Object]'
+    );
+  };
+
+  // Helper function to deep merge two objects
+  const deepMerge = <T extends Record<string, unknown>>(
+    target: T,
+    source: Partial<T>
+  ): T => {
+    const result = { ...target };
+
+    for (const key in source) {
+      if (!Object.prototype.hasOwnProperty.call(source, key)) {
+        continue;
+      }
+
+      const sourceValue = source[key];
+      const targetValue = target[key];
+
+      // If source value is undefined, keep target value
+      if (sourceValue === undefined) {
+        continue;
+      }
+
+      // If source value is null, use it (null is an explicit override)
+      if (sourceValue === null) {
+        result[key] = sourceValue as T[Extract<keyof T, string>];
+        continue;
+      }
+
+      // If both are plain objects, recursively merge them
+      if (isPlainObject(sourceValue) && isPlainObject(targetValue)) {
+        result[key] = deepMerge(
+          targetValue as Record<string, unknown>,
+          sourceValue as Record<string, unknown>
+        ) as T[Extract<keyof T, string>];
+        continue;
+      }
+
+      // Otherwise, source value replaces target value
+      // This includes:
+      // - Arrays (replace, don't merge)
+      // - Primitives (string, number, boolean)
+      // - Functions
+      // - Any other type
+      result[key] = sourceValue as T[Extract<keyof T, string>];
+    }
+
+    return result;
+  };
+
+  // Perform the merge
+  // We need to cast through unknown because TypeScript can't infer the complex generic types
+  return deepMerge(
+    base as unknown as Record<string, unknown>,
+    override as Record<string, unknown>
+  ) as unknown as AgentConfig;
+}

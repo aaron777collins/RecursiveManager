@@ -226,7 +226,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 2.1.1: Implement loadAgentConfig(agentId) reading from file + validation
 - [x] Task 2.1.2: Implement saveAgentConfig(agentId, config) with atomic write + backup
 - [x] Task 2.1.3: Implement generateDefaultConfig(role, goal) with sensible defaults
-- [ ] Task 2.1.4: Implement mergeConfigs(base, override) with proper precedence
+- [x] Task 2.1.4: Implement mergeConfigs(base, override) with proper precedence
 - [ ] Task 2.1.5: Add config validation with detailed error messages
 - [ ] Task 2.1.6: Implement corrupt config recovery (EC-5.2) using backups
 - [ ] Task 2.1.7: Unit tests for config validation (valid/invalid inputs)
@@ -476,6 +476,60 @@ RecursiveManager is a hierarchical AI agent system with:
 - **Early integration testing** to catch interface issues
 - **Prototype framework adapters early** to validate architecture
 - **Buffer time in estimates** (20% contingency per phase)
+
+---
+
+## Completed This Iteration
+
+### Task 2.1.4: Implement mergeConfigs(base, override) with proper precedence ✅
+
+**Date**: 2026-01-19 01:30:00 EST
+
+**Summary**: Implemented deep configuration merging with proper precedence rules to enable flexible configuration composition and updates.
+
+**What Was Implemented**:
+
+1. **mergeConfigs Function** (`packages/core/src/config/index.ts`):
+   - Deep merges two agent configurations with proper precedence
+   - Override config takes precedence over base config
+   - Nested objects are merged recursively (not replaced entirely)
+   - Arrays in override replace arrays in base (no array merging)
+   - Primitive values in override replace those in base
+   - Undefined values in override don't replace defined values in base
+   - Null values in override DO replace values in base (explicit override)
+   - Does not mutate input parameters
+
+2. **DeepPartial Type** (`packages/core/src/config/index.ts`):
+   - Created recursive partial type for flexible override typing
+   - Allows partial overrides at any nesting level
+   - Preserves array types without making them partial
+
+3. **Comprehensive Test Suite** (`packages/core/src/__tests__/mergeConfigs.test.ts`):
+   - 20 test cases covering all merge scenarios
+   - **Basic Merging**: empty override, undefined values, null values, primitives
+   - **Deep Merging**: nested objects, multiple levels, communication settings
+   - **Array Handling**: array replacement, nested arrays, empty arrays
+   - **Edge Cases**: new fields, optional fields, complete sections, immutability
+   - **Complex Scenarios**: multi-level overrides, chained merges, framework config
+   - **Real-World Use Cases**: template customization, partial updates
+
+**Use Cases**:
+- Applying custom configuration overrides to default configs
+- Updating agent configs while preserving existing values
+- Templating configs with partial overrides
+- Configuration inheritance and composition
+
+**Files Modified**:
+- `packages/core/src/config/index.ts` - Added mergeConfigs function and DeepPartial type
+- Created `packages/core/src/__tests__/mergeConfigs.test.ts` - 20 comprehensive test cases
+
+**Test Results**: All 88 tests in core package pass ✅
+
+**Notes**:
+- Function properly handles deep nesting without mutating input parameters
+- TypeScript type safety ensured through DeepPartial type
+- Ready for use in configuration updates and template-based agent creation
+- Next tasks in Phase 2.1: config validation and corruption recovery
 
 ---
 
