@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 20:48:34 EST
+Last Updated: 2026-01-18 20:55:48 EST
 
 ## Status
 
@@ -115,8 +115,8 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Schema Validation
 
-- [ ] Task 1.2.16: Implement validateAgentConfig() with detailed error messages
-- [ ] Task 1.2.17: Implement validation for all schema types
+- [x] Task 1.2.16: Implement validateAgentConfig() with detailed error messages
+- [x] Task 1.2.17: Implement validation for all schema types
 - [ ] Task 1.2.18: Add error recovery from corrupt files (EC-5.2: File Corruption)
 - [ ] Task 1.2.19: Implement backup restoration logic
 
@@ -2236,6 +2236,94 @@ Time:    7.889s
 - Task 1.1.4: Set up ESLint + Prettier
 - Task 1.1.5: Configure Jest testing framework
 - Task 1.1.6: Create GitHub Actions CI/CD workflow
+
+---
+
+### Task 1.2.16 & 1.2.17: Schema Validation Implementation ✅
+
+**Completed**: 2026-01-18
+
+**Summary**: Created comprehensive schema validation module with detailed error messages for all six schema types (agent-config, schedule, task, message, metadata, subordinates). Implemented both non-throwing and strict validation APIs using AJV with format validation support.
+
+**What Was Implemented**:
+
+- ✅ Created `packages/common/src/schema-validation.ts` (460 lines)
+  - Core validation function: `validateAgentConfig()` with detailed error messages
+  - Additional validators: `validateSchedule()`, `validateTask()`, `validateMessage()`, `validateMetadata()`, `validateSubordinates()`
+  - Strict variants that throw `SchemaValidationError`: `validateAgentConfigStrict()`, etc.
+  - Custom `SchemaValidationError` class with formatted error output
+  - Validator caching for performance optimization
+- ✅ Created comprehensive test suite `packages/common/src/__tests__/schema-validation.test.ts`
+  - 23 tests covering all validation functions
+  - Tests for valid/invalid configurations
+  - Tests for error formatting and detailed messages
+  - Tests for strict variants throwing exceptions
+  - Tests for validator caching mechanism
+- ✅ Updated `packages/common/src/index.ts` to export all validation functions and types
+- ✅ All tests passing (23/23 for schema-validation, 324/325 total)
+
+**Key Features**:
+
+1. **Detailed Error Messages**: Each validation error includes:
+   - Field name (dotted path notation)
+   - Human-readable error message
+   - Actual value received
+   - Schema path for debugging
+
+2. **Smart Error Formatting**: Custom error messages for common validation failures:
+   - "Missing required field: {field}" for required violations
+   - "Expected type {type}, but got {actual}" for type mismatches
+   - "Must be one of: {values}" for enum violations
+   - "Must match pattern: {pattern}" for regex failures
+   - "Must be a valid {format} format" for format violations
+   - Numeric constraint messages (minimum, maximum, minLength, etc.)
+
+3. **Two API Styles**:
+   - Non-throwing: `validate*()` returns `ValidationResult { valid, errors? }`
+   - Throwing: `validate*Strict()` throws `SchemaValidationError` with formatted errors
+
+4. **Performance Optimization**:
+   - Validator compilation caching (compile once, reuse many times)
+   - Singleton AJV instance with formats support
+
+**Test Results**:
+
+```
+PASS common src/__tests__/schema-validation.test.ts
+  schema-validation
+    validateAgentConfig
+      ✓ should validate a valid minimal agent config
+      ✓ should return detailed errors for invalid config
+      ✓ should provide specific error messages for invalid fields
+      ✓ should validate a complete agent config
+      ✓ should reject additional properties
+    validateAgentConfigStrict
+      ✓ should not throw for valid config
+      ✓ should throw SchemaValidationError for invalid config
+      ✓ should include formatted errors in exception
+    [... 15 more tests ...]
+
+Tests: 23 passed, 23 total
+```
+
+**Files Created/Modified**:
+
+- Created: `packages/common/src/schema-validation.ts` (460 lines)
+- Created: `packages/common/src/__tests__/schema-validation.test.ts` (550 lines, 23 tests)
+- Modified: `packages/common/src/index.ts` (added exports for validation module)
+
+**Integration Points**:
+
+- Used by future tasks for config file validation (Tasks 1.2.18, 1.2.19)
+- Will be used by file I/O layer for atomic writes with validation
+- Will be used by agent lifecycle management (hire, fire, config updates)
+- Provides foundation for backup restoration with validation
+
+**Next Tasks**:
+
+- Task 1.2.18: Add error recovery from corrupt files (EC-5.2: File Corruption)
+- Task 1.2.19: Implement backup restoration logic
+- Task 1.2.20-1.2.24: Testing suite for file system layer
 
 ---
 

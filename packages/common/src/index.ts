@@ -95,3 +95,23 @@ import agentConfigSchema from './schemas/agent-config.schema.json';
 import scheduleSchema from './schemas/schedule.schema.json';
 
 export { agentConfigSchema, scheduleSchema };
+
+// Schema Validation (Phase 1.2)
+export {
+  validateAgentConfig,
+  validateAgentConfigStrict,
+  validateSchedule,
+  validateScheduleStrict,
+  validateTask,
+  validateTaskStrict,
+  validateMessage,
+  validateMessageStrict,
+  validateMetadata,
+  validateMetadataStrict,
+  validateSubordinates,
+  validateSubordinatesStrict,
+  SchemaValidationError,
+  clearValidatorCache,
+  type ValidationResult,
+  type ValidationError,
+} from './schema-validation';
