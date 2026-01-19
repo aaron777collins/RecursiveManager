@@ -14,6 +14,7 @@ import { migration002 } from './002_create_tasks_table';
 import { migration003 } from './003_create_messages_table';
 import { migration004 } from './004_create_schedules_table';
 import { migration005 } from './005_create_audit_log_table';
+import { migration006 } from './006_create_org_hierarchy_table';
 
 /**
  * All available migrations in order
@@ -27,6 +28,7 @@ export const allMigrations: Migration[] = [
   migration003,
   migration004,
   migration005,
+  migration006,
 ];
 
 /**

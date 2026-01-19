@@ -148,7 +148,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 1.3.7: Create messages table with indexes (to_unread, timestamp, channel)
 - [x] Task 1.3.8: Create schedules table with indexes (agent, next_execution, enabled)
 - [x] Task 1.3.9: Create audit_log table with indexes (timestamp, agent, action)
-- [ ] Task 1.3.10: Create org_hierarchy materialized view with indexes
+- [x] Task 1.3.10: Create org_hierarchy materialized view with indexes
 
 ##### Query APIs - Agents
 
@@ -3035,3 +3035,60 @@ Created a comprehensive database migration system in `packages/common/src/db/mig
 - Designed for extensibility - new migrations can be added to the array
 - Follows SQLite best practices with WAL mode and transactions
 - Ready for use in schema creation tasks (1.3.5-1.3.10)
+
+---
+
+### Task 1.3.10: Create org_hierarchy materialized view with indexes ✅
+
+**Summary**: Implemented the sixth database schema migration to create the `org_hierarchy` table (materialized view) with comprehensive indexes for efficient hierarchical queries. This table stores the transitive closure of reporting relationships, enabling fast org chart queries and hierarchy analysis.
+
+**What Was Implemented**:
+
+1. **Migration File** (`packages/common/src/db/migrations/006_create_org_hierarchy_table.ts`):
+   - Created migration version 6 with complete org_hierarchy table schema
+   - Table includes 4 columns:
+     - `agent_id` (TEXT NOT NULL, REFERENCES agents(id) ON DELETE CASCADE): The agent being described
+     - `ancestor_id` (TEXT NOT NULL, REFERENCES agents(id) ON DELETE CASCADE): An ancestor in the hierarchy
+     - `depth` (INTEGER NOT NULL): Hierarchy depth (0 = self, 1 = direct manager, etc.)
+     - `path` (TEXT NOT NULL): Human-readable path (e.g., "CEO/CTO/backend-dev-001")
+   - Primary key on (agent_id, ancestor_id) ensures uniqueness
+   - Four indexes for query optimization:
+     - Composite primary key on (agent_id, ancestor_id)
+     - `idx_org_hierarchy_ancestor`: For finding all descendants of an agent
+     - `idx_org_hierarchy_depth`: For filtering by hierarchy level
+     - `idx_org_hierarchy_ancestor_depth`: Composite index for common queries like "direct reports"
+   - Foreign key constraints with CASCADE delete to maintain referential integrity
+   - Complete rollback support (down migration)
+
+2. **Migration Registry Update** (`packages/common/src/db/migrations/index.ts`):
+   - Added `migration006` import
+   - Added `migration006` to the `allMigrations` array
+   - Maintained sequential version numbering (1→2→3→4→5→6)
+
+3. **Validation**:
+   - ✅ Build passes: TypeScript compilation successful
+   - ✅ All 6 packages built successfully with turbo
+   - ✅ Migration properly integrated into the migration system
+
+**Key Design Decisions**:
+
+- Implemented as a regular table (not a SQLite VIEW) for performance, requiring manual updates on agent changes
+- Added ON DELETE CASCADE to automatically clean up hierarchy entries when agents are deleted
+- Included composite index on (ancestor_id, depth) to optimize the common query pattern "find all direct reports of agent X"
+- Path column provides human-readable debugging and visualization support
+
+**Next Steps**:
+
+- Task 1.3.11-1.3.15: Implement agent query APIs that will use this table
+- Future: Implement triggers or application logic to maintain org_hierarchy when agents are hired/fired or reporting relationships change
+
+**Files Created**:
+
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/migrations/006_create_org_hierarchy_table.ts` (82 lines)
+
+**Files Modified**:
+
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/migrations/index.ts` - Added migration006 import and export
+- `/home/ubuntu/repos/RecursiveManager/COMPREHENSIVE_PLAN_PROGRESS.md` - Marked Task 1.3.10 complete
+
+**Build Results**: All packages build successfully (6 successful tasks in 9.528s) ✅
