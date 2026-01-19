@@ -568,4 +568,138 @@ describe('AdapterRegistry', () => {
       expect(registry.has('adapter1')).toBe(true);
     });
   });
+
+  describe('getHealthyAdapter() - EC-6.1: Framework Unavailability with Fallback', () => {
+    it('should return primary adapter when healthy', async () => {
+      const primary = new MockAdapter('claude-code', '1.0.0', [], new Set(), true);
+      const fallback = new MockAdapter('opencode', '1.0.0', [], new Set(), true);
+
+      registry.register(primary);
+      registry.register(fallback);
+
+      const result = await registry.getHealthyAdapter('claude-code', 'opencode');
+
+      expect(result).toBeDefined();
+      expect(result?.adapter.name).toBe('claude-code');
+      expect(result?.usedFallback).toBe(false);
+    });
+
+    it('should return fallback adapter when primary unhealthy', async () => {
+      const primary = new MockAdapter('claude-code', '1.0.0', [], new Set(), false);
+      const fallback = new MockAdapter('opencode', '1.0.0', [], new Set(), true);
+
+      registry.register(primary);
+      registry.register(fallback);
+
+      const result = await registry.getHealthyAdapter('claude-code', 'opencode');
+
+      expect(result).toBeDefined();
+      expect(result?.adapter.name).toBe('opencode');
+      expect(result?.usedFallback).toBe(true);
+    });
+
+    it('should return undefined when both primary and fallback are unhealthy', async () => {
+      const primary = new MockAdapter('claude-code', '1.0.0', [], new Set(), false);
+      const fallback = new MockAdapter('opencode', '1.0.0', [], new Set(), false);
+
+      registry.register(primary);
+      registry.register(fallback);
+
+      const result = await registry.getHealthyAdapter('claude-code', 'opencode');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined when primary not registered and no fallback', async () => {
+      const result = await registry.getHealthyAdapter('nonexistent');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return primary when healthy and no fallback specified', async () => {
+      const primary = new MockAdapter('claude-code', '1.0.0', [], new Set(), true);
+      registry.register(primary);
+
+      const result = await registry.getHealthyAdapter('claude-code');
+
+      expect(result).toBeDefined();
+      expect(result?.adapter.name).toBe('claude-code');
+      expect(result?.usedFallback).toBe(false);
+    });
+
+    it('should return undefined when primary unhealthy and no fallback specified', async () => {
+      const primary = new MockAdapter('claude-code', '1.0.0', [], new Set(), false);
+      registry.register(primary);
+
+      const result = await registry.getHealthyAdapter('claude-code');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined when fallback not registered', async () => {
+      const primary = new MockAdapter('claude-code', '1.0.0', [], new Set(), false);
+      registry.register(primary);
+
+      const result = await registry.getHealthyAdapter('claude-code', 'nonexistent');
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should handle primary not registered but fallback is healthy', async () => {
+      const fallback = new MockAdapter('opencode', '1.0.0', [], new Set(), true);
+      registry.register(fallback);
+
+      const result = await registry.getHealthyAdapter('nonexistent', 'opencode');
+
+      expect(result).toBeDefined();
+      expect(result?.adapter.name).toBe('opencode');
+      expect(result?.usedFallback).toBe(true);
+    });
+  });
+
+  describe('findHealthyAdapter()', () => {
+    it('should return first healthy adapter', async () => {
+      const unhealthy = new MockAdapter('adapter1', '1.0.0', [], new Set(), false);
+      const healthy = new MockAdapter('adapter2', '1.0.0', [], new Set(), true);
+
+      registry.register(unhealthy);
+      registry.register(healthy);
+
+      const result = await registry.findHealthyAdapter();
+
+      expect(result).toBeDefined();
+      expect(result?.name).toBe('adapter2');
+    });
+
+    it('should return undefined when no adapters are healthy', async () => {
+      const unhealthy1 = new MockAdapter('adapter1', '1.0.0', [], new Set(), false);
+      const unhealthy2 = new MockAdapter('adapter2', '1.0.0', [], new Set(), false);
+
+      registry.register(unhealthy1);
+      registry.register(unhealthy2);
+
+      const result = await registry.findHealthyAdapter();
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return undefined when registry is empty', async () => {
+      const result = await registry.findHealthyAdapter();
+
+      expect(result).toBeUndefined();
+    });
+
+    it('should return first adapter when all are healthy', async () => {
+      const healthy1 = new MockAdapter('adapter1', '1.0.0', [], new Set(), true);
+      const healthy2 = new MockAdapter('adapter2', '1.0.0', [], new Set(), true);
+
+      registry.register(healthy1);
+      registry.register(healthy2);
+
+      const result = await registry.findHealthyAdapter();
+
+      expect(result).toBeDefined();
+      expect(result?.name).toBe('adapter1');
+    });
+  });
 });

@@ -375,4 +375,66 @@ export class AdapterRegistry {
   isEmpty(): boolean {
     return this.adapters.size === 0;
   }
+
+  /**
+   * Get a healthy adapter, with fallback support if primary is unavailable
+   *
+   * This method implements EC-6.1: Framework unavailability handling
+   *
+   * @param primaryName - Name of primary adapter to try first
+   * @param fallbackName - Optional fallback adapter to try if primary is unhealthy
+   * @returns Healthy adapter or undefined if none available
+   *
+   * @example
+   * ```typescript
+   * const adapter = await registry.getHealthyAdapter('claude-code', 'opencode');
+   * if (!adapter) {
+   *   throw new Error('No healthy adapters available');
+   * }
+   * ```
+   */
+  async getHealthyAdapter(
+    primaryName: string,
+    fallbackName?: string
+  ): Promise<{ adapter: FrameworkAdapter; usedFallback: boolean } | undefined> {
+    // Try primary adapter first
+    if (this.has(primaryName)) {
+      const isPrimaryHealthy = await this.healthCheck(primaryName);
+      if (isPrimaryHealthy) {
+        const adapter = this.get(primaryName);
+        if (adapter) {
+          return { adapter, usedFallback: false };
+        }
+      }
+    }
+
+    // Try fallback adapter if primary failed
+    if (fallbackName && this.has(fallbackName)) {
+      const isFallbackHealthy = await this.healthCheck(fallbackName);
+      if (isFallbackHealthy) {
+        const adapter = this.get(fallbackName);
+        if (adapter) {
+          return { adapter, usedFallback: true };
+        }
+      }
+    }
+
+    // No healthy adapter found
+    return undefined;
+  }
+
+  /**
+   * Find any healthy adapter from the registry
+   *
+   * @returns First healthy adapter found, or undefined if none are healthy
+   */
+  async findHealthyAdapter(): Promise<FrameworkAdapter | undefined> {
+    for (const name of this.adapters.keys()) {
+      const isHealthy = await this.healthCheck(name);
+      if (isHealthy) {
+        return this.get(name);
+      }
+    }
+    return undefined;
+  }
 }

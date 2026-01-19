@@ -387,7 +387,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 3.2.8: Implement result parsing from Claude Code output
 - [x] Task 3.2.9: Add timeout protection (EC-6.2) - default 60 minutes
 - [x] Task 3.2.10: Add error handling and retry logic
-- [ ] Task 3.2.11: Handle framework unavailability (EC-6.1) with fallback
+- [x] Task 3.2.11: Handle framework unavailability (EC-6.1) with fallback
 - [ ] Task 3.2.12: Integration tests with real Claude Code CLI
 - [ ] Task 3.2.13: Tests for timeout handling
 - [ ] Task 3.2.14: Tests for error scenarios
@@ -8064,3 +8064,109 @@ Time:        15.889 s
 - Debug logging for retry attempts when debug mode enabled
 - Max backoff capped at 5 seconds to prevent excessive delays
 - All retries logged with attempt number for observability
+
+
+---
+
+## Latest Completion (2026-01-19 20:45:00 EST)
+
+### Task 3.2.11: Handle framework unavailability (EC-6.1) with fallback ✅
+
+**Implementation Summary:**
+
+Implemented automatic fallback adapter selection when the primary framework is unavailable, addressing EC-6.1: Framework Not Available.
+
+**Changes Made:**
+
+1. **AdapterRegistry.getHealthyAdapter() method** (AdapterRegistry.ts:381-429):
+   - Takes `primaryName` and optional `fallbackName` parameters
+   - Performs health check on primary adapter first
+   - Falls back to secondary adapter if primary is unhealthy
+   - Returns `{ adapter, usedFallback }` tuple for tracking which adapter was used
+   - Returns `undefined` if no healthy adapter found
+   - Implements core fallback logic as specified in EC-6.1
+
+2. **AdapterRegistry.findHealthyAdapter() method** (AdapterRegistry.ts:431-443):
+   - Utility method to find any healthy adapter in the registry
+   - Iterates through all registered adapters
+   - Returns first healthy adapter found
+   - Useful for automatic adapter discovery when no specific preference
+
+**Key Design Decisions:**
+
+- **Registry-level fallback**: Placed fallback logic in AdapterRegistry for reusability
+- **Health check integration**: Uses existing `healthCheck()` method for availability detection
+- **Explicit fallback tracking**: Returns `usedFallback` boolean to inform caller
+- **No automatic retry**: Doesn't retry primary adapter after fallback (health checks are deterministic)
+- **Undefined on failure**: Returns `undefined` rather than throwing, allowing caller to handle gracefully
+
+**Test Coverage:**
+
+Added 12 comprehensive tests for fallback scenarios:
+- ✅ Primary healthy → returns primary (usedFallback: false)
+- ✅ Primary unhealthy, fallback healthy → returns fallback (usedFallback: true)
+- ✅ Both unhealthy → returns undefined
+- ✅ Primary not registered, no fallback → returns undefined
+- ✅ Primary healthy, no fallback specified → returns primary
+- ✅ Primary unhealthy, no fallback specified → returns undefined
+- ✅ Fallback not registered → returns undefined
+- ✅ Primary not registered, fallback healthy → returns fallback
+- ✅ findHealthyAdapter() returns first healthy adapter
+- ✅ findHealthyAdapter() returns undefined when none healthy
+- ✅ findHealthyAdapter() returns undefined when registry empty
+- ✅ findHealthyAdapter() returns first when all healthy
+
+**Test Results:**
+```
+PASS adapters src/__tests__/AdapterRegistry.test.ts
+  ✓ 67 tests passed (all passing)
+
+PASS adapters (all test suites)
+  Test Suites: 6 passed, 6 total
+  Tests:       186 passed, 186 total
+```
+
+**Files Modified:**
+- `packages/adapters/src/AdapterRegistry.ts` (+63 lines)
+- `packages/adapters/src/__tests__/AdapterRegistry.test.ts` (+104 lines)
+
+**Integration Points:**
+
+The `getHealthyAdapter()` method is designed to be called by higher-level orchestration code:
+
+```typescript
+// Example usage in orchestrator:
+const result = await registry.getHealthyAdapter(
+  agent.framework.primary,    // e.g., 'claude-code'
+  agent.framework.fallback     // e.g., 'opencode'
+);
+
+if (!result) {
+  throw new Error('No healthy adapters available');
+}
+
+if (result.usedFallback) {
+  logger.warn(`Primary adapter unavailable, using fallback: ${result.adapter.name}`);
+}
+
+const executionResult = await result.adapter.executeAgent(agentId, mode, context);
+```
+
+**Edge Cases Addressed:**
+- EC-6.1: Framework unavailability with automatic fallback
+- Primary adapter not installed/unavailable
+- Fallback adapter not registered
+- Both adapters unhealthy
+- No fallback specified (graceful degradation)
+
+**Linting & Build:**
+- ✅ TypeScript compilation successful
+- ✅ ESLint: No errors in modified files
+- ✅ All tests passing
+
+**Next Steps:**
+
+Task 3.2.11 is now complete. The fallback infrastructure is in place and tested. Next tasks:
+- Task 3.2.12: Integration tests with real Claude Code CLI
+- Task 3.2.13: Tests for timeout handling
+- Task 3.2.14: Tests for error scenarios
