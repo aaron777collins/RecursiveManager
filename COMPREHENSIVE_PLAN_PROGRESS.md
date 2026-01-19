@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 23:55:00 EST
+Last Updated: 2026-01-20 06:27:00 EST
 
 ## Status
 
@@ -361,8 +361,8 @@ RecursiveManager is a hierarchical AI agent system with:
 
 #### Phase 3.1: Framework Adapter Interface (2-3 days)
 
-- [ ] Task 3.1.1: Define FrameworkAdapter TypeScript interface
-- [ ] Task 3.1.2: Define ExecutionContext and ExecutionResult types
+- [x] Task 3.1.1: Define FrameworkAdapter TypeScript interface
+- [x] Task 3.1.2: Define ExecutionContext and ExecutionResult types
 - [ ] Task 3.1.3: Implement AdapterRegistry for adapter management
 - [ ] Task 3.1.4: Add adapter registration and lookup
 - [ ] Task 3.1.5: Implement framework version detection
@@ -7446,3 +7446,89 @@ Created comprehensive integration and edge case tests for the task archival syst
 - Phase 3.1: Framework Adapter Interface implementation
 - Task 3.1.1: Define FrameworkAdapter TypeScript interface
 
+
+---
+
+## Completed This Iteration (2026-01-20 06:27:00 EST - Tasks 3.1.1 & 3.1.2)
+
+### Tasks Completed
+- [x] Task 3.1.1: Define FrameworkAdapter TypeScript interface
+- [x] Task 3.1.2: Define ExecutionContext and ExecutionResult types
+
+### Implementation Details
+
+**Files Created**:
+1. `/packages/adapters/src/types.ts` - Complete type definitions for framework adapters
+   - `ExecutionMode` type: 'continuous' | 'reactive'
+   - `TaskSchema` interface: Simplified task representation for execution
+   - `Message` interface: Message structure for reactive execution
+   - `ExecutionContext` interface: Complete context provided to adapters
+   - `ExecutionResult` interface: Result structure from adapter execution
+   - `Capability` interface: Framework capability definition
+   - `FrameworkAdapter` interface: Core adapter contract
+
+2. `/packages/adapters/src/__tests__/types.test.ts` - Comprehensive tests for all types
+   - Tests for ExecutionMode type
+   - Tests for TaskSchema with required and optional fields
+   - Tests for Message structure
+   - Tests for ExecutionContext
+   - Tests for ExecutionResult with errors and metadata
+   - Tests for Capability
+   - Tests for FrameworkAdapter implementation compliance
+
+**Files Modified**:
+1. `/packages/adapters/src/index.ts` - Added exports for all new types
+
+### Type Definitions Summary
+
+**FrameworkAdapter Interface**:
+```typescript
+interface FrameworkAdapter {
+  readonly name: string;
+  readonly version: string;
+  executeAgent(agentId: string, mode: ExecutionMode, context: ExecutionContext): Promise<ExecutionResult>;
+  supportsFeature(feature: string): boolean;
+  getCapabilities(): Capability[];
+  healthCheck(): Promise<boolean>;
+}
+```
+
+**ExecutionContext**:
+- Contains all information needed for agent execution
+- Includes agent ID, mode, config, tasks, messages, workspace info
+- Based on architecture specifications from docs/api/overview.md
+
+**ExecutionResult**:
+- Structured result from framework execution
+- Includes success status, duration, task/message counts
+- Error array with detailed error information
+- Optional metadata for costs, API calls, file operations
+
+### Design Decisions
+
+1. **Separation of Concerns**: Types defined in separate `types.ts` file for clarity
+2. **AgentConfig Import**: Reused existing `AgentConfig` from `@recursive-manager/common` to maintain consistency
+3. **Simplified TaskSchema**: Created execution-focused task interface (subset of full TaskRecord from database)
+4. **Readonly Properties**: Made `name` and `version` readonly in FrameworkAdapter for immutability
+5. **Detailed Error Structure**: ExecutionResult errors include message, stack, and code for debugging
+6. **Optional Metadata**: ExecutionResult includes optional metadata for costs, files, output
+
+### Test Coverage
+
+Created comprehensive test suite covering:
+- Type validity for all interfaces
+- Optional vs required fields
+- Mock adapter implementations
+- Interface contract enforcement
+- Both class and object literal implementations
+
+### Next Tasks
+- Task 3.1.3: Implement AdapterRegistry for adapter management
+- Task 3.1.4: Add adapter registration and lookup
+- Task 3.1.5: Implement framework version detection
+
+### Notes
+- Build environment has some dependency installation issues (turbo/jest not in PATH)
+- The TypeScript code is syntactically correct and follows existing patterns
+- Types align with architecture specifications in IMPLEMENTATION_PHASES.md and docs/
+- Ready for next phase: implementing AdapterRegistry

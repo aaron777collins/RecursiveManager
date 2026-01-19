@@ -7,5 +7,13 @@
 
 export const VERSION = '0.1.0';
 
-// Placeholder - actual exports will be added in Phase 3+
-export {};
+// Core adapter types and interfaces
+export type {
+  ExecutionMode,
+  ExecutionContext,
+  ExecutionResult,
+  Capability,
+  FrameworkAdapter,
+  TaskSchema,
+  Message,
+} from './types';
