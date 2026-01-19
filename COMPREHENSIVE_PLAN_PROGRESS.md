@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 04:26:10 EST
+Last Updated: 2026-01-19 04:32:18 EST
 
 ## Status
 
@@ -318,7 +318,7 @@ RecursiveManager is a hierarchical AI agent system with:
 ##### Task Completion
 
 - [x] Task 2.3.13: Implement completeTask(taskId) with optimistic locking (EC-2.4)
-- [ ] Task 2.3.14: Update all parent task progress recursively
+- [x] Task 2.3.14: Update all parent task progress recursively
 - [ ] Task 2.3.15: Move completed tasks to completed/ directory
 - [ ] Task 2.3.16: Notify manager of completion
 
@@ -480,6 +480,82 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 2.3.14: Update all parent task progress recursively ✅
+
+**Date**: 2026-01-19 04:32:18 EST
+
+**Summary**: Implemented recursive parent task progress updates that automatically propagate subtask completion up the task hierarchy, ensuring parent tasks always reflect their children's completion status.
+
+**What Was Implemented**:
+
+1. **updateParentTaskProgress() Function** (`packages/common/src/db/queries/tasks.ts:426-486`):
+   - Recursively walks up the task hierarchy from child to parent to grandparent
+   - Counts completed subtasks using SQL query
+   - Calculates parent's percent_complete: (completed / total) * 100, rounded
+   - Updates parent's `subtasks_completed` and `percent_complete` fields
+   - Updates `last_updated` timestamp for parent task
+   - Creates audit log entries for each parent update
+   - Gracefully handles missing parents (deleted tasks)
+   - Does NOT use optimistic locking (designed for eventual consistency)
+
+2. **Function Signature**:
+   ```typescript
+   export function updateParentTaskProgress(
+     db: Database.Database,
+     parentTaskId: string
+   ): void
+   ```
+
+3. **Integration with completeTask()** (`packages/common/src/db/queries/tasks.ts:521-534`):
+   - Updated `completeTask()` to automatically call `updateParentTaskProgress()`
+   - When a task is completed, all parent tasks in the hierarchy are updated
+   - Ensures task completion cascades progress updates throughout the tree
+
+4. **Progress Calculation**:
+   - Formula: `percent_complete = Math.round((subtasks_completed / subtasks_total) * 100)`
+   - Example: 2 of 3 subtasks = 67% (rounded from 66.67%)
+   - Handles division by zero (when subtasks_total = 0)
+
+5. **Updated Exports** (`packages/common/src/index.ts:180`):
+   - Added `updateParentTaskProgress` to exported functions
+   - Available for direct use when needed outside of completeTask flow
+
+6. **Comprehensive Test Suite** (`packages/common/src/db/__tests__/queries-tasks.test.ts:2236-2447`):
+   - Test: Basic parent progress update (3 subtasks scenario)
+   - Test: Recursive grandparent updates (3-level hierarchy)
+   - Test: Graceful handling of root tasks (no parent)
+   - Test: Audit log creation for parent updates
+   - Test: Mixed completion states (4 children, 2 completed)
+   - All tests verify correct percentage calculations
+
+**Implementation Pattern**:
+```typescript
+// Automatic via completeTask()
+const completed = completeTask(db, 'task-child-1', version);
+// Parent progress is automatically updated
+
+// Manual call if needed
+updateParentTaskProgress(db, 'task-parent-1');
+// Updates this parent and all ancestors
+```
+
+**Key Features**:
+- **Recursive**: Continues up the hierarchy until reaching a root task
+- **Eventually Consistent**: No optimistic locking, accepts concurrent updates
+- **Audit Trail**: Every parent update is logged with before/after values
+- **Error Safe**: Missing parents don't cause failures
+- **Accurate**: Counts completed subtasks from database, not cached values
+
+**Concurrency Handling**:
+- Multiple children completing simultaneously is acceptable
+- Progress is recalculated from current database state on each update
+- No version checking needed as progress is derived from subtask count
+- Last update wins - natural eventual consistency
+
+**Status**: ✅ **COMPLETE** - Task 2.3.14 fully implemented with comprehensive tests
+
+---
 
 ### Task 2.3.13: Implement completeTask(taskId) with optimistic locking ✅
 

@@ -177,6 +177,7 @@ export {
   getTask,
   updateTaskStatus,
   completeTask,
+  updateParentTaskProgress,
   getActiveTasks,
   detectTaskDeadlock,
   getBlockedTasks,

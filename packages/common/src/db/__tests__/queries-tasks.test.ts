@@ -2232,4 +2232,217 @@ describe('Task Query API', () => {
       );
     });
   });
+
+  describe('updateParentTaskProgress() - Task 2.3.14', () => {
+    it('should update parent task progress when a subtask is completed', () => {
+      // Create parent task
+      const parent = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Parent task',
+        priority: 'high',
+        taskPath: 'Parent task',
+      });
+
+      // Create 3 subtasks
+      const subtask1 = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Subtask 1',
+        priority: 'medium',
+        parentTaskId: parent.id,
+        taskPath: 'Parent task / Subtask 1',
+      });
+
+      const subtask2 = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Subtask 2',
+        priority: 'medium',
+        parentTaskId: parent.id,
+        taskPath: 'Parent task / Subtask 2',
+      });
+
+      const subtask3 = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Subtask 3',
+        priority: 'medium',
+        parentTaskId: parent.id,
+        taskPath: 'Parent task / Subtask 3',
+      });
+
+      // Verify parent has 3 subtasks
+      const parentBefore = getTask(db, parent.id);
+      expect(parentBefore?.subtasks_total).toBe(3);
+      expect(parentBefore?.subtasks_completed).toBe(0);
+      expect(parentBefore?.percent_complete).toBe(0);
+
+      // Complete first subtask
+      const completed1 = updateTaskStatus(db, subtask1.id, 'completed', subtask1.version);
+      expect(completed1.status).toBe('completed');
+
+      // Parent should now show 1/3 complete (33%)
+      const parentAfter1 = getTask(db, parent.id);
+      expect(parentAfter1?.subtasks_completed).toBe(1);
+      expect(parentAfter1?.percent_complete).toBe(33); // 1/3 = 33.33% rounded to 33
+
+      // Complete second subtask
+      updateTaskStatus(db, subtask2.id, 'completed', subtask2.version);
+
+      // Parent should now show 2/3 complete (67%)
+      const parentAfter2 = getTask(db, parent.id);
+      expect(parentAfter2?.subtasks_completed).toBe(2);
+      expect(parentAfter2?.percent_complete).toBe(67); // 2/3 = 66.67% rounded to 67
+
+      // Complete third subtask
+      updateTaskStatus(db, subtask3.id, 'completed', subtask3.version);
+
+      // Parent should now show 3/3 complete (100%)
+      const parentAfter3 = getTask(db, parent.id);
+      expect(parentAfter3?.subtasks_completed).toBe(3);
+      expect(parentAfter3?.percent_complete).toBe(100); // 3/3 = 100%
+    });
+
+    it('should recursively update grandparent task progress', () => {
+      // Create 3-level hierarchy: grandparent -> parent -> child
+      const grandparent = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Grandparent task',
+        priority: 'high',
+        taskPath: 'Grandparent',
+      });
+
+      const parent = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Parent task',
+        priority: 'high',
+        parentTaskId: grandparent.id,
+        taskPath: 'Grandparent / Parent',
+      });
+
+      const child = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Child task',
+        priority: 'medium',
+        parentTaskId: parent.id,
+        taskPath: 'Grandparent / Parent / Child',
+      });
+
+      // Verify initial state
+      const grandparentBefore = getTask(db, grandparent.id);
+      const parentBefore = getTask(db, parent.id);
+      expect(grandparentBefore?.subtasks_total).toBe(1);
+      expect(grandparentBefore?.subtasks_completed).toBe(0);
+      expect(parentBefore?.subtasks_total).toBe(1);
+      expect(parentBefore?.subtasks_completed).toBe(0);
+
+      // Complete child task
+      updateTaskStatus(db, child.id, 'completed', child.version);
+
+      // Both parent and grandparent should be updated
+      const parentAfter = getTask(db, parent.id);
+      const grandparentAfter = getTask(db, grandparent.id);
+
+      expect(parentAfter?.subtasks_completed).toBe(1);
+      expect(parentAfter?.percent_complete).toBe(100);
+      expect(grandparentAfter?.subtasks_completed).toBe(0); // Parent not completed yet
+      expect(grandparentAfter?.percent_complete).toBe(0);
+
+      // Complete parent task
+      updateTaskStatus(db, parent.id, 'completed', parentAfter!.version);
+
+      // Now grandparent should show completion
+      const grandparentFinal = getTask(db, grandparent.id);
+      expect(grandparentFinal?.subtasks_completed).toBe(1);
+      expect(grandparentFinal?.percent_complete).toBe(100);
+    });
+
+    it('should handle completing a task with no parent gracefully', () => {
+      // Create a root task with no parent
+      const rootTask = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Root task',
+        priority: 'high',
+        taskPath: 'Root task',
+      });
+
+      // Complete it - should not throw error
+      expect(() => {
+        updateTaskStatus(db, rootTask.id, 'completed', rootTask.version);
+      }).not.toThrow();
+    });
+
+    it('should create audit log entries for parent progress updates', () => {
+      // Create parent and child
+      const parent = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Parent with audit',
+        priority: 'high',
+        taskPath: 'Parent with audit',
+      });
+
+      const child = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Child with audit',
+        priority: 'medium',
+        parentTaskId: parent.id,
+        taskPath: 'Parent with audit / Child',
+      });
+
+      // Complete child task
+      updateTaskStatus(db, child.id, 'completed', child.version);
+
+      // Check audit logs for parent progress update
+      const logs = queryAuditLog(db, {
+        action: AuditAction.TASK_UPDATE,
+        targetAgentId: 'agent-001',
+      });
+
+      const parentProgressLog = logs.find((log) => {
+        if (!log.details) return false;
+        const details = JSON.parse(log.details);
+        return details.action === 'parent_progress_update' && details.taskId === parent.id;
+      });
+
+      expect(parentProgressLog).toBeDefined();
+      expect(parentProgressLog?.success).toBe(1); // SQLite stores booleans as integers
+      if (parentProgressLog?.details) {
+        const details = JSON.parse(parentProgressLog.details);
+        expect(details.taskId).toBe(parent.id);
+        expect(details.newSubtasksCompleted).toBe(1);
+        expect(details.subtasksTotal).toBe(1);
+        expect(details.newPercentComplete).toBe(100);
+      }
+    });
+
+    it('should handle mixed completion states correctly', () => {
+      // Create parent with 4 children
+      const parent = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Parent with mixed children',
+        priority: 'high',
+        taskPath: 'Parent',
+      });
+
+      const children = [];
+      for (let i = 1; i <= 4; i++) {
+        children.push(
+          createTask(db, {
+            agentId: 'agent-001',
+            title: `Child ${i}`,
+            priority: 'medium',
+            parentTaskId: parent.id,
+            taskPath: `Parent / Child ${i}`,
+          })
+        );
+      }
+
+      // Complete 2 out of 4
+      updateTaskStatus(db, children[0]!.id, 'completed', children[0]!.version);
+      updateTaskStatus(db, children[2]!.id, 'completed', children[2]!.version);
+
+      // Parent should show 50% (2/4)
+      const parentAfter = getTask(db, parent.id);
+      expect(parentAfter?.subtasks_completed).toBe(2);
+      expect(parentAfter?.subtasks_total).toBe(4);
+      expect(parentAfter?.percent_complete).toBe(50);
+    });
+  });
 });

@@ -389,6 +389,103 @@ export function updateTaskStatus(
 }
 
 /**
+ * Update parent task progress recursively (Task 2.3.14)
+ *
+ * This function walks up the task hierarchy and updates the progress of all parent tasks
+ * based on the completion status of their subtasks. It calculates the percentage complete
+ * by counting completed subtasks vs total subtasks.
+ *
+ * **Recursive Behavior**:
+ * - Updates the parent task's subtasks_completed count
+ * - Recalculates the parent's percent_complete based on subtask completion
+ * - If the parent has a parent, recursively updates that parent as well
+ * - Continues until reaching a root task (no parent)
+ *
+ * **Progress Calculation**:
+ * - percent_complete = (subtasks_completed / subtasks_total) * 100
+ * - Rounded to nearest integer
+ * - Only calculated if subtasks_total > 0 (to avoid division by zero)
+ *
+ * **Concurrency**:
+ * - Does NOT use optimistic locking (designed to be eventually consistent)
+ * - Multiple children completing simultaneously is acceptable
+ * - Progress is recalculated based on current database state
+ *
+ * @param db - Database instance
+ * @param parentTaskId - ID of the parent task to update
+ *
+ * @example
+ * ```typescript
+ * // After completing a subtask, update parent progress
+ * const completedTask = updateTaskStatus(db, 'task-002', 'completed', version);
+ * if (completedTask.parent_task_id) {
+ *   updateParentTaskProgress(db, completedTask.parent_task_id);
+ * }
+ * ```
+ */
+export function updateParentTaskProgress(db: Database.Database, parentTaskId: string): void {
+  // Get the parent task
+  const parentTask = getTask(db, parentTaskId);
+  if (!parentTask) {
+    // Parent task not found - this can happen if the parent was deleted
+    // Not an error condition, just return
+    return;
+  }
+
+  // Count completed subtasks
+  const countStmt = db.prepare(`
+    SELECT COUNT(*) as count
+    FROM tasks
+    WHERE parent_task_id = ? AND status = 'completed'
+  `);
+
+  const result = countStmt.get(parentTaskId) as { count: number } | undefined;
+  const completedCount = result?.count ?? 0;
+
+  // Calculate new percent_complete
+  let percentComplete = 0;
+  if (parentTask.subtasks_total > 0) {
+    percentComplete = Math.round((completedCount / parentTask.subtasks_total) * 100);
+  }
+
+  // Update the parent task
+  const now = new Date().toISOString();
+  const updateStmt = db.prepare(`
+    UPDATE tasks
+    SET
+      subtasks_completed = ?,
+      percent_complete = ?,
+      last_updated = ?
+    WHERE id = ?
+  `);
+
+  updateStmt.run(completedCount, percentComplete, now, parentTaskId);
+
+  // Audit log the parent task progress update
+  auditLog(db, {
+    agentId: parentTask.agent_id,
+    action: AuditAction.TASK_UPDATE,
+    targetAgentId: parentTask.agent_id,
+    success: true,
+    details: {
+      taskId: parentTaskId,
+      title: parentTask.title,
+      action: 'parent_progress_update',
+      previousSubtasksCompleted: parentTask.subtasks_completed,
+      newSubtasksCompleted: completedCount,
+      subtasksTotal: parentTask.subtasks_total,
+      previousPercentComplete: parentTask.percent_complete,
+      newPercentComplete: percentComplete,
+    },
+  });
+
+  // Recursively update the grandparent (if exists)
+  if (parentTask.parent_task_id) {
+    updateParentTaskProgress(db, parentTask.parent_task_id);
+  }
+}
+
+/**
  * Complete a task (Task 2.3.13)
  *
  * Marks a task as completed with optimistic locking to prevent race conditions (EC-2.4).
@@ -397,6 +494,7 @@ export function updateTaskStatus(
  * - Sets completed_at timestamp
  * - Increments version number
  * - Uses optimistic locking to prevent concurrent modifications
+ * - Updates parent task progress recursively (Task 2.3.14)
  *
  * @param db - Database instance
  * @param id - Task ID to complete
@@ -425,7 +523,14 @@ export function completeTask(
   id: string,
   version: number
 ): TaskRecord {
-  return updateTaskStatus(db, id, 'completed', version);
+  const completedTask = updateTaskStatus(db, id, 'completed', version);
+
+  // Update parent task progress recursively (Task 2.3.14)
+  if (completedTask.parent_task_id) {
+    updateParentTaskProgress(db, completedTask.parent_task_id);
+  }
+
+  return completedTask;
 }
 
 /**
