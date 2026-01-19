@@ -355,6 +355,7 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
 
   /**
    * Parse execution result from Claude Code CLI output
+   * Task 3.2.8: Enhanced result parsing with accurate task/message tracking
    *
    * @private
    */
@@ -369,18 +370,15 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
 
     // Check for execution failure
     if (exitCode !== 0) {
+      // Extract structured errors from stderr
+      const errors = this.parseErrors(stderr, exitCode);
+
       return {
         success: false,
         duration,
         tasksCompleted: 0,
         messagesProcessed: 0,
-        errors: [
-          {
-            message: `Claude Code CLI exited with code ${exitCode}`,
-            stack: stderr,
-            code: `EXIT_CODE_${exitCode}`,
-          },
-        ],
+        errors,
         metadata: {
           output: stdout,
         },
@@ -394,39 +392,50 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
       costUSD?: number;
       filesCreated?: string[];
       filesModified?: string[];
+      tasksCompleted?: string[]; // Array of completed task IDs
+      messagesProcessed?: string[]; // Array of processed message IDs
+      summary?: string;
+      nextExecution?: string; // ISO 8601 timestamp
     }
 
     let parsedOutput: ClaudeCodeOutput;
     try {
       parsedOutput = JSON.parse(stdout) as ClaudeCodeOutput;
     } catch (error) {
-      // If JSON parsing fails, treat output as plain text
-      this.logDebug('Failed to parse JSON output, treating as plain text');
-      parsedOutput = { text: stdout };
+      // If JSON parsing fails, treat output as plain text and parse manually
+      this.logDebug('Failed to parse JSON output, falling back to text parsing');
+      parsedOutput = {
+        text: stdout,
+        // Attempt to extract information from text output
+        ...this.parseTextOutput(stdout, mode),
+      };
     }
 
     // Extract metadata from parsed output
-    // Claude Code JSON output structure may vary, so we handle different formats
     const metadata: ExecutionResult['metadata'] = {
-      output: typeof parsedOutput === 'string' ? parsedOutput : stdout,
+      output: parsedOutput.text || stdout,
       apiCallCount: parsedOutput.apiCallCount ?? 0,
       costUSD: parsedOutput.costUSD ?? 0,
       filesCreated: parsedOutput.filesCreated ?? [],
       filesModified: parsedOutput.filesModified ?? [],
     };
 
-    // Estimate tasks completed and messages processed
-    // This is a heuristic until we have better result parsing (Task 3.2.8)
-    let tasksCompleted = 0;
-    let messagesProcessed = 0;
+    // Determine tasks completed and messages processed
+    const { tasksCompleted, messagesProcessed } = this.countCompletedWork(
+      parsedOutput,
+      stdout,
+      mode,
+      context
+    );
 
-    if (mode === 'continuous') {
-      // Check if any tasks were mentioned as completed in output
-      const completedMatches = stdout.match(/task.*completed/gi) || [];
-      tasksCompleted = Math.min(completedMatches.length, context.activeTasks.length);
-    } else if (mode === 'reactive') {
-      // Assume all messages were processed if execution succeeded
-      messagesProcessed = context.messages.length;
+    // Parse next execution time if available
+    let nextExecution: Date | undefined;
+    if (parsedOutput.nextExecution) {
+      try {
+        nextExecution = new Date(parsedOutput.nextExecution);
+      } catch (error) {
+        this.logDebug('Failed to parse nextExecution timestamp:', error);
+      }
     }
 
     return {
@@ -435,8 +444,265 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
       tasksCompleted,
       messagesProcessed,
       errors: [],
+      nextExecution,
       metadata,
     };
+  }
+
+  /**
+   * Parse errors from stderr output
+   * Extracts structured error information from error messages
+   *
+   * @private
+   */
+  private parseErrors(
+    stderr: string,
+    exitCode: number
+  ): Array<{ message: string; stack?: string; code?: string }> {
+    const errors: Array<{ message: string; stack?: string; code?: string }> = [];
+
+    // If stderr is empty, provide a generic error
+    if (!stderr || stderr.trim().length === 0) {
+      errors.push({
+        message: `Claude Code CLI exited with code ${exitCode}`,
+        code: `EXIT_CODE_${exitCode}`,
+      });
+      return errors;
+    }
+
+    // Try to parse stderr as JSON (some CLIs output structured errors)
+    try {
+      const errorObj = JSON.parse(stderr);
+      if (errorObj.error) {
+        errors.push({
+          message: errorObj.error.message || errorObj.error,
+          stack: errorObj.error.stack,
+          code: errorObj.error.code || `EXIT_CODE_${exitCode}`,
+        });
+        return errors;
+      }
+    } catch {
+      // Not JSON, continue with text parsing
+    }
+
+    // Split stderr by lines and look for error patterns
+    const lines = stderr.split('\n').filter((line) => line.trim().length > 0);
+
+    // Common error patterns
+    const errorPatterns = [
+      /^Error:\s*(.+)$/i,
+      /^(\w+Error):\s*(.+)$/i,
+      /^FATAL:\s*(.+)$/i,
+      /^ERROR:\s*(.+)$/i,
+    ];
+
+    let currentError: { message: string; stack?: string; code?: string } | null = null;
+    const stackLines: string[] = [];
+
+    for (const line of lines) {
+      // Check if this line starts a new error
+      let isErrorLine = false;
+      for (const pattern of errorPatterns) {
+        const match = line.match(pattern);
+        if (match) {
+          // If we have a previous error, save it
+          if (currentError) {
+            if (stackLines.length > 0) {
+              currentError.stack = stackLines.join('\n');
+            }
+            errors.push(currentError);
+          }
+
+          // Start a new error
+          currentError = {
+            message: (match[2] || match[1]) ?? '',
+            code: match[1] ?? `EXIT_CODE_${exitCode}`,
+          };
+          stackLines.length = 0;
+          isErrorLine = true;
+          break;
+        }
+      }
+
+      // If this is a stack trace line, add it to current error
+      if (!isErrorLine && currentError && line.trim().startsWith('at ')) {
+        stackLines.push(line);
+      }
+    }
+
+    // Add the last error if any
+    if (currentError) {
+      if (stackLines.length > 0) {
+        currentError.stack = stackLines.join('\n');
+      }
+      errors.push(currentError);
+    }
+
+    // If we didn't find any structured errors, just include the whole stderr
+    if (errors.length === 0) {
+      errors.push({
+        message: `Claude Code CLI exited with code ${exitCode}`,
+        stack: stderr,
+        code: `EXIT_CODE_${exitCode}`,
+      });
+    }
+
+    return errors;
+  }
+
+  /**
+   * Parse text output when JSON parsing fails
+   * Attempts to extract structured information from plain text output
+   *
+   * @private
+   */
+  private parseTextOutput(
+    output: string,
+    _mode: ExecutionMode
+  ): Partial<{ filesCreated: string[]; filesModified: string[]; apiCallCount: number }> {
+    const result: Partial<{
+      filesCreated: string[];
+      filesModified: string[];
+      apiCallCount: number;
+    }> = {};
+
+    // Look for file operation patterns
+    const createdPattern = /created?\s+(?:file|files?):\s*(.+)/gi;
+    const modifiedPattern = /modified|updated|edited\s+(?:file|files?):\s*(.+)/gi;
+
+    let match;
+    const filesCreated: string[] = [];
+    const filesModified: string[] = [];
+
+    while ((match = createdPattern.exec(output)) !== null) {
+      // Extract file paths (comma or newline separated)
+      if (match[1]) {
+        const files = match[1].split(/[,\n]/).map((f) => f.trim());
+        filesCreated.push(...files);
+      }
+    }
+
+    while ((match = modifiedPattern.exec(output)) !== null) {
+      if (match[1]) {
+        const files = match[1].split(/[,\n]/).map((f) => f.trim());
+        filesModified.push(...files);
+      }
+    }
+
+    if (filesCreated.length > 0) {
+      result.filesCreated = filesCreated;
+    }
+    if (filesModified.length > 0) {
+      result.filesModified = filesModified;
+    }
+
+    // Look for API call count patterns
+    const apiCallPattern = /(\d+)\s+(?:api|API)\s+calls?/i;
+    match = output.match(apiCallPattern);
+    if (match && match[1]) {
+      result.apiCallCount = parseInt(match[1], 10);
+    }
+
+    return result;
+  }
+
+  /**
+   * Count completed tasks and processed messages from output
+   * Task 3.2.8: Accurate tracking of completed work
+   *
+   * @private
+   */
+  private countCompletedWork(
+    parsedOutput: {
+      tasksCompleted?: string[];
+      messagesProcessed?: string[];
+      text?: string;
+    },
+    rawOutput: string,
+    mode: ExecutionMode,
+    context: ExecutionContext
+  ): { tasksCompleted: number; messagesProcessed: number } {
+    let tasksCompleted = 0;
+    let messagesProcessed = 0;
+
+    if (mode === 'continuous') {
+      // Try to use structured task completion data first
+      if (parsedOutput.tasksCompleted && Array.isArray(parsedOutput.tasksCompleted)) {
+        // Cross-reference with active tasks to ensure they're valid
+        const completedTaskIds = new Set(parsedOutput.tasksCompleted);
+        tasksCompleted = context.activeTasks.filter((task) =>
+          completedTaskIds.has(task.id)
+        ).length;
+      } else {
+        // Fall back to pattern matching in output
+        // Look for task IDs from context.activeTasks in the output
+        const outputText = parsedOutput.text || rawOutput;
+
+        for (const task of context.activeTasks) {
+          // Check if this task ID appears with completion indicators
+          const taskIdEscaped = task.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const completionPatterns = [
+            new RegExp(`${taskIdEscaped}[\\s\\S]{0,100}(?:completed|done|finished)`, 'i'),
+            new RegExp(`(?:completed|done|finished)[\\s\\S]{0,100}${taskIdEscaped}`, 'i'),
+            new RegExp(`\\[x\\].*${taskIdEscaped}`, 'i'), // Markdown checklist
+            new RegExp(`${taskIdEscaped}.*status.*completed`, 'i'),
+          ];
+
+          for (const pattern of completionPatterns) {
+            if (pattern.test(outputText)) {
+              tasksCompleted++;
+              break; // Count each task only once
+            }
+          }
+        }
+      }
+    } else if (mode === 'reactive') {
+      // Try to use structured message processing data first
+      if (parsedOutput.messagesProcessed && Array.isArray(parsedOutput.messagesProcessed)) {
+        // Cross-reference with context messages
+        const processedMessageIds = new Set(parsedOutput.messagesProcessed);
+        messagesProcessed = context.messages.filter((msg) =>
+          processedMessageIds.has(msg.id)
+        ).length;
+      } else {
+        // Fall back to pattern matching
+        const outputText = parsedOutput.text || rawOutput;
+
+        for (const message of context.messages) {
+          // Check if this message ID appears with processing indicators
+          const messageIdEscaped = message.id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const processingPatterns = [
+            new RegExp(`${messageIdEscaped}[\\s\\S]{0,100}(?:processed|handled|replied)`, 'i'),
+            new RegExp(`(?:processed|handled|replied)[\\s\\S]{0,100}${messageIdEscaped}`, 'i'),
+            new RegExp(`message.*${messageIdEscaped}.*processed`, 'i'),
+          ];
+
+          for (const pattern of processingPatterns) {
+            if (pattern.test(outputText)) {
+              messagesProcessed++;
+              break; // Count each message only once
+            }
+          }
+        }
+
+        // If we didn't find any explicit message IDs but execution succeeded,
+        // make a conservative estimate based on output content
+        if (messagesProcessed === 0 && context.messages.length > 0) {
+          // Check for general message processing indicators
+          const hasReplyIndicators = /(?:replied|responded|answered)/i.test(outputText);
+          const hasMessageContent = context.messages.some((msg) =>
+            outputText.includes(msg.content.substring(0, 50))
+          );
+
+          if (hasReplyIndicators || hasMessageContent) {
+            // Conservative estimate: assume at least one message was processed
+            messagesProcessed = 1;
+          }
+        }
+      }
+    }
+
+    return { tasksCompleted, messagesProcessed };
   }
 
   /**

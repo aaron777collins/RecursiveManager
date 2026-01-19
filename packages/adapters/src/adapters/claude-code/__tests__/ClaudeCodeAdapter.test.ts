@@ -16,6 +16,19 @@ import type { ExecutionContext, FrameworkAdapter, Capability } from '../../../ty
 import type { AgentConfig } from '@recursive-manager/common';
 import { execa } from 'execa';
 
+const mockedExeca = execa as jest.MockedFunction<typeof execa>;
+
+/**
+ * Helper to mock health check before execution
+ */
+function mockHealthCheck() {
+  mockedExeca.mockResolvedValueOnce({
+    stdout: 'claude-code version 1.0.0',
+    stderr: '',
+    exitCode: 0,
+  } as any);
+}
+
 /**
  * Create a mock execution context for testing
  */
@@ -70,8 +83,6 @@ function createMockContext(): ExecutionContext {
     workingDir: '/tmp/test-working',
   };
 }
-
-const mockedExeca = execa as jest.MockedFunction<typeof execa>;
 
 describe('ClaudeCodeAdapter', () => {
   let adapter: ClaudeCodeAdapter;
@@ -476,6 +487,124 @@ describe('ClaudeCodeAdapter', () => {
       expect(frameworkAdapter.getCapabilities).toBeDefined();
       // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(frameworkAdapter.healthCheck).toBeDefined();
+    });
+  });
+
+  describe('result parsing - Task 3.2.8', () => {
+    describe('JSON output parsing', () => {
+      it('should parse structured JSON output from Claude Code', async () => {
+        const context = createMockContext();
+        mockHealthCheck();
+
+        // Mock Claude Code returning structured JSON
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({
+            text: 'Execution completed successfully',
+            tasksCompleted: ['task-001'],
+            messagesProcessed: [],
+            apiCallCount: 5,
+            costUSD: 0.15,
+            filesCreated: ['src/new-file.ts'],
+            filesModified: ['src/existing-file.ts'],
+          }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(true);
+        expect(result.tasksCompleted).toBe(1);
+        expect(result.metadata?.apiCallCount).toBe(5);
+        expect(result.metadata?.costUSD).toBe(0.15);
+        expect(result.metadata?.filesCreated).toContain('src/new-file.ts');
+        expect(result.metadata?.filesModified).toContain('src/existing-file.ts');
+      });
+
+      it('should fall back to text parsing when JSON parsing fails', async () => {
+        const context = createMockContext();
+        mockHealthCheck();
+
+        // Mock Claude Code returning plain text
+        mockedExeca.mockResolvedValueOnce({
+          stdout: 'Task task-001 completed successfully',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(true);
+        expect(result.metadata?.output).toContain('Task task-001 completed');
+      });
+    });
+
+    describe('task completion detection', () => {
+      it('should detect completed tasks from structured output', async () => {
+        const context = createMockContext();
+        context.activeTasks = [
+          {
+            id: 'task-001',
+            title: 'First Task',
+            description: 'Task 1',
+            status: 'in_progress',
+            priority: 'high',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            id: 'task-002',
+            title: 'Second Task',
+            description: 'Task 2',
+            status: 'in_progress',
+            priority: 'medium',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ];
+
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({
+            text: 'Completed tasks',
+            tasksCompleted: ['task-001', 'task-002'],
+          }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(true);
+        expect(result.tasksCompleted).toBe(2);
+      });
+
+      it('should detect completed tasks from text patterns', async () => {
+        const context = createMockContext();
+        context.activeTasks = [
+          {
+            id: 'task-001',
+            title: 'Test Task',
+            description: 'A test task',
+            status: 'in_progress',
+            priority: 'medium',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ];
+
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: 'I have completed task-001 successfully',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(true);
+        expect(result.tasksCompleted).toBe(1);
+      });
     });
   });
 });
