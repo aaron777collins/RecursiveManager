@@ -26,6 +26,11 @@ module.exports = {
     '^@recursive-manager/core$': '<rootDir>/../core/src'
   },
 
+  // Transform ESM modules
+  transformIgnorePatterns: [
+    'node_modules/(?!(execa)/)'
+  ],
+
   collectCoverageFrom: [
     'src/**/*.ts',
     '!src/**/*.d.ts',
