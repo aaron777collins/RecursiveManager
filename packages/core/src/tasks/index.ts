@@ -10,3 +10,8 @@ export {
   CreateTaskDirectoryInput,
   TaskContext,
 } from './createTaskDirectory';
+
+export {
+  notifyTaskDelegation,
+  NotifyDelegationOptions,
+} from './notifyDelegation';

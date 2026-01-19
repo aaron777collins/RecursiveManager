@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 21:45:00 EST
+Last Updated: 2026-01-19 04:21:11 EST
 
 ## Status
 
@@ -312,8 +312,8 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 2.3.9: Implement delegateTask(taskId, toAgentId) with validation
 - [x] Task 2.3.10: Verify delegation target exists and is subordinate
-- [ ] Task 2.3.11: Update task ownership in database
-- [ ] Task 2.3.12: Notify delegated agent
+- [x] Task 2.3.11: Update task ownership in database
+- [x] Task 2.3.12: Notify delegated agent
 
 ##### Task Completion
 
@@ -480,6 +480,68 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 2.3.11 & 2.3.12: Task Delegation Notification System ✅
+
+**Date**: 2026-01-19
+
+**Summary**: Completed Task 2.3.11 (verified database updates are already implemented) and implemented Task 2.3.12 (notify delegated agent) with a comprehensive notification system for task delegation.
+
+**What Was Implemented**:
+
+1. **Task 2.3.11: Update task ownership in database** - VERIFIED COMPLETE
+   - Analysis confirmed that `delegateTask()` already updates database with:
+     - `delegated_to` field (target agent ID)
+     - `delegated_at` timestamp
+     - `last_updated` metadata tracking
+     - Version increment for optimistic locking
+   - No additional implementation needed
+
+2. **Task 2.3.12: Notify delegated agent** - NEW IMPLEMENTATION
+   - Created `notifyDelegation.ts` module in `packages/core/src/tasks/`
+   - Implemented `notifyTaskDelegation(db, task, options)` function
+   - Features:
+     - Respects agent notification preferences (`communication.notifyOnDelegation`)
+     - Creates rich notification messages with task details
+     - Writes messages to agent's inbox (both file and database)
+     - Supports force notification option
+     - Full audit logging
+     - Proper error handling
+
+3. **Notification Message Content**:
+   - Task title, priority, status, delegation timestamp
+   - Task ID, parent task, depth, progress percentage
+   - Subtask information
+   - Blocked status warnings
+   - Actionable instructions for the delegated agent
+   - Thread ID for conversation tracking
+
+4. **Integration with Agent Configuration**:
+   - Checks `AgentConfig.communication.notifyOnDelegation` setting
+   - Defaults to sending notifications if setting is undefined (fail-safe)
+   - Force option to override agent preferences when needed
+
+5. **Comprehensive Test Coverage**:
+   - Created `notifyDelegation.test.ts` with 13 test cases
+   - Tests cover: successful notifications, message content verification, notification preferences, error handling, priority mapping
+   - Verifies both database records and inbox files
+
+**Files Created/Modified**:
+- `packages/core/src/tasks/notifyDelegation.ts` - New file (191 lines)
+- `packages/core/src/tasks/index.ts` - Updated exports
+- `packages/core/src/tasks/__tests__/notifyDelegation.test.ts` - New test file (455 lines)
+
+**Architecture Notes**:
+- Notification function separated from database layer for proper separation of concerns
+- Uses existing messaging system (`messageWriter`, database queries)
+- Integrates with agent config loader for preference checking
+- Follows existing patterns from `fireAgent.ts` for consistency
+
+**Next Steps**:
+- Task 2.3.13: Implement completeTask with optimistic locking
+- Task 2.3.14: Update parent task progress recursively
+
+---
 
 ### Task 2.3.9: Implement delegateTask with validation ✅
 
