@@ -1,0 +1,277 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://recursivemanager.dev/schemas/metadata.schema.json",
+  "title": "Agent Metadata",
+  "description": "Schema for RecursiveManager agent runtime metadata and statistics",
+  "type": "object",
+  "required": ["version", "runtime", "statistics", "health", "budget"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "version": {
+      "type": "string",
+      "description": "Metadata schema version",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "default": "1.0.0"
+    },
+    "runtime": {
+      "type": "object",
+      "description": "Runtime execution state and tracking",
+      "required": [
+        "status",
+        "lastExecutionAt",
+        "lastExecutionDuration",
+        "lastExecutionType",
+        "lastExecutionResult"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Current agent status",
+          "enum": ["active", "paused", "idle", "error", "terminated"],
+          "default": "idle"
+        },
+        "lastExecutionAt": {
+          "type": ["string", "null"],
+          "description": "ISO 8601 timestamp of last execution",
+          "format": "date-time"
+        },
+        "lastExecutionDuration": {
+          "type": "integer",
+          "description": "Duration of last execution in seconds",
+          "minimum": 0,
+          "default": 0
+        },
+        "lastExecutionType": {
+          "type": ["string", "null"],
+          "description": "Type of last execution trigger",
+          "enum": ["continuous", "reactive", "cron", "manual", null]
+        },
+        "lastExecutionResult": {
+          "type": ["string", "null"],
+          "description": "Result of last execution",
+          "enum": ["success", "failure", "error", "timeout", null]
+        },
+        "nextScheduledExecution": {
+          "type": ["string", "null"],
+          "description": "ISO 8601 timestamp of next scheduled execution",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "statistics": {
+      "type": "object",
+      "description": "Aggregated performance metrics and counters",
+      "required": [
+        "totalExecutions",
+        "successfulExecutions",
+        "failedExecutions",
+        "totalRuntimeMinutes",
+        "averageExecutionMinutes",
+        "tasksCompleted",
+        "tasksActive",
+        "messagesSent",
+        "messagesReceived",
+        "subordinatesHired",
+        "subordinatesFired"
+      ],
+      "properties": {
+        "totalExecutions": {
+          "type": "integer",
+          "description": "Total number of executions",
+          "minimum": 0,
+          "default": 0
+        },
+        "successfulExecutions": {
+          "type": "integer",
+          "description": "Number of successful executions",
+          "minimum": 0,
+          "default": 0
+        },
+        "failedExecutions": {
+          "type": "integer",
+          "description": "Number of failed executions",
+          "minimum": 0,
+          "default": 0
+        },
+        "totalRuntimeMinutes": {
+          "type": "integer",
+          "description": "Total runtime across all executions in minutes",
+          "minimum": 0,
+          "default": 0
+        },
+        "averageExecutionMinutes": {
+          "type": "number",
+          "description": "Average execution duration in minutes",
+          "minimum": 0,
+          "default": 0
+        },
+        "tasksCompleted": {
+          "type": "integer",
+          "description": "Total number of completed tasks",
+          "minimum": 0,
+          "default": 0
+        },
+        "tasksActive": {
+          "type": "integer",
+          "description": "Number of currently active tasks",
+          "minimum": 0,
+          "default": 0
+        },
+        "messagesSent": {
+          "type": "integer",
+          "description": "Total messages sent by agent",
+          "minimum": 0,
+          "default": 0
+        },
+        "messagesReceived": {
+          "type": "integer",
+          "description": "Total messages received by agent",
+          "minimum": 0,
+          "default": 0
+        },
+        "subordinatesHired": {
+          "type": "integer",
+          "description": "Total subordinates hired",
+          "minimum": 0,
+          "default": 0
+        },
+        "subordinatesFired": {
+          "type": "integer",
+          "description": "Total subordinates fired",
+          "minimum": 0,
+          "default": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "health": {
+      "type": "object",
+      "description": "Agent health monitoring and issue tracking",
+      "required": ["overallHealth", "lastHealthCheck", "issues", "warnings"],
+      "properties": {
+        "overallHealth": {
+          "type": "string",
+          "description": "Overall health status",
+          "enum": ["healthy", "warning", "critical", "unknown"],
+          "default": "unknown"
+        },
+        "lastHealthCheck": {
+          "type": ["string", "null"],
+          "description": "ISO 8601 timestamp of last health check",
+          "format": "date-time"
+        },
+        "issues": {
+          "type": "array",
+          "description": "List of critical issues",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        },
+        "warnings": {
+          "type": "array",
+          "description": "List of non-critical warnings",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
+    "budget": {
+      "type": "object",
+      "description": "Resource limits and usage tracking",
+      "required": ["hiringBudget", "executionBudget", "resourceUsage"],
+      "properties": {
+        "hiringBudget": {
+          "type": "object",
+          "description": "Subordinate hiring budget tracking",
+          "required": ["initial", "remaining", "used"],
+          "properties": {
+            "initial": {
+              "type": "integer",
+              "description": "Initial hiring budget",
+              "minimum": 0,
+              "default": 0
+            },
+            "remaining": {
+              "type": "integer",
+              "description": "Remaining hiring slots",
+              "minimum": 0,
+              "default": 0
+            },
+            "used": {
+              "type": "integer",
+              "description": "Used hiring slots",
+              "minimum": 0,
+              "default": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "executionBudget": {
+          "type": "object",
+          "description": "Daily execution limits",
+          "required": ["maxExecutionsPerDay", "usedToday", "remainingToday"],
+          "properties": {
+            "maxExecutionsPerDay": {
+              "type": "integer",
+              "description": "Maximum executions allowed per day",
+              "minimum": 1,
+              "default": 100
+            },
+            "usedToday": {
+              "type": "integer",
+              "description": "Executions used today",
+              "minimum": 0,
+              "default": 0
+            },
+            "remainingToday": {
+              "type": "integer",
+              "description": "Executions remaining today",
+              "minimum": 0,
+              "default": 100
+            }
+          },
+          "additionalProperties": false
+        },
+        "resourceUsage": {
+          "type": "object",
+          "description": "Workspace storage usage",
+          "required": ["workspaceMB", "quotaMB", "percentUsed"],
+          "properties": {
+            "workspaceMB": {
+              "type": "number",
+              "description": "Current workspace usage in megabytes",
+              "minimum": 0,
+              "default": 0
+            },
+            "quotaMB": {
+              "type": "integer",
+              "description": "Total workspace quota in megabytes",
+              "minimum": 0,
+              "default": 1024
+            },
+            "percentUsed": {
+              "type": "number",
+              "description": "Percentage of quota used",
+              "minimum": 0,
+              "maximum": 100,
+              "default": 0
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

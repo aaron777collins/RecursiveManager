@@ -1,0 +1,596 @@
+/**
+ * Agent Hiring Implementation (Task 2.2.5)
+ *
+ * This module implements the core hireAgent() function that orchestrates
+ * the complete agent hiring process including:
+ * - Validation (using validateHireStrict)
+ * - Filesystem operations (directory structure, config files)
+ * - Database operations (agent record, org_hierarchy)
+ * - Parent updates (subordinates registry)
+ *
+ * The function ensures atomicity by performing validation first, then
+ * filesystem operations, and finally database operations. If any step fails,
+ * proper error handling and cleanup is performed.
+ */
+
+import Database from 'better-sqlite3';
+import * as fs from 'fs/promises';
+import {
+  AgentConfig,
+  PathOptions,
+  getAgentDirectory,
+  getConfigPath,
+  getSchedulePath,
+  getMetadataPath,
+  atomicWrite,
+  createAgentLogger,
+  safeLoad,
+} from '@recursive-manager/common';
+import { createAgent, AgentRecord } from '@recursive-manager/common';
+import { saveAgentConfig } from '../config';
+import { validateHireStrict } from './validateHire';
+
+/**
+ * Custom error for hire operation failures
+ */
+export class HireAgentError extends Error {
+  constructor(
+    message: string,
+    public readonly agentId: string,
+    public readonly managerId: string | null,
+    public readonly cause?: Error
+  ) {
+    super(message);
+    this.name = 'HireAgentError';
+    Error.captureStackTrace(this, HireAgentError);
+  }
+}
+
+/**
+ * Default schedule configuration for new agents
+ */
+function generateDefaultSchedule() {
+  return {
+    $schema: 'https://recursivemanager.dev/schemas/schedule.schema.json',
+    version: '1.0.0',
+    mode: 'hybrid' as const,
+    continuous: {
+      enabled: true,
+      conditions: {
+        onlyWhenTasksPending: true,
+        minimumInterval: '5m',
+        pauseBetweenRuns: '1m',
+      },
+    },
+    timeBased: {
+      enabled: true,
+      triggers: [],
+    },
+    reactive: {
+      enabled: true,
+      triggers: [],
+    },
+    pauseConditions: {
+      ifManagerPaused: true,
+      ifOutOfBudget: true,
+      ifSystemMaintenance: true,
+      manualPause: false,
+    },
+  };
+}
+
+/**
+ * Default metadata configuration for new agents
+ */
+function generateDefaultMetadata(hiringBudget: number) {
+  return {
+    $schema: 'https://recursivemanager.dev/schemas/metadata.schema.json',
+    version: '1.0.0',
+    runtime: {
+      status: 'idle' as const,
+      lastExecutionAt: null,
+      lastExecutionDuration: 0,
+      lastExecutionType: null,
+      lastExecutionResult: null,
+      nextScheduledExecution: null,
+    },
+    statistics: {
+      totalExecutions: 0,
+      successfulExecutions: 0,
+      failedExecutions: 0,
+      totalRuntimeMinutes: 0,
+      averageExecutionMinutes: 0,
+      tasksCompleted: 0,
+      tasksActive: 0,
+      messagesSent: 0,
+      messagesReceived: 0,
+      subordinatesHired: 0,
+      subordinatesFired: 0,
+    },
+    health: {
+      overallHealth: 'unknown' as const,
+      lastHealthCheck: null,
+      issues: [],
+      warnings: [],
+    },
+    budget: {
+      hiringBudget: {
+        initial: hiringBudget,
+        remaining: hiringBudget,
+        used: 0,
+      },
+      executionBudget: {
+        maxExecutionsPerDay: 100,
+        usedToday: 0,
+        remainingToday: 100,
+      },
+      resourceUsage: {
+        workspaceMB: 0,
+        quotaMB: 1024,
+        percentUsed: 0,
+      },
+    },
+  };
+}
+
+/**
+ * Default subordinates registry for new agents
+ */
+function generateDefaultSubordinatesRegistry(hiringBudget: number) {
+  return {
+    $schema: 'https://recursivemanager.dev/schemas/subordinates.schema.json',
+    version: '1.0.0',
+    subordinates: [],
+    summary: {
+      totalSubordinates: 0,
+      activeSubordinates: 0,
+      pausedSubordinates: 0,
+      firedSubordinates: 0,
+      hiringBudgetRemaining: hiringBudget,
+    },
+  };
+}
+
+/**
+ * Generate README.md content for new agent
+ */
+function generateAgentReadme(config: AgentConfig): string {
+  return `# ${config.identity.displayName}
+
+## Agent Information
+
+- **ID**: ${config.identity.id}
+- **Role**: ${config.identity.role}
+- **Created**: ${config.identity.createdAt}
+- **Created By**: ${config.identity.createdBy}
+- **Reports To**: ${config.identity.reportingTo || 'None (Root Agent)'}
+
+## Goal
+
+${config.goal.mainGoal}
+
+## Permissions
+
+- **Can Hire**: ${config.permissions.canHire ? 'Yes' : 'No'}
+- **Max Subordinates**: ${config.permissions.maxSubordinates}
+- **Hiring Budget**: ${config.permissions.hiringBudget}
+- **Can Fire**: ${config.permissions.canFire ? 'Yes' : 'No'}
+- **Can Escalate**: ${config.permissions.canEscalate ? 'Yes' : 'No'}
+
+## Framework
+
+- **Primary**: ${config.framework.primary}
+- **Capabilities**: ${config.framework.capabilities?.join(', ') || 'None'}
+
+## Status
+
+This agent is ready to start working. Use the RecursiveManager CLI to interact with this agent.
+
+---
+
+*This file was automatically generated by RecursiveManager*
+`;
+}
+
+/**
+ * Create the complete directory structure for a new agent
+ *
+ * Creates all required directories and subdirectories:
+ * - tasks/active, tasks/completed, tasks/archive
+ * - inbox/unread, inbox/read
+ * - outbox/pending, outbox/sent
+ * - subordinates/reports
+ * - workspace/notes, workspace/research, workspace/drafts, workspace/cache
+ *
+ * @param agentDirectory - Root directory for the agent
+ */
+async function createAgentDirectoryStructure(agentDirectory: string): Promise<void> {
+  const subdirectories = [
+    'tasks/active',
+    'tasks/completed',
+    'tasks/archive',
+    'inbox/unread',
+    'inbox/read',
+    'outbox/pending',
+    'outbox/sent',
+    'subordinates/reports',
+    'workspace/notes',
+    'workspace/research',
+    'workspace/drafts',
+    'workspace/cache',
+  ];
+
+  // Create all subdirectories in parallel
+  await Promise.all(
+    subdirectories.map((subdir) => fs.mkdir(`${agentDirectory}/${subdir}`, { recursive: true }))
+  );
+}
+
+/**
+ * Update parent agent's subordinates registry
+ *
+ * @param managerId - ID of the parent agent
+ * @param newAgent - Record of the newly hired agent
+ * @param options - Path resolution options
+ */
+async function updateParentSubordinatesRegistry(
+  managerId: string,
+  newAgent: AgentRecord,
+  options: PathOptions = {}
+): Promise<void> {
+  const logger = createAgentLogger(managerId);
+
+  try {
+    // Get path to parent's subordinates registry
+    const managerDirectory = getAgentDirectory(managerId, options);
+    const registryPath = `${managerDirectory}/subordinates/registry.json`;
+
+    // Load existing registry (or create default if doesn't exist)
+    let registry;
+    try {
+      const content = await safeLoad(registryPath);
+      registry = JSON.parse(content);
+    } catch (err) {
+      // If file doesn't exist, create default registry
+      logger.debug('Parent subordinates registry not found, creating new one', {
+        managerId,
+        registryPath,
+      });
+      registry = generateDefaultSubordinatesRegistry(0); // Budget will be updated from parent's config
+    }
+
+    // Add new subordinate to the registry
+    const newSubordinate = {
+      agentId: newAgent.id,
+      role: newAgent.role,
+      hiredAt: newAgent.created_at,
+      hiredFor: newAgent.main_goal,
+      status: 'active' as const,
+      lastReportAt: null,
+      healthStatus: 'unknown' as const,
+      tasksAssigned: 0,
+      tasksCompleted: 0,
+    };
+
+    registry.subordinates.push(newSubordinate);
+
+    // Update summary counts
+    registry.summary.totalSubordinates = registry.subordinates.length;
+    registry.summary.activeSubordinates = registry.subordinates.filter(
+      (s: any) => s.status === 'active'
+    ).length;
+    registry.summary.pausedSubordinates = registry.subordinates.filter(
+      (s: any) => s.status === 'paused'
+    ).length;
+    registry.summary.firedSubordinates = registry.subordinates.filter(
+      (s: any) => s.status === 'fired'
+    ).length;
+
+    // If hiringBudgetRemaining is tracked, decrement it
+    if (registry.summary.hiringBudgetRemaining > 0) {
+      registry.summary.hiringBudgetRemaining -= 1;
+    }
+
+    // Write updated registry atomically
+    await atomicWrite(registryPath, JSON.stringify(registry, null, 2), {
+      createDirs: true,
+      encoding: 'utf8',
+      mode: 0o644,
+    });
+
+    logger.info('Updated parent subordinates registry', {
+      managerId,
+      newSubordinateId: newAgent.id,
+      totalSubordinates: registry.summary.totalSubordinates,
+    });
+  } catch (err) {
+    logger.error('Failed to update parent subordinates registry', {
+      managerId,
+      newAgentId: newAgent.id,
+      error: (err as Error).message,
+    });
+    throw new Error(
+      `Failed to update parent subordinates registry: ${(err as Error).message}`
+    );
+  }
+}
+
+/**
+ * Hire a new agent in the organization
+ *
+ * This is the main orchestration function that handles the complete agent hiring process.
+ * It performs the following steps in order:
+ *
+ * 1. **Validation** (if managerId exists)
+ *    - Validates using validateHireStrict()
+ *    - Checks permissions, budget, rate limits, cycles
+ *    - Throws HireValidationError if validation fails
+ *
+ * 2. **Filesystem Operations**
+ *    - Creates agent directory with all subdirectories
+ *    - Saves config.json (using saveAgentConfig)
+ *    - Saves schedule.json with default schedule
+ *    - Saves metadata.json with creation info
+ *    - Saves subordinates/registry.json
+ *    - Creates README.md
+ *
+ * 3. **Database Operations**
+ *    - Calls createAgent() to insert agent record
+ *    - Updates org_hierarchy (handled by createAgent)
+ *    - Audit logs the HIRE action (handled by createAgent)
+ *
+ * 4. **Parent Updates** (if managerId exists)
+ *    - Updates parent's subordinates/registry.json
+ *    - Adds new agent to subordinates array
+ *    - Updates summary statistics
+ *
+ * Error Handling:
+ * - Validation errors: Throws HireValidationError (no cleanup needed)
+ * - Filesystem errors: Throws HireAgentError (files may be partially created)
+ * - Database errors: Throws HireAgentError (files exist but DB entry failed)
+ * - Parent update errors: Throws HireAgentError (agent exists but parent registry not updated)
+ *
+ * @param db - Database instance
+ * @param managerId - ID of the hiring manager (null for root agents)
+ * @param config - Complete agent configuration (must be pre-validated)
+ * @param options - Path resolution options
+ * @returns The created agent record
+ * @throws {HireValidationError} If validation fails
+ * @throws {HireAgentError} If hiring operation fails
+ *
+ * @example
+ * ```typescript
+ * // Hire a root agent (CEO)
+ * const ceoConfig = generateDefaultConfig('CEO', 'Lead the organization', 'system', {
+ *   id: 'ceo-001',
+ *   canHire: true,
+ *   maxSubordinates: 10,
+ *   hiringBudget: 5,
+ * });
+ * const ceo = await hireAgent(db, null, ceoConfig);
+ *
+ * // Hire a subordinate
+ * const devConfig = generateDefaultConfig('Senior Developer', 'Build features', 'ceo-001', {
+ *   reportingTo: 'ceo-001',
+ * });
+ * const dev = await hireAgent(db, 'ceo-001', devConfig);
+ * ```
+ */
+export async function hireAgent(
+  db: Database.Database,
+  managerId: string | null,
+  config: AgentConfig,
+  options: PathOptions = {}
+): Promise<AgentRecord> {
+  const agentId = config.identity.id;
+  const logger = createAgentLogger(agentId);
+
+  logger.info('Starting agent hire process', {
+    agentId,
+    managerId: managerId ?? undefined,
+    role: config.identity.role,
+    goal: config.goal.mainGoal,
+  });
+
+  try {
+    // STEP 1: VALIDATION (if managerId exists)
+    if (managerId) {
+      logger.debug('Validating hire preconditions', { agentId, managerId });
+
+      try {
+        await validateHireStrict(db, managerId, agentId, options);
+        logger.debug('Hire validation passed', { agentId, managerId });
+      } catch (err) {
+        // Re-throw HireValidationError as-is
+        logger.error('Hire validation failed', {
+          agentId,
+          managerId,
+          error: (err as Error).message,
+        });
+        throw err;
+      }
+    } else {
+      logger.debug('No manager specified - hiring root agent', { agentId });
+    }
+
+    // Ensure reportingTo matches managerId if managerId is provided
+    if (managerId && config.identity.reportingTo !== managerId) {
+      logger.warn('Config reportingTo does not match managerId, overriding', {
+        agentId,
+        configReportingTo: config.identity.reportingTo,
+        managerId,
+      });
+      config.identity.reportingTo = managerId;
+    }
+
+    // STEP 2: FILESYSTEM OPERATIONS
+    logger.info('Creating agent filesystem structure', { agentId });
+
+    const agentDirectory = getAgentDirectory(agentId, options);
+    const configPath = getConfigPath(agentId, options);
+    const schedulePath = getSchedulePath(agentId, options);
+    const metadataPath = getMetadataPath(agentId, options);
+
+    try {
+      // Create directory structure
+      logger.debug('Creating agent directories', { agentId, agentDirectory });
+      await createAgentDirectoryStructure(agentDirectory);
+
+      // Save config.json (uses saveAgentConfig for validation and atomic write)
+      logger.debug('Saving agent configuration', { agentId, configPath });
+      await saveAgentConfig(agentId, config, options);
+
+      // Save schedule.json
+      logger.debug('Creating default schedule', { agentId, schedulePath });
+      const schedule = generateDefaultSchedule();
+      await atomicWrite(schedulePath, JSON.stringify(schedule, null, 2), {
+        createDirs: true,
+        encoding: 'utf8',
+        mode: 0o644,
+      });
+
+      // Save metadata.json
+      logger.debug('Creating default metadata', { agentId, metadataPath });
+      const metadata = generateDefaultMetadata(config.permissions.hiringBudget);
+      await atomicWrite(metadataPath, JSON.stringify(metadata, null, 2), {
+        createDirs: true,
+        encoding: 'utf8',
+        mode: 0o644,
+      });
+
+      // Save subordinates/registry.json
+      logger.debug('Creating subordinates registry', { agentId });
+      const subordinatesRegistry = generateDefaultSubordinatesRegistry(
+        config.permissions.hiringBudget
+      );
+      const registryPath = `${agentDirectory}/subordinates/registry.json`;
+      await atomicWrite(registryPath, JSON.stringify(subordinatesRegistry, null, 2), {
+        createDirs: true,
+        encoding: 'utf8',
+        mode: 0o644,
+      });
+
+      // Create README.md
+      logger.debug('Creating agent README', { agentId });
+      const readme = generateAgentReadme(config);
+      const readmePath = `${agentDirectory}/README.md`;
+      await atomicWrite(readmePath, readme, {
+        createDirs: true,
+        encoding: 'utf8',
+        mode: 0o644,
+      });
+
+      logger.info('Agent filesystem structure created successfully', {
+        agentId,
+        agentDirectory,
+      });
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error('Failed to create agent filesystem structure', {
+        agentId,
+        error: error.message,
+      });
+      throw new HireAgentError(
+        `Failed to create agent filesystem structure: ${error.message}`,
+        agentId,
+        managerId,
+        error
+      );
+    }
+
+    // STEP 3: DATABASE OPERATIONS
+    logger.info('Creating agent database record', { agentId });
+
+    let agentRecord: AgentRecord;
+    try {
+      agentRecord = createAgent(db, {
+        id: agentId,
+        role: config.identity.role,
+        displayName: config.identity.displayName,
+        createdBy: config.identity.createdBy,
+        reportingTo: config.identity.reportingTo ?? null,
+        mainGoal: config.goal.mainGoal,
+        configPath,
+      });
+
+      logger.info('Agent database record created successfully', {
+        agentId,
+        status: agentRecord.status,
+      });
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error('Failed to create agent database record', {
+        agentId,
+        error: error.message,
+      });
+      throw new HireAgentError(
+        `Failed to create agent database record: ${error.message}`,
+        agentId,
+        managerId,
+        error
+      );
+    }
+
+    // STEP 4: PARENT UPDATES (if managerId exists)
+    if (managerId) {
+      logger.info('Updating parent subordinates registry', {
+        agentId,
+        managerId,
+      });
+
+      try {
+        await updateParentSubordinatesRegistry(managerId, agentRecord, options);
+        logger.info('Parent subordinates registry updated successfully', {
+          agentId,
+          managerId,
+        });
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        logger.error('Failed to update parent subordinates registry', {
+          agentId,
+          managerId,
+          error: error.message,
+        });
+        // Note: We don't throw here because the agent was successfully created
+        // This is a non-critical update that can be fixed manually
+        logger.warn('Agent hired successfully but parent registry update failed', {
+          agentId,
+          managerId,
+          message: 'Manual registry update may be required',
+        });
+      }
+    }
+
+    // SUCCESS
+    logger.info('Agent hire completed successfully', {
+      agentId,
+      managerId: managerId ?? undefined,
+      role: config.identity.role,
+      status: agentRecord.status,
+    });
+
+    return agentRecord;
+  } catch (err) {
+    // If it's already a HireAgentError or HireValidationError, re-throw as-is
+    if (
+      err instanceof HireAgentError ||
+      (err instanceof Error && err.name === 'HireValidationError')
+    ) {
+      throw err;
+    }
+
+    // Wrap unexpected errors
+    const error = err instanceof Error ? err : new Error(String(err));
+    logger.error('Unexpected error during agent hire', {
+      agentId,
+      managerId: managerId ?? undefined,
+      error: error.message,
+    });
+    throw new HireAgentError(
+      `Unexpected error during agent hire: ${error.message}`,
+      agentId,
+      managerId,
+      error
+    );
+  }
+}

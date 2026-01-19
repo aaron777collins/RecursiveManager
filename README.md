@@ -1,284 +1,376 @@
 # RecursiveManager
 
-**Recursive AI agent management system - hierarchical, autonomous, and adaptive**
+> Hierarchical AI agent system that mimics organizational structures for autonomous task management
 
-RecursiveManager is a CLI tool that enables AI agents to operate like employees in an organization. Each agent can hire, fire, delegate, and escalate - creating a recursive hierarchy that adapts to complex tasks.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-purple.svg)](https://github.com/aaron777collins/RecursiveManager/releases/tag/v0.1.0)
+[![Status: Alpha](https://img.shields.io/badge/Status-Alpha-orange.svg)](https://github.com/aaron777collins/RecursiveManager)
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue.svg)](https://aaron777collins.github.io/RecursiveManager/)
+[![Build Status](https://github.com/aaron777collins/RecursiveManager/actions/workflows/docs.yml/badge.svg)](https://github.com/aaron777collins/RecursiveManager/actions/workflows/docs.yml)
 
-## Core Concept
+## Overview
 
-Think of it like a company structure, but with AI agents:
+RecursiveManager is a revolutionary AI agent orchestration system that models organizational hierarchies. Just as a CEO delegates to managers who delegate to workers, RecursiveManager enables AI agents to hire subordinates, manage tasks, escalate issues, and coordinate work across a recursive tree of specialized agents.
 
-- **CEO Agent**: Given a main goal (e.g., "Build a SaaS product")
-- **Hiring**: CEO analyzes goal, decides to hire CTO, CMO, CFO
-- **Delegation**: CTO receives goal "Build the product", hires Backend & Frontend developers
-- **Recursion**: Each agent can hire their own team when tasks become complex
-- **Fresh Memory**: Every execution starts fresh - agents read all context from files
-- **Dual Modes**: Proactive (time-based + continuous work) and Reactive (messages, events)
+### Key Features
 
-## Why RecursiveManager?
+- **Recursive Agent Hierarchies**: Agents can hire and manage subordinates, creating organizational depth
+- **Dual Instance Types**: Continuous execution for active work + reactive triggers for messages/events
+- **File-Based Persistence**: Each agent has its own workspace with notes, tasks, and context
+- **Multi-Framework Support**: Works with Claude Code, OpenCode, and other AI coding frameworks
+- **Smart Scheduling**: Time-based triggers, continuous execution, and reactive messaging
+- **Multi-Platform Integration**: Slack, Telegram, email, and internal messaging
+- **Quality-First**: Multi-perspective analysis before all major decisions
 
-**Problem**: Single AI sessions get dumber as context grows. Complex projects need structure.
+### Philosophy
 
-**Solution**: Recursive delegation with fresh memory every run.
+**Quality over cost.** RecursiveManager prioritizes correctness and thorough analysis over speed. Every major decision is analyzed from multiple perspectives (security, architecture, UX, etc.) to ensure robust outcomes.
 
-**Benefits**:
-- ✅ **Quality over cost**: Multi-perspective analysis (8+ viewpoints) for every decision
-- ✅ **Scalable**: 1 agent or 1000 agents, the system adapts
-- ✅ **Autonomous**: Agents manage their own schedules, tasks, and team
-- ✅ **Transparent**: All state in files (Markdown, JSON), fully auditable
-- ✅ **Adaptive**: Agents respond to messages, changes in priority, blockers
+**Stateless execution.** Every agent execution starts with a fresh memory context, reading all state from files. This prevents context window decay and enables truly long-running projects.
 
-## Architecture Highlights
+**Business-like structure.** Agents behave like employees in a company: they have roles, goals, managers, and subordinates. They hire, fire, escalate, and coordinate just like real organizations.
 
-### File-Based State
-```
-agents/<agent-id>/
-  config.json              # Identity, role, goal
-  schedule.json            # Proactive triggers (continuous + time-based)
-  tasks/active/            # Current work (hierarchical)
-  tasks/archive/           # Completed work (keeps workspace clean)
-  workspace/notes.md       # Long-term memory
-  inbox/messages/          # Reactive triggers (Slack, email, etc.)
+## Installation
+
+### One-Liner Installation
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash
 ```
 
-### Dual Execution Modes
+### Manual Installation
 
-**Continuous Instance**:
-- Picks ONE task from list
-- Multi-perspective analysis (security, architecture, UX, etc.)
-- Executes OR delegates (hires sub-agent) OR escalates
-- Updates progress, exits
+```bash
+# Clone the repository
+git clone https://github.com/aaron777collins/RecursiveManager.git
+cd RecursiveManager
 
-**Reactive Instance**:
-- Triggered by schedule (daily standup) OR message (Slack alert)
-- Processes events, updates task list
-- Exits (continuous instance picks up new tasks)
+# Install dependencies
+npm install
 
-### Smart Spawning
+# Build the project
+npm run build
 
-Agents only run when there's work:
-- **Continuous**: Only if pending tasks exist + interval elapsed
-- **Reactive**: Only if time-based trigger fires OR message arrives
-- **Result**: No wasted cycles saying "nothing to do"
+# Link CLI globally
+npm link
 
-### Multi-Perspective Analysis
+# Verify installation
+recursive-manager version
+```
 
-Every major decision analyzed from 8+ perspectives:
-1. **Security**: Threats, vulnerabilities, access control
-2. **Architecture**: Scalability, modularity, technical debt
-3. **Simplicity**: Developer experience, maintainability
-4. **UX**: User experience, error messages
-5. **Financial**: Cost, ROI, resource efficiency
-6. **Operational**: Reliability, monitoring, debugging
-7. **Emotional**: Team morale, communication, trust
-8. **Growth**: Future-proofing, competitive advantage
+### Headless Installation (CI/CD)
 
-**Synthesis**: Meta-analysis combines perspectives into actionable decision with trade-offs explicit.
+```bash
+curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash -s -- \
+  --headless \
+  --install-dir /opt/recursive-manager \
+  --skip-shell-config \
+  --package-manager npm
+```
 
 ## Quick Start
 
-### Installation
-
 ```bash
-# Via npm (when published)
-npm install -g recursivemanager
+# Initialize with a high-level goal
+recursive-manager init "Build a SaaS product for task management"
 
-# Via pip (when published)
-pip install recursivemanager
+# The CEO agent will:
+# 1. Analyze the goal from multiple perspectives
+# 2. Create a strategic plan
+# 3. Hire necessary team members (CTO, CMO, CFO, etc.)
+# 4. Each hired agent further delegates as needed
 
-# From source
-git clone https://github.com/aaron777collins/RecursiveManager.git
-cd RecursiveManager
-make install
+# Monitor progress
+recursive-manager status
+
+# Output:
+# ┌─ Organization Chart ─────────────────────────┐
+# │ CEO                                          │
+# │  ├─ CTO (Build the application)             │
+# │  │  ├─ Backend Dev (API development)        │
+# │  │  └─ Frontend Dev (UI development)        │
+# │  ├─ CMO (Market the product)                │
+# │  └─ CFO (Manage finances)                   │
+# └──────────────────────────────────────────────┘
 ```
 
-### Initialize
+## Updating
+
+RecursiveManager includes a self-update mechanism:
 
 ```bash
-# Create CEO agent with your goal
-rm init "Build a SaaS product for project management"
+# Check for updates
+recursive-manager update --check
 
-# CEO analyzes from 8 perspectives, creates initial plan
-# CEO hires CTO, CMO, CFO (automatically)
-# Each hired agent initializes themselves
+# Update to latest version
+recursive-manager update
 
-# Start scheduler to enable proactive execution
-rm scheduler start
+# Update to specific version
+recursive-manager update 0.2.0
+
+# Rollback to previous version
+recursive-manager rollback
+
+# View version history
+recursive-manager update --history
 ```
 
-### View Progress
+## Documentation
 
-```bash
-# See all agents
-rm status
+📚 **[Full Documentation](https://aaron777collins.github.io/RecursiveManager/)** - Visit our comprehensive documentation website
 
-# Visualize hierarchy
-rm org-chart
+### Quick Links
 
-# Check specific agent
-rm debug CTO
+- **[Installation Guide](https://aaron777collins.github.io/RecursiveManager/installation/)** - Detailed installation instructions
+- **[Quick Start](https://aaron777collins.github.io/RecursiveManager/quick-start/)** - Get started quickly
+- **[Configuration](https://aaron777collins.github.io/RecursiveManager/configuration/)** - Configuration options
+- **[CLI Reference](https://aaron777collins.github.io/RecursiveManager/cli-reference/)** - Command-line interface documentation
+- **[API Reference](https://aaron777collins.github.io/RecursiveManager/api-reference/)** - API documentation
+- **[Architecture](https://aaron777collins.github.io/RecursiveManager/architecture/overview/)** - System architecture
+
+### Planning Documents
+
+- **[COMPREHENSIVE_PLAN.md](./COMPREHENSIVE_PLAN.md)** - Complete system architecture and design
+- **[MULTI_PERSPECTIVE_ANALYSIS.md](./MULTI_PERSPECTIVE_ANALYSIS.md)** - Analysis from 8 expert perspectives
+- **[FILE_STRUCTURE_SPEC.md](./FILE_STRUCTURE_SPEC.md)** - Detailed file structure and schemas
+- **[EDGE_CASES_AND_CONTINGENCIES.md](./EDGE_CASES_AND_CONTINGENCIES.md)** - Edge case handling
+- **[IMPLEMENTATION_PHASES.md](./IMPLEMENTATION_PHASES.md)** - Phased implementation plan
+
+### Core Concepts
+
+#### Agent Hierarchy
+
+Each agent has:
+- **Identity**: Role, goal, capabilities
+- **Manager**: Reports to another agent (except CEO)
+- **Subordinates**: Can hire agents to delegate work
+- **Workspace**: Personal directory for notes, tasks, research
+
+#### Execution Modes
+
+1. **Continuous**: Picks up next pending task, executes it, updates progress
+2. **Reactive**: Triggered by messages (Slack, Telegram, manager, etc.)
+3. **Scheduled**: Time-based triggers (daily standup, weekly review, etc.)
+
+#### Task Management
+
+- **Hierarchical**: Tasks can nest indefinitely (with depth limits)
+- **Delegatable**: Tasks can be assigned to subordinate agents
+- **Traceable**: Full audit trail of all task changes
+- **Archivable**: Completed tasks archived to prevent clutter
+
+#### Multi-Perspective Analysis
+
+Before major decisions (hiring, firing, strategic changes), agents spawn sub-agents to analyze from multiple perspectives:
+- Security: What are the risks?
+- Architecture: Is this scalable?
+- Simplicity: Is this the simplest solution?
+- Financial: What's the cost/benefit?
+- UX: How does this affect user experience?
+
+Results synthesized into a decision with confidence levels and reasoning.
+
+## Architecture
+
+```
+┌─────────────────────────────────────────┐
+│           CLI Tool                      │
+│  (User-facing interface)                │
+└───────────┬─────────────────────────────┘
+            │
+┌───────────▼─────────────────────────────┐
+│      Scheduler Daemon                   │
+│  (Time-based + event triggers)          │
+└───────────┬─────────────────────────────┘
+            │
+┌───────────▼─────────────────────────────┐
+│    Core Orchestrator                    │
+│  (Framework-agnostic execution)         │
+└─┬─────────┬─────────────┬───────────────┘
+  │         │             │
+┌─▼──────┐ ┌▼──────────┐ ┌▼─────────────┐
+│ Claude │ │ OpenCode  │ │ Future       │
+│ Code   │ │           │ │ Adapters     │
+└────────┘ └───────────┘ └──────────────┘
+
+┌─────────────────────────────────────────┐
+│   Messaging Integration Layer           │
+│  ┌────────┐ ┌────────┐ ┌────────┐      │
+│  │ Slack  │ │Telegram│ │ Email  │      │
+│  └────────┘ └────────┘ └────────┘      │
+└─────────────────────────────────────────┘
+
+            ▼
+
+┌─────────────────────────────────────────┐
+│     File-Based State Storage            │
+│  agents/{shard}/{agent-id}/             │
+│    ├── config.json                      │
+│    ├── schedule.json                    │
+│    ├── tasks/                           │
+│    ├── inbox/                           │
+│    └── workspace/                       │
+└─────────────────────────────────────────┘
 ```
 
-### Interact
+## Project Status
 
-```bash
-# Send message to agent
-rm message product-manager-001 "Customer X is unhappy, investigate"
+**Current Phase**: Alpha Release (v0.1.0)
 
-# Agent processes message, adds urgent task, responds
-```
+RecursiveManager is now in **Alpha** status. The core system is functional with the following capabilities:
 
-## Example Workflow
+### Available Features (v0.1.0)
 
-```bash
-# 1. Initialize system
-$ rm init "Build a mobile app"
-CEO agent created. Analyzing goal from 8 perspectives...
-CEO hired: CTO (goal: "Build the app"), CMO (goal: "Market the app")
+✅ **Core System**
+- Recursive agent hierarchy with manager-subordinate relationships
+- File-based persistence with agent workspaces
+- Multi-perspective analysis framework (8 perspectives)
+- Decision synthesis with confidence levels
+- Agent locking mechanisms using async-mutex
+- ExecutionPool with worker pool pattern
+- PID file management for process tracking
 
-# 2. CTO automatically starts working
-$ rm logs CTO --follow
-[09:00:00] Continuous instance started
-[09:00:05] Task: "Build the app" - complex, delegating
-[09:00:10] Multi-perspective analysis:
-  - Architecture: Mobile-first, React Native recommended
-  - Security: Auth required, API security critical
-  - Simplicity: Start with MVP, iterate
-[09:00:30] Decision: Hire specialized developers
-[09:00:35] Hiring: Mobile Developer (goal: "Build React Native app")
-[09:00:40] Hiring: Backend Developer (goal: "Build API")
+✅ **Installation & Updates**
+- One-liner installation script with headless mode
+- Self-update mechanism via GitHub API
+- Version rollback capability
+- Version history tracking
 
-# 3. Developers work autonomously
-$ rm status
-AGENT                 ROLE                STATUS    TASKS    LAST RUN
-CEO                   CEO                 active    2        1min ago
-CTO                   CTO                 active    1        30sec ago
-mobile-dev-001        Mobile Developer    active    3        10sec ago
-backend-dev-001       Backend Developer   active    2        5sec ago
+✅ **CLI Interface**
+- `recursive-manager init` - Initialize with goal
+- `recursive-manager status` - Show org chart
+- `recursive-manager update` - Self-update system
+- `recursive-manager config` - Configuration wizard
+- `recursive-manager debug` - Agent debugging
 
-# 4. Customer escalation via Slack
-@ProductManager: "Customer Y says app crashes on login!"
+✅ **Documentation**
+- Comprehensive website with MkDocs Material
+- Architecture documentation
+- API reference
+- CLI reference
+- Development guides
 
-# Product manager receives message, adds urgent task
-$ rm inbox product-manager-001
-UNREAD (1):
-- [URGENT] from slack-user-jane: "Customer Y says app crashes..."
+✅ **CI/CD**
+- Automated documentation deployment
+- Release automation on version tags
 
-# Product manager delegates to mobile-dev-001
-$ rm tasks mobile-dev-001
-- [ ] **URGENT:** Fix crash on login (DELEGATED from product-manager-001)
-- [ ] Implement home screen
-- [ ] Add push notifications
-```
+### Upcoming Features
 
-## Key Features
-
-### Hierarchical Task Management
-- Tasks can be simple (checkbox) or complex (nested folder with plan + subtasks)
-- Completed tasks auto-archived (keeps workspace clean)
-- Tasks can reference other tasks (hierarchical)
-
-### Self-Scheduling
-- Agents set their own schedules based on task needs
-- Continuous (work when tasks pending) + Time-based (daily standup, weekly report)
-- Dynamically adjustable (agent can change its own schedule)
-
-### Manager-Worker Duality
-- Manager delegates task, keeps high-level tracking
-- Worker executes task, reports back with "just right" context
-- Both responsible for task completion
-
-### Messaging Integration
-- Slack, Telegram, Email (modular)
-- Standardized message format
-- Priority detection (urgent keywords)
-- Routing: Direct mention > Channel mapping > Keyword > CEO
-
-### Framework Agnostic
-- Primary: Claude Code
-- Secondary: OpenCode (fallback)
-- Extensible: Add new frameworks via adapter interface
-
-## Implementation Status
-
-🚧 **Currently in planning phase**
-
-See [COMPREHENSIVE_PLAN.md](./COMPREHENSIVE_PLAN.md) for full implementation roadmap.
-
-**Planned Phases** (18 weeks):
-1. Foundation (file structure, CLI, manual execution)
-2. Execution Engine (framework adapters, orchestration)
-3. Scheduling (daemon, smart spawning)
-4. Messaging (Slack, Telegram, Email modules)
-5. Task Management (hierarchical, archival)
-6. Multi-Perspective Analysis (8 perspectives, synthesis)
-7. OpenCode Adapter (secondary framework)
-8. CLI UX (visualization, help system)
-9. Edge Cases & Resilience (30+ cases handled)
-10. Documentation & Examples
-11. Security Hardening
-12. Performance Optimization
+See [IMPLEMENTATION_PHASES.md](./IMPLEMENTATION_PHASES.md) for the full roadmap.
 
 ## Design Principles
 
-1. **Quality over cost**: Multi-perspective analysis always, even if slow/expensive
-2. **Fresh memory**: Zero context between runs, all state from files
-3. **Smart defaults**: Works out-of-box, advanced options available
-4. **Recursive delegation**: Non-trivial tasks spawn sub-agents
-5. **Adaptive**: Agents respond to events, adjust schedules, change goals
-6. **Transparent**: All state in human-readable files (Markdown, JSON)
-7. **Fault-tolerant**: Handles crashes, corruption, timeouts gracefully
-8. **Security-conscious**: Sandboxing, input validation, audit logging
+### Complexity Management
 
-## Architecture Overview
+RecursiveManager is inherently complex (recursive hierarchies, multi-framework support, distributed state). We manage this complexity through:
 
+1. **Progressive Disclosure**: Simple by default, powerful when needed
+2. **Clear Abstractions**: Hide implementation details behind clean interfaces
+3. **Excellent Documentation**: Every feature explained with examples
+4. **Smart Defaults**: Works out-of-box for common use cases
+5. **Actionable Errors**: Error messages include suggested fixes
+6. **Debugging Tools**: Single-command insights into system state
+
+### Developer Experience
+
+- **One-command start**: `recursive-manager init "goal"`
+- **Convention over configuration**: Sensible defaults everywhere
+- **Self-documenting**: Files include README.md and comments
+- **Fail fast**: Validate early, fail with clear messages
+- **Easy debugging**: `recursive-manager debug <agent-id>` shows everything
+
+### Testing Strategy
+
+- **Unit Tests**: 80%+ coverage, fast feedback
+- **Integration Tests**: Component interactions validated
+- **E2E Tests**: Full user journeys tested
+- **Performance Tests**: Scalability to 1000+ agents
+- **Edge Case Tests**: Every contingency tested
+
+See [Edge Cases document](./EDGE_CASES_AND_CONTINGENCIES.md) for comprehensive edge case catalog.
+
+## Use Cases
+
+### Software Development
+
+```bash
+# CEO hires CTO
+# CTO hires Backend Dev, Frontend Dev, DevOps
+# Each dev implements their piece
+# CTO coordinates integration
+# CEO reviews final product
 ```
-User (CLI, Slack, Email)
-    ↓
-RecursiveManager Core
-  ├─ Centralized Scheduler (scans agents every 60s, smart spawning)
-  ├─ Messaging Relay (Slack, Telegram, Email → standardized format)
-  ├─ Agent Orchestrator (load context, execute, update state)
-  └─ Framework Adapters (Claude Code, OpenCode)
-    ↓
-File System State
-  ├─ agents/<agent-id>/ (config, tasks, inbox, workspace)
-  └─ system/ (org_chart, process_registry, audit_log)
+
+### Content Creation
+
+```bash
+# CEO hires Content Strategist
+# Strategist hires Writers, Editors, SEO Specialist
+# Writers create content
+# Editors review
+# SEO optimizes
+# Strategist publishes
 ```
 
-## Contributing
+### Data Analysis
 
-See [COMPREHENSIVE_PLAN.md](./COMPREHENSIVE_PLAN.md) for architecture details.
+```bash
+# CEO hires Data Scientist
+# Data Scientist hires Data Engineer, ML Engineer
+# Data Engineer builds pipeline
+# ML Engineer trains models
+# Data Scientist synthesizes insights
+```
 
-**Areas needing help**:
-- Framework adapters (OpenCode, others)
-- Messaging modules (Telegram, Email)
-- Testing (edge cases, performance)
-- Documentation (tutorials, examples)
+### Customer Support
+
+```bash
+# CEO hires Support Manager
+# Support Manager monitors Slack/Email
+# Escalates to specialists as needed
+# Specialists resolve issues
+# Support Manager follows up
+```
+
+## Community
+
+### Contributing
+
+We welcome contributions! See our [Contributing Guide](https://aaron777collins.github.io/RecursiveManager/development/contributing/) for details.
+
+**Ways to Contribute:**
+- Report bugs or suggest features via [GitHub Issues](https://github.com/aaron777collins/RecursiveManager/issues)
+- Improve documentation
+- Submit pull requests for bug fixes or features
+- Share use cases and examples
+- Help test edge cases
+
+### Support & Discussion
+
+- **GitHub Issues**: [Report bugs or request features](https://github.com/aaron777collins/RecursiveManager/issues)
+- **GitHub Discussions**: [Ask questions and share ideas](https://github.com/aaron777collins/RecursiveManager/discussions)
+- **Documentation**: [Full documentation site](https://aaron777collins.github.io/RecursiveManager/)
 
 ## License
 
-MIT (to be added)
+MIT License - see [LICENSE](./LICENSE) for details
 
-## Credits
+## Acknowledgments
 
-Created by Aaron Collins (@aaron777collins)
+This project is inspired by:
+- **Ralph**: The autonomous development loop concept
+- **AICEO**: The multi-agent analysis approach
+- **Real organizations**: How businesses actually delegate and coordinate
 
-Inspired by:
-- [Ralph](https://github.com/aaron777collins/ralph) - Autonomous coding agent
-- [AICEO](https://github.com/aaron777collins/AICEO) - Multi-agent development system
-- Organizational management theory (delegation, span of control)
+## Contact
 
-Co-designed with Claude Sonnet 4.5 via multi-perspective analysis.
-
-## Links
-
-- [GitHub](https://github.com/aaron777collins/RecursiveManager)
-- [Comprehensive Plan](./COMPREHENSIVE_PLAN.md)
-- [Roadmap](https://github.com/aaron777collins/RecursiveManager/issues)
+- **GitHub**: [RecursiveManager](https://github.com/aaron777collins/RecursiveManager)
+- **Issues**: [Report bugs or request features](https://github.com/aaron777collins/RecursiveManager/issues)
+- **Documentation**: [https://aaron777collins.github.io/RecursiveManager/](https://aaron777collins.github.io/RecursiveManager/)
 
 ---
 
-**Status**: 📋 Planning Complete | 🚧 Implementation Pending | 🎯 Target: Q2 2026
-
-*RecursiveManager: Where AI agents work like people, and complex tasks become manageable.*
+**Version**: 0.1.0 (Alpha)
+**Status**: Alpha release - core features functional, documentation complete
+**Philosophy**: Quality over cost. Multi-perspective analysis. Stateless execution. Business-like structure.
+**Goal**: Enable AI agents to coordinate like real organizations, handling complex, long-running projects autonomously.

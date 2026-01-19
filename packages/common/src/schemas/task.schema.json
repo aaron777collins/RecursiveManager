@@ -1,0 +1,288 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://recursivemanager.dev/schemas/task.schema.json",
+  "title": "Task Schema",
+  "description": "Schema for RecursiveManager task context and metadata",
+  "type": "object",
+  "required": ["version", "task", "hierarchy", "delegation", "progress", "context", "execution"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "version": {
+      "type": "string",
+      "description": "Task schema version",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "default": "1.0.0"
+    },
+    "task": {
+      "type": "object",
+      "description": "Basic task metadata and identification",
+      "required": ["id", "title", "status", "priority", "createdAt"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique task identifier (format: task-{number}-{slug})",
+          "minLength": 1,
+          "pattern": "^task-[0-9]+-[a-zA-Z0-9-]+$"
+        },
+        "title": {
+          "type": "string",
+          "description": "Task title/name",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed task description"
+        },
+        "status": {
+          "type": "string",
+          "description": "Current task status",
+          "enum": ["pending", "in-progress", "blocked", "completed", "archived"],
+          "default": "pending"
+        },
+        "priority": {
+          "type": "string",
+          "description": "Task priority level",
+          "enum": ["low", "medium", "high", "urgent"],
+          "default": "medium"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO 8601 timestamp when task was created",
+          "format": "date-time"
+        },
+        "startedAt": {
+          "type": ["string", "null"],
+          "description": "ISO 8601 timestamp when task was started",
+          "format": "date-time"
+        },
+        "completedAt": {
+          "type": ["string", "null"],
+          "description": "ISO 8601 timestamp when task was completed",
+          "format": "date-time"
+        },
+        "estimatedCompletionAt": {
+          "type": ["string", "null"],
+          "description": "ISO 8601 timestamp of estimated completion",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hierarchy": {
+      "type": "object",
+      "description": "Task hierarchical relationships and nesting",
+      "required": ["parentTask", "childTasks", "depth", "maxDepth"],
+      "properties": {
+        "parentTask": {
+          "type": ["string", "null"],
+          "description": "ID of parent task (null if root-level)",
+          "pattern": "^task-[0-9]+-[a-zA-Z0-9-]+$"
+        },
+        "childTasks": {
+          "type": "array",
+          "description": "Array of child task IDs",
+          "items": {
+            "type": "string",
+            "pattern": "^task-[0-9]+-[a-zA-Z0-9-]+$"
+          },
+          "default": []
+        },
+        "depth": {
+          "type": "integer",
+          "description": "Current nesting depth (0 for root tasks)",
+          "minimum": 0,
+          "default": 0
+        },
+        "maxDepth": {
+          "type": "integer",
+          "description": "Maximum allowed nesting depth (prevents infinite recursion)",
+          "minimum": 1,
+          "default": 5
+        }
+      },
+      "additionalProperties": false
+    },
+    "delegation": {
+      "type": "object",
+      "description": "Task delegation information",
+      "required": ["delegatedTo", "delegatedAt", "supervisionLevel", "reportingFrequency"],
+      "properties": {
+        "delegatedTo": {
+          "type": ["string", "null"],
+          "description": "Agent ID task is delegated to (null if not delegated)",
+          "pattern": "^[a-zA-Z0-9-_]+$"
+        },
+        "delegatedAt": {
+          "type": ["string", "null"],
+          "description": "ISO 8601 timestamp of delegation",
+          "format": "date-time"
+        },
+        "delegatedBy": {
+          "type": ["string", "null"],
+          "description": "Agent ID who delegated this task",
+          "pattern": "^[a-zA-Z0-9-_]+$"
+        },
+        "supervisionLevel": {
+          "type": "string",
+          "description": "Level of supervision for delegated task",
+          "enum": ["minimal", "moderate", "strict"],
+          "default": "moderate"
+        },
+        "reportingFrequency": {
+          "type": "string",
+          "description": "How often delegated agent reports progress",
+          "enum": ["never", "daily", "weekly", "on-completion"],
+          "default": "daily"
+        }
+      },
+      "additionalProperties": false
+    },
+    "progress": {
+      "type": "object",
+      "description": "Task progress tracking and blocking status",
+      "required": [
+        "percentComplete",
+        "subtasksCompleted",
+        "subtasksTotal",
+        "lastUpdate",
+        "blockedBy",
+        "blockedSince"
+      ],
+      "properties": {
+        "percentComplete": {
+          "type": "integer",
+          "description": "Progress percentage (0-100)",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 0
+        },
+        "subtasksCompleted": {
+          "type": "integer",
+          "description": "Number of completed subtasks",
+          "minimum": 0,
+          "default": 0
+        },
+        "subtasksTotal": {
+          "type": "integer",
+          "description": "Total number of subtasks",
+          "minimum": 0,
+          "default": 0
+        },
+        "lastUpdate": {
+          "type": "string",
+          "description": "ISO 8601 timestamp of last progress update",
+          "format": "date-time"
+        },
+        "blockedBy": {
+          "type": "array",
+          "description": "Array of task IDs that are blocking this task",
+          "items": {
+            "type": "string",
+            "pattern": "^task-[0-9]+-[a-zA-Z0-9-]+$"
+          },
+          "default": []
+        },
+        "blockedSince": {
+          "type": ["string", "null"],
+          "description": "ISO 8601 timestamp when blocking started (null if not blocked)",
+          "format": "date-time"
+        },
+        "blockReason": {
+          "type": ["string", "null"],
+          "description": "Reason why task is blocked"
+        }
+      },
+      "additionalProperties": false
+    },
+    "context": {
+      "type": "object",
+      "description": "Task-related information and dependencies",
+      "required": ["relatedFiles", "externalDependencies"],
+      "properties": {
+        "relatedFiles": {
+          "type": "array",
+          "description": "Array of file paths related to this task",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        },
+        "externalDependencies": {
+          "type": "array",
+          "description": "Array of external dependencies blocking progress",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        },
+        "notes": {
+          "type": "string",
+          "description": "Free-form notes and context about the task",
+          "default": ""
+        },
+        "tags": {
+          "type": "array",
+          "description": "Tags for task categorization",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
+    "execution": {
+      "type": "object",
+      "description": "Task execution history and performance tracking",
+      "required": [
+        "lastExecutionId",
+        "executionCount",
+        "totalTimeSpentMinutes",
+        "failureCount",
+        "lastFailureReason"
+      ],
+      "properties": {
+        "lastExecutionId": {
+          "type": ["string", "null"],
+          "description": "ID of most recent execution attempt",
+          "pattern": "^exec-[a-zA-Z0-9]+$"
+        },
+        "executionCount": {
+          "type": "integer",
+          "description": "Total number of execution attempts",
+          "minimum": 0,
+          "default": 0
+        },
+        "totalTimeSpentMinutes": {
+          "type": "integer",
+          "description": "Cumulative time spent on task in minutes",
+          "minimum": 0,
+          "default": 0
+        },
+        "failureCount": {
+          "type": "integer",
+          "description": "Number of failed execution attempts",
+          "minimum": 0,
+          "default": 0
+        },
+        "lastFailureReason": {
+          "type": ["string", "null"],
+          "description": "Description of last failure (null if no failures)"
+        },
+        "lastSuccessAt": {
+          "type": ["string", "null"],
+          "description": "ISO 8601 timestamp of last successful execution",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
