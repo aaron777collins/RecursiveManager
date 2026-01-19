@@ -379,10 +379,10 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 3.2.1: Implement ClaudeCodeAdapter class
 - [x] Task 3.2.2: Implement executeAgent() wrapping Claude Code CLI
-- [ ] Task 3.2.3: Create prompt template system
-- [ ] Task 3.2.4: Implement buildContinuousPrompt(agent, task)
-- [ ] Task 3.2.5: Implement buildReactivePrompt(agent, messages)
-- [ ] Task 3.2.6: Implement buildMultiPerspectivePrompt(question, perspectives)
+- [x] Task 3.2.3: Create prompt template system
+- [x] Task 3.2.4: Implement buildContinuousPrompt(agent, task)
+- [x] Task 3.2.5: Implement buildReactivePrompt(agent, messages)
+- [x] Task 3.2.6: Implement buildMultiPerspectivePrompt(question, perspectives)
 - [ ] Task 3.2.7: Implement execution context preparation (load files, tasks, messages)
 - [ ] Task 3.2.8: Implement result parsing from Claude Code output
 - [ ] Task 3.2.9: Add timeout protection (EC-6.2) - default 60 minutes
@@ -480,6 +480,165 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Tasks 3.2.3-3.2.6: Prompt Template System ✅
+
+**Date**: 2026-01-19
+
+**Summary**: Implemented a comprehensive prompt template system that generates structured, reusable prompts for different execution modes (continuous, reactive, and multi-perspective analysis). This replaces the simple inline prompt builder with a sophisticated template system that provides rich context and clear instructions to agents.
+
+**What Was Implemented**:
+
+1. **Prompt Template Module** (`packages/adapters/src/prompts/index.ts`):
+   - 515 lines of well-documented, structured prompt generation code
+   - Three main template functions: `buildContinuousPrompt`, `buildReactivePrompt`, `buildMultiPerspectivePrompt`
+   - 12 helper functions for building specific sections (identity, context, tasks, messages, etc.)
+
+2. **buildContinuousPrompt() Function**:
+   - Generates prompts for task-focused agent execution
+   - Includes agent identity, role, goal, and reporting structure
+   - Lists active tasks sorted by priority (critical > high > medium > low)
+   - Provides detailed task information (status, priority, description, hierarchy)
+   - Includes workspace file listing (with graceful handling of large directories)
+   - Provides comprehensive instructions for task management
+   - Includes behavioral guidelines and escalation policy
+   - Formats output with clear markdown sections and visual priority indicators (🔴🟠🟡🟢)
+
+3. **buildReactivePrompt() Function**:
+   - Generates prompts for message-focused agent execution
+   - Lists unread messages sorted by timestamp (oldest first)
+   - Displays message metadata (sender, channel, timestamp)
+   - Includes channel-specific emojis (📨📬💬📱✉️) for visual clarity
+   - Provides instructions for message handling and response
+   - Includes communication guidelines and preferred channels
+
+4. **buildMultiPerspectivePrompt() Function**:
+   - Generates prompts for multi-perspective analysis
+   - Structures analysis around a specific question and perspective
+   - Includes optional context data (serialized as JSON)
+   - Guides agents through 5-step analysis framework:
+     1. Key Concerns
+     2. Risks
+     3. Benefits
+     4. Trade-offs
+     5. Recommendations
+   - Emphasizes quality and thoroughness over speed
+
+5. **Integration with ClaudeCodeAdapter** (`packages/adapters/src/adapters/claude-code/index.ts`):
+   - Updated imports to include `buildContinuousPrompt` and `buildReactivePrompt`
+   - Replaced `buildSimplePrompt()` method with new `buildPrompt()` method
+   - New method delegates to appropriate template based on execution mode
+   - Throws error for unknown execution modes
+
+6. **Package Exports** (`packages/adapters/src/index.ts`):
+   - Added exports for all three prompt builder functions
+   - Makes prompt templates available for use by other packages
+   - Enables testing and reuse across the system
+
+7. **Comprehensive Test Suite** (`packages/adapters/src/prompts/__tests__/index.test.ts`):
+   - 26 comprehensive tests covering all functionality
+   - Tests for continuous mode prompts (10 tests)
+   - Tests for reactive mode prompts (7 tests)
+   - Tests for multi-perspective prompts (6 tests)
+   - Integration tests (3 tests)
+   - All tests passing ✅
+
+**Test Coverage**:
+- ✅ Agent identity and role presentation
+- ✅ Context information (mode, workspace, counts)
+- ✅ Task listing with priority sorting
+- ✅ Task hierarchy (parent/child relationships)
+- ✅ Task delegation information
+- ✅ Workspace file listing (with large-directory handling)
+- ✅ No-tasks guidance
+- ✅ Message listing with timestamp sorting
+- ✅ Message channel indicators
+- ✅ No-messages guidance
+- ✅ Communication guidelines
+- ✅ Behavioral guidelines and escalation policies
+- ✅ Multi-perspective analysis structure
+- ✅ Context serialization for analysis
+- ✅ Prompt differentiation between modes
+- ✅ Consistent structure across configurations
+
+**Key Features**:
+
+1. **Structured Output**: All prompts use consistent markdown formatting with clear sections
+2. **Visual Indicators**: Emojis for priorities (🔴🟠🟡🟢) and channels (📨💬📱✉️)
+3. **Priority Sorting**: Tasks automatically sorted by priority level
+4. **Timestamp Sorting**: Messages sorted chronologically (oldest first)
+5. **Scalability**: Gracefully handles large workspace file lists (20+ files)
+6. **Flexibility**: Optional context data for multi-perspective analysis
+7. **Comprehensive Guidance**: Detailed instructions for task management, communication, and decision-making
+8. **Type Safety**: Full TypeScript typing with imports from common types
+9. **Reusability**: Modular helper functions enable code reuse and testing
+10. **Documentation**: Extensive JSDoc comments with examples
+
+**Implementation Pattern**:
+```typescript
+import { buildContinuousPrompt, buildReactivePrompt, buildMultiPerspectivePrompt } from '@recursive-manager/adapters';
+
+// Continuous mode (task-focused)
+const continuousPrompt = buildContinuousPrompt(agentConfig, activeTasks, context);
+
+// Reactive mode (message-focused)
+const reactivePrompt = buildReactivePrompt(agentConfig, messages, context);
+
+// Multi-perspective analysis
+const analysisPrompt = buildMultiPerspectivePrompt(
+  "Should we implement caching?",
+  "Performance Engineer",
+  { currentLatency: "500ms", targetLatency: "100ms" }
+);
+```
+
+**File Changes**:
+- Created: `packages/adapters/src/prompts/index.ts` (515 lines)
+- Created: `packages/adapters/src/prompts/__tests__/index.test.ts` (522 lines)
+- Modified: `packages/adapters/src/adapters/claude-code/index.ts` (integrated prompt templates)
+- Modified: `packages/adapters/src/index.ts` (added exports)
+
+**Test Results**:
+```
+PASS adapters src/prompts/__tests__/index.test.ts
+  buildContinuousPrompt
+    ✓ should generate a basic continuous prompt with agent identity
+    ✓ should include context information
+    ✓ should list active tasks with details
+    ✓ should sort tasks by priority (critical first)
+    ✓ should include task hierarchy information
+    ✓ should provide instructions for task management
+    ✓ should include no-tasks message when task list is empty
+    ✓ should include workspace information
+    ✓ should handle large workspace file lists gracefully
+    ✓ should include behavior guidelines and escalation policy
+  buildReactivePrompt
+    ✓ should generate a basic reactive prompt with agent identity
+    ✓ should list unread messages with details
+    ✓ should sort messages by timestamp (oldest first)
+    ✓ should provide instructions for message handling
+    ✓ should include no-messages guidance when message list is empty
+    ✓ should include communication guidelines
+    ✓ should handle different message channels with appropriate emojis
+  buildMultiPerspectivePrompt
+    ✓ should generate a basic multi-perspective prompt
+    ✓ should include analysis structure guidelines
+    ✓ should include additional context when provided
+    ✓ should handle missing context gracefully
+    ✓ should emphasize quality and thoroughness
+    ✓ should handle complex context objects
+  Prompt Integration
+    ✓ should generate different prompts for continuous vs reactive mode
+    ✓ should generate non-empty prompts for all modes
+    ✓ should maintain consistent structure across different agent configs
+
+Test Suites: 5 passed, 5 total
+Tests:       139 passed, 139 total (26 new prompt tests)
+```
+
+**Status**: ✅ **COMPLETE** - Tasks 3.2.3, 3.2.4, 3.2.5, and 3.2.6 fully implemented with comprehensive tests
+
+---
 
 ### Task 2.3.19: Compress archives older than 90 days ✅
 

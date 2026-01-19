@@ -15,6 +15,10 @@ import {
   ExecutionResult,
   Capability,
 } from '../../types';
+import {
+  buildContinuousPrompt,
+  buildReactivePrompt,
+} from '../../prompts';
 
 /**
  * Options for configuring the ClaudeCodeAdapter
@@ -280,8 +284,8 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
     const startTime = Date.now();
 
     try {
-      // Build a simple prompt (will be enhanced in tasks 3.2.3-3.2.6)
-      const prompt = this.buildSimplePrompt(agentId, mode, context);
+      // Build prompt using template system (Task 3.2.3)
+      const prompt = this.buildPrompt(agentId, mode, context);
 
       // Prepare CLI arguments
       const args = [
@@ -326,42 +330,27 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
   }
 
   /**
-   * Build a simple prompt for the agent
-   * This is a basic implementation - will be enhanced in tasks 3.2.3-3.2.6
+   * Build a prompt for the agent using the template system
+   * Implemented in Task 3.2.3
    *
    * @private
    */
-  private buildSimplePrompt(
+  private buildPrompt(
     _agentId: string,
     mode: ExecutionMode,
     context: ExecutionContext
   ): string {
     const { config, activeTasks, messages } = context;
 
-    let prompt = `You are ${config.identity.displayName}, an AI agent in the RecursiveManager system.\n\n`;
-    prompt += `Your role: ${config.identity.role}\n\n`;
-
-    if (mode === 'continuous' && activeTasks.length > 0) {
-      prompt += `You have ${activeTasks.length} active task(s) to work on:\n\n`;
-      activeTasks.forEach((task, index) => {
-        prompt += `${index + 1}. [${task.priority}] ${task.title}\n`;
-        prompt += `   Status: ${task.status}\n`;
-        prompt += `   Description: ${task.description}\n\n`;
-      });
-      prompt += `Please work on the highest priority pending task. `;
-      prompt += `Update task status as you progress, and mark as completed when done.\n`;
-    } else if (mode === 'reactive' && messages.length > 0) {
-      prompt += `You have ${messages.length} unread message(s):\n\n`;
-      messages.forEach((msg, index) => {
-        prompt += `${index + 1}. From: ${msg.from} (${msg.channel})\n`;
-        prompt += `   ${msg.content}\n\n`;
-      });
-      prompt += `Please respond to these messages appropriately.\n`;
+    // Use the appropriate template based on execution mode
+    if (mode === 'continuous') {
+      return buildContinuousPrompt(config, activeTasks, context);
+    } else if (mode === 'reactive') {
+      return buildReactivePrompt(config, messages, context);
     } else {
-      prompt += `No active tasks or messages. Please check your workspace and report your status.\n`;
+      // Fallback for unknown modes
+      throw new Error(`Unknown execution mode: ${mode}`);
     }
-
-    return prompt;
   }
 
   /**
