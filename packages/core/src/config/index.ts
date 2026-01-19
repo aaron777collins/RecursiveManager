@@ -304,3 +304,131 @@ export async function saveAgentConfig(
     );
   }
 }
+
+/**
+ * Generate a default agent configuration with sensible defaults
+ *
+ * This function creates a complete agent configuration object with:
+ * 1. All required fields populated
+ * 2. Sensible defaults based on the agent's role
+ * 3. Optional fields populated with schema defaults
+ * 4. Ready to be validated and saved
+ *
+ * The generated configuration follows the agent-config.schema.json schema
+ * and can be customized by the caller before saving.
+ *
+ * @param role - The role/job title of the agent (e.g., "Developer", "QA Engineer")
+ * @param goal - The main goal the agent should achieve
+ * @param createdBy - The ID of the agent or user creating this agent
+ * @param options - Optional configuration overrides
+ * @returns A complete agent configuration object with all defaults
+ *
+ * @example
+ * ```typescript
+ * const config = generateDefaultConfig(
+ *   "Senior Developer",
+ *   "Implement new authentication system",
+ *   "CEO"
+ * );
+ * await saveAgentConfig(config.identity.id, config);
+ * ```
+ */
+export function generateDefaultConfig(
+  role: string,
+  goal: string,
+  createdBy: string,
+  options: {
+    id?: string;
+    displayName?: string;
+    reportingTo?: string | null;
+    canHire?: boolean;
+    maxSubordinates?: number;
+    hiringBudget?: number;
+    primaryFramework?: 'claude-code' | 'opencode';
+    workspaceQuotaMB?: number;
+    maxExecutionMinutes?: number;
+  } = {}
+): AgentConfig {
+  // Generate a unique ID if not provided
+  // Use role slug + timestamp + random suffix for uniqueness
+  const roleSlug = role
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+  const timestamp = Date.now();
+  const randomSuffix = Math.random().toString(36).substring(2, 6);
+
+  const agentId =
+    options.id ||
+    (roleSlug ? `${roleSlug}-${timestamp}-${randomSuffix}` : `agent-${timestamp}-${randomSuffix}`);
+
+  // Generate display name if not provided
+  const displayName = options.displayName || role;
+
+  // Create the configuration with all defaults
+  const config: AgentConfig = {
+    version: '1.0.0',
+    identity: {
+      id: agentId,
+      role,
+      displayName,
+      createdAt: new Date().toISOString(),
+      createdBy,
+      reportingTo: options.reportingTo ?? null,
+    },
+    goal: {
+      mainGoal: goal,
+      subGoals: [],
+      successCriteria: [],
+    },
+    permissions: {
+      canHire: options.canHire ?? false,
+      maxSubordinates: options.maxSubordinates ?? 0,
+      hiringBudget: options.hiringBudget ?? 0,
+      canFire: false,
+      canEscalate: true,
+      canAccessExternalAPIs: false,
+      allowedDomains: [],
+      workspaceQuotaMB: options.workspaceQuotaMB ?? 1024,
+      maxExecutionMinutes: options.maxExecutionMinutes ?? 60,
+    },
+    framework: {
+      primary: options.primaryFramework ?? 'claude-code',
+      capabilities: ['code-generation', 'file-operations'],
+    },
+    communication: {
+      preferredChannels: ['internal'],
+      notifyManager: {
+        onTaskComplete: true,
+        onError: true,
+        onHire: true,
+        onFire: true,
+      },
+      updateFrequency: 'daily',
+    },
+    behavior: {
+      multiPerspectiveAnalysis: {
+        enabled: false,
+        perspectives: [],
+        triggerOn: [],
+      },
+      escalationPolicy: {
+        autoEscalateAfterFailures: 3,
+        escalateOnBlockedTask: true,
+        escalateOnBudgetExceeded: true,
+      },
+      delegation: {
+        delegateThreshold: 'non-trivial',
+        keepWhenDelegating: true,
+        supervisionLevel: 'moderate',
+      },
+    },
+    metadata: {
+      tags: [],
+      priority: 'medium',
+    },
+  };
+
+  return config;
+}

@@ -19,8 +19,8 @@ export interface AgentIdentity {
   createdAt: string;
   /** ID of agent that created this agent */
   createdBy: string;
-  /** ID of agent this agent reports to (manager) */
-  reportingTo?: string;
+  /** ID of agent this agent reports to (manager), null for root agents */
+  reportingTo?: string | null;
 }
 
 /**
@@ -57,6 +57,10 @@ export interface AgentPermissions {
   maxDelegationDepth?: number;
   /** Whether this agent can modify its own configuration */
   canSelfModify?: boolean;
+  /** Workspace storage quota in megabytes */
+  workspaceQuotaMB?: number;
+  /** Maximum execution time per run in minutes */
+  maxExecutionMinutes?: number;
 }
 
 /**
@@ -83,8 +87,19 @@ export interface CommunicationChannels {
   telegramChatId?: string;
   /** Email address for notifications */
   emailAddress?: string;
-  /** Whether to notify manager on completion */
-  notifyManager?: boolean;
+  /** Manager notification settings */
+  notifyManager?: {
+    /** Notify on task completion */
+    onTaskComplete?: boolean;
+    /** Notify on errors */
+    onError?: boolean;
+    /** Notify when hiring */
+    onHire?: boolean;
+    /** Notify when firing */
+    onFire?: boolean;
+  };
+  /** Update frequency */
+  updateFrequency?: 'never' | 'daily' | 'weekly' | 'on-completion';
   /** Whether to notify on delegation */
   notifyOnDelegation?: boolean;
   /** Whether to notify on escalation */
@@ -111,6 +126,33 @@ export interface AgentBehavior {
   continuousMode?: boolean;
   /** Custom prompt instructions or personality */
   customInstructions?: string;
+  /** Multi-perspective analysis configuration */
+  multiPerspectiveAnalysis?: {
+    /** Whether multi-perspective analysis is enabled */
+    enabled?: boolean;
+    /** Perspectives to consider */
+    perspectives?: string[];
+    /** Events that trigger multi-perspective analysis */
+    triggerOn?: string[];
+  };
+  /** Escalation policy */
+  escalationPolicy?: {
+    /** Auto-escalate after N consecutive failures */
+    autoEscalateAfterFailures?: number;
+    /** Escalate when task is blocked */
+    escalateOnBlockedTask?: boolean;
+    /** Escalate when budget is exceeded */
+    escalateOnBudgetExceeded?: boolean;
+  };
+  /** Delegation preferences */
+  delegation?: {
+    /** When to delegate tasks */
+    delegateThreshold?: 'never' | 'trivial' | 'non-trivial' | 'complex' | 'always';
+    /** Keep task ownership when delegating */
+    keepWhenDelegating?: boolean;
+    /** Level of supervision for delegated tasks */
+    supervisionLevel?: 'minimal' | 'moderate' | 'strict';
+  };
 }
 
 /**
@@ -123,6 +165,8 @@ export interface AgentMetadata {
   description?: string;
   /** Notes for debugging or context */
   notes?: string;
+  /** Priority level */
+  priority?: 'low' | 'medium' | 'high' | 'critical';
   /** Custom key-value metadata */
   customData?: Record<string, unknown>;
 }
