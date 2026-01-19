@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 04:21:11 EST
+Last Updated: 2026-01-19 04:26:10 EST
 
 ## Status
 
@@ -317,7 +317,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Task Completion
 
-- [ ] Task 2.3.13: Implement completeTask(taskId) with optimistic locking (EC-2.4)
+- [x] Task 2.3.13: Implement completeTask(taskId) with optimistic locking (EC-2.4)
 - [ ] Task 2.3.14: Update all parent task progress recursively
 - [ ] Task 2.3.15: Move completed tasks to completed/ directory
 - [ ] Task 2.3.16: Notify manager of completion
@@ -480,6 +480,68 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 2.3.13: Implement completeTask(taskId) with optimistic locking ✅
+
+**Date**: 2026-01-19 04:26:10 EST
+
+**Summary**: Implemented the `completeTask()` function as a semantic wrapper around `updateTaskStatus()` that provides a clean API for marking tasks as completed with optimistic locking to prevent race conditions (EC-2.4).
+
+**What Was Implemented**:
+
+1. **completeTask() Function** (`packages/common/src/db/queries/tasks.ts:391-429`):
+   - Clean wrapper function around `updateTaskStatus(db, id, 'completed', version)`
+   - Provides semantic API specifically for task completion
+   - Inherits all optimistic locking behavior from `updateTaskStatus()`
+   - Comprehensive JSDoc documentation with usage examples
+   - Explains the race condition prevention mechanism (EC-2.4)
+
+2. **Function Signature**:
+   ```typescript
+   export function completeTask(
+     db: Database.Database,
+     id: string,
+     version: number
+   ): TaskRecord
+   ```
+
+3. **Key Features** (inherited from updateTaskStatus):
+   - **Optimistic locking**: Uses version field to prevent concurrent modifications
+   - **Automatic timestamp**: Sets `completed_at` timestamp automatically
+   - **Version increment**: Increments version on successful completion
+   - **Last updated tracking**: Updates `last_updated` timestamp (Task 2.3.8)
+   - **Audit logging**: Records completion in audit log with `TASK_COMPLETE` action
+   - **Error handling**: Throws descriptive errors for version mismatches
+
+4. **Updated Exports** (`packages/common/src/index.ts`):
+   - Added `completeTask` to the task queries export list
+   - Function automatically exported via `export * from './tasks'` in queries/index.ts
+
+**Implementation Pattern**:
+```typescript
+// Usage example
+const task = getTask(db, 'task-001');
+if (task && task.status !== 'completed') {
+  try {
+    const completed = completeTask(db, task.id, task.version);
+    console.log(`Task completed at: ${completed.completed_at}`);
+  } catch (error) {
+    if (error.message.includes('version mismatch')) {
+      // Concurrent modification detected, retry
+    }
+  }
+}
+```
+
+**Race Condition Prevention (EC-2.4)**:
+- The function uses optimistic locking by including `version` in the WHERE clause
+- If two processes try to complete the same task simultaneously, only one will succeed
+- The losing process will receive a version mismatch error with clear guidance to re-fetch and retry
+- This ensures data integrity without database locks
+
+**Status**: ✅ **COMPLETE** - Task 2.3.13 fully implemented and ready for use
+
+---
 
 ### Task 2.3.11 & 2.3.12: Task Delegation Notification System ✅
 

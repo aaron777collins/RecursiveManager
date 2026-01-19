@@ -389,6 +389,46 @@ export function updateTaskStatus(
 }
 
 /**
+ * Complete a task (Task 2.3.13)
+ *
+ * Marks a task as completed with optimistic locking to prevent race conditions (EC-2.4).
+ * This is a convenience wrapper around updateTaskStatus() that:
+ * - Sets status to 'completed'
+ * - Sets completed_at timestamp
+ * - Increments version number
+ * - Uses optimistic locking to prevent concurrent modifications
+ *
+ * @param db - Database instance
+ * @param id - Task ID to complete
+ * @param version - Current version number (for optimistic locking)
+ * @returns Updated task record with status='completed'
+ * @throws Error if task not found or version mismatch (concurrent modification)
+ *
+ * @example
+ * ```typescript
+ * const task = getTask(db, 'task-001');
+ * if (task && task.status !== 'completed') {
+ *   try {
+ *     const completed = completeTask(db, task.id, task.version);
+ *     console.log(`Task completed at: ${completed.completed_at}`);
+ *   } catch (error) {
+ *     if (error.message.includes('version mismatch')) {
+ *       console.log('Concurrent modification detected, retrying...');
+ *       // Re-fetch and retry
+ *     }
+ *   }
+ * }
+ * ```
+ */
+export function completeTask(
+  db: Database.Database,
+  id: string,
+  version: number
+): TaskRecord {
+  return updateTaskStatus(db, id, 'completed', version);
+}
+
+/**
  * Get all active tasks for an agent
  *
  * Returns all tasks assigned to the agent that are not completed or archived.

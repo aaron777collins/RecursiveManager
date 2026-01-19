@@ -176,6 +176,7 @@ export {
   createTask,
   getTask,
   updateTaskStatus,
+  completeTask,
   getActiveTasks,
   detectTaskDeadlock,
   getBlockedTasks,
