@@ -45,7 +45,7 @@ IN_PROGRESS
 - [x] 7.1 Create config.ts module
 
 ### Phase 8: Testing & Validation
-- [ ] 8.1 Add test-install.sh script
+- [x] 8.1 Add test-install.sh script
 - [ ] 8.2 Add test-docs.sh script
 
 ## Tasks Completed
@@ -141,7 +141,7 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 7.1: Created config.ts module for global RecursiveManager configuration
+- Task 8.1: Created test-install.sh script for testing installation in clean environments
 
 ## Notes
 
@@ -435,3 +435,35 @@ IN_PROGRESS
   - Tested module works correctly (loads config from environment)
   - Restored postinstall script in root package.json
   - Phase 7 (Configuration Management) is now complete
+
+### Iteration 22 (2026-01-19)
+- Task 8.1: Created test-install.sh script for testing installation
+  - Created /home/ubuntu/repos/RecursiveManager/scripts/test-install.sh
+  - Implemented test suite with colored output and progress indicators
+  - Created four test categories:
+    1. Headless options test - validates help flags for all installation scripts
+    2. Syntax validation test - validates bash syntax for install.sh, uninstall.sh, update.sh
+    3. Ubuntu Docker test - tests installation in clean Ubuntu container (optional)
+    4. Debian Docker test - tests installation in clean Debian container (optional)
+  - Features:
+    - Color-coded output (red/green/yellow/blue) for better readability
+    - Docker prerequisite checking
+    - Interactive mode with user prompts for Docker tests
+    - Non-interactive mode support (auto-skips Docker tests)
+    - Proper error handling with set +e/-e around tests
+    - Fixed arithmetic expansion issues with strict bash mode
+    - Summary report showing tests run and failures
+  - Docker tests validate:
+    - Fresh environment installation (Ubuntu/Debian)
+    - Dependency installation (Node.js, git)
+    - Repository cloning from GitHub
+    - Headless installation mode
+    - Installation directory creation
+  - Local tests validate:
+    - Help flag functionality for all scripts
+    - Bash syntax correctness for all scripts
+    - File permissions (executable flags)
+  - Made script executable (chmod +x)
+  - Successfully tested - all local tests pass
+  - Docker tests require repository to be pushed to GitHub (noted in output)
+  - Exit code 0 when local tests pass, 1 when tests fail
