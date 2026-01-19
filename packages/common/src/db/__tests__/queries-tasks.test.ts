@@ -16,7 +16,7 @@ import * as fs from 'fs';
 import { initializeDatabase } from '../index';
 import { runMigrations } from '../migrations';
 import { allMigrations } from '../migrations/index';
-import { createAgent, createTask, getTask, CreateTaskInput } from '../queries';
+import { createAgent, createTask, getTask, updateTaskStatus, CreateTaskInput } from '../queries';
 import { TASK_MAX_DEPTH } from '../constants';
 
 describe('Task Query API', () => {
@@ -347,6 +347,229 @@ describe('Task Query API', () => {
       });
 
       expect(task.depth).toBe(TASK_MAX_DEPTH);
+    });
+  });
+
+  describe('updateTaskStatus()', () => {
+    it('should update task status with optimistic locking', () => {
+      // Create a task
+      const task = createTask(db, {
+        id: 'task-001',
+        agentId: 'agent-001',
+        title: 'Test task',
+        taskPath: 'Test task',
+      });
+
+      expect(task.status).toBe('pending');
+      expect(task.version).toBe(0);
+
+      // Update status
+      const updated = updateTaskStatus(db, task.id, 'in-progress', task.version);
+
+      expect(updated.status).toBe('in-progress');
+      expect(updated.version).toBe(1); // version incremented
+    });
+
+    it('should set started_at timestamp when transitioning to in-progress', () => {
+      const task = createTask(db, {
+        id: 'task-002',
+        agentId: 'agent-001',
+        title: 'Test task',
+        taskPath: 'Test task',
+      });
+
+      expect(task.started_at).toBeNull();
+
+      // Update to in-progress
+      const updated = updateTaskStatus(db, task.id, 'in-progress', task.version);
+
+      expect(updated.started_at).not.toBeNull();
+      expect(updated.started_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/); // ISO 8601
+    });
+
+    it('should not change started_at if already set', () => {
+      const task = createTask(db, {
+        id: 'task-003',
+        agentId: 'agent-001',
+        title: 'Test task',
+        taskPath: 'Test task',
+      });
+
+      // First transition to in-progress
+      const firstUpdate = updateTaskStatus(db, task.id, 'in-progress', task.version);
+      const firstStartedAt = firstUpdate.started_at;
+
+      // Wait a tiny bit to ensure timestamp would be different
+      const startTime = Date.now();
+      while (Date.now() - startTime < 10) {
+        // Small delay
+      }
+
+      // Transition to blocked and back to in-progress
+      const blocked = updateTaskStatus(db, task.id, 'blocked', firstUpdate.version);
+      const backToProgress = updateTaskStatus(db, task.id, 'in-progress', blocked.version);
+
+      // started_at should be the same as the first time
+      expect(backToProgress.started_at).toBe(firstStartedAt);
+    });
+
+    it('should set completed_at timestamp when transitioning to completed', () => {
+      const task = createTask(db, {
+        id: 'task-004',
+        agentId: 'agent-001',
+        title: 'Test task',
+        taskPath: 'Test task',
+      });
+
+      expect(task.completed_at).toBeNull();
+
+      // Update to completed
+      const updated = updateTaskStatus(db, task.id, 'completed', task.version);
+
+      expect(updated.completed_at).not.toBeNull();
+      expect(updated.completed_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/); // ISO 8601
+    });
+
+    it('should clear completed_at when moving away from completed status', () => {
+      const task = createTask(db, {
+        id: 'task-005',
+        agentId: 'agent-001',
+        title: 'Test task',
+        taskPath: 'Test task',
+      });
+
+      // Mark as completed
+      const completed = updateTaskStatus(db, task.id, 'completed', task.version);
+      expect(completed.completed_at).not.toBeNull();
+
+      // Move back to in-progress
+      const backToProgress = updateTaskStatus(db, task.id, 'in-progress', completed.version);
+      expect(backToProgress.completed_at).toBeNull();
+    });
+
+    it('should throw error if task does not exist', () => {
+      expect(() => updateTaskStatus(db, 'non-existent', 'in-progress', 0)).toThrow(
+        'Task not found: non-existent'
+      );
+    });
+
+    it('should throw error on version mismatch (optimistic locking)', () => {
+      const task = createTask(db, {
+        id: 'task-006',
+        agentId: 'agent-001',
+        title: 'Test task',
+        taskPath: 'Test task',
+      });
+
+      // Update with correct version
+      updateTaskStatus(db, task.id, 'in-progress', task.version);
+
+      // Try to update again with old version (simulating concurrent modification)
+      expect(() => updateTaskStatus(db, task.id, 'completed', task.version)).toThrow(
+        /version mismatch/
+      );
+    });
+
+    it('should provide helpful error message on version mismatch', () => {
+      const task = createTask(db, {
+        id: 'task-007',
+        agentId: 'agent-001',
+        title: 'Test task',
+        taskPath: 'Test task',
+      });
+
+      // Simulate concurrent modification
+      updateTaskStatus(db, task.id, 'in-progress', task.version);
+
+      expect(() => updateTaskStatus(db, task.id, 'completed', task.version)).toThrow(
+        /Expected version 0.*modified by another process.*re-fetch/
+      );
+    });
+
+    it('should handle multiple sequential updates correctly', () => {
+      const task = createTask(db, {
+        id: 'task-008',
+        agentId: 'agent-001',
+        title: 'Test task',
+        taskPath: 'Test task',
+      });
+
+      // Update 1: pending -> in-progress
+      const v1 = updateTaskStatus(db, task.id, 'in-progress', task.version);
+      expect(v1.status).toBe('in-progress');
+      expect(v1.version).toBe(1);
+
+      // Update 2: in-progress -> blocked
+      const v2 = updateTaskStatus(db, task.id, 'blocked', v1.version);
+      expect(v2.status).toBe('blocked');
+      expect(v2.version).toBe(2);
+
+      // Update 3: blocked -> in-progress
+      const v3 = updateTaskStatus(db, task.id, 'in-progress', v2.version);
+      expect(v3.status).toBe('in-progress');
+      expect(v3.version).toBe(3);
+
+      // Update 4: in-progress -> completed
+      const v4 = updateTaskStatus(db, task.id, 'completed', v3.version);
+      expect(v4.status).toBe('completed');
+      expect(v4.version).toBe(4);
+    });
+
+    it('should allow all valid status transitions', () => {
+      const statuses: Array<'pending' | 'in-progress' | 'blocked' | 'completed' | 'archived'> = [
+        'pending',
+        'in-progress',
+        'blocked',
+        'completed',
+        'archived',
+      ];
+
+      let task = createTask(db, {
+        id: 'task-009',
+        agentId: 'agent-001',
+        title: 'Test task',
+        taskPath: 'Test task',
+      });
+
+      // Try transitioning through all statuses
+      for (const status of statuses) {
+        const updated = updateTaskStatus(db, task.id, status, task.version);
+        expect(updated.status).toBe(status);
+        task = updated; // Use the updated version for next iteration
+      }
+    });
+
+    it('should prevent concurrent modifications from multiple processes', () => {
+      const task = createTask(db, {
+        id: 'task-010',
+        agentId: 'agent-001',
+        title: 'Test task',
+        taskPath: 'Test task',
+      });
+
+      // Simulate two processes reading the same task version
+      const process1Task = getTask(db, task.id)!;
+      const process2Task = getTask(db, task.id)!;
+
+      expect(process1Task.version).toBe(0);
+      expect(process2Task.version).toBe(0);
+
+      // Process 1 updates successfully
+      const process1Update = updateTaskStatus(db, task.id, 'in-progress', process1Task.version);
+      expect(process1Update.version).toBe(1);
+
+      // Process 2 tries to update with old version - should fail
+      expect(() => updateTaskStatus(db, task.id, 'blocked', process2Task.version)).toThrow(
+        /version mismatch/
+      );
+
+      // Process 2 should re-fetch and retry
+      const refreshedTask = getTask(db, task.id)!;
+      expect(refreshedTask.version).toBe(1);
+
+      const process2Retry = updateTaskStatus(db, task.id, 'blocked', refreshedTask.version);
+      expect(process2Retry.status).toBe('blocked');
+      expect(process2Retry.version).toBe(2);
     });
   });
 });

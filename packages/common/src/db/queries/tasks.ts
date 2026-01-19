@@ -12,7 +12,7 @@
  */
 
 import Database from 'better-sqlite3';
-import { TaskRecord, CreateTaskInput } from './types';
+import { TaskRecord, CreateTaskInput, TaskStatus } from './types';
 import { TASK_MAX_DEPTH } from '../constants';
 import { getAgent } from './agents';
 
@@ -197,4 +197,110 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
   }
 
   return task;
+}
+
+/**
+ * Update task status with optimistic locking
+ *
+ * This function updates a task's status while preventing race conditions using
+ * optimistic locking. The version field is used to detect concurrent modifications.
+ *
+ * **Optimistic Locking**:
+ * - The function accepts the current version number
+ * - The UPDATE only succeeds if the database version matches
+ * - If no rows are updated, it means another process modified the task
+ * - The version is automatically incremented on successful update
+ *
+ * **Status Transitions**:
+ * - Sets `started_at` timestamp when transitioning to 'in-progress' (if not already set)
+ * - Sets `completed_at` timestamp when transitioning to 'completed'
+ * - Clears `completed_at` if moving away from 'completed' status
+ *
+ * @param db - Database instance
+ * @param id - Task ID to update
+ * @param status - New status value
+ * @param version - Current version number (for optimistic locking)
+ * @returns The updated task record
+ * @throws Error if task not found or version mismatch (concurrent modification)
+ *
+ * @example
+ * ```typescript
+ * // Fetch task with current version
+ * const task = getTask(db, 'task-001');
+ * if (!task) throw new Error('Task not found');
+ *
+ * // Update status with optimistic locking
+ * try {
+ *   const updated = updateTaskStatus(db, task.id, 'in-progress', task.version);
+ *   console.log(`Task updated to version ${updated.version}`);
+ * } catch (error) {
+ *   console.error('Concurrent modification detected');
+ *   // Re-fetch task and retry if needed
+ * }
+ * ```
+ */
+export function updateTaskStatus(
+  db: Database.Database,
+  id: string,
+  status: TaskStatus,
+  version: number
+): TaskRecord {
+  // First, verify the task exists
+  const currentTask = getTask(db, id);
+  if (!currentTask) {
+    throw new Error(`Task not found: ${id}`);
+  }
+
+  const now = new Date().toISOString();
+
+  // Prepare the UPDATE statement with optimistic locking
+  // Only update if the version matches (prevents race conditions)
+  const updateStmt = db.prepare(`
+    UPDATE tasks
+    SET
+      status = ?,
+      version = version + 1,
+      started_at = CASE
+        WHEN ? = 'in-progress' AND started_at IS NULL THEN ?
+        ELSE started_at
+      END,
+      completed_at = CASE
+        WHEN ? = 'completed' THEN ?
+        WHEN ? != 'completed' THEN NULL
+        ELSE completed_at
+      END
+    WHERE id = ? AND version = ?
+  `);
+
+  // Execute the update
+  const result = updateStmt.run(
+    status,
+    status, // for started_at CASE
+    now, // for started_at value
+    status, // for completed_at CASE (completed)
+    now, // for completed_at value
+    status, // for completed_at CASE (not completed)
+    id,
+    version
+  );
+
+  // Check if any rows were updated
+  if (result.changes === 0) {
+    // No rows updated means either:
+    // 1. Task doesn't exist (but we checked this above)
+    // 2. Version mismatch (concurrent modification)
+    throw new Error(
+      `Failed to update task ${id}: version mismatch. ` +
+        `Expected version ${version}, but task was modified by another process. ` +
+        `Please re-fetch the task and retry the operation.`
+    );
+  }
+
+  // Retrieve and return the updated task
+  const updatedTask = getTask(db, id);
+  if (!updatedTask) {
+    throw new Error(`Failed to retrieve updated task: ${id}`);
+  }
+
+  return updatedTask;
 }

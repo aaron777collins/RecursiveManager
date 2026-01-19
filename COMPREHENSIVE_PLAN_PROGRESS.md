@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 22:54:58 EST
+Last Updated: 2026-01-18 23:00:00 EST
 
 ## Status
 
@@ -161,7 +161,7 @@ RecursiveManager is a hierarchical AI agent system with:
 ##### Query APIs - Tasks
 
 - [x] Task 1.3.16: Implement createTask(task) with depth validation
-- [ ] Task 1.3.17: Implement updateTaskStatus(id, status, version) with optimistic locking
+- [x] Task 1.3.17: Implement updateTaskStatus(id, status, version) with optimistic locking
 - [ ] Task 1.3.18: Implement getActiveTasks(agentId)
 - [ ] Task 1.3.19: Implement detectTaskDeadlock(taskId) using DFS algorithm
 - [ ] Task 1.3.20: Implement getBlockedTasks(agentId)
@@ -3280,3 +3280,80 @@ Created a comprehensive database migration system in `packages/common/src/db/mig
 **Test Results**: All 652 tests pass in common package ✅
 
 **Next Task**: Task 1.3.16 - Implement createTask(task) with depth validation
+
+---
+
+**Completed This Iteration** (2026-01-18 23:00:38):
+
+**Task 1.3.17: Implement updateTaskStatus(id, status, version) with optimistic locking**
+
+**Implementation Summary**:
+
+Successfully implemented the `updateTaskStatus` function with optimistic locking to prevent race conditions when multiple processes attempt to update the same task concurrently.
+
+**What Was Implemented**:
+
+1. **Core Function** (`packages/common/src/db/queries/tasks.ts`):
+   - `updateTaskStatus(db, id, status, version)` function with optimistic locking
+   - Version field validation to detect concurrent modifications
+   - Automatic version increment on successful update
+   - Smart timestamp management:
+     - Sets `started_at` when transitioning to 'in-progress' (only if not already set)
+     - Sets `completed_at` when transitioning to 'completed'
+     - Clears `completed_at` when moving away from 'completed' status
+   - Comprehensive error handling with helpful messages
+   - Proper TypeScript import for TaskStatus type
+
+2. **Comprehensive Test Suite** (`packages/common/src/db/__tests__/queries-tasks.test.ts`):
+   - 11 new tests covering all aspects of updateTaskStatus
+   - Tests for basic status update with version increment
+   - Tests for timestamp management (started_at, completed_at)
+   - Tests for optimistic locking (version mismatch detection)
+   - Tests for error handling (non-existent tasks, concurrent modifications)
+   - Tests for multiple sequential updates
+   - Tests for all valid status transitions
+   - Tests simulating concurrent access from multiple processes
+
+**Key Design Features**:
+
+- **Optimistic Locking**: Uses version field to detect concurrent modifications
+- **Atomic Updates**: Single SQL statement updates status, version, and timestamps
+- **Smart Timestamps**: Preserves started_at once set, manages completed_at based on status
+- **Clear Error Messages**: Provides actionable guidance when version mismatch occurs
+- **Type Safety**: Full TypeScript types with proper imports
+
+**Validation**:
+
+- ✅ All 23 tests in queries-tasks.test.ts pass (11 new + 12 existing)
+- ✅ All 675 tests in common package pass
+- ✅ TypeScript compilation successful
+- ✅ No linting errors in modified files
+- ✅ Build successful
+- ✅ Prettier formatting applied
+
+**SQL Implementation**:
+
+The function uses a sophisticated CASE statement to manage timestamps:
+
+- `started_at`: Set to current time only when status becomes 'in-progress' AND it's currently NULL
+- `completed_at`: Set to current time when status becomes 'completed', cleared otherwise
+- `version`: Incremented atomically using `version = version + 1`
+- WHERE clause includes `version = ?` to enforce optimistic locking
+
+**Edge Cases Handled**:
+
+1. Task does not exist → Throws clear error
+2. Version mismatch (concurrent modification) → Throws error with guidance to re-fetch
+3. Multiple sequential updates → Each increments version correctly
+4. started_at already set → Preserved across status changes
+5. Transition back from completed → completed_at cleared appropriately
+
+**Files Modified**:
+
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/queries/tasks.ts` - Added updateTaskStatus function (92 lines)
+- `/home/ubuntu/repos/RecursiveManager/packages/common/src/db/__tests__/queries-tasks.test.ts` - Added 11 comprehensive tests
+- `/home/ubuntu/repos/RecursiveManager/COMPREHENSIVE_PLAN_PROGRESS.md` - Marked Task 1.3.17 complete
+
+**Test Results**: All 675 tests pass ✅
+
+**Next Task**: Task 1.3.18 - Implement getActiveTasks(agentId)
