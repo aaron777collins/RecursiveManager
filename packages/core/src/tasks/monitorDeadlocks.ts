@@ -6,7 +6,7 @@
  */
 
 import type { Database } from 'better-sqlite3';
-import { detectTaskDeadlock, getTask } from '@recursive-manager/common';
+import { detectTaskDeadlock } from '@recursive-manager/common';
 import { notifyDeadlock } from './notifyDeadlock';
 
 /**
@@ -95,7 +95,7 @@ export async function monitorDeadlocks(
           detectedCycles.set(canonicalForm, cycle);
 
           // Track all task IDs involved in deadlocks
-          cycle.forEach((taskId) => allDeadlockedTaskIds.add(taskId));
+          cycle.forEach((taskId: string) => allDeadlockedTaskIds.add(taskId));
         }
       }
     } catch (error) {

@@ -179,6 +179,7 @@ export {
   completeTask,
   updateParentTaskProgress,
   getActiveTasks,
+  delegateTask,
   detectTaskDeadlock,
   getBlockedTasks,
   // Message queries

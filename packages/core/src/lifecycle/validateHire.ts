@@ -15,10 +15,15 @@
  */
 
 import Database from 'better-sqlite3';
-import { AgentConfig } from '@recursive-manager/common';
+import {
+  type AgentConfig,
+  type AgentRecord,
+  getAgent,
+  getSubordinates,
+  queryAuditLog,
+  AuditAction,
+} from '@recursive-manager/common';
 import { loadAgentConfig } from '../config';
-import { getAgent, getSubordinates } from '@recursive-manager/common';
-import { queryAuditLog, AuditAction } from '@recursive-manager/common';
 
 /**
  * Validation error details
@@ -127,7 +132,7 @@ export function detectCycle(
     visited.add(currentId);
 
     // Get the current agent's manager
-    const agent = getAgent(db, currentId);
+    const agent: AgentRecord | null = getAgent(db, currentId);
     if (!agent) {
       break; // Agent doesn't exist
     }

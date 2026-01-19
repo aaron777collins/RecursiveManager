@@ -21,8 +21,12 @@
  */
 
 import Database from 'better-sqlite3';
-import { createAgentLogger } from '@recursive-manager/common';
-import { getActiveTasks, getBlockedTasks } from '@recursive-manager/common';
+import {
+  createAgentLogger,
+  getActiveTasks,
+  getBlockedTasks,
+  type TaskRecord,
+} from '@recursive-manager/common';
 
 /**
  * Special blocker identifier for agent pause
@@ -96,7 +100,7 @@ export function blockTasksForPausedAgent(
   logger.debug('Found active tasks to block', {
     agentId,
     totalTasks,
-    taskIds: activeTasks.map(t => t.id),
+    taskIds: activeTasks.map((t: TaskRecord) => t.id),
   });
 
   const result: BlockTasksResult = {
@@ -274,7 +278,7 @@ export function unblockTasksForResumedAgent(
   logger.debug('Found blocked tasks to process', {
     agentId,
     totalTasks,
-    taskIds: blockedTasks.map(t => t.id),
+    taskIds: blockedTasks.map((t: TaskRecord) => t.id),
   });
 
   const result: UnblockTasksResult = {

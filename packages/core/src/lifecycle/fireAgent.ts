@@ -33,9 +33,7 @@ import {
   createMessage,
   MessageInput,
   getActiveTasks,
-  delegateTask,
   updateTaskStatus,
-  TaskRecord,
 } from '@recursive-manager/common';
 import { auditLog, AuditAction } from '@recursive-manager/common';
 import { loadAgentConfig } from '../config';
