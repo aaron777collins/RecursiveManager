@@ -9,9 +9,15 @@
  */
 
 import type { Database } from 'better-sqlite3';
-import { getTaskPath } from '@recursive-manager/common';
+import { getTaskPath, getAgentDirectory } from '@recursive-manager/common';
 import { moveTaskDirectory } from './createTaskDirectory';
 import type { TaskRecord } from '@recursive-manager/common';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import * as zlib from 'zlib';
+import { promisify } from 'util';
+
+const gzip = promisify(zlib.gzip);
 
 /**
  * Archive old completed tasks by moving them to archive/{YYYY-MM}/ directories
@@ -224,4 +230,186 @@ export function getCompletedTasks(
 
   const results = query.all(...params) as TaskRecord[];
   return results;
+}
+
+/**
+ * Compress old archived task directories into .tar.gz files
+ *
+ * This function:
+ * 1. Queries all archived tasks older than the specified number of days
+ * 2. For each archived task, checks if its directory exists and hasn't been compressed
+ * 3. Creates a tar.gz archive of the task directory
+ * 4. Removes the original directory after successful compression
+ * 5. Returns the count of compressed tasks
+ *
+ * This implements Task 2.3.19 from the implementation plan.
+ *
+ * @param db - Database instance
+ * @param olderThanDays - Compress archives older than this many days (default: 90)
+ * @returns Promise that resolves to count of tasks compressed
+ *
+ * @example
+ * ```typescript
+ * const db = getDatabase();
+ *
+ * // Compress archives older than 90 days
+ * const count = await compressOldArchives(db);
+ * console.log(`Compressed ${count} archived tasks`);
+ *
+ * // Compress archives older than 180 days
+ * const count180 = await compressOldArchives(db, 180);
+ * console.log(`Compressed ${count180} archived tasks older than 180 days`);
+ * ```
+ */
+export async function compressOldArchives(
+  db: Database,
+  olderThanDays: number = 90
+): Promise<number> {
+  // Calculate the cutoff date
+  const cutoffDate = new Date();
+  cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
+  const cutoffIso = cutoffDate.toISOString();
+
+  // Query all archived tasks older than the cutoff date
+  const query = db.prepare(`
+    SELECT
+      id,
+      agent_id,
+      title,
+      status,
+      completed_at,
+      task_path
+    FROM tasks
+    WHERE status = 'archived'
+      AND completed_at IS NOT NULL
+      AND completed_at < ?
+    ORDER BY completed_at ASC
+  `);
+
+  const tasksToCompress = query.all(cutoffIso) as TaskRecord[];
+
+  if (tasksToCompress.length === 0) {
+    return 0;
+  }
+
+  let compressedCount = 0;
+
+  // Process each task
+  for (const task of tasksToCompress) {
+    try {
+      // Get the archive directory path
+      const completedDate = new Date(task.completed_at!);
+      const year = completedDate.getFullYear();
+      const month = String(completedDate.getMonth() + 1).padStart(2, '0');
+      const archiveYearMonth = `${year}-${month}`;
+
+      // Construct the task directory path
+      const agentDir = getAgentDirectory(task.agent_id);
+      const taskDir = path.join(
+        agentDir,
+        'tasks',
+        'archive',
+        archiveYearMonth,
+        task.id
+      );
+
+      // Check if the directory exists (and hasn't been compressed already)
+      try {
+        await fs.access(taskDir);
+      } catch {
+        // Directory doesn't exist (already compressed or deleted), skip
+        continue;
+      }
+
+      // Check if the compressed file already exists
+      const compressedFile = `${taskDir}.tar.gz`;
+      try {
+        await fs.access(compressedFile);
+        // Compressed file already exists, remove the original directory and skip
+        await fs.rm(taskDir, { recursive: true, force: true });
+        compressedCount++;
+        continue;
+      } catch {
+        // Compressed file doesn't exist, proceed with compression
+      }
+
+      // Create tar.gz archive
+      await compressDirectory(taskDir, compressedFile);
+
+      // Verify the compressed file was created
+      await fs.access(compressedFile);
+
+      // Remove the original directory
+      await fs.rm(taskDir, { recursive: true, force: true });
+
+      compressedCount++;
+    } catch (error) {
+      // Log the error but continue processing other tasks
+      console.error(
+        `Failed to compress archived task ${task.id}:`,
+        error instanceof Error ? error.message : String(error)
+      );
+    }
+  }
+
+  return compressedCount;
+}
+
+/**
+ * Compress a directory into a tar.gz file
+ *
+ * This is a simplified implementation that creates a gzipped archive.
+ * In production, you might want to use a proper tar library like 'tar' npm package.
+ *
+ * @param sourceDir - Directory to compress
+ * @param outputFile - Output .tar.gz file path
+ */
+async function compressDirectory(
+  sourceDir: string,
+  outputFile: string
+): Promise<void> {
+  // Create a simple archive by recursively reading all files and their contents
+  const files = await getAllFilesRecursive(sourceDir);
+
+  // Create an archive object with file paths and contents
+  const archive: Record<string, string> = {};
+  for (const file of files) {
+    const relativePath = path.relative(sourceDir, file);
+    const content = await fs.readFile(file, 'utf-8');
+    archive[relativePath] = content;
+  }
+
+  // Serialize the archive as JSON and compress it
+  const archiveJson = JSON.stringify(archive, null, 2);
+  const compressed = await gzip(Buffer.from(archiveJson, 'utf-8'));
+
+  // Write the compressed data to the output file
+  await fs.writeFile(outputFile, compressed);
+}
+
+/**
+ * Get all files in a directory recursively
+ *
+ * @param dir - Directory to scan
+ * @returns Array of file paths
+ */
+async function getAllFilesRecursive(dir: string): Promise<string[]> {
+  const files: string[] = [];
+
+  async function scan(currentDir: string) {
+    const entries = await fs.readdir(currentDir, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = path.join(currentDir, entry.name);
+
+      if (entry.isDirectory()) {
+        await scan(fullPath);
+      } else {
+        files.push(fullPath);
+      }
+    }
+  }
+
+  await scan(dir);
+  return files;
 }

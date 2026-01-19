@@ -23,4 +23,8 @@ export {
 
 export { completeTaskWithFiles } from './completeTask';
 
-export { archiveOldTasks, getCompletedTasks } from './archiveTask';
+export {
+  archiveOldTasks,
+  getCompletedTasks,
+  compressOldArchives,
+} from './archiveTask';
