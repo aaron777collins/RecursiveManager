@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 07:20:00 EST
+Last Updated: 2026-01-19 02:35:00 EST
 
 ## Status
 
@@ -262,7 +262,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Pause/Resume
 
-- [ ] Task 2.2.16: Implement pauseAgent(agentId) - set status, stop executions
+- [x] Task 2.2.16: Implement pauseAgent(agentId) - set status, stop executions
 - [ ] Task 2.2.17: Implement resumeAgent(agentId) - set status, reschedule
 - [ ] Task 2.2.18: Handle task blocking for paused agents
 
@@ -561,6 +561,73 @@ RecursiveManager is a hierarchical AI agent system with:
 - `packages/core/src/lifecycle/index.ts` - Added fireAgent exports
 
 **Next Tasks**: Task 2.2.15 (notify affected agents), Task 2.2.16 (pauseAgent implementation)
+
+---
+
+### Task 2.2.16: Pause Agent Implementation ✅
+
+**Date**: 2026-01-19 02:35:00 EST
+
+**Summary**: Implemented agent pause functionality that sets agent status to 'paused', preventing scheduled and reactive executions. Includes notifications to agent and manager, audit logging, and database updates.
+
+**What Was Implemented**:
+
+1. **pauseAgent.ts** (`packages/core/src/lifecycle/pauseAgent.ts`):
+   - `pauseAgent()` - Main pause orchestrator (350+ lines)
+   - `notifyAgentAndManager()` - Sends notifications to affected parties
+   - `PauseAgentError` - Custom error with context
+   - TypeScript types: `PauseAgentResult`
+
+2. **Validation**:
+   - Checks agent exists in database
+   - Prevents pausing already-paused agents
+   - Prevents pausing fired agents
+   - Captures previous status for audit trail
+
+3. **Database Operations**:
+   - Updates agent status to 'paused' in agents table
+   - Creates audit log entries for PAUSE action
+   - Leverages existing status change audit detection in updateAgent()
+
+4. **Notifications**:
+   - **Agent Notification** (high priority, action required):
+     - Explains execution suspension
+     - Shows how to resume
+     - Action required flag set
+   - **Manager Notification** (normal priority, info):
+     - Notifies of subordinate pause
+     - Shows impact on tasks
+     - Provides resume command
+   - Both notifications written to database and filesystem (inbox/unread/)
+
+5. **Export Integration**:
+   - Added to `packages/core/src/lifecycle/index.ts`
+   - Added to `packages/core/src/index.ts` main exports
+   - Follows same export pattern as fireAgent and hireAgent
+
+**Architecture Decisions**:
+
+- **Minimal Initial Implementation**: Focuses on status change and notifications
+- **Scheduler Integration Placeholder**: Includes TODO comments for future scheduler integration (Phase 4)
+- **Notification Priority**: Agent gets high-priority notification, manager gets normal priority
+- **Non-Blocking Notifications**: Notification failures log but don't throw (graceful degradation)
+- **Consistent Pattern**: Follows exact same structure as fireAgent for consistency
+
+**Future Integration Points** (for Phase 4+):
+
+- Stop any running executions when agent is paused
+- Clear pending scheduled executions from scheduler
+- Implement task blocking for paused agents (Task 2.2.18)
+- Handle cascade pause based on schedule.pauseConditions
+
+**Files Created**:
+- `packages/core/src/lifecycle/pauseAgent.ts` - 350+ lines
+
+**Files Modified**:
+- `packages/core/src/lifecycle/index.ts` - Added pauseAgent exports
+- `packages/core/src/index.ts` - Added pauseAgent to main exports
+
+**Next Task**: Task 2.2.17 (resumeAgent implementation)
 
 ---
 

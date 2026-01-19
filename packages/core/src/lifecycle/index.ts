@@ -27,3 +27,9 @@ export {
   type FireStrategy,
   type FireAgentResult,
 } from './fireAgent';
+
+export {
+  pauseAgent,
+  PauseAgentError,
+  type PauseAgentResult,
+} from './pauseAgent';

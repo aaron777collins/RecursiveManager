@@ -31,4 +31,7 @@ export {
   type HireValidationResult,
   hireAgent,
   HireAgentError,
+  pauseAgent,
+  PauseAgentError,
+  type PauseAgentResult,
 } from './lifecycle';
