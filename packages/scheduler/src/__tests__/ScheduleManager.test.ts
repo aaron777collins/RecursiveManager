@@ -8,7 +8,7 @@
 import { ScheduleManager } from '../ScheduleManager';
 import type { Database } from 'better-sqlite3';
 import SqliteDatabase from 'better-sqlite3';
-import { applyMigrations } from '@recursive-manager/common';
+import { runMigrations } from '@recursive-manager/common';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -17,13 +17,13 @@ describe('ScheduleManager', () => {
   let scheduleManager: ScheduleManager;
   let testDbPath: string;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Create a temporary database for testing
     testDbPath = path.join(__dirname, `test-${Date.now()}.db`);
     db = new SqliteDatabase(testDbPath);
 
     // Apply migrations
-    applyMigrations(db);
+    await runMigrations(db);
 
     // Create schedule manager
     scheduleManager = new ScheduleManager(db);
@@ -155,7 +155,7 @@ describe('ScheduleManager', () => {
 
       const readySchedules = scheduleManager.getSchedulesReadyToExecute();
       expect(readySchedules.length).toBe(1);
-      expect(readySchedules[0].id).toBe(scheduleId);
+      expect(readySchedules[0]?.id).toBe(scheduleId);
     });
 
     it('should not return disabled schedules', () => {
@@ -210,8 +210,8 @@ describe('ScheduleManager', () => {
 
       const readySchedules = scheduleManager.getSchedulesReadyToExecute();
       expect(readySchedules.length).toBe(2);
-      expect(readySchedules[0].id).toBe(schedule1); // Oldest first
-      expect(readySchedules[1].id).toBe(schedule2);
+      expect(readySchedules[0]?.id).toBe(schedule1); // Oldest first
+      expect(readySchedules[1]?.id).toBe(schedule2);
     });
   });
 

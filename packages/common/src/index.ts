@@ -148,6 +148,7 @@ export {
   optimizeDatabase,
   transaction,
   getDatabaseHealth,
+  getDatabase,
   DatabasePool,
   type DatabaseOptions,
   type DatabaseConnection,

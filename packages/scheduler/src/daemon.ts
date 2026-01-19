@@ -51,19 +51,19 @@ type JobExecutor = (schedule: ScheduleRecord) => Promise<void>;
  */
 const JOB_EXECUTORS: Record<string, JobExecutor> = {
   'Archive tasks older than 7 days': async (schedule) => {
-    const db = getDatabase();
+    const dbConnection = getDatabase();
     logger.info('Starting task archival job', { scheduleId: schedule.id });
 
     try {
       // Archive tasks completed more than 7 days ago
-      const archivedCount = await archiveOldTasks(db, 7);
+      const archivedCount = await archiveOldTasks(dbConnection.db, 7);
       logger.info('Task archival completed', {
         scheduleId: schedule.id,
         archivedCount,
       });
 
       // Also compress archives older than 90 days
-      const compressedCount = await compressOldArchives(db, 90);
+      const compressedCount = await compressOldArchives(dbConnection.db, 90);
       logger.info('Archive compression completed', {
         scheduleId: schedule.id,
         compressedCount,
@@ -79,12 +79,12 @@ const JOB_EXECUTORS: Record<string, JobExecutor> = {
   },
 
   'Monitor for task deadlocks and send alerts': async (schedule) => {
-    const db = getDatabase();
+    const dbConnection = getDatabase();
     logger.info('Starting deadlock monitoring job', { scheduleId: schedule.id });
 
     try {
       // Check all blocked tasks for deadlocks
-      const result = await monitorDeadlocks(db);
+      const result = await monitorDeadlocks(dbConnection.db);
       logger.info('Deadlock monitoring completed', {
         scheduleId: schedule.id,
         deadlocksDetected: result.deadlocksDetected,
@@ -174,8 +174,8 @@ async function executeScheduledJob(
  * Polls the schedules table every 60 seconds and executes any jobs that are ready.
  */
 async function schedulerLoop(): Promise<void> {
-  const db = getDatabase();
-  const scheduleManager = new ScheduleManager(db);
+  const dbConnection = getDatabase();
+  const scheduleManager = new ScheduleManager(dbConnection.db);
 
   logger.info('Scheduler daemon started', {
     pollInterval: 60,
@@ -223,8 +223,8 @@ async function main(): Promise<void> {
     logger.info('PID lock acquired successfully');
 
     // Ensure database is initialized
-    const db = getDatabase();
-    const scheduleManager = new ScheduleManager(db);
+    const dbConnection = getDatabase();
+    const scheduleManager = new ScheduleManager(dbConnection.db);
 
     // Register the daily archival job if not already registered
     logger.info('Registering daily archival job...');

@@ -10,7 +10,6 @@ import {
   formatAsTable,
   formatAsJSON,
   type OrgChartEntry,
-  type FormatOptions,
 } from '../formatOrgChart';
 import type { AgentRecord } from '@recursive-manager/common';
 
@@ -244,7 +243,7 @@ describe('formatOrgChart', () => {
       const lines = result.split('\n');
 
       // All lines should have the same number of separators
-      const separatorCount = (lines[0].match(/\|/g) || []).length;
+      const separatorCount = (lines[0]?.match(/\|/g) || []).length;
       for (const line of lines) {
         if (line.includes('|')) {
           expect((line.match(/\|/g) || []).length).toBe(separatorCount);

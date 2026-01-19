@@ -527,6 +527,17 @@ export class DatabasePool {
   }
 }
 
+/**
+ * Convenience function to get the database connection from the singleton pool
+ * This is a shortcut for DatabasePool.getInstance().getConnection()
+ *
+ * @returns Database connection
+ * @throws Error if pool is not initialized
+ */
+export function getDatabase(): DatabaseConnection {
+  return DatabasePool.getInstance().getConnection();
+}
+
 // Export query APIs
 export * from './queries';
 

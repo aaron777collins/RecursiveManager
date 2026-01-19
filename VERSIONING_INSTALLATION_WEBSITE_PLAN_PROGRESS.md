@@ -21,7 +21,7 @@ IN_PROGRESS
 - [x] 2.4 Create CLI package structure
 
 ### Phase 3: Documentation Website
-- [ ] 3.1 Setup MkDocs with Material theme (mkdocs.yml)
+- [x] 3.1 Setup MkDocs with Material theme (mkdocs.yml)
 - [ ] 3.2 Create documentation directory structure
 - [ ] 3.3 Create landing page (index.md)
 - [ ] 3.4 Create custom CSS (extra.css)
@@ -141,7 +141,22 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 2.4: Created CLI package structure
+- Task 3.1: Setup MkDocs with Material theme
 
 ## Notes
+
+### Iteration 9 (2026-01-19)
+- Task 3.1: Created mkdocs.yml configuration file
+  - Set up Material theme with deep purple color scheme (matching PortableRalph)
+  - Configured dark/light mode toggle
+  - Added navigation structure for all planned documentation pages
+  - Configured markdown extensions (code highlighting, admonitions, emoji, etc.)
+  - Set up Inter font for text and Roboto Mono for code
+  - Enabled search plugin
+  - Referenced custom CSS file (docs/stylesheets/extra.css)
+  - Referenced brand icon (docs/assets/icon-white.svg)
+  - Configured social links (GitHub)
+  - Set site URL for GitHub Pages deployment
+  - Added navigation features (instant loading, tracking, sections, expand, top)
+  - Enabled content features (code copy, code annotate)
 

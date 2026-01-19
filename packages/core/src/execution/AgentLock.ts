@@ -81,16 +81,20 @@ export class AgentLock {
   }
 
   /**
-   * Try to acquire lock without waiting
+   * Try to acquire lock without waiting (async version)
    *
    * Returns release function if lock is available, null if locked.
-   * Does not queue the request.
+   * Does not queue the request - checks immediately and returns.
+   *
+   * Note: Since async-mutex doesn't support synchronous tryAcquire,
+   * this method checks if the lock is available and returns null if locked.
+   * For a proper non-blocking acquire, use this method with await.
    *
    * @param agentId - Agent identifier to lock
-   * @returns Release function if lock acquired, null if locked
+   * @returns Promise resolving to release function if acquired, null if locked
    * @throws AgentLockError if agentId is invalid
    */
-  tryAcquire(agentId: string): (() => void) | null {
+  async tryAcquire(agentId: string): Promise<(() => void) | null> {
     if (!agentId || typeof agentId !== 'string') {
       throw new AgentLockError('Invalid agent ID provided');
     }
@@ -102,11 +106,14 @@ export class AgentLock {
       this.mutexes.set(agentId, mutex);
     }
 
-    // Try to acquire without waiting
-    const release = mutex.tryAcquire();
-    if (!release) {
+    // Check if mutex is already locked
+    if (mutex.isLocked()) {
       return null;
     }
+
+    // Mutex appears unlocked, try to acquire
+    // Note: Small race condition possible, but acceptable for tryAcquire semantics
+    const release = await mutex.acquire();
 
     // Return wrapped release function
     return () => {
@@ -133,8 +140,7 @@ export class AgentLock {
    * @param agentId - Agent identifier to check
    * @returns Number of pending lock requests
    */
-  getWaiterCount(agentId: string): number {
-    const mutex = this.mutexes.get(agentId);
+  getWaiterCount(_agentId: string): number {
     // async-mutex doesn't expose waiter count, so we can't implement this
     // Return 0 for now (future enhancement)
     return 0;

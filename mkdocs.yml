@@ -1,0 +1,94 @@
+site_name: RecursiveManager
+site_description: Hierarchical AI agent system that mimics organizational structures for autonomous task management
+site_author: Aaron Collins
+site_url: https://aaron777collins.github.io/RecursiveManager/
+
+repo_name: aaron777collins/RecursiveManager
+repo_url: https://github.com/aaron777collins/RecursiveManager
+
+theme:
+  name: material
+  favicon: docs/assets/icon-white.svg
+  logo: docs/assets/icon-white.svg
+  palette:
+    # Dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    # Light mode
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  font:
+    text: Inter
+    code: Roboto Mono
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/aaron777collins/RecursiveManager
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: installation.md
+    - Quick Start: quick-start.md
+    - Configuration: configuration.md
+  - Core Concepts:
+    - Agent Hierarchy: concepts/agent-hierarchy.md
+    - Execution Modes: concepts/execution-modes.md
+    - Task Management: concepts/task-management.md
+    - Multi-Perspective Analysis: concepts/multi-perspective-analysis.md
+  - Architecture:
+    - Overview: architecture/overview.md
+    - File Structure: architecture/file-structure.md
+    - Database Schema: architecture/database.md
+  - CLI Reference: cli-reference.md
+  - API Reference: api-reference.md
+  - Development:
+    - Contributing: development/contributing.md
+    - Testing: development/testing.md
+    - Debugging: development/debugging.md
+
+plugins:
+  - search

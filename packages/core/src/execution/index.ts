@@ -121,7 +121,7 @@ export class ExecutionOrchestrator {
       logger.info('Starting continuous execution', { agentId });
 
       // Try to acquire lock without waiting (fail fast for concurrent executions of same agent)
-      const release = this.agentLock.tryAcquire(agentId);
+      const release = await this.agentLock.tryAcquire(agentId);
       if (!release) {
         throw new ExecutionError(
           `Agent ${agentId} is already executing. Concurrent executions are not allowed.`
@@ -145,8 +145,8 @@ export class ExecutionOrchestrator {
         }
 
         // Load execution context (config, tasks, messages, workspace)
-        const db = this.database.getConnection();
-        const context = await loadExecutionContext(db, agentId, 'continuous', {});
+        const dbConnection = this.database.getConnection();
+        const context = await loadExecutionContext(dbConnection.db, agentId, 'continuous', {});
 
         logger.info('Execution context loaded', {
           activeTasks: context.activeTasks.length,
@@ -257,7 +257,7 @@ export class ExecutionOrchestrator {
       });
 
       // Try to acquire lock without waiting (fail fast for concurrent executions of same agent)
-      const release = this.agentLock.tryAcquire(agentId);
+      const release = await this.agentLock.tryAcquire(agentId);
       if (!release) {
         throw new ExecutionError(
           `Agent ${agentId} is already executing. Concurrent executions are not allowed.`
@@ -281,8 +281,8 @@ export class ExecutionOrchestrator {
         }
 
         // Load execution context (config, tasks, messages, workspace)
-        const db = this.database.getConnection();
-        const context = await loadExecutionContext(db, agentId, 'reactive', {});
+        const dbConnection = this.database.getConnection();
+        const context = await loadExecutionContext(dbConnection.db, agentId, 'reactive', {});
 
         logger.info('Execution context loaded', {
           activeTasks: context.activeTasks.length,
