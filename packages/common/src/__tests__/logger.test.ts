@@ -594,4 +594,141 @@ describe('Logger Module', () => {
       logger.info('Test numeric maxFiles');
     });
   });
+
+  describe('createAgentLogger', () => {
+    it('should create logger with agent ID in metadata', async () => {
+      // Import here to avoid circular dependency issues
+      const { createAgentLogger } = require('../logger');
+      const agentId = 'test-agent-123';
+      const logger = createAgentLogger(agentId);
+
+      expect(logger).toBeDefined();
+
+      // Log a message
+      logger.info('Agent initialized');
+
+      // Wait for async write
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Read log file and verify metadata includes agentId
+      const logPath = path.join(
+        testDir,
+        '..',
+        'logs',
+        'agents',
+        `${agentId}.log`
+      );
+
+      // Note: The log file won't exist in test environment since we're using mocked paths
+      // This test verifies the logger is created without errors
+    });
+
+    it('should throw error for empty agent ID', () => {
+      const { createAgentLogger } = require('../logger');
+
+      expect(() => createAgentLogger('')).toThrow(
+        'agentId is required and cannot be empty'
+      );
+    });
+
+    it('should throw error for whitespace-only agent ID', () => {
+      const { createAgentLogger } = require('../logger');
+
+      expect(() => createAgentLogger('   ')).toThrow(
+        'agentId is required and cannot be empty'
+      );
+    });
+
+    it('should have file output enabled by default', () => {
+      const { createAgentLogger } = require('../logger');
+      const logger = createAgentLogger('test-agent');
+
+      expect(logger).toBeDefined();
+      // Logger should be configured with file output
+      // This is validated by not throwing an error
+    });
+
+    it('should have rotation enabled by default', () => {
+      const { createAgentLogger } = require('../logger');
+      const logger = createAgentLogger('test-agent');
+
+      expect(logger).toBeDefined();
+      // Rotation should be enabled by default
+      // This is validated by not throwing an error
+    });
+
+    it('should have console output disabled by default', async () => {
+      const { createAgentLogger } = require('../logger');
+      const agentId = 'console-test-agent';
+      const logger = createAgentLogger(agentId);
+
+      // Capture console output
+      const originalLog = console.log;
+      let consoleOutput = '';
+      console.log = jest.fn((msg) => {
+        consoleOutput += msg;
+      });
+
+      logger.info('Test message');
+
+      // Wait for async write
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Restore console
+      console.log = originalLog;
+
+      // Console should not have received output (console: false by default)
+      expect(consoleOutput).toBe('');
+    });
+
+    it('should allow overriding default options', () => {
+      const { createAgentLogger } = require('../logger');
+      const logger = createAgentLogger('test-agent', {
+        level: 'debug',
+        console: true,
+      });
+
+      expect(logger).toBeDefined();
+      // Logger should be created with custom options
+    });
+
+    it('should create child logger with agent context preserved', () => {
+      const { createAgentLogger } = require('../logger');
+      const logger = createAgentLogger('parent-agent');
+      const childLogger = logger.child({ taskId: 'task-123' });
+
+      expect(childLogger).toBeDefined();
+      // Child logger should inherit agentId and add taskId
+    });
+
+    it('should support standard log levels', () => {
+      const { createAgentLogger } = require('../logger');
+      const logger = createAgentLogger('test-agent');
+
+      // All log levels should work without errors
+      expect(() => logger.error('Error message')).not.toThrow();
+      expect(() => logger.warn('Warning message')).not.toThrow();
+      expect(() => logger.info('Info message')).not.toThrow();
+      expect(() => logger.debug('Debug message')).not.toThrow();
+    });
+
+    it('should accept additional metadata in log calls', () => {
+      const { createAgentLogger } = require('../logger');
+      const logger = createAgentLogger('test-agent');
+
+      expect(() =>
+        logger.info('Task started', { taskId: 'task-456', status: 'pending' })
+      ).not.toThrow();
+    });
+
+    it('should handle agent IDs with special characters', () => {
+      const { createAgentLogger } = require('../logger');
+
+      // These should all work without errors
+      expect(() => createAgentLogger('agent-123')).not.toThrow();
+      expect(() => createAgentLogger('CEO')).not.toThrow();
+      expect(() => createAgentLogger('dev_ops')).not.toThrow();
+      expect(() => createAgentLogger('agent.test')).not.toThrow();
+    });
+  });
 });

@@ -12,6 +12,7 @@
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import { randomUUID } from 'crypto';
+import { getAgentLogPath } from './path-utils';
 
 /**
  * Log level type definition
@@ -281,6 +282,57 @@ export function generateTraceId(): string {
  */
 export function createLogger(options?: LoggerOptions): Logger {
   return new WinstonLogger(options);
+}
+
+/**
+ * Create an agent-specific logger instance
+ *
+ * Creates a logger configured for per-agent log files with:
+ * - Agent ID in default metadata
+ * - File output to logs/agents/{agentId}.log
+ * - Log rotation enabled (daily)
+ * - Console output disabled by default (agent logs go to files)
+ *
+ * @param agentId - Unique agent identifier
+ * @param options - Additional logger options to override defaults
+ * @returns Configured logger instance for the agent
+ *
+ * @example
+ * ```typescript
+ * // Create logger for CEO agent
+ * const ceoLogger = createAgentLogger('CEO');
+ * ceoLogger.info('Task started', { taskId: 'task-123' });
+ * // Logs to: ~/.recursive-manager/logs/agents/CEO.log
+ *
+ * // Create with debug level and console output
+ * const debugAgentLogger = createAgentLogger('DevOps', {
+ *   level: 'debug',
+ *   console: true
+ * });
+ * ```
+ */
+export function createAgentLogger(
+  agentId: string,
+  options?: Partial<LoggerOptions>
+): Logger {
+  if (!agentId || agentId.trim() === '') {
+    throw new Error('agentId is required and cannot be empty');
+  }
+
+  const agentLogPath = getAgentLogPath(agentId);
+
+  return createLogger({
+    level: 'info',
+    console: false, // Agent logs go to files by default
+    file: true,
+    filePath: agentLogPath,
+    rotation: true, // Enable rotation for production reliability
+    json: true,
+    defaultMetadata: {
+      agentId,
+    },
+    ...options, // Allow overriding defaults
+  });
 }
 
 /**

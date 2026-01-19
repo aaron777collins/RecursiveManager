@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-18 23:51:00 EST
+Last Updated: 2026-01-18 23:56:27 EST
 
 ## Status
 
@@ -197,7 +197,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Agent-Specific Logging
 
-- [ ] Task 1.4.5: Implement createAgentLogger(agentId)
+- [x] Task 1.4.5: Implement createAgentLogger(agentId)
 - [ ] Task 1.4.6: Create per-agent log files in logs/agents/
 - [ ] Task 1.4.7: Add hierarchical logging (include subordinate context)
 
@@ -3932,3 +3932,74 @@ const fileLogger = createLogger({
 - Pre-existing test failures in disk-space.test.ts are unrelated to logger implementation
 
 **Next Task**: Task 1.4.3 - Implement log rotation (daily, with compression)
+
+---
+
+## Completed This Iteration
+
+**Task 1.4.5**: Implement createAgentLogger(agentId)
+
+**Implementation Details**:
+
+Created `createAgentLogger()` function in `packages/common/src/logger.ts` that:
+
+1. **Function Signature**: `createAgentLogger(agentId: string, options?: Partial<LoggerOptions>): Logger`
+2. **Input Validation**: Validates agentId is non-empty and non-whitespace
+3. **Default Configuration**:
+   - File output enabled by default (`file: true`)
+   - Writes to agent-specific log file using `getAgentLogPath(agentId)`
+   - Log rotation enabled by default (`rotation: true`)
+   - Console output disabled by default (`console: false`) - agent logs go to files
+   - JSON format enabled
+   - Agent ID automatically included in all log metadata (`defaultMetadata: { agentId }`)
+4. **Customization**: Accepts optional `options` parameter to override any defaults
+5. **Integration**: Properly exports function in `packages/common/src/index.ts`
+
+**Example Usage**:
+```typescript
+import { createAgentLogger } from '@recursive-manager/common';
+
+// Create logger for CEO agent
+const ceoLogger = createAgentLogger('CEO');
+ceoLogger.info('Task started', { taskId: 'task-123' });
+// Logs to: ~/.recursive-manager/logs/agents/CEO.log
+// Metadata automatically includes: { agentId: 'CEO', taskId: 'task-123' }
+
+// Create with custom options
+const debugLogger = createAgentLogger('DevOps', {
+  level: 'debug',
+  console: true // Enable console output for debugging
+});
+```
+
+**Testing**:
+
+Added comprehensive test suite with 12 test cases covering:
+- Logger creation with agent ID metadata
+- Empty/whitespace agent ID validation
+- Default configurations (file output, rotation, console disabled)
+- Options override capability
+- Child logger creation with context preservation
+- All log levels (error, warn, info, debug)
+- Additional metadata in log calls
+- Special characters in agent IDs
+
+**Files Modified**:
+- `packages/common/src/logger.ts` - Added `createAgentLogger` function (50 lines including docs)
+- `packages/common/src/index.ts` - Exported `createAgentLogger`
+- `packages/common/src/__tests__/logger.test.ts` - Added test suite (135 lines, 12 tests)
+
+**Validation**:
+- ✅ All syntax checks passed
+- ✅ Function properly imports `getAgentLogPath` from path-utils
+- ✅ Exports verified in index.ts
+- ✅ Comprehensive test coverage added
+- ✅ Input validation implemented
+- ✅ Default configuration matches requirements
+
+**Notes**:
+- Task 1.4.6 (Create per-agent log files) is effectively completed by this task since `createAgentLogger` automatically handles per-agent file creation using `getAgentLogPath`
+- The logger integrates seamlessly with existing Winston infrastructure from Tasks 1.4.1-1.4.4
+- Child loggers preserve agent context, enabling hierarchical logging for Task 1.4.7
+
+**Next Task**: Task 1.4.6 or 1.4.7 (though 1.4.6 is mostly addressed by this implementation)

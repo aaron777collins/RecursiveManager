@@ -164,6 +164,7 @@ export {
 // Logging (Phase 1.4)
 export {
   createLogger,
+  createAgentLogger,
   generateTraceId,
   logger,
   type Logger,
