@@ -33,3 +33,9 @@ export {
   PauseAgentError,
   type PauseAgentResult,
 } from './pauseAgent';
+
+export {
+  resumeAgent,
+  ResumeAgentError,
+  type ResumeAgentResult,
+} from './resumeAgent';

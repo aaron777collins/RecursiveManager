@@ -34,4 +34,7 @@ export {
   pauseAgent,
   PauseAgentError,
   type PauseAgentResult,
+  resumeAgent,
+  ResumeAgentError,
+  type ResumeAgentResult,
 } from './lifecycle';

@@ -1,0 +1,412 @@
+/**
+ * Agent Resume Implementation (Task 2.2.17)
+ *
+ * This module implements the core resumeAgent() function that orchestrates
+ * the complete agent resuming process including:
+ * - Status validation
+ * - Status update in database
+ * - Notification to agent and manager
+ * - Audit logging
+ * - Future: Reschedule executions (when scheduler is implemented)
+ *
+ * Design Notes:
+ * - Resuming sets agent status to 'active' in database
+ * - When scheduler is implemented, resumed agents will be rescheduled
+ * - Paused tasks assigned to the agent can now be processed
+ * - Subordinates are NOT automatically resumed (manual per-agent control)
+ */
+
+import Database from 'better-sqlite3';
+import {
+  PathOptions,
+  createAgentLogger,
+} from '@recursive-manager/common';
+import {
+  getAgent,
+  updateAgent,
+  AgentRecord,
+  createMessage,
+  MessageInput,
+} from '@recursive-manager/common';
+import { auditLog, AuditAction } from '@recursive-manager/common';
+import {
+  generateMessageId,
+  writeMessageToInbox,
+  MessageData,
+} from '../messaging/messageWriter';
+
+/**
+ * Custom error for resume operation failures
+ */
+export class ResumeAgentError extends Error {
+  constructor(
+    message: string,
+    public readonly agentId: string,
+    public readonly cause?: Error
+  ) {
+    super(message);
+    this.name = 'ResumeAgentError';
+    Error.captureStackTrace(this, ResumeAgentError);
+  }
+}
+
+/**
+ * Result of resume operation
+ */
+export interface ResumeAgentResult {
+  agentId: string;
+  status: 'active';
+  previousStatus: string;
+  notificationsSent: number;
+}
+
+/**
+ * Send notifications to agent and manager after resuming
+ *
+ * Notifies:
+ * 1. The resumed agent (normal priority, informational)
+ * 2. The manager (if exists) about subordinate resumption
+ *
+ * @param db - Database instance
+ * @param agent - The agent being resumed
+ * @param options - Path resolution options
+ */
+async function notifyAgentAndManager(
+  db: Database.Database,
+  agent: AgentRecord,
+  options: PathOptions = {}
+): Promise<number> {
+  const logger = createAgentLogger('system');
+  const timestamp = new Date().toISOString();
+
+  logger.info('Sending resume notifications', {
+    agentId: agent.id,
+    managerId: agent.reporting_to,
+  });
+
+  const notifications: Array<{ agentId: string; message: MessageData; dbMessage: MessageInput }> = [];
+
+  // 1. Notification to the resumed agent
+  const agentMessageId = generateMessageId();
+  const agentFilePath = `inbox/unread/${agentMessageId}.md`;
+
+  notifications.push({
+    agentId: agent.id,
+    message: {
+      id: agentMessageId,
+      from: 'system',
+      to: agent.id,
+      timestamp,
+      priority: 'normal',
+      channel: 'internal',
+      read: false,
+      actionRequired: false,
+      subject: `Agent Resumed: Your execution has been restored`,
+      content: `# Agent Resumed
+
+Your agent has been resumed and is now active again.
+
+## Details
+
+- **Resumed At**: ${timestamp}
+- **Role**: ${agent.role}
+- **Previous Status**: paused
+
+## What This Means
+
+- Your scheduled executions will now run as configured
+- You will process tasks and messages automatically
+- All work has been restored
+- Your configuration and workspace remain as they were
+
+## Next Steps
+
+You can now continue working on your tasks. Check your task list for any pending work:
+\`\`\`
+recursive-manager run ${agent.id}
+\`\`\`
+
+If you have tasks that were blocked during the pause, they should now be unblocked and ready to process.
+
+---
+*This is an automated system notification.*`,
+    },
+    dbMessage: {
+      id: agentMessageId,
+      from_agent_id: 'system',
+      to_agent_id: agent.id,
+      timestamp,
+      priority: 'normal',
+      channel: 'internal',
+      read: false,
+      action_required: false,
+      subject: `Agent Resumed: Your execution has been restored`,
+      message_path: agentFilePath,
+    },
+  });
+
+  // 2. Notification to the manager (if exists)
+  if (agent.reporting_to) {
+    const managerMessageId = generateMessageId();
+    const managerFilePath = `inbox/unread/${managerMessageId}.md`;
+
+    notifications.push({
+      agentId: agent.reporting_to,
+      message: {
+        id: managerMessageId,
+        from: 'system',
+        to: agent.reporting_to,
+        timestamp,
+        priority: 'normal',
+        channel: 'internal',
+        read: false,
+        actionRequired: false,
+        subject: `Subordinate Resumed: ${agent.role} (${agent.id})`,
+        content: `# Subordinate Resumed
+
+Your subordinate **${agent.display_name}** (${agent.role}) has been resumed and is now active.
+
+## Details
+
+- **Agent ID**: ${agent.id}
+- **Role**: ${agent.role}
+- **Resumed At**: ${timestamp}
+
+## Impact
+
+- The agent will now execute scheduled tasks
+- Reactive executions (messages, triggers) will resume
+- Any tasks assigned to this agent can now proceed
+- The agent is fully operational again
+
+## Next Steps
+
+The agent is now active and will process work according to its schedule. No action is required from you unless:
+- You have new tasks to assign
+- You need to check on progress of previously blocked tasks
+- You want to adjust the agent's schedule or configuration
+
+---
+*This is an automated system notification.*`,
+      },
+      dbMessage: {
+        id: managerMessageId,
+        from_agent_id: 'system',
+        to_agent_id: agent.reporting_to,
+        timestamp,
+        priority: 'normal',
+        channel: 'internal',
+        read: false,
+        action_required: false,
+        subject: `Subordinate Resumed: ${agent.role} (${agent.id})`,
+        message_path: managerFilePath,
+      },
+    });
+  }
+
+  // Send all notifications
+  let successCount = 0;
+
+  for (const { agentId, message, dbMessage } of notifications) {
+    try {
+      // Write to database
+      createMessage(db, dbMessage);
+
+      // Write to filesystem
+      await writeMessageToInbox(agentId, message, options);
+
+      successCount++;
+      logger.debug('Resume notification sent successfully', {
+        messageId: message.id,
+        toAgent: agentId,
+      });
+    } catch (err) {
+      logger.error('Failed to send resume notification', {
+        messageId: message.id,
+        toAgent: agentId,
+        error: (err as Error).message,
+      });
+      // Continue with other notifications even if one fails
+    }
+  }
+
+  logger.info('Resume notification phase completed', {
+    total: notifications.length,
+    success: successCount,
+  });
+
+  return successCount;
+}
+
+/**
+ * Resume an agent
+ *
+ * This function resumes a paused agent by setting its status to 'active' in the database.
+ * Resumed agents will execute scheduled and reactive tasks according to their configuration.
+ *
+ * The function performs the following steps:
+ *
+ * 1. **Validation**
+ *    - Verify agent exists
+ *    - Verify agent is currently paused
+ *    - Get current agent status
+ *
+ * 2. **Database Operations**
+ *    - Update agent status to 'active'
+ *    - Audit log the RESUME action
+ *
+ * 3. **Notifications**
+ *    - Send notification to the resumed agent
+ *    - Send notification to the manager (if exists)
+ *    - Write messages to database and filesystem
+ *
+ * 4. **Future: Reschedule Executions** (when scheduler is implemented)
+ *    - Add agent back to scheduler queue
+ *    - Calculate next execution time based on schedule
+ *    - Update scheduler state
+ *
+ * Error Handling:
+ * - Validation errors: Throws ResumeAgentError
+ * - Database errors: Throws ResumeAgentError
+ * - Notification errors: Logs but doesn't throw (non-critical)
+ *
+ * @param db - Database instance
+ * @param agentId - ID of the agent to resume
+ * @param options - Path resolution options
+ * @returns Result object with operation details
+ * @throws {ResumeAgentError} If resume operation fails
+ *
+ * @example
+ * ```typescript
+ * // Resume an agent
+ * const result = await resumeAgent(db, 'dev-001');
+ * console.log(`Resumed agent ${result.agentId}`);
+ * ```
+ */
+export async function resumeAgent(
+  db: Database.Database,
+  agentId: string,
+  options: PathOptions = {}
+): Promise<ResumeAgentResult> {
+  const logger = createAgentLogger(agentId);
+
+  logger.info('Starting agent resume process', { agentId });
+
+  try {
+    // STEP 1: VALIDATION
+    logger.debug('Validating agent status', { agentId });
+
+    const agent = getAgent(db, agentId);
+    if (!agent) {
+      throw new ResumeAgentError('Agent not found in database', agentId);
+    }
+
+    if (agent.status !== 'paused') {
+      throw new ResumeAgentError(`Cannot resume agent with status '${agent.status}'. Only paused agents can be resumed.`, agentId);
+    }
+
+    const previousStatus = agent.status;
+
+    logger.debug('Agent validated for resuming', {
+      agentId,
+      currentStatus: agent.status,
+      managerId: agent.reporting_to,
+    });
+
+    // STEP 2: DATABASE OPERATIONS
+    logger.info('Updating agent status to active', { agentId });
+
+    try {
+      const updated = updateAgent(db, agentId, { status: 'active' });
+      if (!updated) {
+        throw new ResumeAgentError('Failed to update agent status', agentId);
+      }
+
+      logger.info('Agent status updated to active', {
+        agentId,
+        status: updated.status,
+        previousStatus,
+      });
+
+      // Audit log the resume action
+      auditLog(db, {
+        agentId: agent.reporting_to,
+        action: AuditAction.RESUME,
+        targetAgentId: agentId,
+        success: true,
+        details: {
+          role: agent.role,
+          displayName: agent.display_name,
+          previousStatus,
+        },
+      });
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      logger.error('Failed to update agent status', {
+        agentId,
+        error: error.message,
+      });
+
+      // Audit log failed resume
+      auditLog(db, {
+        agentId: agent.reporting_to,
+        action: AuditAction.RESUME,
+        targetAgentId: agentId,
+        success: false,
+        details: {
+          error: error.message,
+        },
+      });
+
+      throw new ResumeAgentError(`Failed to update agent status: ${error.message}`, agentId, error);
+    }
+
+    // STEP 3: NOTIFICATIONS
+    logger.info('Notifying agent and manager', { agentId });
+
+    let notificationsSent = 0;
+    try {
+      notificationsSent = await notifyAgentAndManager(db, agent, options);
+      logger.info('Notifications sent', { agentId, count: notificationsSent });
+    } catch (err) {
+      logger.error('Failed to send notifications', {
+        agentId,
+        error: (err as Error).message,
+      });
+      // Don't throw - notification failure is non-critical
+    }
+
+    // STEP 4: RESCHEDULE EXECUTIONS (Future implementation)
+    // TODO: When scheduler is implemented (Phase 4+), add logic to:
+    // - Add agent back to scheduler's execution queue
+    // - Calculate next execution time based on schedule.json
+    // - Update scheduler state to include this agent
+    // - Handle any immediate/overdue executions
+    logger.debug('Rescheduling phase skipped (scheduler not yet implemented)', { agentId });
+
+    // SUCCESS
+    const result: ResumeAgentResult = {
+      agentId,
+      status: 'active',
+      previousStatus,
+      notificationsSent,
+    };
+
+    logger.info('Agent resume completed successfully', result);
+
+    return result;
+  } catch (err) {
+    // If it's already a ResumeAgentError, re-throw as-is
+    if (err instanceof ResumeAgentError) {
+      throw err;
+    }
+
+    // Wrap unexpected errors
+    const error = err instanceof Error ? err : new Error(String(err));
+    logger.error('Unexpected error during agent resume', {
+      agentId,
+      error: error.message,
+    });
+    throw new ResumeAgentError(`Unexpected error during agent resume: ${error.message}`, agentId, error);
+  }
+}
