@@ -28,7 +28,7 @@ IN_PROGRESS
 - [x] Implement --force flag to allow reinitialize
 - [x] Add error handling (permissions, disk space, database failures)
 - [x] Remove hardcoded mock delay and placeholder logic
-- [ ] Create packages/cli/src/utils/config.ts with loadConfig() utility (deferred - needed for other commands)
+- [x] Create packages/cli/src/utils/config.ts with loadConfig() utility (deferred - needed for other commands)
 - [ ] Write integration test for init command
 
 #### 2.2 Implement status Command
@@ -222,18 +222,16 @@ IN_PROGRESS
 
 ## Completed This Iteration
 
-**Iteration 2: Implement init Command**
-- Implemented full init command functionality in packages/cli/src/commands/init.ts
-- Added check for existing initialization using .recursive-manager marker file
-- Implemented data directory structure creation (agents/, tasks/, logs/, snapshots/)
-- Integrated database initialization with runMigrations() from @recursive-manager/common
-- Integrated createAgent() to create root CEO agent with provided goal
-- Added .recursive-manager marker file with version and timestamp metadata
-- Created config.json with dataDir, dbPath, rootAgentId, and execution settings
-- Implemented --force flag support for reinitializing existing installations
-- Added proper error handling and process.exit(1) on failures
-- Removed TODO comments and hardcoded mock delay
+**Iteration 3: Create loadConfig() Utility**
+- Created packages/cli/src/utils/config.ts with loadConfig() function
+- Added Config interface defining configuration structure
+- Implemented marker file check to ensure RecursiveManager is initialized
+- Added config.json validation and parsing with error handling
+- Added database existence check before returning configuration
+- All error messages use color-coded error() utility for consistency
 - Build passes successfully with no TypeScript errors
+- All CLI tests pass (28 tests in 2 test suites)
+- Unblocks implementation of status, config, and debug commands
 
 ## Analysis Summary
 
