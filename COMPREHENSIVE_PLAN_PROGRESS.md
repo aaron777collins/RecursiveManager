@@ -465,6 +465,114 @@ The implementation satisfies Task 3.3.12 completion criteria with robust test co
 
 ---
 
+## Completed This Iteration (2026-01-19 - Task 3.3.13)
+
+**Task 3.3.13: Integration tests for continuous execution**
+
+### Status: BLOCKED
+
+Created comprehensive integration test suite for ExecutionOrchestrator continuous execution mode, but encountered a circular dependency issue preventing tests from running.
+
+### What Was Implemented
+
+Created test file: `packages/core/src/execution/__tests__/executeContinuous.integration.test.ts` with 10 comprehensive test cases covering:
+
+1. **Successful Execution** (2 tests):
+   - Execute agent with active tasks
+   - Execute agent with no tasks
+
+2. **Agent Status Validation** (2 tests):
+   - Reject non-existent agent
+   - Reject paused agent
+
+3. **Adapter Fallback** (1 test):
+   - Use fallback adapter when primary is unhealthy
+
+4. **Concurrent Execution Prevention** (2 tests):
+   - Prevent concurrent executions (EC-7.1)
+   - Allow sequential executions
+
+5. **Error Handling** (2 tests):
+   - Handle adapter errors gracefully
+   - Release lock on error
+
+6. **Audit Trail Verification**:
+   - Integrated into all successful/failed execution tests
+
+### Blocking Issue: Circular Dependency
+
+**Problem**: The test imports `ExecutionOrchestrator` from `packages/core/src/execution/index.ts`, which imports:
+```typescript
+import { loadExecutionContext } from '@recursive-manager/adapters';
+```
+
+Meanwhile, `packages/adapters/src/context/index.ts` imports:
+```typescript
+import { loadAgentConfig } from '@recursive-manager/core';
+```
+
+This creates a circular dependency: `core → adapters → core`, which prevents the packages from building.
+
+**Error Message**:
+```
+packages/adapters/src/context/index.ts(18,33): error TS2307:
+Cannot find module '@recursive-manager/core' or its corresponding type declarations.
+```
+
+### Recommended Solutions
+
+1. **Move `loadAgentConfig` to common package** (preferred):
+   - `loadAgentConfig` is a simple file I/O utility
+   - Should live in `@recursive-manager/common` alongside other file utilities
+   - Both `core` and `adapters` can then import from `common`
+
+2. **Move `loadExecutionContext` to core package**:
+   - Execution context loading is orchestration logic
+   - Could be part of core instead of adapters
+   - Adapters would only define the interface
+
+3. **Pass `loadAgentConfig` as dependency injection**:
+   - `loadExecutionContext` accepts `loadAgentConfig` as a parameter
+   - More flexible but adds complexity
+
+### Test Implementation Details
+
+**Test Setup**:
+- In-memory SQLite database with WAL mode
+- Temporary filesystem directory for agent files
+- Mock adapter with configurable behavior
+- Custom `AdapterRegistry` implementation for testing
+- Helper function `createValidConfig()` for consistent AgentConfig objects
+
+**Test Coverage**:
+- ✅ Successful agent execution with/without tasks
+- ✅ Agent validation (existence, status)
+- ✅ Adapter health checks and fallback
+- ✅ Concurrent execution prevention (EC-7.1)
+- ✅ Sequential execution allowance
+- ✅ Error handling and recovery
+- ✅ Lock release on errors
+- ✅ Audit log creation on success/failure
+
+**Test Structure**:
+- Proper test lifecycle with `beforeEach`/`afterEach`
+- Cleanup of database and filesystem resources
+- Type-safe mocks and assertions
+- Integration with actual database operations
+
+### Next Steps
+
+1. **Resolve circular dependency** using solution #1 (move `loadAgentConfig` to common)
+2. **Run and validate tests** once dependency is resolved
+3. **Add additional test cases** for:
+   - Timeout handling
+   - Context loading validation
+   - Workspace file enumeration
+   - Multiple tasks with different priorities
+4. **Move to Task 3.3.14** (Integration tests for reactive execution)
+
+---
+
 ## Completed This Iteration (2026-01-19 - Task 3.3.6)
 
 **Task 3.3.6: Implement decision synthesis from multiple perspectives (EC-8.1)**
@@ -580,7 +688,7 @@ Created a comprehensive error scenario test suite with 48 new test cases coverin
 - [x] Task 3.3.10: Handle analysis timeouts (EC-8.2) with safe defaults
 - [x] Task 3.3.11: Prevent concurrent executions of same agent
 - [x] Task 3.3.12: Unit tests for context loading
-- [ ] Task 3.3.13: Integration tests for continuous execution
+- [ ] Task 3.3.13: Integration tests for continuous execution (BLOCKED - see notes)
 - [ ] Task 3.3.14: Integration tests for reactive execution
 - [ ] Task 3.3.15: Tests for multi-perspective analysis
 - [ ] Task 3.3.16: Tests for decision synthesis
