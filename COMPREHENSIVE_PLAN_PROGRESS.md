@@ -123,7 +123,7 @@ RecursiveManager is a hierarchical AI agent system with:
 ##### Testing
 
 - [x] Task 1.2.20: Unit tests for atomic writes (crash simulation)
-- [ ] Task 1.2.21: Unit tests for backup creation and restoration
+- [x] Task 1.2.21: Unit tests for backup creation and restoration
 - [ ] Task 1.2.22: Unit tests for schema validation (valid/invalid inputs)
 - [ ] Task 1.2.23: Integration tests for full file lifecycle
 - [ ] Task 1.2.24: Edge case tests (disk full, permissions, corruption)
@@ -532,6 +532,44 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.2.21: Unit tests for backup creation and restoration ✅
+
+**Summary**: Verified comprehensive unit tests exist for both backup creation and restoration functionality. The test suite includes 61 tests across two files (backup.test.ts with 21 tests and file-recovery.test.ts with 40 tests), providing thorough coverage of backup operations, corruption detection, backup finding, and recovery mechanisms.
+
+**What Was Verified**:
+
+- ✅ Backup creation tests (backup.test.ts - 21 tests passing):
+  - Timestamped backup creation with ISO 8601 format
+  - Handling of non-existent files (returns null)
+  - File extension preservation and files without extensions
+  - Binary file support
+  - Backup directory options (default, custom, auto-creation)
+  - File permission preservation and custom permissions
+  - Custom timestamp format support
+  - Multiple backup versions with different timestamps
+  - Comprehensive error handling with BackupError
+  - Both async and sync variants tested
+
+- ✅ Restoration tests (file-recovery.test.ts - 40 tests passing):
+  - Corruption detection (missing files, parse errors, validation errors, read errors)
+  - Finding latest valid backup (skipping corrupt backups)
+  - Recovery from backups with corrupt file backup option
+  - Safe loading with automatic recovery fallback
+  - Validator integration for both corruption detection and recovery
+  - Custom backup directory support
+  - Timestamp tracking in corruption info and recovery results
+  - Both async and sync variants tested
+  - Edge cases (special characters, long filenames, empty files, whitespace)
+
+**Test Execution Results**:
+
+- All 21 backup creation tests passing
+- All 40 file recovery tests passing
+- Total: 61 tests, 0 failures
+- Coverage includes both happy paths and error scenarios
+
+---
 
 ### Task 1.2.13: Define message.schema.json ✅
 
