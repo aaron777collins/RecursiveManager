@@ -12,8 +12,6 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
-import Database from 'better-sqlite3';
-import { allMigrations } from '@recursive-manager/common';
 
 // Mock the interactive prompts and spinners to avoid CLI interaction during tests
 jest.mock('../utils/prompts', () => ({
@@ -49,9 +47,9 @@ describe('Config Command Integration Tests', () => {
     // Mock console.log and console.error to suppress output during tests
     consoleLogs = jest.spyOn(console, 'log').mockImplementation();
     consoleErrors = jest.spyOn(console, 'error').mockImplementation();
-    processExit = jest.spyOn(process, 'exit').mockImplementation((code?: number) => {
-      throw new Error(`Process.exit(${code})`);
-    });
+    processExit = jest.spyOn(process, 'exit').mockImplementation((() => {
+      throw new Error('Process.exit() called');
+    }) as any);
 
     // Create fresh commander instance and initialize
     program = new Command();

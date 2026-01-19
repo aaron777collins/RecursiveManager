@@ -78,7 +78,7 @@ IN_PROGRESS
 #### 2.6 CLI Infrastructure
 - [x] Create packages/cli/src/utils/paths.ts with getInstallRoot()
 - [x] Fix update.ts path resolution using getInstallRoot()
-- [ ] Add prerequisite checks to loadConfig()
+- [x] Add prerequisite checks to loadConfig()
 
 ### Phase 3: Documentation Completion (23 missing files)
 
@@ -221,6 +221,30 @@ IN_PROGRESS
 - [ ] Verify all GitHub Actions workflows passing on master branch
 
 ## Completed This Iteration
+
+**Iteration 9: Add Prerequisite Checks to loadConfig()**
+- Enhanced packages/cli/src/utils/config.ts loadConfig() function with comprehensive validation
+- Added prerequisite checks:
+  - Data directory existence and type validation (must be a directory, not a file)
+  - Marker file (.recursive-manager) validation (existence, file type, valid JSON content)
+  - Marker file content validation (must have 'initialized' and 'version' fields)
+  - Config file (config.json) validation (existence, file type, valid JSON parsing)
+  - Config schema validation (calls validateConfig() to ensure all required fields present)
+  - Database file validation (existence and file type verification)
+  - Required subdirectories validation (agents/, tasks/, logs/, snapshots/ must exist)
+- Created comprehensive test suite packages/cli/src/__tests__/loadConfig.test.ts:
+  - 13 test cases covering all validation scenarios
+  - Tests for invalid data directory, missing marker file, corrupted marker file
+  - Tests for invalid config file, missing required fields, database validation
+  - Tests for missing subdirectories and successful validation
+  - All 13 tests passing
+- Added --data-dir option to config command (packages/cli/src/commands/config.ts):
+  - Option was missing but required by existing integration tests
+  - Updated all loadConfig() and getConfigPath() calls to pass options.dataDir
+  - Ensures consistent data directory handling across all commands
+- Fixed unused import issues in config.integration.test.ts
+- Phase 2.6 (CLI Infrastructure) is now COMPLETE (all 3 tasks done)
+- loadConfig() now provides robust validation and clear error messages for all edge cases
 
 **Iteration 8: Implement CLI Path Resolution Infrastructure**
 - Created packages/cli/src/utils/paths.ts with reliable installation root detection

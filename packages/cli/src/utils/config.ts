@@ -2,7 +2,7 @@
  * Configuration utilities for RecursiveManager CLI
  */
 
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, statSync } from 'fs';
 import { resolve } from 'path';
 import { error } from './colors';
 
@@ -29,6 +29,21 @@ export interface Config {
 export function loadConfig(dataDir?: string): Config {
   const configDir =
     dataDir || process.env.RECURSIVE_MANAGER_DATA_DIR || resolve(process.cwd(), '.recursive-manager');
+
+  // Check if data directory exists and is a directory
+  if (existsSync(configDir)) {
+    try {
+      const stats = statSync(configDir);
+      if (!stats.isDirectory()) {
+        console.error(error(`Data directory path exists but is not a directory: ${configDir}`));
+        process.exit(1);
+      }
+    } catch (err) {
+      console.error(error(`Cannot access data directory: ${(err as Error).message}`));
+      process.exit(1);
+    }
+  }
+
   const markerFile = resolve(configDir, '.recursive-manager');
 
   // Check if RecursiveManager is initialized
@@ -37,10 +52,47 @@ export function loadConfig(dataDir?: string): Config {
     process.exit(1);
   }
 
+  // Validate marker file is a file, not a directory
+  try {
+    const markerStats = statSync(markerFile);
+    if (!markerStats.isFile()) {
+      console.error(error('Marker file exists but is not a file. Data directory may be corrupted.'));
+      process.exit(1);
+    }
+  } catch (err) {
+    console.error(error(`Cannot access marker file: ${(err as Error).message}`));
+    process.exit(1);
+  }
+
+  // Validate marker file content
+  try {
+    const markerContent = readFileSync(markerFile, 'utf-8');
+    const markerData = JSON.parse(markerContent);
+    if (!markerData.initialized || !markerData.version) {
+      console.error(error('Marker file is invalid. Data directory may be corrupted.'));
+      process.exit(1);
+    }
+  } catch (err) {
+    console.error(error('Failed to parse marker file. Data directory may be corrupted.'));
+    process.exit(1);
+  }
+
   // Check if config.json exists
   const configPath = resolve(configDir, 'config.json');
   if (!existsSync(configPath)) {
     console.error(error('Configuration not found! Data directory may be corrupted.'));
+    process.exit(1);
+  }
+
+  // Validate config file is a file, not a directory
+  try {
+    const configStats = statSync(configPath);
+    if (!configStats.isFile()) {
+      console.error(error('Config path exists but is not a file. Data directory may be corrupted.'));
+      process.exit(1);
+    }
+  } catch (err) {
+    console.error(error(`Cannot access config file: ${(err as Error).message}`));
     process.exit(1);
   }
 
@@ -54,10 +106,50 @@ export function loadConfig(dataDir?: string): Config {
     process.exit(1);
   }
 
+  // Validate configuration schema
+  try {
+    validateConfig(config);
+  } catch (err) {
+    console.error(error('Configuration validation failed: ' + (err as Error).message));
+    process.exit(1);
+  }
+
   // Validate database exists
   if (!existsSync(config.dbPath)) {
     console.error(error(`Database not found at ${config.dbPath}`));
     process.exit(1);
+  }
+
+  // Validate database is a file
+  try {
+    const dbStats = statSync(config.dbPath);
+    if (!dbStats.isFile()) {
+      console.error(error('Database path exists but is not a file.'));
+      process.exit(1);
+    }
+  } catch (err) {
+    console.error(error(`Cannot access database file: ${(err as Error).message}`));
+    process.exit(1);
+  }
+
+  // Validate required subdirectories exist
+  const requiredDirs = ['agents', 'tasks', 'logs', 'snapshots'];
+  for (const dir of requiredDirs) {
+    const dirPath = resolve(config.dataDir, dir);
+    if (!existsSync(dirPath)) {
+      console.error(error(`Required directory missing: ${dir}. Data directory may be corrupted.`));
+      process.exit(1);
+    }
+    try {
+      const dirStats = statSync(dirPath);
+      if (!dirStats.isDirectory()) {
+        console.error(error(`Required path ${dir} exists but is not a directory.`));
+        process.exit(1);
+      }
+    } catch (err) {
+      console.error(error(`Cannot access directory ${dir}: ${(err as Error).message}`));
+      process.exit(1);
+    }
   }
 
   return config;

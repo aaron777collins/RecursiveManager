@@ -22,21 +22,22 @@ export function registerConfigCommand(program: Command): void {
     .option('--set <key=value>', 'Set configuration value')
     .option('--list', 'List all configuration')
     .option('--reset', 'Reset to default configuration')
-    .action(async (options: { get?: string; set?: string; list?: boolean; reset?: boolean }) => {
+    .option('--data-dir <dir>', 'Custom data directory')
+    .action(async (options: { get?: string; set?: string; list?: boolean; reset?: boolean; dataDir?: string }) => {
       try {
         console.log(header('\n⚙️  RecursiveManager Configuration'));
         console.log();
 
         if (options.list) {
           // List all configuration
-          const config = loadConfig();
+          const config = loadConfig(options.dataDir);
           console.log(subheader('Current Configuration:'));
           console.log();
           console.log(JSON.stringify(config, null, 2));
           console.log();
         } else if (options.get) {
           // Get specific configuration value
-          const config = loadConfig();
+          const config = loadConfig(options.dataDir);
           const value = getNestedValue(config, options.get);
 
           if (value === undefined) {
@@ -54,7 +55,7 @@ export function registerConfigCommand(program: Command): void {
             process.exit(1);
           }
 
-          const config = loadConfig();
+          const config = loadConfig(options.dataDir);
           setNestedValue(config, key, value);
 
           // Validate the updated configuration
@@ -66,7 +67,7 @@ export function registerConfigCommand(program: Command): void {
           }
 
           // Save configuration
-          const configPath = getConfigPath();
+          const configPath = getConfigPath(options.dataDir);
           writeFileSync(configPath, JSON.stringify(config, null, 2));
 
           console.log(success(`✅ Set ${key} = ${value}`));
@@ -87,7 +88,7 @@ export function registerConfigCommand(program: Command): void {
           }
         } else {
           // Interactive configuration wizard
-          const config = loadConfig();
+          const config = loadConfig(options.dataDir);
           console.log(info('Interactive Configuration Wizard'));
           console.log();
 
@@ -125,7 +126,7 @@ export function registerConfigCommand(program: Command): void {
               }
 
               // Save
-              const configPath = getConfigPath();
+              const configPath = getConfigPath(options.dataDir);
               writeFileSync(configPath, JSON.stringify(config, null, 2));
 
               console.log();
