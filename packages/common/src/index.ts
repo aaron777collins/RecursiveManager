@@ -17,4 +17,10 @@ export {
   createBackupSync,
   BackupError,
   type BackupOptions,
+  cleanupBackups,
+  cleanupBackupsSync,
+  type CleanupBackupsOptions,
+  type CleanupResult,
+  DEFAULT_RETENTION_DAYS,
+  DEFAULT_RETENTION_MS,
 } from './file-io';

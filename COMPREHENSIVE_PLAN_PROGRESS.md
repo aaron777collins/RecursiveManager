@@ -93,7 +93,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 1.2.1: Implement atomicWrite() with temp file + rename pattern
 - [x] Task 1.2.2: Implement createBackup() with timestamped backups
-- [ ] Task 1.2.3: Implement backup retention/cleanup (7-day policy)
+- [x] Task 1.2.3: Implement backup retention/cleanup (7-day policy)
 - [ ] Task 1.2.4: Create directory permission handling (0o755)
 - [ ] Task 1.2.5: Implement disk space checking (EC-5.1: Disk Full)
 
@@ -532,6 +532,96 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.2.3: Implement backup retention/cleanup (7-day policy) ✅
+
+**Summary**: Implemented backup retention and cleanup functionality with configurable retention period (default 7 days), both async and sync variants, comprehensive error handling, and 18 passing unit tests.
+
+**What Was Implemented**:
+
+- ✅ Extended `packages/common/src/file-io.ts` with cleanup functionality
+  - `cleanupBackups()` - Async backup cleanup with age-based retention
+  - `cleanupBackupsSync()` - Synchronous version for edge cases
+  - `CleanupBackupsOptions` - Type-safe configuration interface
+  - `CleanupResult` - Detailed result reporting
+  - `DEFAULT_RETENTION_DAYS` constant (7 days)
+  - `DEFAULT_RETENTION_MS` constant (7 days in milliseconds)
+  - `escapeRegex()` - Helper for safe regex pattern matching
+- ✅ Cleanup algorithm features:
+  - Identifies backups by timestamped naming pattern (filename.YYYY-MM-DDTHH-mm-ss-SSS.ext)
+  - Deletes backups older than retention period based on file mtime
+  - Configurable retention period (default: 7 days)
+  - Supports custom backup directory
+  - Dry-run mode to preview deletions without actually deleting
+  - Continues processing even if individual files fail to delete
+  - Only targets backups matching the specific original filename
+- ✅ Configuration options:
+  - `maxAge` - Maximum age in milliseconds (default: 7 days)
+  - `backupDir` - Custom backup directory (default: same as original)
+  - `dryRun` - Preview mode without actual deletion (default: false)
+- ✅ Result reporting:
+  - Total backups found
+  - Number deleted
+  - Paths of deleted backups
+  - Error count and detailed error information
+- ✅ Exported from `@recursive-manager/common` package
+  - Added to package index with proper TypeScript types
+  - Available for use in all other packages
+- ✅ Comprehensive test suite (18 tests, all passing)
+  - Basic functionality (empty results, recent backups, old backups)
+  - Custom retention periods (custom maxAge, maxAge=0)
+  - Custom backup directories
+  - Dry-run mode
+  - Multiple backups with mixed ages
+  - Filename-specific cleanup (doesn't affect other files)
+  - Error handling (continues on individual file errors)
+  - Edge cases (no extension, multiple dots, special characters)
+  - Synchronous variant (all core functionality)
+  - Constant value validation
+
+**Files Created/Modified**:
+
+1. `packages/common/src/file-io.ts` - Extended with 201 lines of cleanup code (total 657 lines)
+2. `packages/common/src/__tests__/cleanup.test.ts` (362 lines) - Comprehensive tests
+3. `packages/common/src/index.ts` - Updated exports to include cleanup functions
+
+**Testing Results**:
+
+- ✅ 18/18 cleanup tests passing
+- ✅ 63/63 total tests passing in common package
+- ✅ All tests complete in ~6 seconds
+- ✅ ESLint passes
+- ✅ Prettier formatting passes
+- ✅ TypeScript compilation successful
+- ✅ Test coverage includes:
+  - Basic cleanup operations
+  - Custom retention periods (including edge case of maxAge=0)
+  - Custom backup directories
+  - Dry-run preview mode
+  - Multiple backups with selective deletion
+  - Filename-specific pattern matching
+  - Error handling and recovery
+  - Edge cases (various filename formats)
+  - Both async and sync variants
+  - Constant exports
+
+**Key Design Decisions**:
+
+1. **Age-based retention**: Uses file mtime (modification time) not filename timestamp
+2. **Filename pattern matching**: Regex-based matching ensures only matching backups are deleted
+3. **Graceful error handling**: Individual file errors don't stop the cleanup process
+4. **Dry-run support**: Safe preview mode to see what would be deleted
+5. **Detailed reporting**: CleanupResult provides complete information about the operation
+6. **Default 7-day policy**: Aligns with task requirements for 7-day retention
+7. **Comparison operator**: Uses `>=` instead of `>` to handle maxAge=0 edge case
+
+**Impact**:
+
+This is the third utility in Phase 1.2 (File System Layer). It provides automated backup management to prevent unbounded disk usage. The system can now create backups with `createBackup()` and periodically clean up old backups with `cleanupBackups()`. This will be used in scheduled cleanup jobs and potentially before creating new backups.
+
+**Next Task**: Task 1.2.4 - Create directory permission handling (0o755)
+
+---
 
 ### Task 1.2.2: Implement createBackup() with timestamped backups ✅
 

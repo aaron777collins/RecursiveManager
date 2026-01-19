@@ -393,3 +393,280 @@ export function createBackupSync(filePath: string, options: BackupOptions = {}):
     );
   }
 }
+
+/**
+ * Options for backup cleanup operations
+ */
+export interface CleanupBackupsOptions {
+  /**
+   * Maximum age of backups in milliseconds (default: 7 days)
+   */
+  maxAge?: number;
+
+  /**
+   * Backup directory to clean (default: same directory as original file)
+   */
+  backupDir?: string;
+
+  /**
+   * Whether to perform a dry run without actually deleting files (default: false)
+   */
+  dryRun?: boolean;
+}
+
+/**
+ * Result of a backup cleanup operation
+ */
+export interface CleanupResult {
+  /**
+   * Number of backups found
+   */
+  totalFound: number;
+
+  /**
+   * Number of backups deleted
+   */
+  deleted: number;
+
+  /**
+   * Paths of deleted backups
+   */
+  deletedPaths: string[];
+
+  /**
+   * Number of backups that failed to delete
+   */
+  errors: number;
+
+  /**
+   * Error details for failed deletions
+   */
+  errorDetails: Array<{ path: string; error: string }>;
+}
+
+/**
+ * Default retention period: 7 days in milliseconds
+ */
+export const DEFAULT_RETENTION_DAYS = 7;
+export const DEFAULT_RETENTION_MS = DEFAULT_RETENTION_DAYS * 24 * 60 * 60 * 1000;
+
+/**
+ * Clean up old backup files based on retention policy
+ *
+ * This function finds and deletes backup files older than the specified retention period.
+ * Backups are identified by the timestamped naming pattern created by createBackup().
+ *
+ * Pattern: filename.YYYY-MM-DDTHH-mm-ss-SSS.ext
+ *
+ * @param filePath - Path to the original file (backups will be found based on this)
+ * @param options - Cleanup options (maxAge, backupDir, dryRun)
+ * @returns CleanupResult with details about the cleanup operation
+ * @throws BackupError if the cleanup operation fails critically
+ *
+ * @example
+ * ```typescript
+ * // Clean up backups older than 7 days (default)
+ * const result = await cleanupBackups('/path/to/config.json');
+ * console.log(`Deleted ${result.deleted} old backups`);
+ *
+ * // Clean up backups older than 3 days
+ * const result = await cleanupBackups('/path/to/config.json', {
+ *   maxAge: 3 * 24 * 60 * 60 * 1000
+ * });
+ *
+ * // Dry run to see what would be deleted
+ * const result = await cleanupBackups('/path/to/config.json', {
+ *   dryRun: true
+ * });
+ * ```
+ */
+export async function cleanupBackups(
+  filePath: string,
+  options: CleanupBackupsOptions = {}
+): Promise<CleanupResult> {
+  const { maxAge = DEFAULT_RETENTION_MS, dryRun = false } = options;
+
+  const absolutePath = path.resolve(filePath);
+  const dir = path.dirname(absolutePath);
+  const ext = path.extname(absolutePath);
+  const basename = path.basename(absolutePath, ext);
+
+  // Determine backup directory
+  const backupDir = options.backupDir ? path.resolve(options.backupDir) : dir;
+
+  const result: CleanupResult = {
+    totalFound: 0,
+    deleted: 0,
+    deletedPaths: [],
+    errors: 0,
+    errorDetails: [],
+  };
+
+  try {
+    // Check if backup directory exists
+    try {
+      await fs.access(backupDir);
+    } catch {
+      // Directory doesn't exist - nothing to clean up
+      return result;
+    }
+
+    // Read all files in backup directory
+    const files = await fs.readdir(backupDir);
+
+    // Pattern: basename.YYYY-MM-DDTHH-mm-ss-SSS.ext
+    // Create regex to match backup files for this specific file
+    const timestampPattern = '\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}-\\d{3}';
+    const backupPattern = new RegExp(
+      `^${escapeRegex(basename)}\\.(${timestampPattern})${escapeRegex(ext)}$`
+    );
+
+    const now = Date.now();
+
+    // Find and process backup files
+    for (const file of files) {
+      const match = backupPattern.exec(file);
+      if (!match) {
+        continue; // Not a backup file for this original file
+      }
+
+      result.totalFound++;
+
+      const backupPath = path.join(backupDir, file);
+
+      try {
+        // Get file stats to check age
+        const stats = await fs.stat(backupPath);
+        const fileAge = now - stats.mtimeMs;
+
+        // Check if file is older than retention period
+        if (fileAge >= maxAge) {
+          if (!dryRun) {
+            await fs.unlink(backupPath);
+          }
+          result.deleted++;
+          result.deletedPaths.push(backupPath);
+        }
+      } catch (error) {
+        // Track individual file errors but continue processing
+        result.errors++;
+        const err = error as Error;
+        result.errorDetails.push({
+          path: backupPath,
+          error: err.message,
+        });
+      }
+    }
+
+    return result;
+  } catch (error) {
+    const err = error as Error;
+    throw new BackupError(
+      `Failed to clean up backups for ${absolutePath}: ${err.message}`,
+      err,
+      absolutePath
+    );
+  }
+}
+
+/**
+ * Synchronous version of cleanupBackups for cases where async is not possible
+ *
+ * @param filePath - Path to the original file
+ * @param options - Cleanup options
+ * @returns CleanupResult with details about the cleanup operation
+ * @throws BackupError if the cleanup operation fails critically
+ */
+export function cleanupBackupsSync(
+  filePath: string,
+  options: CleanupBackupsOptions = {}
+): CleanupResult {
+  const { maxAge = DEFAULT_RETENTION_MS, dryRun = false } = options;
+
+  const absolutePath = path.resolve(filePath);
+  const dir = path.dirname(absolutePath);
+  const ext = path.extname(absolutePath);
+  const basename = path.basename(absolutePath, ext);
+
+  // Determine backup directory
+  const backupDir = options.backupDir ? path.resolve(options.backupDir) : dir;
+
+  const result: CleanupResult = {
+    totalFound: 0,
+    deleted: 0,
+    deletedPaths: [],
+    errors: 0,
+    errorDetails: [],
+  };
+
+  try {
+    // Check if backup directory exists
+    if (!fsSync.existsSync(backupDir)) {
+      return result;
+    }
+
+    // Read all files in backup directory
+    const files = fsSync.readdirSync(backupDir);
+
+    // Pattern: basename.YYYY-MM-DDTHH-mm-ss-SSS.ext
+    const timestampPattern = '\\d{4}-\\d{2}-\\d{2}T\\d{2}-\\d{2}-\\d{2}-\\d{3}';
+    const backupPattern = new RegExp(
+      `^${escapeRegex(basename)}\\.(${timestampPattern})${escapeRegex(ext)}$`
+    );
+
+    const now = Date.now();
+
+    // Find and process backup files
+    for (const file of files) {
+      const match = backupPattern.exec(file);
+      if (!match) {
+        continue;
+      }
+
+      result.totalFound++;
+
+      const backupPath = path.join(backupDir, file);
+
+      try {
+        // Get file stats to check age
+        const stats = fsSync.statSync(backupPath);
+        const fileAge = now - stats.mtimeMs;
+
+        // Check if file is older than retention period
+        if (fileAge >= maxAge) {
+          if (!dryRun) {
+            fsSync.unlinkSync(backupPath);
+          }
+          result.deleted++;
+          result.deletedPaths.push(backupPath);
+        }
+      } catch (error) {
+        result.errors++;
+        const err = error as Error;
+        result.errorDetails.push({
+          path: backupPath,
+          error: err.message,
+        });
+      }
+    }
+
+    return result;
+  } catch (error) {
+    const err = error as Error;
+    throw new BackupError(
+      `Failed to clean up backups for ${absolutePath}: ${err.message}`,
+      err,
+      absolutePath
+    );
+  }
+}
+
+/**
+ * Escape special regex characters in a string
+ *
+ * @param str - String to escape
+ * @returns Escaped string safe for use in regex
+ */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
