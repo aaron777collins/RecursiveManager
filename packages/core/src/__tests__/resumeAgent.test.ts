@@ -154,10 +154,10 @@ describe('resumeAgent', () => {
       expect(afterResumeCount).toBeGreaterThan(beforeResumeCount);
 
       const devMessages = getMessages(db, { agentId: 'dev-001' });
-      expect(devMessages.some((m) => m.subject?.includes('Resumed'))).toBe(true);
+      expect(devMessages.some((m: any) => m.subject?.includes('Resumed'))).toBe(true);
 
       const managerMessages = getMessages(db, { agentId: 'manager-001' });
-      expect(managerMessages.some((m) => m.subject?.includes('Subordinate Resumed'))).toBe(true);
+      expect(managerMessages.some((m: any) => m.subject?.includes('Subordinate Resumed'))).toBe(true);
     });
 
     it('should send only one notification for root agent', async () => {
@@ -181,7 +181,7 @@ describe('resumeAgent', () => {
 
       // Verify notification to agent only
       const messages = getMessages(db, { agentId: 'ceo-001' });
-      expect(messages.some((m) => m.subject?.includes('Resumed'))).toBe(true);
+      expect(messages.some((m: any) => m.subject?.includes('Resumed'))).toBe(true);
     });
   });
 

@@ -215,7 +215,7 @@ describe('Logger Module', () => {
       }
     });
 
-    it('should write logs to file', () => {
+    it('should write logs to file', async () => {
       const logger = createLogger({
         file: true,
         filePath: tempFile,
@@ -224,16 +224,18 @@ describe('Logger Module', () => {
 
       logger.info('Test file log');
 
-      // Give Winston time to flush
-      const waitForFile = () => {
-        return new Promise((resolve) => setTimeout(resolve, 100));
-      };
+      // Get the underlying Winston logger and wait for it to finish writing
+      const winstonLogger = (logger as any).getWinstonLogger();
 
-      return waitForFile().then(() => {
-        expect(fs.existsSync(tempFile)).toBe(true);
-        const content = fs.readFileSync(tempFile, 'utf-8');
-        expect(content).toContain('Test file log');
+      // Wait for all transports to finish writing
+      await new Promise<void>((resolve) => {
+        winstonLogger.on('finish', resolve);
+        winstonLogger.end();
       });
+
+      expect(fs.existsSync(tempFile)).toBe(true);
+      const content = fs.readFileSync(tempFile, 'utf-8');
+      expect(content).toContain('Test file log');
     });
 
     it('should write JSON formatted logs to file', () => {
@@ -390,7 +392,14 @@ describe('Logger Module', () => {
         customNested: { nested: 'value' },
       });
 
-      await waitForFile();
+      // Get the underlying Winston logger and wait for it to finish writing
+      const winstonLogger = (logger as any).getWinstonLogger();
+
+      // Wait for all transports to finish writing
+      await new Promise<void>((resolve) => {
+        winstonLogger.on('finish', resolve);
+        winstonLogger.end();
+      });
 
       const content = fs.readFileSync(tempFile, 'utf-8');
       const parsed = JSON.parse(content.trim().split('\n')[0] as string);

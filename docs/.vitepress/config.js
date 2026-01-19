@@ -94,7 +94,7 @@ export default {
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/yourusername/RecursiveManager' }
+      { icon: 'github', link: 'https://github.com/aaron777collins/RecursiveManager' }
     ],
 
     footer: {

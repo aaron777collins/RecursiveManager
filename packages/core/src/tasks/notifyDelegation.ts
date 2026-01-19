@@ -74,7 +74,7 @@ export async function notifyTaskDelegation(
   // Check if agent has delegation notifications enabled (unless forced)
   if (!force) {
     try {
-      const agentConfig = await loadAgentConfig(task.delegated_to, dataDir);
+      const agentConfig = await loadAgentConfig(task.delegated_to, { baseDir: dataDir });
 
       // Check if notifications are configured and delegation notifications are disabled
       if (agentConfig.communication?.notifyOnDelegation === false) {
@@ -92,7 +92,7 @@ export async function notifyTaskDelegation(
 
   // Get the task owner agent for the "from" field
   const ownerAgent = getAgent(db, task.agent_id);
-  const fromAgentName = ownerAgent?.name || task.agent_id;
+  const fromAgentName = ownerAgent?.display_name || task.agent_id;
 
   // Generate message ID
   const messageId = generateMessageId();

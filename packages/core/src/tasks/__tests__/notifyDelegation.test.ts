@@ -427,17 +427,28 @@ describe('notifyTaskDelegation', () => {
         taskPath: `/${ownerAgentId}/test-task`,
       });
 
-      // Manually set delegated_to to non-existent agent
-      db.prepare('UPDATE tasks SET delegated_to = ?, delegated_at = ? WHERE id = ?').run(
-        'non-existent-agent',
-        new Date().toISOString(),
-        task.id
-      );
+      // Create a temporary agent to delegate to
+      const tempAgentId = createAgent(db, {
+        id: 'temp-agent-id',
+        displayName: 'Temp Agent',
+        role: 'Worker',
+        reportingTo: ownerAgentId,
+        createdBy: ownerAgentId,
+        mainGoal: 'Temporary',
+        configPath: path.join(testDir, 'temp.json'),
+      }).id;
 
-      const invalidTask = db.prepare('SELECT * FROM tasks WHERE id = ?').get(task.id) as any;
+      // Delegate task to temp agent
+      const delegatedTask = delegateTask(db, task.id, tempAgentId);
+
+      // Now delete the temp agent to simulate non-existent agent
+      // Need to disable foreign keys temporarily to delete the agent
+      db.pragma('foreign_keys = OFF');
+      db.prepare('DELETE FROM agents WHERE id = ?').run(tempAgentId);
+      db.pragma('foreign_keys = ON');
 
       // Attempt to send notification
-      await expect(notifyTaskDelegation(db, invalidTask, { dataDir: testDir })).rejects.toThrow(
+      await expect(notifyTaskDelegation(db, delegatedTask, { dataDir: testDir })).rejects.toThrow(
         'Cannot notify delegation: delegated agent'
       );
     });

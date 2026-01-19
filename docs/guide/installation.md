@@ -59,7 +59,7 @@ npx recursive-manager init
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/RecursiveManager.git
+git clone https://github.com/aaron777collins/RecursiveManager.git
 cd RecursiveManager
 
 # Install dependencies

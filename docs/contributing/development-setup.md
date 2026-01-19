@@ -15,9 +15,9 @@ Before contributing, you should be familiar with:
 
 ### Recommended Reading
 
-1. [COMPREHENSIVE_PLAN.md](https://github.com/yourusername/RecursiveManager/blob/main/COMPREHENSIVE_PLAN.md) - System architecture
-2. [IMPLEMENTATION_PHASES.md](https://github.com/yourusername/RecursiveManager/blob/main/IMPLEMENTATION_PHASES.md) - Development roadmap
-3. [EDGE_CASES_AND_CONTINGENCIES.md](https://github.com/yourusername/RecursiveManager/blob/main/EDGE_CASES_AND_CONTINGENCIES.md) - Edge cases to handle
+1. [COMPREHENSIVE_PLAN.md](https://github.com/aaron777collins/RecursiveManager/blob/main/COMPREHENSIVE_PLAN.md) - System architecture
+2. [IMPLEMENTATION_PHASES.md](https://github.com/aaron777collins/RecursiveManager/blob/main/IMPLEMENTATION_PHASES.md) - Development roadmap
+3. [EDGE_CASES_AND_CONTINGENCIES.md](https://github.com/aaron777collins/RecursiveManager/blob/main/EDGE_CASES_AND_CONTINGENCIES.md) - Edge cases to handle
 
 ## System Requirements
 
@@ -86,7 +86,7 @@ claude-code --version
 ### 4. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/RecursiveManager.git
+git clone https://github.com/aaron777collins/RecursiveManager.git
 cd RecursiveManager
 ```
 
@@ -324,7 +324,7 @@ sudo apt-get install build-essential python3
 
 1. ✅ Your environment is ready!
 2. Read [Implementation Phases](/contributing/implementation-phases) to understand the roadmap
-3. Browse [open issues](https://github.com/yourusername/RecursiveManager/issues) for tasks
+3. Browse [open issues](https://github.com/aaron777collins/RecursiveManager/issues) for tasks
 4. Check [Testing Guide](/contributing/testing) for testing best practices
 5. Review [Code Style](/contributing/code-style) for conventions
 6. Start contributing! 🚀
@@ -332,6 +332,6 @@ sudo apt-get install build-essential python3
 ## Getting Help
 
 If you encounter issues not covered here:
-- Check [GitHub Issues](https://github.com/yourusername/RecursiveManager/issues)
-- Ask in [GitHub Discussions](https://github.com/yourusername/RecursiveManager/discussions)
+- Check [GitHub Issues](https://github.com/aaron777collins/RecursiveManager/issues)
+- Ask in [GitHub Discussions](https://github.com/aaron777collins/RecursiveManager/discussions)
 - Join our [Discord community](#)

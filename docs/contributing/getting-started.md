@@ -43,7 +43,7 @@ We have 209 tasks organized into phases. Start with:
 - Task management
 - Execution engine
 
-Browse open issues on GitHub: [Issues](https://github.com/yourusername/RecursiveManager/issues)
+Browse open issues on GitHub: [Issues](https://github.com/aaron777collins/RecursiveManager/issues)
 
 ### 3. Development Workflow
 
@@ -266,7 +266,7 @@ All contributors will be:
 
 1. [Set up your development environment](/contributing/development-setup)
 2. Review [Implementation Phases](/contributing/implementation-phases)
-3. Browse [open issues](https://github.com/yourusername/RecursiveManager/issues)
+3. Browse [open issues](https://github.com/aaron777collins/RecursiveManager/issues)
 4. Join the community and introduce yourself!
 
 Thank you for contributing to RecursiveManager! 🚀

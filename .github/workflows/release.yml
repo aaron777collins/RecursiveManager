@@ -40,7 +40,7 @@ jobs:
             ## Installation
 
             ```bash
-            curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/master/scripts/install.sh | bash
+            curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash
             ```
 
             ## Updating

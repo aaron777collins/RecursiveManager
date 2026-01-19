@@ -102,7 +102,7 @@ export async function notifyDeadlock(
     // Check if agent has deadlock notifications enabled (unless forced)
     if (!force) {
       try {
-        const agentConfig = await loadAgentConfig(agentId, dataDir);
+        const agentConfig = await loadAgentConfig(agentId, { baseDir: dataDir });
 
         // Check if notifications are configured and deadlock notifications are disabled
         if (agentConfig.communication?.notifyOnDeadlock === false) {

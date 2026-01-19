@@ -5,8 +5,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-purple.svg)](https://github.com/aaron777collins/RecursiveManager/releases/tag/v0.1.0)
 [![Status: Alpha](https://img.shields.io/badge/Status-Alpha-orange.svg)](https://github.com/aaron777collins/RecursiveManager)
+[![CI Status](https://github.com/aaron777collins/RecursiveManager/actions/workflows/ci.yml/badge.svg)](https://github.com/aaron777collins/RecursiveManager/actions/workflows/ci.yml)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue.svg)](https://aaron777collins.github.io/RecursiveManager/)
-[![Build Status](https://github.com/aaron777collins/RecursiveManager/actions/workflows/docs.yml/badge.svg)](https://github.com/aaron777collins/RecursiveManager/actions/workflows/docs.yml)
+[![Docs Build](https://github.com/aaron777collins/RecursiveManager/actions/workflows/docs.yml/badge.svg)](https://github.com/aaron777collins/RecursiveManager/actions/workflows/docs.yml)
 
 ## Overview
 

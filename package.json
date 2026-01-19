@@ -13,7 +13,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/RecursiveManager.git"
+    "url": "https://github.com/aaron777collins/RecursiveManager.git"
   },
   "license": "MIT",
   "author": "",
@@ -34,9 +34,6 @@
     "clean": "turbo run clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
-    "docs:dev": "mkdocs serve",
-    "docs:build": "mkdocs build",
-    "docs:deploy": "mkdocs gh-deploy",
     "version": "echo $npm_package_version",
     "postinstall": "husky install"
   },
