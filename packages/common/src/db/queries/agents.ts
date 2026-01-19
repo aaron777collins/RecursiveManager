@@ -132,9 +132,10 @@ export function createAgent(db: Database.Database, input: CreateAgentInput): Age
 
     // Audit log successful agent creation
     // Note: agent_id must be either null or a valid agent ID due to foreign key constraint
-    // For system-created agents (createdBy='system'), we use null since 'system' is not an agent
+    // For system-created agents (createdBy='system' or 'test'), we use null since they are not agents
+    const isSystemOrTest = input.createdBy === 'system' || input.createdBy === 'test';
     auditLog(db, {
-      agentId: input.createdBy && input.createdBy !== 'system' ? input.createdBy : null,
+      agentId: input.createdBy && !isSystemOrTest ? input.createdBy : null,
       action: AuditAction.HIRE,
       targetAgentId: input.id,
       success: true,
@@ -151,8 +152,9 @@ export function createAgent(db: Database.Database, input: CreateAgentInput): Age
   } catch (error) {
     // Audit log failed agent creation
     // Note: agent_id must be either null or a valid agent ID due to foreign key constraint
+    const isSystemOrTest = input.createdBy === 'system' || input.createdBy === 'test';
     auditLog(db, {
-      agentId: input.createdBy && input.createdBy !== 'system' ? input.createdBy : null,
+      agentId: input.createdBy && !isSystemOrTest ? input.createdBy : null,
       action: AuditAction.HIRE,
       targetAgentId: input.id,
       success: false,

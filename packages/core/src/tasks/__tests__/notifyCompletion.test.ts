@@ -95,7 +95,8 @@ describe('notifyTaskCompletion', () => {
       permissions: {
         canHire: true,
         maxSubordinates: 20,
-        hiringBudget: 10000,
+        hiringBudget: 20,
+        workspaceQuotaMB: 1000,
       },
       framework: {
         primary: 'claude-code',
@@ -121,7 +122,8 @@ describe('notifyTaskCompletion', () => {
       permissions: {
         canHire: true,
         maxSubordinates: 10,
-        hiringBudget: 1000,
+        hiringBudget: 10,
+        workspaceQuotaMB: 500,
       },
       framework: {
         primary: 'claude-code',

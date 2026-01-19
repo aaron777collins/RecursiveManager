@@ -175,7 +175,7 @@ describe('Config Validation (Task 2.1.7)', () => {
       const result = validateAgentConfig(config as any);
       expect(result.valid).toBe(false);
       expect(result.errors).toBeDefined();
-      expect(result.errors!.some((e) => e.field.includes('version'))).toBe(true);
+      expect(result.errors!.some((e: any) => e.field.includes('version'))).toBe(true);
     });
 
     it('should reject config missing identity', () => {
@@ -189,7 +189,7 @@ describe('Config Validation (Task 2.1.7)', () => {
       const result = validateAgentConfig(config as any);
       expect(result.valid).toBe(false);
       expect(result.errors).toBeDefined();
-      expect(result.errors!.some((e) => e.field.includes('identity'))).toBe(true);
+      expect(result.errors!.some((e: any) => e.field.includes('identity'))).toBe(true);
     });
 
     it('should reject config missing goal', () => {
@@ -203,7 +203,7 @@ describe('Config Validation (Task 2.1.7)', () => {
       const result = validateAgentConfig(config as any);
       expect(result.valid).toBe(false);
       expect(result.errors).toBeDefined();
-      expect(result.errors!.some((e) => e.field.includes('goal'))).toBe(true);
+      expect(result.errors!.some((e: any) => e.field.includes('goal'))).toBe(true);
     });
 
     it('should reject config missing permissions', () => {
@@ -217,7 +217,7 @@ describe('Config Validation (Task 2.1.7)', () => {
       const result = validateAgentConfig(config as any);
       expect(result.valid).toBe(false);
       expect(result.errors).toBeDefined();
-      expect(result.errors!.some((e) => e.field.includes('permissions'))).toBe(true);
+      expect(result.errors!.some((e: any) => e.field.includes('permissions'))).toBe(true);
     });
 
     it('should reject config missing framework', () => {
@@ -231,7 +231,7 @@ describe('Config Validation (Task 2.1.7)', () => {
       const result = validateAgentConfig(config as any);
       expect(result.valid).toBe(false);
       expect(result.errors).toBeDefined();
-      expect(result.errors!.some((e) => e.field.includes('framework'))).toBe(true);
+      expect(result.errors!.some((e: any) => e.field.includes('framework'))).toBe(true);
     });
 
     it('should reject config missing required nested fields in identity', () => {
@@ -259,7 +259,7 @@ describe('Config Validation (Task 2.1.7)', () => {
 
       const result = validateAgentConfig(config);
       expect(result.valid).toBe(false);
-      expect(result.errors!.some((e) => e.field.includes('version'))).toBe(true);
+      expect(result.errors!.some((e: any) => e.field.includes('version'))).toBe(true);
     });
 
     it('should reject config with invalid agentId pattern', () => {
@@ -273,7 +273,7 @@ describe('Config Validation (Task 2.1.7)', () => {
 
       const result = validateAgentConfig(config);
       expect(result.valid).toBe(false);
-      expect(result.errors!.some((e) => e.field.includes('identity'))).toBe(true);
+      expect(result.errors!.some((e: any) => e.field.includes('identity'))).toBe(true);
     });
 
     it('should reject config with invalid createdAt format', () => {
@@ -287,7 +287,7 @@ describe('Config Validation (Task 2.1.7)', () => {
 
       const result = validateAgentConfig(config);
       expect(result.valid).toBe(false);
-      expect(result.errors!.some((e) => e.field.includes('createdAt'))).toBe(true);
+      expect(result.errors!.some((e: any) => e.field.includes('createdAt'))).toBe(true);
     });
 
     it('should reject config with boolean instead of string', () => {
@@ -352,7 +352,7 @@ describe('Config Validation (Task 2.1.7)', () => {
 
       const result = validateAgentConfig(config);
       expect(result.valid).toBe(false);
-      expect(result.errors!.some((e) => e.field.includes('framework'))).toBe(true);
+      expect(result.errors!.some((e: any) => e.field.includes('framework'))).toBe(true);
     });
   });
 
@@ -368,7 +368,7 @@ describe('Config Validation (Task 2.1.7)', () => {
       expect(result.errors).toBeDefined();
       expect(
         result.errors!.some(
-          (e) =>
+          (e: any) =>
             e.message.toLowerCase().includes('additional') ||
             e.message.toLowerCase().includes('unknown')
         )

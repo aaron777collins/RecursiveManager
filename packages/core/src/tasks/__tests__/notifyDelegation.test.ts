@@ -47,23 +47,26 @@ describe('notifyTaskDelegation', () => {
 
     // Create test agents
     ownerAgentId = createAgent(db, {
-      name: 'Owner Agent',
+      id: 'owner-agent-id',
+      displayName: 'Owner Agent',
       role: 'Manager',
-      managerId: null,
+      reportingTo: null,
+      createdBy: 'test',
+      mainGoal: 'Manage tasks',
+      configPath: path.join(testDir, 'owner.json'),
     }).id;
 
     delegatedAgentId = createAgent(db, {
-      name: 'Delegated Agent',
+      id: 'delegated-agent-id',
+      displayName: 'Delegated Agent',
       role: 'Worker',
-      managerId: ownerAgentId,
+      reportingTo: ownerAgentId,
+      createdBy: ownerAgentId,
+      mainGoal: 'Complete delegated tasks',
+      configPath: path.join(testDir, 'delegated.json'),
     }).id;
 
-    // Create org hierarchy relationship
-    db.prepare(`INSERT INTO org_hierarchy (agent_id, ancestor_id, depth) VALUES (?, ?, ?)`).run(
-      delegatedAgentId,
-      ownerAgentId,
-      1
-    );
+    // org_hierarchy is automatically created by createAgent
 
     // Create default agent configs with notifications enabled
     const ownerConfig: AgentConfig = {
@@ -82,7 +85,8 @@ describe('notifyTaskDelegation', () => {
       permissions: {
         canHire: true,
         maxSubordinates: 10,
-        hiringBudget: 1000,
+        hiringBudget: 10,
+        workspaceQuotaMB: 100,
       },
       framework: {
         primary: 'claude-code',

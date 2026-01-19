@@ -24,7 +24,6 @@ import {
   runMigrations,
   allMigrations,
   getMessages,
-  updateTaskStatus,
 } from '@recursive-manager/common';
 import { saveAgentConfig } from '../../config';
 import { AgentConfig } from '@recursive-manager/common';
@@ -50,21 +49,33 @@ describe('notifyDeadlock', () => {
 
     // Create test agents
     agentA = createAgent(db, {
-      name: 'Agent A',
+      id: 'agent-a-id',
+      displayName: 'Agent A',
       role: 'Worker',
-      managerId: null,
+      reportingTo: null,
+      createdBy: 'test',
+      mainGoal: 'Test work',
+      configPath: path.join(testDir, 'agent-a.json'),
     }).id;
 
     agentB = createAgent(db, {
-      name: 'Agent B',
+      id: 'agent-b-id',
+      displayName: 'Agent B',
       role: 'Worker',
-      managerId: null,
+      reportingTo: null,
+      createdBy: 'test',
+      mainGoal: 'Test work',
+      configPath: path.join(testDir, 'agent-b.json'),
     }).id;
 
     agentC = createAgent(db, {
-      name: 'Agent C',
+      id: 'agent-c-id',
+      displayName: 'Agent C',
       role: 'Worker',
-      managerId: null,
+      reportingTo: null,
+      createdBy: 'test',
+      mainGoal: 'Test work',
+      configPath: path.join(testDir, 'agent-c.json'),
     }).id;
 
     // Create default agent configs with notifications enabled
@@ -88,7 +99,6 @@ describe('notifyDeadlock', () => {
       },
       framework: {
         primary: 'claude-code',
-        fallbacks: [],
       },
       communication: {
         notifyOnCompletion: true,
@@ -96,13 +106,10 @@ describe('notifyDeadlock', () => {
         notifyOnDeadlock: true, // Enable deadlock notifications
       },
       behavior: {
-        executionMode: 'continuous',
-        autonomy: 'low',
-        escalationThreshold: 3,
+        continuousMode: true,
       },
       metadata: {
-        version: 1,
-        updatedAt: new Date().toISOString(),
+        tags: [],
       },
     });
 
@@ -174,7 +181,7 @@ describe('notifyDeadlock', () => {
       expect(inboxFilesB.length).toBeGreaterThan(0);
 
       // Read message content and verify it contains cycle information
-      const messageFileA = inboxFilesA[0];
+      const messageFileA = inboxFilesA[0]!;
       const messageContentA = await fs.readFile(path.join(inboxPathA, messageFileA), 'utf-8');
       expect(messageContentA).toContain('Task Deadlock Detected');
       expect(messageContentA).toContain('Task A');
@@ -293,7 +300,7 @@ describe('notifyDeadlock', () => {
       // Read message content and verify it mentions both tasks
       const inboxPathA = getInboxPath(agentA, testDir);
       const inboxFilesA = await fs.readdir(inboxPathA);
-      const messageContentA = await fs.readFile(path.join(inboxPathA, inboxFilesA[0]), 'utf-8');
+      const messageContentA = await fs.readFile(path.join(inboxPathA, inboxFilesA[0]!), 'utf-8');
       expect(messageContentA).toContain('Your tasks are involved');
       expect(messageContentA).toContain('Task A1');
       expect(messageContentA).toContain('Task A2');
@@ -303,7 +310,7 @@ describe('notifyDeadlock', () => {
   describe('Agent Preferences', () => {
     it('should respect agent notification preferences (notifyOnDeadlock = false)', async () => {
       // Disable deadlock notifications for agentA
-      const config = await saveAgentConfig(
+      await saveAgentConfig(
         agentA,
         {
           version: '1.0.0',
@@ -325,7 +332,6 @@ describe('notifyDeadlock', () => {
           },
           framework: {
             primary: 'claude-code',
-            fallbacks: [],
           },
           communication: {
             notifyOnCompletion: true,
@@ -333,13 +339,10 @@ describe('notifyDeadlock', () => {
             notifyOnDeadlock: false, // Disable deadlock notifications
           },
           behavior: {
-            executionMode: 'continuous',
-            autonomy: 'low',
-            escalationThreshold: 3,
+            continuousMode: true,
           },
           metadata: {
-            version: 1,
-            updatedAt: new Date().toISOString(),
+            tags: [],
           },
         },
         testDir
@@ -410,7 +413,6 @@ describe('notifyDeadlock', () => {
           },
           framework: {
             primary: 'claude-code',
-            fallbacks: [],
           },
           communication: {
             notifyOnCompletion: true,
@@ -418,13 +420,10 @@ describe('notifyDeadlock', () => {
             notifyOnDeadlock: false, // Disable deadlock notifications
           },
           behavior: {
-            executionMode: 'continuous',
-            autonomy: 'low',
-            escalationThreshold: 3,
+            continuousMode: true,
           },
           metadata: {
-            version: 1,
-            updatedAt: new Date().toISOString(),
+            tags: [],
           },
         },
         testDir

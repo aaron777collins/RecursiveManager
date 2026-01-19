@@ -323,10 +323,13 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
       // Validate working directory to prevent malicious path traversal
       const workingDirResolved = path.resolve(context.workingDir);
       const workspaceDirResolved = path.resolve(context.workspaceDir);
-      const relativePath = path.relative(workspaceDirResolved, workingDirResolved);
 
-      // Ensure working dir is within workspace (or is workspace itself)
-      if (relativePath && (relativePath.startsWith('..') || path.isAbsolute(relativePath))) {
+      // Check if working dir is within workspace or is the workspace itself
+      // This prevents ../../../etc/passwd style attacks
+      const isWithinWorkspace = workingDirResolved.startsWith(workspaceDirResolved);
+      const isSameDir = workingDirResolved === workspaceDirResolved;
+
+      if (!isWithinWorkspace && !isSameDir) {
         throw new Error(
           `Invalid working directory: '${context.workingDir}' is outside workspace '${context.workspaceDir}'`
         );

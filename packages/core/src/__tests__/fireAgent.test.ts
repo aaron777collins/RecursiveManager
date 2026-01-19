@@ -579,24 +579,13 @@ describe('fireAgent()', () => {
       const messages = getMessages(db, { agentId: 'ceo-001' });
       expect(messages.length).toBeGreaterThan(0);
 
-      const firedNotification = messages.find((m) => m.subject?.includes('Termination Notice'));
+      const firedNotification = messages.find((m: any) => m.subject?.includes('Termination Notice'));
       expect(firedNotification).toBeDefined();
       expect(firedNotification?.priority).toBe('high');
       expect(firedNotification?.action_required).toBe(true);
       expect(firedNotification?.from_agent_id).toBe('system');
 
-      // Check filesystem for message file
-      const messageFilePath = path.join(
-        tempDir,
-        'agents',
-        'ce',
-        'ceo-001',
-        'inbox',
-        'unread',
-        `${firedNotification?.id}.md`
-      );
-
-      // Note: File may not exist if agent directory was archived
+      // Note: Message files may not exist if agent directory was archived
       // That's expected behavior - messages are written before archival
     });
 
@@ -619,7 +608,7 @@ describe('fireAgent()', () => {
       const messages = getMessages(db, { agentId: 'ceo-001' });
       expect(messages.length).toBeGreaterThan(0);
 
-      const managerNotification = messages.find((m) =>
+      const managerNotification = messages.find((m: any) =>
         m.subject?.includes('Subordinate Termination')
       );
       expect(managerNotification).toBeDefined();
@@ -652,7 +641,7 @@ describe('fireAgent()', () => {
       const messages = getMessages(db, { agentId: 'dev-001' });
       expect(messages.length).toBeGreaterThan(0);
 
-      const managerChangeNotification = messages.find((m) => m.subject?.includes('Manager Change'));
+      const managerChangeNotification = messages.find((m: any) => m.subject?.includes('Manager Change'));
       expect(managerChangeNotification).toBeDefined();
       expect(managerChangeNotification?.priority).toBe('high');
       expect(managerChangeNotification?.action_required).toBe(true);
@@ -682,7 +671,7 @@ describe('fireAgent()', () => {
       const messages = getMessages(db, { agentId: 'dev-001' });
       expect(messages.length).toBeGreaterThan(0);
 
-      const cascadeNotification = messages.find((m) => m.subject?.includes('Cascade Termination'));
+      const cascadeNotification = messages.find((m: any) => m.subject?.includes('Cascade Termination'));
       expect(cascadeNotification).toBeDefined();
       expect(cascadeNotification?.priority).toBe('urgent');
       expect(cascadeNotification?.action_required).toBe(true);

@@ -80,7 +80,7 @@ function createMockContext(): ExecutionContext {
     messages: [],
     workspaceFiles: [],
     workspaceDir: '/tmp/test-workspace',
-    workingDir: '/tmp/test-working',
+    workingDir: '/tmp/test-workspace/working',
   };
 }
 
