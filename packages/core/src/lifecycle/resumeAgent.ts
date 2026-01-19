@@ -83,7 +83,7 @@ async function notifyAgentAndManager(
 
   logger.info('Sending resume notifications', {
     agentId: agent.id,
-    managerId: agent.reporting_to,
+    managerId: agent.reporting_to ?? undefined,
   });
 
   const notifications: Array<{ agentId: string; message: MessageData; dbMessage: MessageInput }> = [];
@@ -317,7 +317,7 @@ export async function resumeAgent(
     logger.debug('Agent validated for resuming', {
       agentId,
       currentStatus: agent.status,
-      managerId: agent.reporting_to,
+      managerId: agent.reporting_to ?? undefined,
     });
 
     // STEP 2: DATABASE OPERATIONS
@@ -429,7 +429,12 @@ export async function resumeAgent(
       tasksUnblocked,
     };
 
-    logger.info('Agent resume completed successfully', result);
+    logger.info('Agent resume completed successfully', {
+      agentId: result.agentId,
+      status: result.status,
+      previousStatus: result.previousStatus,
+      notificationsSent: result.notificationsSent,
+    });
 
     return result;
   } catch (err) {

@@ -22,8 +22,7 @@
 
 import Database from 'better-sqlite3';
 import { createAgentLogger } from '@recursive-manager/common';
-import { getActiveTasks, getBlockedTasks, updateTaskStatus, getTask } from '@recursive-manager/common';
-import type { TaskRecord } from '@recursive-manager/common';
+import { getActiveTasks, getBlockedTasks } from '@recursive-manager/common';
 
 /**
  * Special blocker identifier for agent pause

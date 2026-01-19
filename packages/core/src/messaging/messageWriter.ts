@@ -6,8 +6,7 @@
 
 import { mkdir } from 'fs/promises';
 import path from 'path';
-import { atomicWrite } from '@recursive-manager/common/file-io';
-import { getInboxPath } from '@recursive-manager/common/path-utils';
+import { atomicWrite, getInboxPath } from '@recursive-manager/common';
 
 /**
  * Message data structure
@@ -152,9 +151,10 @@ export async function writeMessagesInBatch(
     if (result.status === 'fulfilled') {
       paths.push(result.value);
     } else {
+      const message = messages[index];
       errors.push(
         new Error(
-          `Failed to write message to ${messages[index].agentId}: ${result.reason}`
+          `Failed to write message to ${message?.agentId ?? 'unknown'}: ${result.reason}`
         )
       );
     }
