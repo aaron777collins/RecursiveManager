@@ -912,24 +912,27 @@ export function updateTaskMetadata(
  * Delegate a task to another agent
  *
  * Task 2.3.9: Implement delegateTask(taskId, toAgentId) with validation
+ * Task 2.3.10: Verify delegation target exists and is subordinate
  *
  * This function delegates a task to another agent with proper validation:
  * - Verifies the task exists
  * - Verifies the target agent exists
+ * - Verifies the target agent is a subordinate of the task owner
  * - Updates the delegated_to and delegated_at fields
  * - Uses optimistic locking if version is provided
  *
  * **Validation Checks**:
  * - Task must exist
  * - Target agent must exist
+ * - Target agent must be a subordinate of the task owner (checked via org_hierarchy)
  * - Optional: Can check if task is already delegated to same agent
  *
  * @param db - Database connection
  * @param taskId - Task ID to delegate
- * @param toAgentId - Agent ID to delegate the task to
+ * @param toAgentId - Agent ID to delegate the task to (must be subordinate of task owner)
  * @param version - Optional version number for optimistic locking
  * @returns Updated task record
- * @throws Error if task not found, agent not found, or version mismatch
+ * @throws Error if task not found, agent not found, not a subordinate, or version mismatch
  *
  * @example
  * // Simple delegation
@@ -959,6 +962,24 @@ export function delegateTask(
     const targetAgent = getAgent(db, toAgentId);
     if (!targetAgent) {
       throw new Error(`Agent not found: ${toAgentId}`);
+    }
+
+    // Step 2b: Verify the target agent is a subordinate of the task owner
+    // Task 2.3.10: Verify delegation target exists and is subordinate
+    const hierarchyCheck = db
+      .prepare(
+        `
+      SELECT * FROM org_hierarchy
+      WHERE agent_id = ? AND ancestor_id = ?
+    `
+      )
+      .get(toAgentId, currentTask.agent_id);
+
+    if (!hierarchyCheck) {
+      throw new Error(
+        `Cannot delegate task ${taskId} to agent ${toAgentId}: ` +
+          `agent ${toAgentId} is not a subordinate of task owner ${currentTask.agent_id}`
+      );
     }
 
     // Step 3: Check if task is already delegated to the same agent (optional optimization)

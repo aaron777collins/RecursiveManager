@@ -2020,6 +2020,56 @@ describe('Task Query API', () => {
       }).toThrow('Agent not found: non-existent-agent');
     });
 
+    it('should throw error if target is not a subordinate - Task 2.3.10', () => {
+      // Create a third agent that is a PEER of agent-001, not a subordinate
+      // Both agent-001 and agent-003 report to no one (root agents)
+      createAgent(db, {
+        id: 'agent-003',
+        role: 'Designer',
+        displayName: 'Charlie Designer',
+        createdBy: null,
+        reportingTo: null,
+        mainGoal: 'Design products',
+        configPath: '/data/agents/ag/agent-003/config.json',
+      });
+
+      // Create a task owned by agent-001
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Task for non-subordinate',
+        priority: 'medium',
+        taskPath: 'Task for non-subordinate',
+      });
+
+      // Try to delegate to agent-003, which is NOT a subordinate of agent-001
+      // agent-003 is a peer (both are root agents), not a subordinate
+      expect(() => {
+        delegateTask(db, task.id, 'agent-003');
+      }).toThrow('is not a subordinate of task owner');
+    });
+
+    it('should successfully delegate to valid subordinate - Task 2.3.10', () => {
+      // agent-002 is already created as a subordinate of agent-001 in beforeEach
+      // Let's verify this works correctly
+
+      // Create a task owned by agent-001
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Task for valid subordinate',
+        priority: 'high',
+        taskPath: 'Task for valid subordinate',
+      });
+
+      expect(task.delegated_to).toBeNull();
+
+      // Delegate to agent-002, which IS a subordinate of agent-001
+      const delegated = delegateTask(db, task.id, 'agent-002');
+
+      expect(delegated.delegated_to).toBe('agent-002');
+      expect(delegated.delegated_at).toBeDefined();
+      expect(delegated.delegated_at).not.toBeNull();
+    });
+
     it('should throw error on version mismatch', () => {
       // Create a task
       const task = createTask(db, {
