@@ -30,7 +30,7 @@ IN_PROGRESS
 - [x] 3.7 Add requirements.txt for MkDocs
 
 ### Phase 4: CI/CD Automation
-- [ ] 4.1 Create docs.yml GitHub Actions workflow
+- [x] 4.1 Create docs.yml GitHub Actions workflow
 - [ ] 4.2 Create release.yml GitHub Actions workflow
 
 ### Phase 5: Package Structure Updates
@@ -141,8 +141,7 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 3.6: Ported existing documentation from planning files
-- Task 3.7: Created requirements.txt for MkDocs
+- Task 4.1: Created docs.yml GitHub Actions workflow for documentation deployment
 
 ## Notes
 
@@ -285,3 +284,23 @@ IN_PROGRESS
   - Added mkdocs-material>=9.5.0
   - Documentation is ready for CI/CD deployment
 - Documentation porting complete - all comprehensive planning content now available in web documentation
+
+### Iteration 15 (2026-01-19)
+- Task 4.1: Created docs.yml GitHub Actions workflow
+  - Created .github/workflows/docs.yml for automated documentation deployment
+  - Configured workflow to trigger on push to main branch and manual dispatch
+  - Set up proper GitHub Pages permissions (contents: read, pages: write, id-token: write)
+  - Implemented concurrency control to prevent multiple deployments
+  - Created build job with:
+    - Python 3.x setup
+    - Dependency caching for faster builds
+    - MkDocs installation from docs/requirements.txt
+    - Documentation build step
+    - Artifact upload for GitHub Pages
+  - Created deploy job with:
+    - Dependency on build job completion
+    - GitHub Pages environment configuration
+    - Automated deployment using deploy-pages@v4 action
+  - Verified documentation builds successfully with mkdocs build --strict
+  - Workflow follows GitHub Actions best practices
+  - Ready for GitHub Pages deployment when workflow runs
