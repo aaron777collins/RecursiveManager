@@ -76,8 +76,8 @@ IN_PROGRESS
 - [ ] Write integration tests for rollback
 
 #### 2.6 CLI Infrastructure
-- [ ] Create packages/cli/src/utils/paths.ts with getInstallRoot()
-- [ ] Fix update.ts path resolution using getInstallRoot()
+- [x] Create packages/cli/src/utils/paths.ts with getInstallRoot()
+- [x] Fix update.ts path resolution using getInstallRoot()
 - [ ] Add prerequisite checks to loadConfig()
 
 ### Phase 3: Documentation Completion (23 missing files)
@@ -221,6 +221,28 @@ IN_PROGRESS
 - [ ] Verify all GitHub Actions workflows passing on master branch
 
 ## Completed This Iteration
+
+**Iteration 8: Implement CLI Path Resolution Infrastructure**
+- Created packages/cli/src/utils/paths.ts with reliable installation root detection
+- Implemented getInstallRoot() function with intelligent search strategy:
+  - Walks up directory tree looking for monorepo root markers (package.json with name "recursive-manager")
+  - Searches for scripts directory with install.sh and update.sh
+  - Falls back to default installation directory (~/.recursive-manager)
+  - Handles edge cases (missing HOME variable, max traversal depth)
+- Implemented helper functions:
+  - getScriptsDir() - Returns absolute path to scripts directory
+  - getScriptPath(scriptName) - Returns absolute path to specific script files
+- Fixed update.ts path resolution bug:
+  - Replaced hardcoded __dirname-based path with getScriptPath('update.sh')
+  - Now works correctly across all installation scenarios (dev, npm global, npm local)
+  - Eliminates issues with compiled JavaScript location vs source structure
+- Created comprehensive test suite packages/cli/src/utils/__tests__/paths.test.ts:
+  - 16 test cases covering all path resolution functions
+  - Tests development mode, production mode, fallback scenarios
+  - Validates path consistency and edge case handling
+  - All 16 tests passing
+- TypeScript compilation successful with no errors
+- Phase 2.6 (CLI Infrastructure) - 2/3 tasks complete (paths.ts and update.ts fix done)
 
 **Iteration 7: Implement debug Command**
 - Replaced all mock/hardcoded data in packages/cli/src/commands/debug.ts with real database queries

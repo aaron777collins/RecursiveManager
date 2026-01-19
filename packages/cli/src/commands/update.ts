@@ -5,10 +5,10 @@
 import { Command } from 'commander';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import * as path from 'path';
 import { header, success, error, info, code, warning } from '../utils/colors';
 import { createSpinner } from '../utils/spinner';
 import { confirm } from '../utils/prompts';
+import { getScriptPath } from '../utils/paths';
 import { VERSION } from '../index';
 
 const execAsync = promisify(exec);
@@ -26,8 +26,8 @@ export function registerUpdateCommand(program: Command): void {
         console.log(info('Current version: ') + code(VERSION));
         console.log();
 
-        // Find update.sh script
-        const scriptPath = path.join(__dirname, '../../../scripts/update.sh');
+        // Find update.sh script using installation root detection
+        const scriptPath = getScriptPath('update.sh');
 
         if (options.check) {
           // Check for updates only
