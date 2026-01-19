@@ -29,7 +29,7 @@ IN_PROGRESS
 - [x] Add error handling (permissions, disk space, database failures)
 - [x] Remove hardcoded mock delay and placeholder logic
 - [x] Create packages/cli/src/utils/config.ts with loadConfig() utility (deferred - needed for other commands)
-- [ ] Write integration test for init command
+- [x] Write integration test for init command
 
 #### 2.2 Implement status Command
 - [ ] Use loadConfig() to load configuration
@@ -222,16 +222,28 @@ IN_PROGRESS
 
 ## Completed This Iteration
 
-**Iteration 3: Create loadConfig() Utility**
-- Created packages/cli/src/utils/config.ts with loadConfig() function
-- Added Config interface defining configuration structure
-- Implemented marker file check to ensure RecursiveManager is initialized
-- Added config.json validation and parsing with error handling
-- Added database existence check before returning configuration
-- All error messages use color-coded error() utility for consistency
-- Build passes successfully with no TypeScript errors
-- All CLI tests pass (28 tests in 2 test suites)
-- Unblocks implementation of status, config, and debug commands
+**Iteration 4: Write Integration Test for init Command**
+- Created packages/cli/src/__tests__/init.integration.test.ts with comprehensive test coverage
+- 16 test cases covering:
+  - Directory structure creation (agents/, tasks/, logs/, snapshots/)
+  - Database initialization with all migrations (agents, tasks, messages, schedules, audit_log, org_hierarchy tables)
+  - Root CEO agent creation with provided goal
+  - .recursive-manager marker file creation with metadata and version
+  - config.json creation with proper configuration (dataDir, dbPath, rootAgentId, execution settings)
+  - Database connection cleanup after initialization
+  - Force flag behavior (skipping confirmation prompt)
+  - Confirmation prompt when already initialized without --force
+  - Custom data directory support (--data-dir option)
+  - Environment variable support (RECURSIVE_MANAGER_DATA_DIR)
+  - Error handling for database initialization failures
+  - Parent directory creation for nested paths
+  - Goal validation (special characters, very long goals, unicode characters)
+  - Directory creation idempotency (preserving existing files)
+- All 16 tests pass successfully
+- Mocked console.log and interactive prompts to avoid CLI interaction during tests
+- Used temporary directories with proper cleanup in afterEach
+- CLI package now has 44 tests passing (3 test suites)
+- Phase 2.1 (Implement init Command) is now COMPLETE
 
 ## Analysis Summary
 
