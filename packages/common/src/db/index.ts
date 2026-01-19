@@ -330,3 +330,6 @@ export class DatabasePool {
 
 // Export query APIs
 export * from './queries';
+
+// Export retry utilities
+export * from './retry';

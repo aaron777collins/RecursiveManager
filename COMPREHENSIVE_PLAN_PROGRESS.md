@@ -168,7 +168,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Concurrency & Error Handling
 
-- [ ] Task 1.3.21: Implement retry with exponential backoff for SQLITE_BUSY (EC-7.2)
+- [x] Task 1.3.21: Implement retry with exponential backoff for SQLITE_BUSY (EC-7.2)
 - [ ] Task 1.3.22: Add transaction support for complex operations
 - [ ] Task 1.3.23: Implement database health checks
 - [ ] Task 1.3.24: Add crash recovery mechanisms
@@ -532,6 +532,99 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 1.3.21: Implement retry with exponential backoff for SQLITE_BUSY (EC-7.2) ✅
+
+**Summary**: Implemented comprehensive retry logic with exponential backoff for handling SQLITE_BUSY and SQLITE_LOCKED errors. This provides application-level retry logic on top of SQLite's built-in `busy_timeout`, ensuring robust handling of database contention in concurrent access scenarios.
+
+**What Was Implemented**:
+
+1. **Retry Utility Module** (`packages/common/src/db/retry.ts`):
+   - **Core retry function**: `withRetry()` - async wrapper for database operations with exponential backoff
+   - **Sync compatibility**: `withRetrySyncCompat()` - synchronous retry wrapper (uses busy-wait)
+   - **Higher-order wrapper**: `createRetryWrapper()` - creates reusable retry-wrapped functions
+   - **Error detection utilities**:
+     - `isSQLiteBusyError()` - detects SQLITE_BUSY errors by code (5) or message
+     - `isSQLiteLockedError()` - detects SQLITE_LOCKED errors by code (6) or message
+     - `isRetryableError()` - checks if error is BUSY or LOCKED (retryable)
+   - **Error code constants**: `SQLITE_ERROR_CODES` object with all SQLite error codes
+
+2. **Configurable Retry Behavior**:
+   - **RetryOptions interface**:
+     - `maxRetries` (default: 5) - maximum retry attempts
+     - `initialBackoff` (default: 100ms) - initial delay before first retry
+     - `maxBackoff` (default: 5000ms) - maximum delay cap
+     - `backoffMultiplier` (default: 2) - exponential growth factor
+     - `enableJitter` (default: true) - adds randomness (50-100% of delay) to prevent thundering herd
+     - `onRetry` callback - invoked before each retry with error, attempt, and delay
+   - **Exponential backoff algorithm**: delay = initialBackoff \* (multiplier ^ attempt), capped at maxBackoff
+   - **Jitter**: Randomizes delay between 50% and 100% to prevent synchronized retries
+
+3. **Comprehensive Test Suite** (`packages/common/src/db/__tests__/retry.test.ts`):
+   - 33 test cases covering all functionality:
+     - Error detection (BUSY, LOCKED, retryable vs non-retryable)
+     - Successful operations (sync, async, first attempt)
+     - Retry behavior (retries on BUSY/LOCKED, doesn't retry on other errors)
+     - Max retries exhaustion (throws after max attempts)
+     - Exponential backoff verification (100ms → 200ms → 400ms growth)
+     - Max backoff limiting (caps at maxBackoff)
+     - Jitter randomization (50-100% range verification)
+     - onRetry callback invocation
+     - createRetryWrapper functionality
+     - Edge cases (non-Error objects, null errors, error cause chain)
+     - Configuration edge cases (maxRetries=0, very large backoff)
+   - All tests use Jest fake timers for fast, deterministic execution
+   - Tests verify both successful and failure scenarios
+
+4. **Integration with Database Module**:
+   - Exported from `packages/common/src/db/index.ts`
+   - Available alongside existing query APIs
+   - Can be used to wrap any database operation
+
+**Usage Examples**:
+
+```typescript
+// Basic retry wrapper
+const result = await withRetry(() => db.prepare('SELECT * FROM agents WHERE id = ?').get(agentId), {
+  maxRetries: 3,
+});
+
+// With custom backoff and callback
+const result = await withRetry(() => updateTaskStatus(taskId, 'completed', version), {
+  maxRetries: 5,
+  initialBackoff: 200,
+  maxBackoff: 3000,
+  onRetry: (error, attempt, delayMs) => {
+    logger.warn(`Retry ${attempt} after ${delayMs}ms: ${error.message}`);
+  },
+});
+
+// Create reusable wrapper
+const getAgentWithRetry = createRetryWrapper(
+  (id: string) => db.prepare('SELECT * FROM agents WHERE id = ?').get(id),
+  { maxRetries: 3 }
+);
+const agent = await getAgentWithRetry('agent-123');
+```
+
+**Key Features**:
+
+- Only retries on SQLITE_BUSY (code 5) and SQLITE_LOCKED (code 6) errors
+- Non-retryable errors fail immediately (e.g., constraint violations)
+- Exponential backoff with jitter prevents thundering herd
+- Detailed error messages with retry context
+- Error cause chain preserved for debugging
+- Both async and sync compatibility
+- Fully type-safe with TypeScript
+- 100% test coverage
+
+**Build & Test Results**:
+
+- All 33 tests passing ✅
+- TypeScript compilation successful ✅
+- No breaking changes to existing code ✅
+
+---
 
 ### Tasks 1.3.19 & 1.3.20: Implement detectTaskDeadlock() and getBlockedTasks() ✅
 
