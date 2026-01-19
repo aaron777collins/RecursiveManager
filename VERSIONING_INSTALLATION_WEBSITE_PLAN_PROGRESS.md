@@ -23,7 +23,7 @@ IN_PROGRESS
 ### Phase 3: Documentation Website
 - [x] 3.1 Setup MkDocs with Material theme (mkdocs.yml)
 - [x] 3.2 Create documentation directory structure
-- [ ] 3.3 Create landing page (index.md)
+- [x] 3.3 Create landing page (index.md)
 - [ ] 3.4 Create custom CSS (extra.css)
 - [ ] 3.5 Create brand icon (icon-white.svg)
 - [ ] 3.6 Port existing documentation
@@ -141,7 +141,7 @@ IN_PROGRESS
     - Helpful next-step suggestions
 
 ## Completed This Iteration
-- Task 3.2: Created documentation directory structure
+- Task 3.3: Created landing page (index.md)
 
 ## Notes
 
@@ -190,4 +190,36 @@ IN_PROGRESS
     - Architecture documentation for file structure and database schema
     - Development guides for contributing, testing, and debugging
   - Documentation is ready for MkDocs build (pending CSS, icon, and requirements.txt)
+
+### Iteration 11 (2026-01-19)
+- Task 3.3: Created landing page (index.md) with card-based grid layout
+  - Implemented hero section with subtitle and description
+  - Created 4-card feature grid matching PortableRalph pattern:
+    - Quick Start → Installation
+    - Core Concepts → Agent Hierarchy
+    - Architecture → Overview
+    - CLI Reference → Commands
+  - Added one-liner installation section with headless mode example
+  - Created ASCII organizational hierarchy diagram
+  - Added 4-card "How It Works" grid:
+    - Recursive Hierarchies
+    - Multi-Perspective Analysis
+    - File-Based Persistence
+    - Smart Scheduling
+  - Created comprehensive use cases section (4 examples):
+    - Large-Scale Code Refactoring
+    - Multi-Perspective Decision Making
+    - Autonomous Task Management
+    - CI/CD Integration
+  - Added Key Features section with safety, performance, quality, and multi-framework support
+  - Added Core Philosophy section explaining design principles
+  - Added Project Status section listing alpha release capabilities
+  - Created second 4-card grid for "Getting Started" navigation
+  - Added Community & Support section with GitHub links
+  - Created CTA (Call to Action) section with buttons
+  - Removed old VitePress README.md from docs/ directory (conflicted with index.md)
+  - Successfully built documentation with `mkdocs build` - no errors
+  - Verified card-based grid layout renders correctly in HTML output
+  - Used Material Design icons (:material-*:) and emoji icons (:rocket:, etc.)
+  - All links point to correct documentation pages as defined in mkdocs.yml
 
