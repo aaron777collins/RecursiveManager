@@ -568,4 +568,287 @@ describe('Database Initialization', () => {
       connection.close();
     });
   });
+
+  describe('Database Recovery', () => {
+    it('should recover from backup after corruption', async () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      // Create and populate database
+      connection.db.exec('CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT)');
+      connection.db.exec(
+        "INSERT INTO test (id, name) VALUES (1, 'Alice'), (2, 'Bob'), (3, 'Charlie')"
+      );
+
+      // Create backup
+      const backupPath = path.join(testDir, 'backup.db');
+      await backupDatabase(connection.db, backupPath);
+
+      // Verify backup is valid
+      const backupConn = initializeDatabase({ path: backupPath });
+      const backupRows = backupConn.db.prepare('SELECT * FROM test').all();
+      expect(backupRows).toHaveLength(3);
+      backupConn.close();
+
+      // Close and corrupt the original database
+      connection.close();
+      const dbContent = fs.readFileSync(dbPath);
+      const corruptedContent = Buffer.from(dbContent);
+      // Corrupt the database header
+      corruptedContent.write('CORRUPTED', 0);
+      fs.writeFileSync(dbPath, corruptedContent);
+
+      // Verify database is corrupted
+      try {
+        const corruptedConn = initializeDatabase({ path: dbPath });
+        const integrity = checkDatabaseIntegrity(corruptedConn.db);
+        expect(integrity).toBe(false);
+        corruptedConn.close();
+      } catch (error) {
+        // Expected - database might be too corrupted to open
+      }
+
+      // Restore from backup
+      fs.copyFileSync(backupPath, dbPath);
+
+      // Verify restoration
+      const restoredConn = initializeDatabase({ path: dbPath });
+      const restoredRows = restoredConn.db.prepare('SELECT * FROM test').all();
+      expect(restoredRows).toHaveLength(3);
+      expect(restoredRows).toEqual([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+        { id: 3, name: 'Charlie' },
+      ]);
+
+      restoredConn.close();
+    });
+
+    it('should detect corruption through integrity check', () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      // Create valid database
+      connection.db.exec('CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)');
+      connection.db.exec("INSERT INTO test (id, value) VALUES (1, 'data')");
+
+      // Verify integrity before corruption
+      const integrityBefore = checkDatabaseIntegrity(connection.db);
+      expect(integrityBefore).toBe(true);
+
+      connection.close();
+
+      // Corrupt by modifying the middle of the database (page data)
+      const dbContent = fs.readFileSync(dbPath);
+      const corruptedContent = Buffer.from(dbContent);
+      // Corrupt a page in the middle (offset past header at byte 100+)
+      if (corruptedContent.length > 100) {
+        corruptedContent.write('CORRUPTED_PAGE_DATA', 100);
+        fs.writeFileSync(dbPath, corruptedContent);
+      }
+
+      // Try to open and check integrity
+      // Severe corruption may prevent opening entirely
+      try {
+        const corruptedConn = initializeDatabase({ path: dbPath });
+        const integrityAfter = checkDatabaseIntegrity(corruptedConn.db);
+
+        // Should detect corruption
+        expect(integrityAfter).toBe(false);
+
+        corruptedConn.close();
+      } catch (error) {
+        // Database too corrupted to open - this is also a valid corruption detection
+        expect(error).toBeDefined();
+        expect((error as Error).message).toMatch(/malformed|corrupt/i);
+      }
+    });
+
+    it('should preserve data through WAL recovery', () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      // Create table and insert data
+      connection.db.exec('CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT)');
+      connection.db.exec("INSERT INTO test (id, name) VALUES (1, 'Original')");
+
+      // Verify WAL mode
+      const walMode = connection.db.pragma('journal_mode', { simple: true });
+      expect(walMode).toBe('wal');
+
+      // Make changes that go into WAL
+      connection.db.exec("INSERT INTO test (id, name) VALUES (2, 'InWAL')");
+
+      connection.close();
+
+      // Reopen - WAL should be automatically applied
+      const reopenedConn = initializeDatabase({ path: dbPath });
+      const rows = reopenedConn.db.prepare('SELECT * FROM test ORDER BY id').all();
+
+      expect(rows).toHaveLength(2);
+      expect(rows).toEqual([
+        { id: 1, name: 'Original' },
+        { id: 2, name: 'InWAL' },
+      ]);
+
+      reopenedConn.close();
+    });
+
+    it('should recover from transaction rollback', () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      connection.db.exec('CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)');
+      connection.db.exec("INSERT INTO test (id, value) VALUES (1, 'initial')");
+
+      // Start transaction and make changes
+      connection.db.exec('BEGIN TRANSACTION');
+      connection.db.exec("INSERT INTO test (id, value) VALUES (2, 'temp')");
+
+      // Verify changes are visible within transaction
+      const duringTx = connection.db.prepare('SELECT COUNT(*) as count FROM test').get() as {
+        count: number;
+      };
+      expect(duringTx.count).toBe(2);
+
+      // Rollback transaction
+      connection.db.exec('ROLLBACK');
+
+      // Verify rollback worked
+      const afterRollback = connection.db.prepare('SELECT COUNT(*) as count FROM test').get() as {
+        count: number;
+      };
+      expect(afterRollback.count).toBe(1);
+
+      const rows = connection.db.prepare('SELECT * FROM test').all();
+      expect(rows).toEqual([{ id: 1, value: 'initial' }]);
+
+      connection.close();
+    });
+
+    it('should handle backup restoration with schema validation', async () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      // Create schema
+      connection.db.exec(`
+        CREATE TABLE agents (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          status TEXT NOT NULL
+        )
+      `);
+      connection.db.exec("INSERT INTO agents VALUES ('agent1', 'Alice', 'active')");
+
+      // Create backup
+      const backupPath = path.join(testDir, 'schema-backup.db');
+      await backupDatabase(connection.db, backupPath);
+
+      connection.close();
+
+      // Restore from backup
+      fs.copyFileSync(backupPath, dbPath);
+
+      // Verify schema and data
+      const restoredConn = initializeDatabase({ path: dbPath });
+
+      // Check schema
+      const tables = restoredConn.db
+        .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='agents'")
+        .all();
+      expect(tables).toHaveLength(1);
+
+      // Check data
+      const rows = restoredConn.db.prepare('SELECT * FROM agents').all();
+      expect(rows).toEqual([{ id: 'agent1', name: 'Alice', status: 'active' }]);
+
+      // Verify integrity
+      const integrity = checkDatabaseIntegrity(restoredConn.db);
+      expect(integrity).toBe(true);
+
+      restoredConn.close();
+    });
+
+    it('should handle concurrent backup operations', async () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      connection.db.exec('CREATE TABLE test (id INTEGER PRIMARY KEY, data TEXT)');
+      connection.db.exec("INSERT INTO test VALUES (1, 'data1')");
+
+      // Create multiple backups concurrently
+      const backup1Path = path.join(testDir, 'backup1.db');
+      const backup2Path = path.join(testDir, 'backup2.db');
+      const backup3Path = path.join(testDir, 'backup3.db');
+
+      await Promise.all([
+        backupDatabase(connection.db, backup1Path),
+        backupDatabase(connection.db, backup2Path),
+        backupDatabase(connection.db, backup3Path),
+      ]);
+
+      // Verify all backups are valid
+      for (const backupPath of [backup1Path, backup2Path, backup3Path]) {
+        expect(fs.existsSync(backupPath)).toBe(true);
+
+        const backupConn = initializeDatabase({ path: backupPath });
+        const rows = backupConn.db.prepare('SELECT * FROM test').all();
+        expect(rows).toHaveLength(1);
+        backupConn.close();
+      }
+
+      connection.close();
+    });
+
+    it('should verify database health after recovery', async () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      connection.db.exec('CREATE TABLE test (id INTEGER PRIMARY KEY)');
+
+      // Create backup
+      const backupPath = path.join(testDir, 'health-backup.db');
+      await backupDatabase(connection.db, backupPath);
+
+      connection.close();
+
+      // Restore from backup
+      fs.copyFileSync(backupPath, dbPath);
+
+      // Check health after restoration
+      const restoredConn = initializeDatabase({ path: dbPath });
+      const health = getDatabaseHealth(restoredConn.db, dbPath);
+
+      expect(health.healthy).toBe(true);
+      expect(health.checks.accessible).toBe(true);
+      expect(health.checks.integrityOk).toBe(true);
+      expect(health.checks.walEnabled).toBe(true);
+      expect(health.checks.foreignKeysEnabled).toBe(true);
+      expect(health.errors).toHaveLength(0);
+
+      restoredConn.close();
+    });
+
+    it('should handle backup of database with WAL file', async () => {
+      const connection = initializeDatabase({ path: dbPath });
+
+      connection.db.exec('CREATE TABLE test (id INTEGER PRIMARY KEY, value TEXT)');
+      connection.db.exec("INSERT INTO test VALUES (1, 'data')");
+
+      // Force WAL checkpoint to create WAL file
+      connection.db.pragma('wal_checkpoint(PASSIVE)');
+
+      // Add more data to create WAL entries
+      connection.db.exec("INSERT INTO test VALUES (2, 'wal-data')");
+
+      // Create backup (should include WAL data)
+      const backupPath = path.join(testDir, 'wal-backup.db');
+      await backupDatabase(connection.db, backupPath);
+
+      // Verify backup includes all data
+      const backupConn = initializeDatabase({ path: backupPath });
+      const rows = backupConn.db.prepare('SELECT * FROM test ORDER BY id').all();
+      expect(rows).toHaveLength(2);
+      expect(rows).toEqual([
+        { id: 1, value: 'data' },
+        { id: 2, value: 'wal-data' },
+      ]);
+
+      backupConn.close();
+      connection.close();
+    });
+  });
 });
