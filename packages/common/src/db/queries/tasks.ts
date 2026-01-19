@@ -907,3 +907,160 @@ export function updateTaskMetadata(
     throw error;
   }
 }
+
+/**
+ * Delegate a task to another agent
+ *
+ * Task 2.3.9: Implement delegateTask(taskId, toAgentId) with validation
+ *
+ * This function delegates a task to another agent with proper validation:
+ * - Verifies the task exists
+ * - Verifies the target agent exists
+ * - Updates the delegated_to and delegated_at fields
+ * - Uses optimistic locking if version is provided
+ *
+ * **Validation Checks**:
+ * - Task must exist
+ * - Target agent must exist
+ * - Optional: Can check if task is already delegated to same agent
+ *
+ * @param db - Database connection
+ * @param taskId - Task ID to delegate
+ * @param toAgentId - Agent ID to delegate the task to
+ * @param version - Optional version number for optimistic locking
+ * @returns Updated task record
+ * @throws Error if task not found, agent not found, or version mismatch
+ *
+ * @example
+ * // Simple delegation
+ * const delegatedTask = delegateTask(db, 'task-001', 'agent-002');
+ *
+ * @example
+ * // Delegation with optimistic locking
+ * const task = getTask(db, 'task-001');
+ * if (task) {
+ *   const delegatedTask = delegateTask(db, task.id, 'agent-002', task.version);
+ * }
+ */
+export function delegateTask(
+  db: Database.Database,
+  taskId: string,
+  toAgentId: string,
+  version?: number
+): TaskRecord {
+  // Step 1: Verify the task exists
+  const currentTask = getTask(db, taskId);
+  if (!currentTask) {
+    throw new Error(`Task not found: ${taskId}`);
+  }
+
+  try {
+    // Step 2: Verify the target agent exists
+    const targetAgent = getAgent(db, toAgentId);
+    if (!targetAgent) {
+      throw new Error(`Agent not found: ${toAgentId}`);
+    }
+
+    // Step 3: Check if task is already delegated to the same agent (optional optimization)
+    if (currentTask.delegated_to === toAgentId) {
+      // Task is already delegated to this agent, no need to update
+      return currentTask;
+    }
+
+    const now = new Date().toISOString();
+
+    // Step 4: Prepare UPDATE statement
+    let updateStmt;
+    let params: any[];
+
+    if (version !== undefined) {
+      // With optimistic locking
+      updateStmt = db.prepare(`
+        UPDATE tasks
+        SET
+          delegated_to = ?,
+          delegated_at = ?,
+          last_updated = ?,
+          version = version + 1
+        WHERE id = ? AND version = ?
+      `);
+      params = [toAgentId, now, now, taskId, version];
+    } else {
+      // Without optimistic locking
+      updateStmt = db.prepare(`
+        UPDATE tasks
+        SET
+          delegated_to = ?,
+          delegated_at = ?,
+          last_updated = ?
+        WHERE id = ?
+      `);
+      params = [toAgentId, now, now, taskId];
+    }
+
+    // Execute the update
+    const result = updateStmt.run(...params);
+
+    // Check if any rows were updated
+    if (result.changes === 0) {
+      if (version !== undefined) {
+        // Version mismatch - concurrent modification
+        throw new Error(
+          `Failed to delegate task ${taskId}: version mismatch. ` +
+            `Expected version ${version}, but task was modified by another process. ` +
+            `Please re-fetch the task and retry the operation.`
+        );
+      } else {
+        // Task not found (shouldn't happen since we checked above)
+        throw new Error(`Failed to delegate task ${taskId}: task not found during update`);
+      }
+    }
+
+    // Retrieve and return the updated task
+    const updatedTask = getTask(db, taskId);
+    if (!updatedTask) {
+      throw new Error(`Failed to retrieve updated task: ${taskId}`);
+    }
+
+    // Audit log successful delegation
+    auditLog(db, {
+      agentId: currentTask.agent_id,
+      action: AuditAction.TASK_UPDATE,
+      targetAgentId: toAgentId,
+      success: true,
+      details: {
+        taskId: taskId,
+        title: currentTask.title,
+        action: 'delegate',
+        fromAgent: currentTask.agent_id,
+        toAgent: toAgentId,
+        previousDelegation: currentTask.delegated_to,
+        newDelegation: toAgentId,
+        ...(version !== undefined && {
+          previousVersion: version,
+          newVersion: updatedTask.version,
+        }),
+      },
+    });
+
+    return updatedTask;
+  } catch (error) {
+    // Audit log failed delegation
+    // Note: We don't use toAgentId as targetAgentId here because it might not exist
+    // (that's often the reason for failure). Instead, we include it in details.
+    auditLog(db, {
+      agentId: currentTask.agent_id,
+      action: AuditAction.TASK_UPDATE,
+      targetAgentId: currentTask.agent_id, // Use task owner instead of toAgentId
+      success: false,
+      details: {
+        taskId: taskId,
+        title: currentTask.title,
+        action: 'delegate',
+        toAgent: toAgentId,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
+    throw error;
+  }
+}

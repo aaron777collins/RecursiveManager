@@ -26,6 +26,7 @@ import {
   getActiveTasks,
   detectTaskDeadlock,
   getBlockedTasks,
+  delegateTask,
   CreateTaskInput,
 } from '../queries';
 import { TASK_MAX_DEPTH } from '../constants';
@@ -1941,6 +1942,243 @@ describe('Task Query API', () => {
       expect(updated.last_updated).not.toBeNull();
       expect(new Date(updated.last_updated!).getTime()).toBeGreaterThanOrEqual(
         new Date(beforeUpdate).getTime()
+      );
+    });
+  });
+
+  describe('delegateTask() - Task 2.3.9', () => {
+    beforeEach(() => {
+      // Create a second agent for delegation tests
+      createAgent(db, {
+        id: 'agent-002',
+        role: 'Developer',
+        displayName: 'Bob Developer',
+        createdBy: 'agent-001',
+        reportingTo: 'agent-001',
+        mainGoal: 'Support development',
+        configPath: '/data/agents/ag/agent-002/config.json',
+      });
+    });
+
+    it('should delegate task to another agent', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Task to delegate',
+        priority: 'high',
+        taskPath: 'Task to delegate',
+      });
+
+      expect(task.delegated_to).toBeNull();
+      expect(task.delegated_at).toBeNull();
+
+      // Delegate the task
+      const delegated = delegateTask(db, task.id, 'agent-002');
+
+      expect(delegated.delegated_to).toBe('agent-002');
+      expect(delegated.delegated_at).toBeDefined();
+      expect(delegated.delegated_at).not.toBeNull();
+      expect(delegated.last_updated).toBeDefined();
+      expect(delegated.last_updated).not.toBeNull();
+    });
+
+    it('should delegate task with optimistic locking', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Task with version locking',
+        priority: 'medium',
+        taskPath: 'Task with version locking',
+      });
+
+      const originalVersion = task.version;
+
+      // Delegate with version
+      const delegated = delegateTask(db, task.id, 'agent-002', task.version);
+
+      expect(delegated.delegated_to).toBe('agent-002');
+      expect(delegated.version).toBe(originalVersion + 1);
+    });
+
+    it('should throw error for non-existent task', () => {
+      expect(() => {
+        delegateTask(db, 'non-existent-task', 'agent-002');
+      }).toThrow('Task not found: non-existent-task');
+    });
+
+    it('should throw error for non-existent agent', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Task for invalid agent',
+        priority: 'medium',
+        taskPath: 'Task for invalid agent',
+      });
+
+      expect(() => {
+        delegateTask(db, task.id, 'non-existent-agent');
+      }).toThrow('Agent not found: non-existent-agent');
+    });
+
+    it('should throw error on version mismatch', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Task for version test',
+        priority: 'medium',
+        taskPath: 'Task for version test',
+      });
+
+      // Delegate with wrong version
+      expect(() => {
+        delegateTask(db, task.id, 'agent-002', 999);
+      }).toThrow('version mismatch');
+    });
+
+    it('should return same task if already delegated to same agent', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Task already delegated',
+        priority: 'medium',
+        taskPath: 'Task already delegated',
+      });
+
+      // First delegation
+      const delegated1 = delegateTask(db, task.id, 'agent-002');
+      const delegationTime1 = delegated1.delegated_at;
+
+      // Try to delegate to same agent again
+      const delegated2 = delegateTask(db, delegated1.id, 'agent-002');
+
+      // Should return without updating (same version and timestamp)
+      expect(delegated2.delegated_to).toBe('agent-002');
+      expect(delegated2.delegated_at).toBe(delegationTime1);
+      expect(delegated2.version).toBe(delegated1.version);
+    });
+
+    it('should allow re-delegating to different agent', () => {
+      // Create a third agent
+      createAgent(db, {
+        id: 'agent-003',
+        role: 'Developer',
+        displayName: 'Charlie Developer',
+        createdBy: 'agent-001',
+        reportingTo: 'agent-001',
+        mainGoal: 'Support development',
+        configPath: '/data/agents/ag/agent-003/config.json',
+      });
+
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Task to re-delegate',
+        priority: 'medium',
+        taskPath: 'Task to re-delegate',
+      });
+
+      // First delegation
+      const delegated1 = delegateTask(db, task.id, 'agent-002');
+      expect(delegated1.delegated_to).toBe('agent-002');
+      const version1 = delegated1.version;
+
+      // Re-delegate to different agent
+      const delegated2 = delegateTask(db, delegated1.id, 'agent-003', delegated1.version);
+      expect(delegated2.delegated_to).toBe('agent-003');
+      expect(delegated2.version).toBe(version1 + 1);
+    });
+
+    it('should create audit log entry on successful delegation', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Task for audit test',
+        priority: 'high',
+        taskPath: 'Task for audit test',
+      });
+
+      // Delegate the task
+      delegateTask(db, task.id, 'agent-002');
+
+      // Query audit logs
+      const logs = queryAuditLog(db, {
+        agentId: 'agent-001',
+        action: AuditAction.TASK_UPDATE,
+      });
+
+      // Find the delegation log
+      const delegationLog = logs.find((log) => {
+        if (!log.details) return false;
+        const details = JSON.parse(log.details);
+        return details.action === 'delegate' && details.taskId === task.id;
+      });
+
+      expect(delegationLog).toBeDefined();
+      expect(delegationLog?.success).toBe(1); // SQLite stores booleans as integers
+      expect(delegationLog?.target_agent_id).toBe('agent-002');
+
+      if (delegationLog?.details) {
+        const details = JSON.parse(delegationLog.details);
+        expect(details.toAgent).toBe('agent-002');
+        expect(details.fromAgent).toBe('agent-001');
+      }
+    });
+
+    it('should create audit log entry on failed delegation', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Task for failed delegation',
+        priority: 'medium',
+        taskPath: 'Task for failed delegation',
+      });
+
+      // Try to delegate to non-existent agent
+      try {
+        delegateTask(db, task.id, 'non-existent-agent');
+      } catch (error) {
+        // Expected to fail
+      }
+
+      // Query audit logs
+      const logs = queryAuditLog(db, {
+        agentId: 'agent-001',
+        action: AuditAction.TASK_UPDATE,
+      });
+
+      // Find the failed delegation log
+      const failedLog = logs.find((log) => {
+        if (!log.details) return false;
+        const details = JSON.parse(log.details);
+        return details.action === 'delegate' && details.taskId === task.id && !log.success;
+      });
+
+      expect(failedLog).toBeDefined();
+      expect(failedLog?.success).toBe(0); // SQLite stores booleans as integers
+      if (failedLog?.details) {
+        const details = JSON.parse(failedLog.details);
+        expect(details.error).toContain('Agent not found');
+      }
+    });
+
+    it('should update last_updated timestamp when delegating', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Task for timestamp test',
+        priority: 'medium',
+        taskPath: 'Task for timestamp test',
+      });
+
+      const beforeDelegation = new Date().toISOString();
+
+      // Delegate the task
+      const delegated = delegateTask(db, task.id, 'agent-002');
+
+      expect(delegated.last_updated).toBeDefined();
+      expect(delegated.last_updated).not.toBeNull();
+      expect(new Date(delegated.last_updated!).getTime()).toBeGreaterThanOrEqual(
+        new Date(beforeDelegation).getTime()
       );
     });
   });

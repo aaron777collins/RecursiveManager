@@ -1,7 +1,7 @@
 # Progress: COMPREHENSIVE_PLAN
 
 Started: Sun Jan 18 06:44:43 PM EST 2026
-Last Updated: 2026-01-19 21:15:00 EST
+Last Updated: 2026-01-19 21:35:00 EST
 
 ## Status
 
@@ -310,7 +310,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 ##### Task Delegation
 
-- [ ] Task 2.3.9: Implement delegateTask(taskId, toAgentId) with validation
+- [x] Task 2.3.9: Implement delegateTask(taskId, toAgentId) with validation
 - [ ] Task 2.3.10: Verify delegation target exists and is subordinate
 - [ ] Task 2.3.11: Update task ownership in database
 - [ ] Task 2.3.12: Notify delegated agent
@@ -346,7 +346,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [ ] Task 2.3.28: Unit tests for task creation with hierarchy
 - [ ] Task 2.3.29: Unit tests for depth validation
-- [ ] Task 2.3.30: Unit tests for delegation logic
+- [x] Task 2.3.30: Unit tests for delegation logic
 - [ ] Task 2.3.31: Unit tests for completion with locking
 - [ ] Task 2.3.32: Integration tests for full task lifecycle
 - [ ] Task 2.3.33: Tests for deadlock detection algorithm
@@ -480,6 +480,91 @@ RecursiveManager is a hierarchical AI agent system with:
 ---
 
 ## Completed This Iteration
+
+### Task 2.3.9: Implement delegateTask with validation ✅
+
+**Date**: 2026-01-19 21:30:00 EST
+
+**Summary**: Implemented task delegation functionality that allows assigning a task to another agent with proper validation, optimistic locking support, audit logging, and comprehensive error handling.
+
+**What Was Implemented**:
+
+1. **delegateTask.ts** (`packages/common/src/db/queries/tasks.ts`):
+   - `delegateTask(db, taskId, toAgentId, version?)` - Main delegation function (~120 lines)
+   - Validates task existence before delegation
+   - Validates target agent exists
+   - Supports optional optimistic locking with version parameter
+   - Updates delegated_to and delegated_at fields
+   - Automatically updates last_updated timestamp
+   - Returns updated TaskRecord
+
+2. **Validation**:
+   - Checks task exists (throws error if not found)
+   - Checks target agent exists (throws error if not found)
+   - Optimization: returns immediately if already delegated to same agent
+   - Version mismatch detection for concurrent modifications
+   - Clear error messages for all failure scenarios
+
+3. **Database Operations**:
+   - Updates delegated_to field with target agent ID
+   - Sets delegated_at timestamp to current time
+   - Increments version field when using optimistic locking
+   - Updates last_updated for metadata tracking
+   - Uses prepared statements for security
+
+4. **Audit Logging**:
+   - Logs successful delegations with full context
+   - Logs failed delegations with error details
+   - Includes: taskId, title, fromAgent, toAgent, previous/new delegation
+   - Uses AuditAction.TASK_UPDATE action type
+   - Handles non-existent agents gracefully (uses task owner for foreign key)
+
+5. **Testing** (Task 2.3.30):
+   - 10 comprehensive unit tests covering all scenarios
+   - Basic delegation (happy path)
+   - Optimistic locking with version checking
+   - Error handling (non-existent task, non-existent agent)
+   - Version mismatch detection
+   - Idempotency (already delegated to same agent)
+   - Re-delegation to different agent
+   - Audit log verification (success and failure)
+   - Timestamp updates
+   - All tests passing ✓
+
+**Files Modified**:
+- `packages/common/src/db/queries/tasks.ts` - Added delegateTask function
+- `packages/common/src/db/__tests__/queries-tasks.test.ts` - Added 10 test cases
+
+**Test Results**:
+```
+delegateTask() - Task 2.3.9
+  ✓ should delegate task to another agent (73 ms)
+  ✓ should delegate task with optimistic locking (44 ms)
+  ✓ should throw error for non-existent task (100 ms)
+  ✓ should throw error for non-existent agent (44 ms)
+  ✓ should throw error on version mismatch (43 ms)
+  ✓ should return same task if already delegated to same agent (42 ms)
+  ✓ should allow re-delegating to different agent (42 ms)
+  ✓ should create audit log entry on successful delegation (43 ms)
+  ✓ should create audit log entry on failed delegation (41 ms)
+  ✓ should update last_updated timestamp when delegating (42 ms)
+
+Tests: 10 passed, 10 total
+```
+
+**Integration Points**:
+- Exports via `packages/common/src/db/queries/index.ts`
+- Uses existing getTask() and getAgent() functions
+- Follows patterns from updateTaskStatus() and updateTaskProgress()
+- Compatible with optimistic locking pattern used throughout codebase
+- Integrates with audit logging system
+
+**Next Steps**:
+- Task 2.3.10: Verify delegation target exists and is subordinate (validation logic)
+- Task 2.3.11: Update task ownership in database (if needed)
+- Task 2.3.12: Notify delegated agent (notification integration)
+
+---
 
 ### Task 2.2.17: Resume Agent Implementation ✅
 
