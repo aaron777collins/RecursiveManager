@@ -22,6 +22,7 @@ import {
   getTask,
   updateTaskStatus,
   updateTaskProgress,
+  updateTaskMetadata,
   getActiveTasks,
   detectTaskDeadlock,
   getBlockedTasks,
@@ -1758,6 +1759,189 @@ describe('Task Query API', () => {
       expect(failedUpdate!.success).toBe(0);
       const details = JSON.parse(failedUpdate!.details!);
       expect(details.error).toContain('version mismatch');
+    });
+  });
+
+  // Task 2.3.8: Test task metadata updates
+  describe('updateTaskMetadata', () => {
+    it('should update last_updated timestamp', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Test task for metadata',
+        priority: 'medium',
+        taskPath: 'Test task for metadata',
+      });
+
+      // Wait a moment to ensure timestamp difference
+      const beforeUpdate = new Date().toISOString();
+
+      // Update metadata with last_updated
+      const updated = updateTaskMetadata(db, task.id, {
+        updateLastUpdated: true,
+      });
+
+      expect(updated.last_updated).toBeDefined();
+      expect(updated.last_updated).not.toBeNull();
+      // last_updated should be >= beforeUpdate
+      expect(new Date(updated.last_updated!).getTime()).toBeGreaterThanOrEqual(
+        new Date(beforeUpdate).getTime()
+      );
+    });
+
+    it('should update last_executed timestamp', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Test task for execution',
+        priority: 'medium',
+        taskPath: 'Test task for execution',
+      });
+
+      const beforeExecution = new Date().toISOString();
+
+      // Update metadata with last_executed
+      const updated = updateTaskMetadata(db, task.id, {
+        updateLastExecuted: true,
+      });
+
+      expect(updated.last_executed).toBeDefined();
+      expect(updated.last_executed).not.toBeNull();
+      expect(new Date(updated.last_executed!).getTime()).toBeGreaterThanOrEqual(
+        new Date(beforeExecution).getTime()
+      );
+    });
+
+    it('should increment execution_count', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Test task for execution count',
+        priority: 'medium',
+        taskPath: 'Test task for execution count',
+      });
+
+      // Initial execution count should be 0
+      expect(task.execution_count).toBe(0);
+
+      // Update execution count
+      const updated1 = updateTaskMetadata(db, task.id, {
+        updateExecutionCount: true,
+      });
+
+      expect(updated1.execution_count).toBe(1);
+
+      // Update again
+      const updated2 = updateTaskMetadata(db, updated1.id, {
+        updateExecutionCount: true,
+      });
+
+      expect(updated2.execution_count).toBe(2);
+    });
+
+    it('should update all metadata fields at once', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Test task for all metadata',
+        priority: 'medium',
+        taskPath: 'Test task for all metadata',
+      });
+
+      expect(task.execution_count).toBe(0);
+      expect(task.last_updated).toBeDefined(); // Set to created_at by default
+      expect(task.last_updated).not.toBeNull();
+      expect(task.last_executed).toBeNull();
+
+      const beforeUpdate = new Date().toISOString();
+
+      // Update all metadata fields
+      const updated = updateTaskMetadata(db, task.id, {
+        updateLastUpdated: true,
+        updateLastExecuted: true,
+        updateExecutionCount: true,
+      });
+
+      expect(updated.execution_count).toBe(1);
+      expect(updated.last_updated).toBeDefined();
+      expect(updated.last_updated).not.toBeNull();
+      expect(updated.last_executed).toBeDefined();
+      expect(updated.last_executed).not.toBeNull();
+      expect(new Date(updated.last_updated!).getTime()).toBeGreaterThanOrEqual(
+        new Date(beforeUpdate).getTime()
+      );
+      expect(new Date(updated.last_executed!).getTime()).toBeGreaterThanOrEqual(
+        new Date(beforeUpdate).getTime()
+      );
+    });
+
+    it('should throw error if task not found', () => {
+      expect(() => {
+        updateTaskMetadata(db, 'nonexistent-task', {
+          updateLastUpdated: true,
+        });
+      }).toThrow('Task not found: nonexistent-task');
+    });
+
+    it('should return task unchanged if no updates requested', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Test task',
+        priority: 'medium',
+        taskPath: 'Test task',
+      });
+
+      // Update with no options
+      const updated = updateTaskMetadata(db, task.id, {});
+
+      expect(updated).toEqual(task);
+    });
+  });
+
+  describe('updateTaskStatus updates last_updated', () => {
+    it('should automatically update last_updated when status changes', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Test task for status update',
+        priority: 'medium',
+        taskPath: 'Test task for status update',
+      });
+
+      const beforeUpdate = new Date().toISOString();
+
+      // Update status
+      const updated = updateTaskStatus(db, task.id, 'in-progress', task.version);
+
+      expect(updated.last_updated).toBeDefined();
+      expect(updated.last_updated).not.toBeNull();
+      expect(new Date(updated.last_updated!).getTime()).toBeGreaterThanOrEqual(
+        new Date(beforeUpdate).getTime()
+      );
+    });
+  });
+
+  describe('updateTaskProgress updates last_updated', () => {
+    it('should automatically update last_updated when progress changes', () => {
+      // Create a task
+      const task = createTask(db, {
+        agentId: 'agent-001',
+        title: 'Test task for progress update',
+        priority: 'medium',
+        taskPath: 'Test task for progress update',
+      });
+
+      const beforeUpdate = new Date().toISOString();
+
+      // Update progress
+      const updated = updateTaskProgress(db, task.id, 50, task.version);
+
+      expect(updated.last_updated).toBeDefined();
+      expect(updated.last_updated).not.toBeNull();
+      expect(new Date(updated.last_updated!).getTime()).toBeGreaterThanOrEqual(
+        new Date(beforeUpdate).getTime()
+      );
     });
   });
 });

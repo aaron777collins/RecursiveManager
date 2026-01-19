@@ -54,7 +54,10 @@ export function getTask(db: Database.Database, id: string): TaskRecord | null {
       blocked_by,
       blocked_since,
       task_path,
-      version
+      version,
+      last_updated,
+      last_executed,
+      execution_count
     FROM tasks
     WHERE id = ?
   `);
@@ -157,8 +160,11 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
       blocked_by,
       blocked_since,
       task_path,
-      version
-    ) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, 0, 0, 0, ?, NULL, '[]', NULL, ?, 0)
+      version,
+      last_updated,
+      last_executed,
+      execution_count
+    ) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, 0, 0, 0, ?, NULL, '[]', NULL, ?, 0, ?, NULL, 0)
   `);
 
   const updateParentSubtaskCount = db.prepare(`
@@ -183,7 +189,8 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
       input.parentTaskId ?? null,
       depth,
       input.delegatedTo ?? null,
-      input.taskPath
+      input.taskPath,
+      now // last_updated (Task 2.3.8)
     );
 
     // If this is a subtask, increment parent's subtask count
@@ -291,11 +298,13 @@ export function updateTaskStatus(
 
   // Prepare the UPDATE statement with optimistic locking
   // Only update if the version matches (prevents race conditions)
+  // Also update last_updated timestamp (Task 2.3.8)
   const updateStmt = db.prepare(`
     UPDATE tasks
     SET
       status = ?,
       version = version + 1,
+      last_updated = ?,
       started_at = CASE
         WHEN ? = 'in-progress' AND started_at IS NULL THEN ?
         ELSE started_at
@@ -312,6 +321,7 @@ export function updateTaskStatus(
     // Execute the update
     const result = updateStmt.run(
       status,
+      now, // for last_updated (Task 2.3.8)
       status, // for started_at CASE
       now, // for started_at value
       status, // for completed_at CASE (completed)
@@ -421,7 +431,10 @@ export function getActiveTasks(db: Database.Database, agentId: string): TaskReco
       blocked_by,
       blocked_since,
       task_path,
-      version
+      version,
+      last_updated,
+      last_executed,
+      execution_count
     FROM tasks
     WHERE agent_id = ?
       AND status IN ('pending', 'in-progress', 'blocked')
@@ -616,7 +629,10 @@ export function getBlockedTasks(db: Database.Database, agentId: string): TaskRec
       blocked_by,
       blocked_since,
       task_path,
-      version
+      version,
+      last_updated,
+      last_executed,
+      execution_count
     FROM tasks
     WHERE agent_id = ?
       AND status = 'blocked'
@@ -688,19 +704,24 @@ export function updateTaskProgress(
   // Validate and clamp progress to 0-100 range
   const clampedProgress = Math.max(0, Math.min(100, percentComplete));
 
+  // Get current timestamp for last_updated
+  const now = new Date().toISOString();
+
   // Prepare the UPDATE statement with optimistic locking
   // Only update if the version matches (prevents race conditions)
+  // Also update last_updated timestamp (Task 2.3.8)
   const updateStmt = db.prepare(`
     UPDATE tasks
     SET
       percent_complete = ?,
+      last_updated = ?,
       version = version + 1
     WHERE id = ? AND version = ?
   `);
 
   try {
     // Execute the update
-    const result = updateStmt.run(clampedProgress, id, version);
+    const result = updateStmt.run(clampedProgress, now, id, version);
 
     // Check if any rows were updated
     if (result.changes === 0) {
@@ -749,6 +770,137 @@ export function updateTaskProgress(
         title: currentTask.title,
         attemptedProgress: clampedProgress,
         currentProgress: currentTask.percent_complete,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    });
+    throw error;
+  }
+}
+
+/**
+ * Update task metadata (timestamps and execution count)
+ *
+ * Task 2.3.8: Update task metadata (last update timestamp, execution counts)
+ *
+ * This function updates metadata tracking fields for a task:
+ * - last_updated: Current timestamp when any task field changes
+ * - last_executed: Timestamp when an agent executed/attempted the task
+ * - execution_count: Incremented each time the task is executed
+ *
+ * @param db - Database connection
+ * @param id - Task ID
+ * @param options - Metadata update options
+ * @param options.updateExecutionCount - If true, increments execution_count
+ * @param options.updateLastExecuted - If true, sets last_executed to now
+ * @param options.updateLastUpdated - If true, sets last_updated to now
+ * @returns Updated task record
+ * @throws Error if task not found
+ *
+ * @example
+ * // Update last_updated when modifying task
+ * updateTaskMetadata(db, taskId, { updateLastUpdated: true });
+ *
+ * @example
+ * // Record execution attempt
+ * updateTaskMetadata(db, taskId, {
+ *   updateExecutionCount: true,
+ *   updateLastExecuted: true,
+ *   updateLastUpdated: true
+ * });
+ */
+export function updateTaskMetadata(
+  db: Database.Database,
+  id: string,
+  options: {
+    updateExecutionCount?: boolean;
+    updateLastExecuted?: boolean;
+    updateLastUpdated?: boolean;
+  }
+): TaskRecord {
+  // First, verify the task exists
+  const currentTask = getTask(db, id);
+  if (!currentTask) {
+    throw new Error(`Task not found: ${id}`);
+  }
+
+  // Build the SET clause dynamically based on options
+  const updates: string[] = [];
+  const params: any[] = [];
+
+  if (options.updateLastUpdated) {
+    updates.push('last_updated = ?');
+    params.push(new Date().toISOString());
+  }
+
+  if (options.updateLastExecuted) {
+    updates.push('last_executed = ?');
+    params.push(new Date().toISOString());
+  }
+
+  if (options.updateExecutionCount) {
+    updates.push('execution_count = execution_count + 1');
+  }
+
+  // If no updates requested, return current task
+  if (updates.length === 0) {
+    return currentTask;
+  }
+
+  // Add the task ID to params
+  params.push(id);
+
+  // Prepare the UPDATE statement
+  const updateStmt = db.prepare(`
+    UPDATE tasks
+    SET ${updates.join(', ')}
+    WHERE id = ?
+  `);
+
+  try {
+    // Execute the update
+    const result = updateStmt.run(...params);
+
+    // Check if any rows were updated
+    if (result.changes === 0) {
+      throw new Error(`Failed to update task metadata for task ${id}`);
+    }
+
+    // Retrieve and return the updated task
+    const updatedTask = getTask(db, id);
+    if (!updatedTask) {
+      throw new Error(`Failed to retrieve updated task: ${id}`);
+    }
+
+    // Audit log successful metadata update
+    auditLog(db, {
+      agentId: currentTask.agent_id,
+      action: AuditAction.TASK_UPDATE,
+      targetAgentId: currentTask.agent_id,
+      success: true,
+      details: {
+        taskId: id,
+        title: currentTask.title,
+        metadataUpdate: {
+          updateLastUpdated: options.updateLastUpdated || false,
+          updateLastExecuted: options.updateLastExecuted || false,
+          updateExecutionCount: options.updateExecutionCount || false,
+          previousExecutionCount: currentTask.execution_count,
+          newExecutionCount: updatedTask.execution_count,
+        },
+      },
+    });
+
+    return updatedTask;
+  } catch (error) {
+    // Audit log failed metadata update
+    auditLog(db, {
+      agentId: currentTask.agent_id,
+      action: AuditAction.TASK_UPDATE,
+      targetAgentId: currentTask.agent_id,
+      success: false,
+      details: {
+        taskId: id,
+        title: currentTask.title,
         error: error instanceof Error ? error.message : String(error),
       },
     });

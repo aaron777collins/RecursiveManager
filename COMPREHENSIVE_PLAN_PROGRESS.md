@@ -306,7 +306,7 @@ RecursiveManager is a hierarchical AI agent system with:
 
 - [x] Task 2.3.6: Implement updateTaskProgress(taskId, progress) with optimistic locking
 - [x] Task 2.3.7: Implement updateTaskStatus(taskId, status) with version checking
-- [ ] Task 2.3.8: Update task metadata (last update timestamp, execution counts)
+- [x] Task 2.3.8: Update task metadata (last update timestamp, execution counts)
 
 ##### Task Delegation
 
@@ -5842,8 +5842,91 @@ Task directory structure creation is production-ready. Next task is 2.3.5 (Gener
 
 ### Next Steps
 
-Task 2.3.8: Update task metadata (last update timestamp, execution counts)
+Task 2.3.9: Implement delegateTask(taskId, toAgentId) with validation
 
 **Status**: ✅ **Task 2.3.5 COMPLETE**
+
+---
+
+## Task 2.3.8: Update Task Metadata (Last Update Timestamp, Execution Counts)
+
+**Completed**: 2026-01-19 03:54:00 EST
+
+### Implementation Summary
+
+Added metadata tracking fields to tasks table to monitor task activity and execution history:
+- `last_updated`: Timestamp of last update to any task field
+- `last_executed`: Timestamp of last execution attempt by an agent
+- `execution_count`: Counter for number of execution attempts
+
+### Changes Made
+
+1. **Database Migration** (`007_add_task_metadata_columns.ts`):
+   - Added three new columns to tasks table with appropriate types
+   - Created indexes on `last_updated` and `last_executed` for efficient querying
+   - Initialized `last_updated` to `created_at` for existing tasks
+   - Provided rollback capability via `down` migration
+
+2. **TypeScript Interface** (`TaskRecord`):
+   - Added `last_updated: string | null`
+   - Added `last_executed: string | null`
+   - Added `execution_count: number`
+
+3. **New Function** (`updateTaskMetadata()`):
+   - Flexible metadata update function with options for each field
+   - Can update any combination of: `updateLastUpdated`, `updateLastExecuted`, `updateExecutionCount`
+   - Includes audit logging for all metadata updates
+   - Returns updated task record
+
+4. **Enhanced Existing Functions**:
+   - `updateTaskStatus()`: Now automatically sets `last_updated` timestamp
+   - `updateTaskProgress()`: Now automatically sets `last_updated` timestamp
+   - `createTask()`: Initializes `last_updated` to creation timestamp
+   - `getTask()`, `getActiveTasks()`, `getBlockedTasks()`: Updated SELECT queries to include new columns
+
+5. **Comprehensive Tests**:
+   - 8 new test cases covering all metadata update scenarios
+   - Tests for individual field updates
+   - Tests for combined field updates
+   - Tests for automatic `last_updated` tracking in status/progress updates
+   - All 71 tests passing (65 existing + 6 new)
+
+### Files Modified
+
+1. **New Files**:
+   - `packages/common/src/db/migrations/007_add_task_metadata_columns.ts`
+
+2. **Modified Files**:
+   - `packages/common/src/db/migrations/index.ts` - Registered migration007
+   - `packages/common/src/db/queries/types.ts` - Updated TaskRecord interface
+   - `packages/common/src/db/queries/tasks.ts` - Added updateTaskMetadata(), updated queries
+   - `packages/common/src/db/__tests__/queries-tasks.test.ts` - Added 8 test cases
+
+### Design Decisions
+
+1. **Separate fields for different timestamps**: `last_updated` (any change) vs `last_executed` (execution attempts) for granular tracking
+2. **Automatic `last_updated` tracking**: Status and progress updates automatically set timestamp for consistency
+3. **Manual execution tracking**: `updateTaskMetadata()` provides explicit control over execution count/timestamp
+4. **Nullable timestamps**: Allow distinguishing between never-executed vs executed tasks
+5. **Indexed timestamps**: Enable efficient queries for recently updated/executed tasks
+
+### Testing Results
+
+```
+✓ All 71 tests passing (65 existing + 6 new)
+✓ Build succeeds with no TypeScript errors
+✓ Migration applies cleanly to test databases
+✓ All SELECT queries return new fields correctly
+```
+
+### Use Cases Enabled
+
+1. **Stale task detection**: Query for tasks not updated in X days
+2. **Execution monitoring**: Track how many times a task has been attempted
+3. **Agent activity tracking**: Identify which tasks agents are actively working on
+4. **Debugging**: Understand task lifecycle and execution patterns
+5. **Performance metrics**: Analyze task update frequency and execution rates
+
+**Status**: ✅ **Task 2.3.8 COMPLETE**
 
 ---

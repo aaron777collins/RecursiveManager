@@ -107,6 +107,10 @@ export interface TaskRecord {
   blocked_since: string | null;
   task_path: string;
   version: number;
+  // Metadata tracking (Task 2.3.8)
+  last_updated: string | null; // ISO 8601 timestamp
+  last_executed: string | null; // ISO 8601 timestamp
+  execution_count: number;
 }
 
 /**
