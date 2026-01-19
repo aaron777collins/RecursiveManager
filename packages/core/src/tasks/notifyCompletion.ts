@@ -82,7 +82,7 @@ export async function notifyTaskCompletion(
   // Check if manager has completion notifications enabled (unless forced)
   if (!force) {
     try {
-      const managerConfig = await loadAgentConfig(managerAgent.id, dataDir);
+      const managerConfig = await loadAgentConfig(managerAgent.id, { baseDir: dataDir });
 
       // Check if notifications are configured and completion notifications are disabled
       if (managerConfig.communication?.notifyOnCompletion === false) {

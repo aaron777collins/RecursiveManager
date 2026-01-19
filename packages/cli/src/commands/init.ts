@@ -6,6 +6,9 @@ import { Command } from 'commander';
 import { header, success, error, info, code } from '../utils/colors';
 import { createSpinner } from '../utils/spinner';
 import { confirm } from '../utils/prompts';
+import * as fs from 'fs';
+import * as path from 'path';
+import { initializeDatabase, runMigrations, allMigrations, createAgent } from '@recursive-manager/common';
 
 export function registerInitCommand(program: Command): void {
   program
@@ -18,8 +21,16 @@ export function registerInitCommand(program: Command): void {
         console.log(header('\n🚀 RecursiveManager Initialization'));
         console.log();
 
+        // Determine data directory
+        const dataDir =
+          options.dataDir ||
+          process.env.RECURSIVE_MANAGER_DATA_DIR ||
+          path.resolve(process.cwd(), '.recursive-manager');
+
+        const markerFile = path.resolve(dataDir, '.recursive-manager');
+
         // Check if already initialized
-        const alreadyInitialized = false; // TODO: Check actual state
+        const alreadyInitialized = fs.existsSync(markerFile);
         if (alreadyInitialized && !options.force) {
           const shouldContinue = await confirm(
             'RecursiveManager is already initialized. Overwrite?',
@@ -33,21 +44,65 @@ export function registerInitCommand(program: Command): void {
 
         const spinner = createSpinner('Initializing RecursiveManager...');
 
-        // TODO: Implement actual initialization logic
-        // 1. Create data directory structure
-        // 2. Initialize agent hierarchy
-        // 3. Set up configuration
-        // 4. Create root manager agent with goal
+        // Create directory structure
+        const dirs = ['agents', 'tasks', 'logs', 'snapshots'];
+        for (const dir of dirs) {
+          const dirPath = path.resolve(dataDir, dir);
+          if (!fs.existsSync(dirPath)) {
+            fs.mkdirSync(dirPath, { recursive: true, mode: 0o755 });
+          }
+        }
 
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated delay
+        // Initialize database
+        const dbPath = path.resolve(dataDir, 'database.sqlite');
+        const dbConnection = initializeDatabase({ path: dbPath });
+        const db = dbConnection.db;
+
+        // Run migrations
+        const migrationsApplied = runMigrations(db, allMigrations);
+        spinner.text = `Initializing RecursiveManager... (applied ${migrationsApplied} migrations)`;
+
+        // Create root CEO agent
+        const ceoId = 'ceo-001';
+        const ceo = createAgent(db, {
+          id: ceoId,
+          role: 'CEO',
+          displayName: 'CEO',
+          createdBy: null,
+          reportingTo: null,
+          mainGoal: goal,
+          configPath: path.resolve(dataDir, 'agents', 'ce', ceoId, 'config.json'),
+        });
+
+        // Write marker file
+        const markerData = {
+          initialized: new Date().toISOString(),
+          version: '0.2.0',
+        };
+        fs.writeFileSync(markerFile, JSON.stringify(markerData, null, 2), { mode: 0o644 });
+
+        // Write configuration file
+        const config = {
+          dataDir,
+          dbPath,
+          rootAgentId: ceo.id,
+          version: '0.2.0',
+          execution: {
+            workerPoolSize: 4,
+            maxConcurrentTasks: 10,
+          },
+        };
+        const configPath = path.resolve(dataDir, 'config.json');
+        fs.writeFileSync(configPath, JSON.stringify(config, null, 2), { mode: 0o644 });
+
+        // Close database connection
+        dbConnection.close();
 
         spinner.succeed('RecursiveManager initialized successfully');
         console.log();
         console.log(success('Goal set: ') + code(goal));
-
-        if (options.dataDir) {
-          console.log(info('Data directory: ') + code(options.dataDir));
-        }
+        console.log(info('Data directory: ') + code(dataDir));
+        console.log(info('Root agent: ') + code(`${ceo.display_name} (${ceo.id})`));
 
         console.log();
         console.log(info('Next steps:'));

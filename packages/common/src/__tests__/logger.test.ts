@@ -238,7 +238,7 @@ describe('Logger Module', () => {
       expect(content).toContain('Test file log');
     });
 
-    it('should write JSON formatted logs to file', () => {
+    it('should write JSON formatted logs to file', async () => {
       const logger = createLogger({
         file: true,
         filePath: tempFile,
@@ -249,27 +249,30 @@ describe('Logger Module', () => {
       const traceId = generateTraceId();
       logger.info('JSON format test', { traceId });
 
-      const waitForFile = () => {
-        return new Promise((resolve) => setTimeout(resolve, 100));
-      };
+      // Get the underlying Winston logger and wait for it to finish writing
+      const winstonLogger = (logger as any).getWinstonLogger();
 
-      return waitForFile().then(() => {
-        expect(fs.existsSync(tempFile)).toBe(true);
-        const content = fs.readFileSync(tempFile, 'utf-8');
-
-        // Parse JSON to validate format
-        const lines = content.trim().split('\n');
-        const firstLine = lines[0];
-        if (!firstLine) {
-          throw new Error('No log output found');
-        }
-        const parsed = JSON.parse(firstLine);
-
-        expect(parsed.message).toBe('JSON format test');
-        expect(parsed.level).toBe('info');
-        expect(parsed.timestamp).toBeDefined();
-        expect(parsed.metadata.traceId).toBe(traceId);
+      // Wait for all transports to finish writing
+      await new Promise<void>((resolve) => {
+        winstonLogger.on('finish', resolve);
+        winstonLogger.end();
       });
+
+      expect(fs.existsSync(tempFile)).toBe(true);
+      const content = fs.readFileSync(tempFile, 'utf-8');
+
+      // Parse JSON to validate format
+      const lines = content.trim().split('\n');
+      const firstLine = lines[0];
+      if (!firstLine) {
+        throw new Error('No log output found');
+      }
+      const parsed = JSON.parse(firstLine);
+
+      expect(parsed.message).toBe('JSON format test');
+      expect(parsed.level).toBe('info');
+      expect(parsed.timestamp).toBeDefined();
+      expect(parsed.metadata.traceId).toBe(traceId);
     });
   });
 
@@ -916,7 +919,7 @@ describe('Logger Module', () => {
       childLogger.info('Test child with rotation');
     });
 
-    it('should write logs when rotation is enabled', (done) => {
+    it('should write logs when rotation is enabled', async () => {
       const logFile = path.join(testDir, 'write-test.log');
       const logger = createLogger({
         file: true,
@@ -927,13 +930,32 @@ describe('Logger Module', () => {
 
       logger.info('Rotation write test');
 
-      // Wait for file to be written
-      setTimeout(() => {
-        const files = fs.readdirSync(testDir);
-        const logFiles = files.filter((f) => f.startsWith('write-test'));
-        expect(logFiles.length).toBeGreaterThan(0);
-        done();
-      }, 100);
+      // Get the underlying Winston logger
+      const winstonLogger = (logger as any).getWinstonLogger();
+
+      // Wait for the transport to write - DailyRotateFile needs more time
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Timeout waiting for log write'));
+        }, 5000);
+
+        // Listen for the 'logged' event on the transport
+        const transport = winstonLogger.transports[0];
+        if (transport) {
+          transport.once('logged', () => {
+            clearTimeout(timeout);
+            // Give it a bit more time to flush to disk
+            setTimeout(resolve, 100);
+          });
+        } else {
+          clearTimeout(timeout);
+          resolve();
+        }
+      });
+
+      const files = fs.readdirSync(testDir);
+      const logFiles = files.filter((f) => f.startsWith('write-test'));
+      expect(logFiles.length).toBeGreaterThan(0);
     });
 
     it('should use default 30-day retention when maxFiles not specified', () => {
