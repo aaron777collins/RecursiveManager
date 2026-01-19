@@ -383,7 +383,7 @@ RecursiveManager is a hierarchical AI agent system with:
 - [x] Task 3.2.4: Implement buildContinuousPrompt(agent, task)
 - [x] Task 3.2.5: Implement buildReactivePrompt(agent, messages)
 - [x] Task 3.2.6: Implement buildMultiPerspectivePrompt(question, perspectives)
-- [ ] Task 3.2.7: Implement execution context preparation (load files, tasks, messages)
+- [x] Task 3.2.7: Implement execution context preparation (load files, tasks, messages)
 - [ ] Task 3.2.8: Implement result parsing from Claude Code output
 - [ ] Task 3.2.9: Add timeout protection (EC-6.2) - default 60 minutes
 - [ ] Task 3.2.10: Add error handling and retry logic
@@ -637,6 +637,155 @@ Tests:       139 passed, 139 total (26 new prompt tests)
 ```
 
 **Status**: ✅ **COMPLETE** - Tasks 3.2.3, 3.2.4, 3.2.5, and 3.2.6 fully implemented with comprehensive tests
+
+---
+
+### Task 3.2.7: Execution Context Preparation ✅
+
+**Date**: 2026-01-19
+
+**Summary**: Implemented comprehensive execution context preparation functionality that loads and prepares all data needed for agent execution, including agent configuration, active tasks, unread messages, and workspace files.
+
+**What Was Implemented**:
+
+1. **Context Loading Module** (`packages/adapters/src/context/index.ts` - 395 lines):
+   - Complete context preparation system for framework adapters
+   - Loads agent config, tasks, messages, and workspace files
+   - 9 exported functions for context management
+   - Full TypeScript typing with custom error classes
+
+2. **Core Functions**:
+   - `loadExecutionContext()`: Orchestrates loading all context data in parallel
+   - `loadConfig()`: Loads agent configuration from file system
+   - `loadTasks()`: Loads active tasks from database
+   - `loadMessages()`: Loads unread messages from database
+   - `loadWorkspaceFiles()`: Enumerates files in agent workspace
+   - `validateExecutionContext()`: Validates context completeness
+
+3. **Helper Functions**:
+   - `enumerateWorkspaceFiles()`: Recursively scans workspace directory
+   - `convertTaskToSchema()`: Converts DB TaskRecord to adapter TaskSchema
+   - `convertMessageToSchema()`: Converts DB MessageRecord to adapter Message
+
+4. **Error Handling**:
+   - `ContextLoadError`: Custom error class for context loading failures
+   - Wraps errors from underlying systems with agent context
+   - Graceful handling of missing directories and files
+
+5. **Configuration Options** (`LoadContextOptions`):
+   - Extends `PathOptions` from common package
+   - `maxWorkspaceFiles`: Limit number of files to enumerate (default: 100)
+   - `maxWorkspaceDepth`: Limit directory scan depth (default: 3)
+   - `maxMessages`: Limit number of messages to load (default: 50)
+
+6. **Performance Optimizations**:
+   - Parallel loading using `Promise.all()` for config, tasks, messages, files
+   - Configurable limits prevent excessive filesystem operations
+   - Depth-limited directory scanning prevents deep recursion
+
+7. **Integration**:
+   - Imports from `@recursive-manager/core` for config loading
+   - Imports from `@recursive-manager/common` for DB queries and paths
+   - Exports from `@recursive-manager/adapters` package index
+   - Ready for use by ExecutionOrchestrator (Phase 3.3)
+
+8. **Comprehensive Test Suite** (`packages/adapters/src/context/__tests__/index.test.ts` - 619 lines):
+   - 24 comprehensive tests covering all functionality
+   - Tests for `loadConfig()` (3 tests)
+   - Tests for `loadTasks()` (3 tests)
+   - Tests for `loadMessages()` (4 tests)
+   - Tests for `loadWorkspaceFiles()` (4 tests)
+   - Tests for `loadExecutionContext()` (6 tests)
+   - Tests for `validateExecutionContext()` (4 tests)
+   - All tests passing ✅
+
+**Test Coverage**:
+- ✅ Agent configuration loading with validation
+- ✅ Active task loading with proper field mapping
+- ✅ Unread message loading with filtering
+- ✅ Workspace file enumeration with limits
+- ✅ Complete context loading with parallel execution
+- ✅ Error handling and recovery
+- ✅ Missing file/directory handling
+- ✅ Options propagation to all loaders
+- ✅ Context validation for required fields
+
+**Key Features**:
+
+1. **Parallel Loading**: All data loaded concurrently for performance
+2. **Type Safety**: Full TypeScript typing with proper conversions
+3. **Error Recovery**: Graceful handling of missing/corrupt data
+4. **Configurable Limits**: Prevents excessive resource usage
+5. **Modular Design**: Each loader function can be used independently
+6. **Database Integration**: Uses existing query APIs from common package
+7. **Path Resolution**: Uses path utilities from common package
+8. **Flexible Options**: Extends PathOptions for baseDir overrides
+
+**Integration Pattern**:
+```typescript
+import { loadExecutionContext } from '@recursive-manager/adapters';
+
+// Load complete context
+const context = await loadExecutionContext(
+  db,
+  'agent-id',
+  'continuous',
+  {
+    maxWorkspaceFiles: 50,
+    maxMessages: 25,
+    baseDir: '/custom/path'
+  }
+);
+
+// Pass to adapter
+await adapter.executeAgent('agent-id', 'continuous', context);
+```
+
+**File Changes**:
+- Created: `packages/adapters/src/context/index.ts` (395 lines)
+- Created: `packages/adapters/src/context/__tests__/index.test.ts` (619 lines)
+- Modified: `packages/adapters/src/index.ts` (added context exports)
+
+**Test Results**:
+```
+PASS adapters src/context/__tests__/index.test.ts
+  Execution Context Preparation
+    loadConfig
+      ✓ should load agent configuration successfully
+      ✓ should throw ContextLoadError on failure
+      ✓ should pass options to loadAgentConfig
+    loadTasks
+      ✓ should load active tasks successfully
+      ✓ should throw ContextLoadError on failure
+      ✓ should handle empty task list
+    loadMessages
+      ✓ should load unread messages successfully
+      ✓ should respect maxMessages option
+      ✓ should throw ContextLoadError on failure
+      ✓ should handle empty message list
+    loadWorkspaceFiles
+      ✓ should enumerate workspace files successfully
+      ✓ should handle missing workspace directory
+      ✓ should respect maxWorkspaceFiles option
+      ✓ should throw ContextLoadError on unexpected error
+    loadExecutionContext
+      ✓ should load complete execution context successfully
+      ✓ should load context for reactive mode
+      ✓ should load all data in parallel
+      ✓ should throw ContextLoadError if config loading fails
+      ✓ should throw ContextLoadError if task loading fails
+      ✓ should pass options to all loaders
+    validateExecutionContext
+      ✓ should validate complete context successfully
+      ✓ should throw error for missing agentId
+      ✓ should throw error for missing mode
+      ✓ should throw error for null values
+
+Test Suites: 6 passed, 6 total
+Tests:       163 passed, 163 total (24 new context tests)
+```
+
+**Status**: ✅ **COMPLETE** - Task 3.2.7 fully implemented with comprehensive tests
 
 ---
 

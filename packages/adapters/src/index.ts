@@ -32,3 +32,15 @@ export {
   buildReactivePrompt,
   buildMultiPerspectivePrompt,
 } from './prompts';
+
+// Execution context preparation
+export {
+  loadExecutionContext,
+  loadConfig,
+  loadTasks,
+  loadMessages,
+  loadWorkspaceFiles,
+  validateExecutionContext,
+  ContextLoadError,
+} from './context';
+export type { LoadContextOptions } from './context';
