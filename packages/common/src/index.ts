@@ -161,6 +161,45 @@ export {
   type MigrationStatus,
 } from './db/migrations';
 
+// Database Queries (Phase 1.3)
+export {
+  // Agent queries
+  createAgent,
+  getAgent,
+  updateAgent,
+  getSubordinates,
+  getOrgChart,
+  // Task queries
+  createTask,
+  getTask,
+  updateTaskStatus,
+  updateTaskProgress,
+  getActiveTasks,
+  detectTaskDeadlock,
+  getBlockedTasks,
+  // Audit queries (Phase 1.4)
+  auditLog,
+  queryAuditLog,
+  getRecentAuditEvents,
+  getAuditStats,
+  AuditAction,
+  // Types
+  type AgentStatus,
+  type AgentRecord,
+  type CreateAgentInput,
+  type UpdateAgentInput,
+  type OrgHierarchyRecord,
+  type CreateOrgHierarchyInput,
+  type TaskStatus,
+  type TaskPriority,
+  type TaskRecord,
+  type CreateTaskInput,
+  type AuditActionType,
+  type AuditEventInput,
+  type AuditEventRecord,
+  type AuditQueryFilter,
+} from './db/queries';
+
 // Logging (Phase 1.4)
 export {
   createLogger,
