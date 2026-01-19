@@ -271,3 +271,55 @@ The codebase now has automated code quality checks and consistent formatting. Al
 
 [0;34m══════════════════ ITERATION 6 ══════════════════[0m
 
+Perfect! Task 1.1.5 is now marked as complete. Let me create a summary of what was accomplished:
+
+## Summary
+
+I successfully completed **Task 1.1.5: Configure Jest testing framework with TypeScript**.
+
+### What Was Implemented
+
+1. **Root Jest Configuration** (`jest.config.js`)
+   - ts-jest preset for TypeScript support
+   - Module name mapping for all packages
+   - 80% coverage thresholds (per quality gates)
+   - Coverage reporting (text, lcov, html)
+
+2. **Per-Package Jest Configurations** (5 files)
+   - Separate configs for common, core, cli, scheduler, and adapters
+   - Package-specific display names
+   - Individual coverage thresholds
+
+3. **ESLint + TypeScript Integration**
+   - Created `tsconfig.eslint.json` for each package (5 files)
+   - Updated all `.eslintrc.json` files to use the new tsconfig
+   - This allows ESLint to parse test files without including them in builds
+
+4. **Example Test Files** (5 files)
+   - Created `__tests__/index.test.ts` in each package
+   - 15 tests total (3 per package)
+   - All tests passing
+
+### Validation Results
+
+- ✅ **Tests**: 15/15 tests passing across all 5 packages
+- ✅ **Linting**: 0 errors with test files included
+- ✅ **Build**: All packages compile successfully
+- ✅ **Coverage**: Reporting works correctly
+
+### Files Created/Modified
+
+- 17 new files created
+- 11 files modified
+- Total: 28 files changed
+
+### Commit
+
+Committed all changes with message: `feat: Configure Jest testing framework with TypeScript (Task 1.1.5)`
+
+The testing framework is now fully functional and ready for Phase 1.2 implementation. The next task in the queue is **Task 1.1.6: Create GitHub Actions CI/CD workflow**.
+
+[0;32mIteration 6 complete[0m
+
+[0;34m══════════════════ ITERATION 7 ══════════════════[0m
+

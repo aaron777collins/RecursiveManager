@@ -18,6 +18,10 @@
       "dependsOn": ["build"],
       "outputs": ["coverage/**"]
     },
+    "type-check": {
+      "dependsOn": [],
+      "outputs": []
+    },
     "dev": {
       "cache": false,
       "persistent": true

@@ -19,7 +19,8 @@
     "clean": "rm -rf dist",
     "lint": "eslint src --ext .ts",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@recursive-manager/common": "*",

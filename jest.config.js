@@ -16,16 +16,16 @@ module.exports = {
   roots: ['<rootDir>/packages'],
 
   // Test file patterns
-  testMatch: [
-    '**/__tests__/**/*.ts',
-    '**/?(*.)+(spec|test).ts'
-  ],
+  testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
 
   // Transform TypeScript files
   transform: {
-    '^.+\\.ts$': ['ts-jest', {
-      tsconfig: '<rootDir>/tsconfig.base.json'
-    }]
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        tsconfig: '<rootDir>/tsconfig.base.json',
+      },
+    ],
   },
 
   // Module path aliases (matching tsconfig paths)
@@ -34,7 +34,7 @@ module.exports = {
     '^@recursive-manager/core$': '<rootDir>/packages/core/src',
     '^@recursive-manager/cli$': '<rootDir>/packages/cli/src',
     '^@recursive-manager/scheduler$': '<rootDir>/packages/scheduler/src',
-    '^@recursive-manager/adapters$': '<rootDir>/packages/adapters/src'
+    '^@recursive-manager/adapters$': '<rootDir>/packages/adapters/src',
   },
 
   // Coverage configuration
@@ -43,7 +43,7 @@ module.exports = {
     '!packages/*/src/**/*.d.ts',
     '!packages/*/src/**/*.test.ts',
     '!packages/*/src/**/*.spec.ts',
-    '!packages/*/src/**/__tests__/**'
+    '!packages/*/src/**/__tests__/**',
   ],
 
   // Coverage thresholds (80% minimum as per quality gates)
@@ -52,8 +52,8 @@ module.exports = {
       branches: 80,
       functions: 80,
       lines: 80,
-      statements: 80
-    }
+      statements: 80,
+    },
   },
 
   // Coverage output directory
@@ -63,11 +63,7 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html'],
 
   // Ignore patterns
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/dist/',
-    '/coverage/'
-  ],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/', '/coverage/'],
 
   // Module file extensions
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
@@ -82,5 +78,5 @@ module.exports = {
   restoreMocks: true,
 
   // Maximum number of concurrent workers
-  maxWorkers: '50%'
+  maxWorkers: '50%',
 };
