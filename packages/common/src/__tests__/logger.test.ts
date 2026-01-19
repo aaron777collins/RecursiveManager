@@ -418,4 +418,180 @@ describe('Logger Module', () => {
       }).not.toThrow();
     });
   });
+
+  describe('Log Rotation', () => {
+    const testDir = path.join(os.tmpdir(), `logger-rotation-test-${Date.now()}`);
+
+    beforeAll(() => {
+      if (!fs.existsSync(testDir)) {
+        fs.mkdirSync(testDir, { recursive: true });
+      }
+    });
+
+    afterAll(() => {
+      // Clean up test directory
+      if (fs.existsSync(testDir)) {
+        const files = fs.readdirSync(testDir);
+        files.forEach((file) => {
+          fs.unlinkSync(path.join(testDir, file));
+        });
+        fs.rmdirSync(testDir);
+      }
+    });
+
+    it('should throw error when rotation enabled without file output', () => {
+      expect(() => {
+        createLogger({ rotation: true });
+      }).toThrow('rotation requires file output to be enabled');
+    });
+
+    it('should create logger with rotation enabled', () => {
+      const logFile = path.join(testDir, 'app.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        console: false,
+      });
+
+      expect(logger).toBeDefined();
+      logger.info('Test rotation message');
+    });
+
+    it('should create logger with custom date pattern', () => {
+      const logFile = path.join(testDir, 'custom-pattern.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        datePattern: 'YYYY-MM-DD-HH',
+        console: false,
+      });
+
+      expect(logger).toBeDefined();
+      logger.info('Test custom pattern');
+    });
+
+    it('should create logger with compression disabled', () => {
+      const logFile = path.join(testDir, 'no-compress.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        compress: false,
+        console: false,
+      });
+
+      expect(logger).toBeDefined();
+      logger.info('Test no compression');
+    });
+
+    it('should create logger with custom retention period', () => {
+      const logFile = path.join(testDir, 'custom-retention.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        maxFiles: '7d',
+        console: false,
+      });
+
+      expect(logger).toBeDefined();
+      logger.info('Test custom retention');
+    });
+
+    it('should create logger with max file size', () => {
+      const logFile = path.join(testDir, 'max-size.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        maxSize: '10m',
+        console: false,
+      });
+
+      expect(logger).toBeDefined();
+      logger.info('Test max size');
+    });
+
+    it('should create logger with all rotation options', () => {
+      const logFile = path.join(testDir, 'full-rotation.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        datePattern: 'YYYY-MM-DD',
+        compress: true,
+        maxFiles: '30d',
+        maxSize: '20m',
+        console: false,
+      });
+
+      expect(logger).toBeDefined();
+      logger.info('Test full rotation config');
+    });
+
+    it('should preserve rotation options in child logger', () => {
+      const logFile = path.join(testDir, 'child-rotation.log');
+      const parentLogger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        compress: true,
+        maxFiles: '30d',
+        console: false,
+      });
+
+      const childLogger = parentLogger.child({ agentId: 'test-agent' });
+      expect(childLogger).toBeDefined();
+      childLogger.info('Test child with rotation');
+    });
+
+    it('should write logs when rotation is enabled', (done) => {
+      const logFile = path.join(testDir, 'write-test.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        console: false,
+      });
+
+      logger.info('Rotation write test');
+
+      // Wait for file to be written
+      setTimeout(() => {
+        const files = fs.readdirSync(testDir);
+        const logFiles = files.filter((f) => f.startsWith('write-test'));
+        expect(logFiles.length).toBeGreaterThan(0);
+        done();
+      }, 100);
+    });
+
+    it('should use default 30-day retention when maxFiles not specified', () => {
+      const logFile = path.join(testDir, 'default-retention.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        console: false,
+      });
+
+      expect(logger).toBeDefined();
+      logger.info('Test default retention');
+    });
+
+    it('should handle numeric maxFiles value', () => {
+      const logFile = path.join(testDir, 'numeric-retention.log');
+      const logger = createLogger({
+        file: true,
+        filePath: logFile,
+        rotation: true,
+        maxFiles: 14,
+        console: false,
+      });
+
+      expect(logger).toBeDefined();
+      logger.info('Test numeric maxFiles');
+    });
+  });
 });

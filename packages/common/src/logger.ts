@@ -10,6 +10,7 @@
  */
 
 import winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 import { randomUUID } from 'crypto';
 
 /**
@@ -60,6 +61,16 @@ export interface LoggerOptions {
   json?: boolean;
   /** Default metadata to include in all logs */
   defaultMetadata?: LogMetadata;
+  /** Enable log rotation (default: false, requires file: true) */
+  rotation?: boolean;
+  /** Date pattern for rotation (default: 'YYYY-MM-DD') */
+  datePattern?: string;
+  /** Enable compression of rotated logs (default: true when rotation enabled) */
+  compress?: boolean;
+  /** Maximum number of days to retain logs (default: 30) */
+  maxFiles?: number | string;
+  /** Maximum size of each log file (e.g., '20m', '100k') */
+  maxSize?: string;
 }
 
 /**
@@ -68,6 +79,7 @@ export interface LoggerOptions {
 class WinstonLogger implements Logger {
   private logger: winston.Logger;
   private defaultMetadata: LogMetadata;
+  private options: LoggerOptions;
 
   constructor(options: LoggerOptions = {}) {
     const {
@@ -77,6 +89,11 @@ class WinstonLogger implements Logger {
       filePath,
       json = true,
       defaultMetadata = {},
+      rotation = false,
+      datePattern = 'YYYY-MM-DD',
+      compress = true,
+      maxFiles = '30d',
+      maxSize,
     } = options;
 
     // Validate file options
@@ -84,7 +101,13 @@ class WinstonLogger implements Logger {
       throw new Error('filePath is required when file output is enabled');
     }
 
+    // Validate rotation options
+    if (rotation && !enableFile) {
+      throw new Error('rotation requires file output to be enabled');
+    }
+
     this.defaultMetadata = defaultMetadata;
+    this.options = options;
 
     // Configure transports
     const transports: winston.transport[] = [];
@@ -103,12 +126,27 @@ class WinstonLogger implements Logger {
     }
 
     if (enableFile && filePath) {
-      transports.push(
-        new winston.transports.File({
-          filename: filePath,
-          format: winston.format.json(),
-        })
-      );
+      if (rotation) {
+        // Use daily rotate file transport for rotation support
+        transports.push(
+          new DailyRotateFile({
+            filename: filePath.replace(/\.log$/, '-%DATE%.log'),
+            datePattern,
+            zippedArchive: compress,
+            maxFiles,
+            maxSize,
+            format: winston.format.json(),
+          })
+        );
+      } else {
+        // Use standard file transport for non-rotated logs
+        transports.push(
+          new winston.transports.File({
+            filename: filePath,
+            format: winston.format.json(),
+          })
+        );
+      }
     }
 
     // Create Winston logger instance
@@ -183,6 +221,7 @@ class WinstonLogger implements Logger {
    */
   child(defaultMetadata: LogMetadata): Logger {
     return new WinstonLogger({
+      ...this.options,
       level: this.logger.level as LogLevel,
       defaultMetadata: {
         ...this.defaultMetadata,
