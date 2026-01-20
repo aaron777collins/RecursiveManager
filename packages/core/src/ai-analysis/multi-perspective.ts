@@ -9,6 +9,7 @@ import { UXAgent } from './agents/ux.js';
 import { GrowthAgent } from './agents/growth.js';
 import { EmotionalAgent } from './agents/emotional.js';
 import { AnalysisCache, globalAnalysisCache } from './cache.js';
+import * as History from './history.js';
 
 /**
  * Result of multi-perspective analysis combining all 8 agent perspectives
@@ -60,14 +61,23 @@ export interface MultiPerspectiveResult {
 export class MultiPerspectiveAnalysis {
   private agents: PerspectiveAgent[];
   private cache: AnalysisCache;
+  private agentId: string;
+  private persistHistory: boolean;
 
   /**
    * Creates a new MultiPerspectiveAnalysis orchestrator
    *
    * @param provider - AI provider to use for all 8 agents
    * @param cache - Optional cache instance (defaults to global cache)
+   * @param agentId - Optional agent identifier for history persistence (defaults to 'default')
+   * @param persistHistory - Whether to save analyses to disk (defaults to true)
    */
-  constructor(provider: AIProvider, cache?: AnalysisCache) {
+  constructor(
+    provider: AIProvider,
+    cache?: AnalysisCache,
+    agentId: string = 'default',
+    persistHistory: boolean = true
+  ) {
     // Initialize all 8 perspective agents with the same provider
     this.agents = [
       new SecurityAgent(provider),
@@ -82,6 +92,10 @@ export class MultiPerspectiveAnalysis {
 
     // Use provided cache or default to global singleton
     this.cache = cache ?? globalAnalysisCache;
+
+    // Store agent ID and history persistence setting
+    this.agentId = agentId;
+    this.persistHistory = persistHistory;
   }
 
   /**
@@ -126,6 +140,16 @@ export class MultiPerspectiveAnalysis {
 
     // Cache the result for future requests
     this.cache.set(context, result);
+
+    // Persist to disk if enabled
+    if (this.persistHistory) {
+      try {
+        await History.saveAnalysis(this.agentId, result);
+      } catch (error) {
+        // Log error but don't fail the analysis
+        console.error('Failed to persist analysis to disk:', error);
+      }
+    }
 
     return result;
   }
@@ -225,5 +249,73 @@ export class MultiPerspectiveAnalysis {
    */
   cleanupCache(): number {
     return this.cache.cleanup();
+  }
+
+  /**
+   * Lists all saved analysis history
+   *
+   * @param filter - Optional filter criteria
+   * @returns Array of stored analyses
+   */
+  async listHistory(filter?: History.HistoryFilter): Promise<History.StoredAnalysis[]> {
+    return History.listAnalyses(this.agentId, filter);
+  }
+
+  /**
+   * Loads a specific analysis from history by timestamp
+   *
+   * @param timestamp - ISO timestamp of the analysis
+   * @returns The analysis result, or null if not found
+   */
+  async getHistoryItem(timestamp: string): Promise<MultiPerspectiveResult | null> {
+    return History.loadAnalysis(this.agentId, timestamp);
+  }
+
+  /**
+   * Gets statistics about analysis history
+   *
+   * @returns Statistics including total analyses, averages, storage size
+   */
+  async getHistoryStats(): Promise<History.HistoryStats> {
+    return History.getHistoryStats(this.agentId);
+  }
+
+  /**
+   * Deletes a specific analysis from history
+   *
+   * @param timestamp - ISO timestamp of the analysis to delete
+   * @returns true if deleted, false if not found
+   */
+  async deleteHistoryItem(timestamp: string): Promise<boolean> {
+    return History.deleteAnalysis(this.agentId, timestamp);
+  }
+
+  /**
+   * Clears all analysis history
+   *
+   * @returns Number of analyses deleted
+   */
+  async clearHistory(): Promise<number> {
+    return History.clearHistory(this.agentId);
+  }
+
+  /**
+   * Deletes analyses older than a specified date
+   *
+   * @param beforeDate - ISO timestamp - delete analyses before this date
+   * @returns Number of analyses deleted
+   */
+  async deleteHistoryBefore(beforeDate: string): Promise<number> {
+    return History.deleteAnalysesBefore(this.agentId, beforeDate);
+  }
+
+  /**
+   * Exports all analysis history to a single JSON file
+   *
+   * @param outputPath - Path to export file
+   * @returns Number of analyses exported
+   */
+  async exportHistory(outputPath: string): Promise<number> {
+    return History.exportHistory(this.agentId, outputPath);
   }
 }
