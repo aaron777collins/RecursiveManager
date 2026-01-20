@@ -1962,16 +1962,26 @@ Ran full test suite for scheduler package:
 
 ## Completed This Iteration
 
-- **Task 4.7: Implement execution restart on agent resume**
-  - Added `resumeExecutionsForAgent(agentId)` method to ExecutionPool (packages/core/src/execution/ExecutionPool.ts:431-454)
-  - Updated ResumeAgentOptions interface to accept optional `executionPool` parameter (packages/core/src/lifecycle/resumeAgent.ts:251-256)
-  - Updated ResumeAgentResult interface to include optional `queuedExecutions` field (packages/core/src/lifecycle/resumeAgent.ts:50-60)
-  - Implemented STEP 5 (execution resume) in resumeAgent function (packages/core/src/lifecycle/resumeAgent.ts:419-450)
-  - Added 7 unit tests to ExecutionPool.test.ts (packages/core/src/execution/__tests__/ExecutionPool.test.ts:1481-1598)
-  - Added 4 integration tests to resumeAgent.test.ts (packages/core/src/__tests__/resumeAgent.test.ts:440-549)
-  - All 78 ExecutionPool tests passing
-  - All 18 resumeAgent tests passing
-  - Implementation maintains symmetry with pauseAgent (Task 4.6)
+- **Task 4.8: Add resource quotas (CPU/memory limits per feature)**
+  - Created ResourceMonitor class (packages/core/src/execution/ResourceMonitor.ts, 227 lines)
+    - Tracks CPU/memory usage using Node.js process metrics
+    - Supports maxMemoryMB, maxCpuPercent, maxExecutionMinutes quotas
+    - Detects quota violations with detailed violation messages
+    - Provides memory statistics (heap, RSS, V8 heap limit)
+  - Enhanced ExecutionPool with resource quota enforcement (packages/core/src/execution/ExecutionPool.ts)
+    - Integrated ResourceMonitor for quota tracking
+    - Added periodic quota checking (configurable interval, default 5000ms)
+    - Extended execute() method to accept optional ResourceQuota parameter
+    - Added quota cleanup on task completion/cancellation/queue clearing
+    - New options: enableResourceQuotas (default true), quotaCheckIntervalMs
+    - New statistics field: totalQuotaViolations
+    - New methods: getResourceUsage(), getMemoryStats()
+  - Created comprehensive test suite
+    - Added 15 ExecutionPool quota tests (packages/core/src/execution/__tests__/ExecutionPool.test.ts:1600-1863)
+    - Created ResourceMonitor test file with 12 tests (packages/core/src/execution/__tests__/ResourceMonitor.test.ts, 213 lines)
+    - All 109 tests passing (94 ExecutionPool + 15 ResourceMonitor)
+  - Build succeeds, no TypeScript errors
+  - Committed and pushed to master (commit 15c3497)
 
 ## Notes
 
