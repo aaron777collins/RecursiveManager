@@ -362,6 +362,9 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
           ...process.env,
           // Ensure no interactive prompts
           CI: '1',
+          // Provider configuration for Claude CLI routing
+          ANTHROPIC_BASE_URL: this.getProviderUrl(),
+          ANTHROPIC_API_KEY: this.getProviderApiKey(),
         },
       });
 
@@ -858,6 +861,57 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
 
     // Not a retryable error
     return false;
+  }
+
+  /**
+   * Get the provider URL for Claude CLI routing
+   *
+   * Determines which Anthropic API base URL to use based on the configured
+   * AGENT_EXECUTION_PROVIDER environment variable.
+   *
+   * @private
+   * @returns Provider base URL
+   */
+  private getProviderUrl(): string {
+    const provider = process.env.AGENT_EXECUTION_PROVIDER || 'anthropic-direct';
+
+    switch (provider) {
+      case 'aiceo-gateway':
+        // TODO: This would need AICEO to proxy Claude CLI calls, not just LLM API
+        // For now, fall back to direct Anthropic
+        // In future, could use AICEO_GATEWAY_URL as a proxy endpoint
+        return process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com';
+      case 'anthropic-direct':
+        return process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com';
+      default:
+        // Default to Anthropic API for unknown providers
+        return process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com';
+    }
+  }
+
+  /**
+   * Get the API key for provider authentication
+   *
+   * Returns the appropriate API key based on the configured provider.
+   * For AICEO Gateway, this would be the gateway API key.
+   * For direct providers, this is the provider's API key.
+   *
+   * @private
+   * @returns API key for authentication
+   */
+  private getProviderApiKey(): string {
+    const provider = process.env.AGENT_EXECUTION_PROVIDER || 'anthropic-direct';
+
+    switch (provider) {
+      case 'aiceo-gateway':
+        // If using AICEO Gateway, return gateway API key
+        // Fall back to Anthropic key if gateway key not set
+        return process.env.AICEO_GATEWAY_API_KEY || process.env.ANTHROPIC_API_KEY || '';
+      case 'anthropic-direct':
+      default:
+        // For direct Anthropic or unknown providers, use Anthropic key
+        return process.env.ANTHROPIC_API_KEY || '';
+    }
   }
 
   /**
