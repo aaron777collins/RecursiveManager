@@ -10,6 +10,7 @@
  * 6. Verify result saved to history
  *
  * NOTE: This test requires AICEO Gateway to be running at http://localhost:4000
+ * Set ENABLE_INTEGRATION_TESTS=true to run these tests
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
@@ -20,7 +21,10 @@ import { MultiPerspectiveAnalysis } from '../multi-perspective';
 import { ProviderFactory } from '../providers/factory';
 import { AIProvider } from '../providers/base';
 
-describe('AI Provider End-to-End Integration', () => {
+// Skip integration tests unless explicitly enabled
+const describeIntegration = process.env.ENABLE_INTEGRATION_TESTS === 'true' ? describe : describe.skip;
+
+describeIntegration('AI Provider End-to-End Integration', () => {
   let testWorkspaceDir: string;
   let provider: AIProvider;
   let originalEnv: NodeJS.ProcessEnv;

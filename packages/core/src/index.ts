@@ -31,6 +31,10 @@ export {
   type HireValidationResult,
   hireAgent,
   HireAgentError,
+  fireAgent,
+  FireAgentError,
+  type FireStrategy,
+  type FireAgentResult,
   pauseAgent,
   PauseAgentError,
   type PauseAgentResult,
@@ -70,3 +74,11 @@ export {
   SaveExecutionResultError,
   type AgentMetadata,
 } from './execution/state';
+
+// Messaging (Phase 2)
+export {
+  writeMessageToInbox,
+  generateMessageId,
+  formatMessageFile,
+  type MessageData,
+} from './messaging/messageWriter';

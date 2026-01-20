@@ -9,6 +9,7 @@
  * 5. Verify no rate limit errors
  *
  * NOTE: This test requires AICEO Gateway to be running at http://localhost:4000
+ * Set ENABLE_INTEGRATION_TESTS=true to run these tests
  */
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
@@ -16,7 +17,10 @@ import { MultiPerspectiveAnalysis } from '../multi-perspective';
 import { ProviderFactory } from '../providers/factory';
 import { AIProvider } from '../providers/base';
 
-describe('AI Provider Performance Integration', () => {
+// Skip integration tests unless explicitly enabled
+const describeIntegration = process.env.ENABLE_INTEGRATION_TESTS === 'true' ? describe : describe.skip;
+
+describeIntegration('AI Provider Performance Integration', () => {
   let provider: AIProvider;
   let originalEnv: NodeJS.ProcessEnv;
   const PARALLEL_REQUESTS = 10;

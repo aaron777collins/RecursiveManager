@@ -91,6 +91,9 @@ describe('ClaudeCodeAdapter', () => {
     // Reset mocks before each test
     jest.clearAllMocks();
 
+    // Set required environment variables for health check
+    process.env.ANTHROPIC_API_KEY = 'test-api-key-12345';
+
     // Default mock implementation for execa
     mockedExeca.mockResolvedValue({
       stdout: 'claude-code version 1.0.0',
@@ -102,6 +105,12 @@ describe('ClaudeCodeAdapter', () => {
       debug: false,
       timeout: 1000, // 1 second for tests
     });
+  });
+
+  afterEach(() => {
+    // Clean up environment variables
+    delete process.env.ANTHROPIC_API_KEY;
+    delete process.env.AGENT_EXECUTION_PROVIDER;
   });
 
   describe('interface compliance', () => {
@@ -1492,10 +1501,12 @@ describe('ClaudeCodeAdapter', () => {
         const adapter = new ClaudeCodeAdapter({ cliPath: '/nonexistent/path/to/claude' });
         const context = createMockContext();
 
+        // Clear default mock to prevent retries from succeeding
+        mockedExeca.mockReset();
         mockHealthCheck();
         const execError = new Error('spawn /nonexistent/path/to/claude ENOENT');
         (execError as any).code = 'ENOENT';
-        mockedExeca.mockRejectedValueOnce(execError);
+        mockedExeca.mockRejectedValue(execError);
 
         const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
 
@@ -1507,10 +1518,12 @@ describe('ClaudeCodeAdapter', () => {
       it('should handle permission denied errors', async () => {
         const context = createMockContext();
 
+        // Clear default mock to prevent retries from succeeding
+        mockedExeca.mockReset();
         mockHealthCheck();
         const permError = new Error('Permission denied');
         (permError as any).code = 'EACCES';
-        mockedExeca.mockRejectedValueOnce(permError);
+        mockedExeca.mockRejectedValue(permError);
 
         const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
 
@@ -1539,10 +1552,12 @@ describe('ClaudeCodeAdapter', () => {
       it('should handle process being killed by signal', async () => {
         const context = createMockContext();
 
+        // Clear default mock to prevent retries from succeeding
+        mockedExeca.mockReset();
         mockHealthCheck();
         const killError = new Error('Process was killed with SIGKILL');
         (killError as any).signal = 'SIGKILL';
-        mockedExeca.mockRejectedValueOnce(killError);
+        mockedExeca.mockRejectedValue(killError);
 
         const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
 
