@@ -43,11 +43,9 @@ describe('Task Archival - Integration Tests', () => {
         db,
         {
           id: 'multi-day-agent',
-          name: 'Multi-Day Agent',
+          displayName: 'Multi-Day Agent',
           role: 'Developer',
-          goal: 'Test multi-day archival',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -107,11 +105,9 @@ describe('Task Archival - Integration Tests', () => {
         db,
         {
           id: 'boundary-agent',
-          name: 'Boundary Agent',
+          displayName: 'Boundary Agent',
           role: 'Developer',
-          goal: 'Test month boundaries',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -173,11 +169,9 @@ describe('Task Archival - Integration Tests', () => {
         db,
         {
           id: 'consistency-agent',
-          name: 'Consistency Agent',
+          displayName: 'Consistency Agent',
           role: 'Developer',
-          goal: 'Test database consistency',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -226,11 +220,9 @@ describe('Task Archival - Integration Tests', () => {
         db,
         {
           id: 'prevent-agent',
-          name: 'Prevent Agent',
+          displayName: 'Prevent Agent',
           role: 'Developer',
-          goal: 'Test prevention',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -278,11 +270,9 @@ describe('Task Archival - Integration Tests', () => {
         db,
         {
           id: 'agent-1',
-          name: 'Agent 1',
+          displayName: 'Agent 1',
           role: 'Developer',
-          goal: 'Test agent 1',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -290,11 +280,9 @@ describe('Task Archival - Integration Tests', () => {
         db,
         {
           id: 'agent-2',
-          name: 'Agent 2',
+          displayName: 'Agent 2',
           role: 'Designer',
-          goal: 'Test agent 2',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -404,11 +392,9 @@ describe('Task Archival - Integration Tests', () => {
         db,
         {
           id: 'e2e-agent',
-          name: 'E2E Agent',
+          displayName: 'E2E Agent',
           role: 'Developer',
-          goal: 'Test end-to-end',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -522,11 +508,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'malformed-agent',
-          name: 'Malformed Agent',
+          displayName: 'Malformed Agent',
           role: 'Developer',
-          goal: 'Test malformed',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -578,11 +562,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'unreadable-agent',
-          name: 'Unreadable Agent',
+          displayName: 'Unreadable Agent',
           role: 'Developer',
-          goal: 'Test unreadable',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -625,11 +607,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'empty-agent',
-          name: 'Empty Agent',
+          displayName: 'Empty Agent',
           role: 'Developer',
-          goal: 'Test empty',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -674,11 +654,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'large-agent',
-          name: 'Large Agent',
+          displayName: 'Large Agent',
           role: 'Developer',
-          goal: 'Test large files',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -732,11 +710,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'special-agent',
-          name: 'Special Agent',
+          displayName: 'Special Agent',
           role: 'Developer',
-          goal: 'Test special chars',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -802,11 +778,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'perm-agent',
-          name: 'Permission Agent',
+          displayName: 'Permission Agent',
           role: 'Developer',
-          goal: 'Test permissions',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -870,11 +844,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'nested-agent',
-          name: 'Nested Agent',
+          displayName: 'Nested Agent',
           role: 'Developer',
-          goal: 'Test nested dirs',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 
@@ -946,11 +918,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'perf-agent',
-          name: 'Performance Agent',
+          displayName: 'Performance Agent',
           role: 'Developer',
-          goal: 'Test performance',
           reportingTo: null,
-          frameworkPreference: 'claude-code',
         }
       );
 

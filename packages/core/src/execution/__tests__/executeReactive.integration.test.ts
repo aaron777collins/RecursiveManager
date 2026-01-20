@@ -147,8 +147,8 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
     mockAdapter = {
       name: 'mock-adapter',
       async executeAgent(
-        agentId: string,
-        mode: 'continuous' | 'reactive',
+        _agentId: string,
+        _mode: 'continuous' | 'reactive',
         context: any
       ): Promise<ExecutionResult> {
         return {
@@ -194,20 +194,21 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: '/test/agents/test-001/config.json',
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
 
       createMessage(db, {
         id: 'msg-001',
-        agentId,
-        from: 'user@example.com',
-        content: 'I need help',
+        from_agent_id: 'user-external',
+        to_agent_id: agentId,
+        timestamp: new Date().toISOString(),
+        priority: 'normal',
         channel: 'email',
-        status: 'unread',
+        message_path: '/test/messages/msg-001.txt',
       });
 
       const trigger = {
@@ -224,7 +225,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
 
       const auditLogs = queryAuditLog(db, { agentId });
       expect(auditLogs.length).toBeGreaterThan(0);
-      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
+      const executionLog = auditLogs.find((log) => log.action === 'execute');
       expect(executionLog).toBeDefined();
     });
 
@@ -235,9 +236,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
@@ -260,38 +261,41 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
 
       createMessage(db, {
         id: 'msg-001',
-        agentId,
-        from: 'user1@example.com',
-        content: 'Question 1',
+        from_agent_id: 'user-external',
+        to_agent_id: agentId,
+        timestamp: new Date().toISOString(),
+        priority: 'normal',
         channel: 'email',
-        status: 'unread',
+        message_path: '/test/messages/msg-001.txt',
       });
 
       createMessage(db, {
         id: 'msg-002',
-        agentId,
-        from: 'user2@example.com',
-        content: 'Question 2',
+        from_agent_id: 'user-external',
+        to_agent_id: agentId,
+        timestamp: new Date().toISOString(),
+        priority: 'normal',
         channel: 'email',
-        status: 'unread',
+        message_path: '/test/messages/msg-002.txt',
       });
 
       createMessage(db, {
         id: 'msg-003',
-        agentId,
-        from: 'user3@example.com',
-        content: 'Question 3',
+        from_agent_id: 'user-external',
+        to_agent_id: agentId,
+        timestamp: new Date().toISOString(),
+        priority: 'normal',
         channel: 'slack',
-        status: 'unread',
+        message_path: '/test/messages/msg-003.txt',
       });
 
       const trigger = {
@@ -314,9 +318,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
@@ -335,8 +339,8 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       const auditLogs = queryAuditLog(db, { agentId });
       const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
       expect(executionLog).toBeDefined();
-      expect(executionLog?.metadata).toBeDefined();
-      const metadata = JSON.parse(executionLog?.metadata || '{}');
+      expect(executionLog?.details).toBeDefined();
+      const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.trigger?.type).toBe('message');
       expect(metadata.trigger?.messageId).toBe('msg-001');
     });
@@ -348,9 +352,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Integration',
         displayName: 'Test Integration',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle webhooks',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle webhooks',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Integration'));
@@ -368,7 +372,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       const auditLogs = queryAuditLog(db, { agentId });
       const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
       expect(executionLog).toBeDefined();
-      const metadata = JSON.parse(executionLog?.metadata || '{}');
+      const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.trigger?.type).toBe('webhook');
     });
 
@@ -379,9 +383,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
@@ -398,7 +402,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       const auditLogs = queryAuditLog(db, { agentId });
       const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
       expect(executionLog).toBeDefined();
-      const metadata = JSON.parse(executionLog?.metadata || '{}');
+      const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.trigger?.type).toBe('manual');
     });
 
@@ -409,9 +413,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
@@ -433,7 +437,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       const auditLogs = queryAuditLog(db, { agentId });
       const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
       expect(executionLog).toBeDefined();
-      const metadata = JSON.parse(executionLog?.metadata || '{}');
+      const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.trigger?.context).toBeDefined();
       expect(metadata.trigger?.context?.source).toBe('github');
     });
@@ -458,9 +462,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
@@ -487,9 +491,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
@@ -497,29 +501,35 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       // Create unread and read messages
       createMessage(db, {
         id: 'msg-unread-1',
-        agentId,
-        from: 'user1@example.com',
-        content: 'Unread 1',
+        from_agent_id: 'user-external',
+        to_agent_id: agentId,
+        timestamp: new Date().toISOString(),
+        priority: 'normal',
         channel: 'email',
-        status: 'unread',
+        read: false,
+        message_path: '/test/messages/msg-unread-1.txt',
       });
 
       createMessage(db, {
         id: 'msg-read-1',
-        agentId,
-        from: 'user2@example.com',
-        content: 'Read 1',
+        from_agent_id: 'user-external',
+        to_agent_id: agentId,
+        timestamp: new Date().toISOString(),
+        priority: 'normal',
         channel: 'email',
-        status: 'read',
+        read: true,
+        message_path: '/test/messages/msg-read-1.txt',
       });
 
       createMessage(db, {
         id: 'msg-unread-2',
-        agentId,
-        from: 'user3@example.com',
-        content: 'Unread 2',
+        from_agent_id: 'user-external',
+        to_agent_id: agentId,
+        timestamp: new Date().toISOString(),
+        priority: 'normal',
         channel: 'slack',
-        status: 'unread',
+        read: false,
+        message_path: '/test/messages/msg-unread-2.txt',
       });
 
       const trigger = {
@@ -541,22 +551,23 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
 
-      const channels = ['email', 'slack', 'telegram', 'webhook'];
+      const channels: Array<'email' | 'slack' | 'telegram'> = ['email', 'slack', 'telegram'];
       channels.forEach((channel, idx) => {
         createMessage(db, {
           id: `msg-${idx}`,
-          agentId,
-          from: `user${idx}@example.com`,
-          content: `Message from ${channel}`,
+          from_agent_id: 'user-external',
+          to_agent_id: agentId,
+          timestamp: new Date().toISOString(),
+          priority: 'normal',
           channel,
-          status: 'unread',
+          message_path: `/test/messages/msg-${idx}.txt`,
         });
       });
 
@@ -578,22 +589,22 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
 
-      const metadata = { priority: 'high', tags: ['urgent', 'vip'] };
       createMessage(db, {
         id: 'msg-001',
-        agentId,
-        from: 'vip@example.com',
-        content: 'Urgent request',
+        from_agent_id: 'user-external',
+        to_agent_id: agentId,
+        timestamp: new Date().toISOString(),
+        priority: 'urgent',
         channel: 'email',
-        status: 'unread',
-        metadata,
+        message_path: '/test/messages/msg-001.txt',
+        external_metadata: JSON.stringify({ tags: ['urgent', 'vip'] }),
       });
 
       const trigger = {
@@ -614,8 +625,8 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       const fallbackAdapter: FrameworkAdapter = {
         name: 'fallback-adapter',
         async executeAgent(
-          agentId: string,
-          mode: 'continuous' | 'reactive',
+          _agentId: string,
+          _mode: 'continuous' | 'reactive',
           context: any
         ): Promise<ExecutionResult> {
           return {
@@ -651,9 +662,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, config);
@@ -670,7 +681,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       const auditLogs = queryAuditLog(db, { agentId });
       const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
       expect(executionLog).toBeDefined();
-      const metadata = JSON.parse(executionLog?.metadata || '{}');
+      const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.usedFallback).toBe(true);
       expect(metadata.adapter).toBe('fallback-adapter');
     });
@@ -685,9 +696,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
@@ -711,9 +722,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
@@ -722,8 +733,8 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       const slowAdapter: FrameworkAdapter = {
         name: 'slow-adapter',
         async executeAgent(
-          agentId: string,
-          mode: 'continuous' | 'reactive',
+          _agentId: string,
+          _mode: 'continuous' | 'reactive',
           _context: any
         ): Promise<ExecutionResult> {
           await new Promise((resolve) => setTimeout(resolve, 500));
@@ -779,9 +790,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
@@ -824,9 +835,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'error-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support', 'error-adapter'));
@@ -843,7 +854,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       const auditLogs = queryAuditLog(db, { agentId });
       const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
       expect(executionLog).toBeDefined();
-      const metadata = JSON.parse(executionLog?.metadata || '{}');
+      const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.error).toBeDefined();
     });
 
@@ -872,9 +883,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'error-adapter-2',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support', 'error-adapter-2'));
@@ -921,9 +932,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'error-adapter-3',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support', 'error-adapter-3'));
@@ -936,10 +947,10 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       await expect(orchestrator.executeReactive(agentId, trigger)).rejects.toThrow();
 
       const auditLogs = queryAuditLog(db, { agentId });
-      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
+      const executionLog = auditLogs.find((log) => log.action === 'execute');
       expect(executionLog).toBeDefined();
-      expect(executionLog?.status).toBe('error');
-      const metadata = JSON.parse(executionLog?.metadata || '{}');
+      expect(executionLog?.success).toBe(0); // SQLite stores booleans as 0/1
+      const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.error).toContain('Test error message');
     });
   });
@@ -952,9 +963,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
@@ -973,13 +984,13 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       const auditLogs = queryAuditLog(db, { agentId });
       expect(auditLogs.length).toBeGreaterThan(0);
 
-      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
+      const executionLog = auditLogs.find((log) => log.action === 'execute');
       expect(executionLog).toBeDefined();
-      expect(executionLog?.agentId).toBe(agentId);
+      expect(executionLog?.agent_id).toBe(agentId);
       expect(executionLog?.action).toBe('execute');
-      expect(executionLog?.status).toBe('success');
+      expect(executionLog?.success).toBe(1); // SQLite stores booleans as 0/1
 
-      const metadata = JSON.parse(executionLog?.metadata || '{}');
+      const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.mode).toBe('reactive');
       expect(metadata.duration).toBeGreaterThan(0);
     });
@@ -991,9 +1002,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         role: 'Support',
         displayName: 'Test Support',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Handle support requests',
-        schedule: { mode: 'reactive' },
+        createdBy: 'test',
+        mainGoal: 'Handle support requests',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
@@ -1013,10 +1024,10 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       expect(result.success).toBe(true);
 
       const auditLogs = queryAuditLog(db, { agentId });
-      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
+      const executionLog = auditLogs.find((log) => log.action === 'execute');
       expect(executionLog).toBeDefined();
 
-      const metadata = JSON.parse(executionLog?.metadata || '{}');
+      const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.trigger).toBeDefined();
       expect(metadata.trigger.type).toBe('webhook');
       expect(metadata.trigger.context).toBeDefined();

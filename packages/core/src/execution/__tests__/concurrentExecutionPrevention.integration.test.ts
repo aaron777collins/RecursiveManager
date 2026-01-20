@@ -444,8 +444,8 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       mockAdapter = {
         name: 'mock-adapter',
         async executeAgent(
-          agentId: string,
-          mode: 'continuous' | 'reactive'
+          _agentId: string,
+          _mode: 'continuous' | 'reactive'
         ): Promise<ExecutionResult> {
           // Simulate some work
           await new Promise((resolve) => setTimeout(resolve, 50));
@@ -485,9 +485,9 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
         role: 'Engineer',
         displayName: 'Test Engineer',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Build software',
-        schedule: { mode: 'continuous' },
+        createdBy: 'test',
+        mainGoal: 'Build software',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Engineer'));
@@ -496,9 +496,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
         id: 'task-001',
         agentId,
         title: 'Test task',
-        description: 'Test',
         priority: 'high',
-        status: 'in_progress',
         taskPath: 'Test task',
       });
 
@@ -530,18 +528,17 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
           role: 'Engineer',
           displayName: `Engineer ${agentId}`,
           reportingTo: null,
-          framework: 'mock-adapter',
-          systemPrompt: 'Build',
-          schedule: { mode: 'continuous' },
+          createdBy: 'test',
+          mainGoal: 'Build',
+          configPath: `/test/agents/${agentId}/config.json`,
         });
         await saveAgentConfig(agentId, createValidConfig(agentId, 'Engineer'));
         createTask(db, {
           id: `task-${agentId}`,
           agentId,
           title: 'Task',
-          description: 'Test',
           priority: 'high',
-          status: 'in_progress',
+          taskPath: 'Task',
         });
       }
 
@@ -561,9 +558,9 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
         role: 'Engineer',
         displayName: 'Test',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Build',
-        schedule: { mode: 'continuous' },
+        createdBy: 'test',
+        mainGoal: 'Build',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Engineer'));
@@ -577,7 +574,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       await expect(orchestrator.executeContinuous(agentId)).rejects.toThrow('Execution failed');
 
       // Fix the adapter
-      mockAdapter.executeAgent = async (agentId, mode) => ({
+      mockAdapter.executeAgent = async (_agentId, _mode) => ({
         success: true,
         tasksCompleted: 0,
         messagesProcessed: 0,
@@ -601,9 +598,9 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
           role: 'Worker',
           displayName: `Worker ${agentId}`,
           reportingTo: null,
-          framework: 'mock-adapter',
-          systemPrompt: 'Work',
-          schedule: { mode: 'continuous' },
+          createdBy: 'test',
+          mainGoal: 'Work',
+          configPath: `/test/agents/${agentId}/config.json`,
         });
         await saveAgentConfig(agentId, createValidConfig(agentId, 'Worker'));
       }
@@ -628,8 +625,8 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
       mockAdapter = {
         name: 'mock-adapter',
         async executeAgent(
-          agentId: string,
-          mode: 'continuous' | 'reactive'
+          _agentId: string,
+          _mode: 'continuous' | 'reactive'
         ): Promise<ExecutionResult> {
           await new Promise((resolve) => setTimeout(resolve, 30));
           return {
@@ -670,9 +667,9 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
         role: 'Engineer',
         displayName: 'Test',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Build',
-        schedule: { mode: 'continuous' },
+        createdBy: 'test',
+        mainGoal: 'Build',
+        configPath: `/test/agents/${agentId}/config.json`,
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Engineer'));

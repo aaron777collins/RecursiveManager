@@ -161,26 +161,48 @@ The plan has 12 phases, but dependencies are:
 - [x] 1.5: Fix any remaining test failures in adapters package
 - [x] 1.6: Fix any remaining test failures in scheduler package
 - [x] 1.7: Run ESLint and fix all errors (plan says 6 errors)
-- [ ] 1.8: Verify 100% test pass rate (PROGRESS: 444/499 passing - 88.9% pass rate, 13/32 suites passing, 54 failures remaining)
+- [ ] 1.8: Verify 100% test pass rate (PROGRESS: 456/547 passing - 83.4% pass rate, 15/32 suites passing, 90 runtime test failures remaining - all TypeScript compilation errors fixed)
 - [x] 1.9: Build all packages (npm run build) - PASSES ✅
 - [ ] 1.10: Verify type-check passes (npm run type-check)
 
 ### Phase 2: Implement Real Multi-Perspective AI Analysis ⚠️ CRITICAL
 
-- [ ] 2.1: Design sub-agent spawning architecture for perspectives
-- [ ] 2.2: Implement Security Agent with real AI calls
-- [ ] 2.3: Implement Architecture Agent with real AI calls
-- [ ] 2.4: Implement Simplicity Agent with real AI calls
-- [ ] 2.5: Implement Financial Agent with real AI calls
-- [ ] 2.6: Implement Marketing Agent with real AI calls
-- [ ] 2.7: Implement UX Agent with real AI calls
-- [ ] 2.8: Implement Growth Agent with real AI calls
-- [ ] 2.9: Implement Emotional Agent with real AI calls
-- [ ] 2.10: Wire sub-agents to ExecutionOrchestrator (replace stubs)
-- [ ] 2.11: Test real multi-perspective analysis end-to-end
-- [ ] 2.12: Add integration tests for each perspective agent
-- [ ] 2.13: Verify confidence scoring works with real data
-- [ ] 2.14: Test decision synthesis with real AI responses
+**Architecture Note**: Multi-perspective analysis = consulting service (not actual RM agents). 8 agents make parallel LLM calls with different system prompts. Supports swappable providers (GLM Gateway, Anthropic, OpenAI, custom).
+
+#### 2.1: AI Provider Infrastructure (Foundation Layer)
+- [ ] 2.1.1: Create AIProviderInterface (base.ts) - define interface, config, error types
+- [ ] 2.1.2: Implement GLMGatewayProvider (glm-gateway.ts) - HTTP client to localhost:4000/api/glm/proxy
+- [ ] 2.1.3: Implement AnthropicProvider (anthropic.ts) - Direct Anthropic API with SDK
+- [ ] 2.1.4: Implement OpenAIProvider (openai.ts) - Direct OpenAI API with SDK
+- [ ] 2.1.5: Create ProviderFactory (factory.ts) - Instantiate providers based on config
+- [ ] 2.1.6: Add Configuration Support (config.ts) - Add aiProvider, aiProviderEndpoint, aiProviderApiKey, aiProviderModel, aiProviderTimeout fields
+- [ ] 2.1.7: Environment Variable Schema (.env.example) - Document all AI provider env vars with examples
+- [ ] 2.1.8: Integration Tests for Provider Switching - Test GLM Gateway ↔ Anthropic switching, fallback, validation
+
+#### 2.2: Multi-Perspective Analysis Agents (8 Agents)
+- [ ] 2.2.1: Security Agent (security.ts) - System prompt for security analysis, confidence scoring
+- [ ] 2.2.2: Architecture Agent (architecture.ts) - System prompt for architecture analysis
+- [ ] 2.2.3: Simplicity Agent (simplicity.ts) - System prompt for complexity analysis
+- [ ] 2.2.4: Financial Agent (financial.ts) - System prompt for cost/ROI analysis
+- [ ] 2.2.5: Marketing Agent (marketing.ts) - System prompt for positioning analysis
+- [ ] 2.2.6: UX Agent (ux.ts) - System prompt for user experience analysis
+- [ ] 2.2.7: Growth Agent (growth.ts) - System prompt for adoption/scaling analysis
+- [ ] 2.2.8: Emotional Agent (emotional.ts) - System prompt for emotional impact analysis
+
+#### 2.3: Orchestration and Aggregation
+- [ ] 2.3.1: MultiPerspectiveAnalysis Orchestrator (multi-perspective.ts) - Spawn 8 agents in parallel (Promise.all)
+- [ ] 2.3.2: Result Aggregation Logic - Conflict detection, confidence scoring, result formatting
+- [ ] 2.3.3: Wire to ExecutionOrchestrator - Add analyzeDecision() method, log results
+- [ ] 2.3.4: Wire to CLI (analyze.ts) - Add 'ralph analyze <text>' command with colored output
+
+#### 2.4: Adapter System Provider Configuration
+- [ ] 2.4.1: Update ClaudeCodeAdapter - Set ANTHROPIC_BASE_URL env var for GLM Gateway routing
+- [ ] 2.4.2: Adapter Provider Tests - Test adapter with GLM Gateway and direct Anthropic
+
+#### 2.5: Documentation and Examples
+- [ ] 2.5.1: AI Provider Configuration Guide (AI_PROVIDERS.md) - Document all providers, troubleshooting
+- [ ] 2.5.2: Example Configurations (examples/ai-configs/) - .env files for each provider type
+- [ ] 2.5.3: Integration Test Suite - End-to-end test, multiple providers, error scenarios, performance
 
 ### Phase 3: Complete Missing CLI Commands (if needed)
 
@@ -346,24 +368,49 @@ The plan has 12 phases, but dependencies are:
 - [ ] 10.17: Update CONTRIBUTING.md
 - [ ] 10.18: Create docs/ROADMAP.md
 
-### Phase 11: NPM Publishing and Release
+### Phase 11: Private Binary Distribution with Versioned Install Scripts
 
-**Note**: Package metadata ready, not published yet
+**Architecture Note**: RecursiveManager is PRIVATE software (no public npm). Distribution uses versioned install scripts with binary builds, supporting interactive/headless install, upgrade, downgrade, rollback.
 
-- [ ] 11.1: Update package.json version to 1.0.0
-- [ ] 11.2: Update package.json repository URL (verify correct)
-- [ ] 11.3: Complete package.json metadata (keywords, description, author)
-- [ ] 11.4: Add files field to package.json (what to publish)
-- [ ] 11.5: Create .npmignore file
-- [ ] 11.6: Test local install with npm pack
-- [ ] 11.7: Install from tarball and verify
-- [ ] 11.8: Publish to NPM (npm publish)
-- [ ] 11.9: Create GitHub release v1.0.0
-- [ ] 11.10: Write release notes
-- [ ] 11.11: Add binary artifacts to release
-- [ ] 11.12: Update CHANGELOG for release
-- [ ] 11.13: Tag release in git (v1.0.0)
-- [ ] 11.14: Update documentation with npm install instructions
+#### 11.1: Package Configuration for Private Distribution
+- [ ] 11.1.1: Update package.json - Set version 1.0.0, private: true, bin field, metadata
+- [ ] 11.1.2: Create .npmignore - Exclude tests/dev configs, include dist only
+- [ ] 11.1.3: Add Version Management (version.ts) - Read version from package.json, CLI command
+
+#### 11.2: Private Binary Build System
+- [ ] 11.2.1: Create Binary Build Script (build-binaries.sh) - Build packages, create platform binaries, sign with GPG
+- [ ] 11.2.2: Create Binary Storage (/binaries/ structure) - v1.0.0 subdirs for each platform with checksums/signatures
+- [ ] 11.2.3: Binary Verification System (verify-binary.sh) - Verify SHA256, GPG signature, test execution
+
+#### 11.3: Versioned Install Script (Interactive + Headless)
+- [ ] 11.3.1: Add Version Selection - Detect latest, allow --version flag, default to latest stable
+- [ ] 11.3.2: Add Binary Download - Detect platform/arch, download binary, verify checksum/signature
+- [ ] 11.3.3: Add Installation Modes - Binary install (default), source install (--from-source), local install (--local)
+- [ ] 11.3.4: Add Dependency Checks - Check Node >= 18, system deps (git, curl, tar, gpg)
+- [ ] 11.3.5: Add Shell Integration - Auto-detect shell, add PATH, add completion scripts
+- [ ] 11.3.6: Add Post-Install Verification - Run --version, health check, verify packages
+
+#### 11.4: Upgrade Script (Version Management)
+- [ ] 11.4.1: Add Upgrade Logic - Detect current version, fetch available, download to temp, atomic swap
+- [ ] 11.4.2: Add Downgrade Support - Command: recursive-manager downgrade X.Y.Z
+- [ ] 11.4.3: Add Backup Before Upgrade - Backup binary to ~/.recursive-manager/backups/vX.Y.Z/
+- [ ] 11.4.4: Add Rollback Command - Restore previous version from backup
+- [ ] 11.4.5: Add Version History Tracking - Log to ~/.recursive-manager/.version-history
+
+#### 11.5: Release Automation
+- [ ] 11.5.1: Create Release Script (release.sh) - Bump version, generate CHANGELOG, build binaries, create GitHub release
+- [ ] 11.5.2: Create Version Manifest (versions.json) - JSON manifest with latest version, checksums, platforms
+- [ ] 11.5.3: Create Automated Release Pipeline - Trigger on git tag, run tests, build binaries, upload to GitHub
+
+#### 11.6: Installation Documentation
+- [ ] 11.6.1: Create INSTALL.md - One-liner install, interactive guide, headless examples, version pinning
+- [ ] 11.6.2: Create Upgrade Guide (UPGRADE.md) - Pre-upgrade checklist, version compatibility, breaking changes
+- [ ] 11.6.3: Update README.md - Installation section, version management, link to docs
+
+#### 11.7: Testing and Verification
+- [ ] 11.7.1: Create Install Test Suite (test-install.sh) - Test on clean Ubuntu/macOS, headless, versioning
+- [ ] 11.7.2: Create GitHub Release v1.0.0 - Release notes, binary artifacts (all platforms), checksums, signatures
+- [ ] 11.7.3: Tag Release in Git - git tag -a v1.0.0, push tag
 
 ### Phase 12: Post-Launch Verification
 
@@ -385,7 +432,12 @@ The plan has 12 phases, but dependencies are:
 ## Task Count Summary
 
 - **Phase 1**: 10 tasks (Test & Build Verification)
-- **Phase 2**: 14 tasks (Multi-Perspective AI - CRITICAL)
+- **Phase 2**: 25 tasks (Multi-Perspective AI - CRITICAL, now ATOMIC)
+  - 2.1: AI Provider Infrastructure (8 tasks)
+  - 2.2: Multi-Perspective Agents (8 tasks)
+  - 2.3: Orchestration & Aggregation (4 tasks)
+  - 2.4: Adapter System Config (2 tasks)
+  - 2.5: Documentation & Examples (3 tasks)
 - **Phase 3**: 10 tasks (CLI Commands - partial)
 - **Phase 4**: 10 tasks (Scheduler Enhancements)
 - **Phase 5**: 0 tasks (COMPLETE ✅)
@@ -394,10 +446,17 @@ The plan has 12 phases, but dependencies are:
 - **Phase 8**: 12 tasks (Docker - NEW)
 - **Phase 9**: 12 tasks (Monitoring - NEW)
 - **Phase 10**: 18 tasks (Documentation)
-- **Phase 11**: 14 tasks (NPM Publishing)
+- **Phase 11**: 26 tasks (Private Binary Distribution - now ATOMIC)
+  - 11.1: Package Configuration (3 tasks)
+  - 11.2: Binary Build System (3 tasks)
+  - 11.3: Versioned Install Script (6 tasks)
+  - 11.4: Upgrade Script (5 tasks)
+  - 11.5: Release Automation (3 tasks)
+  - 11.6: Installation Documentation (3 tasks)
+  - 11.7: Testing & Verification (3 tasks)
 - **Phase 12**: 12 tasks (Verification)
 
-**TOTAL: 152 tasks**
+**TOTAL: 175 tasks** (was 152, added 23 for atomic breakdown + AI provider config + private binaries)
 
 ## Notes
 
@@ -463,9 +522,55 @@ When build mode begins, it should:
 4. If a task fails, stop and report the blocker
 5. Update this progress file after each task
 6. Only move to next phase when current phase is 100% complete
-7. Write RALPH_DONE marker when ALL 152 tasks are verified complete
+7. **Git Automation**: Commit + push after EACH atomic task completion
+   - Commit message format: `feat: <task description> [Phase X.Y Task Z]`
+   - Always `git pull --rebase` before push
+   - Work on feature branches: `feature/phase-X-<description>`
+   - Merge to main after phase completion
+8. Write RALPH_DONE marker when ALL 175 tasks are verified complete
+
+## Git Workflow Configuration (NEW)
+
+**IMPORTANT**: Ralph MUST commit and push changes as it progresses:
+
+- **Commit Frequency**: After each atomic task (or logical group)
+- **Auto-Push**: Push to remote immediately after commit (don't batch)
+- **Branch Strategy**: Work on feature branches, NOT main directly
+- **Conflict Handling**: Pause and request user intervention on conflicts
+- **PR Creation**: After completing full phase, create PR and merge to main
+
+This ensures:
+- Real-time backup of work
+- Easy rollback to any task
+- Transparent progress tracking
+- Collaboration-friendly workflow
 
 ## Completed This Iteration
+
+- Task 1.8 (PARTIAL PROGRESS): Fixed additional TypeScript compilation errors in core package tests
+
+  **Summary**: Fixed all remaining TypeScript compilation errors in test files (executeReactive.integration.test.ts, concurrentExecutionPrevention.integration.test.ts, task-lifecycle-integration.test.ts, archiveTask.integration.test.ts)
+
+  **Key Fixes**:
+  1. Fixed AuditEventRecord property names (`metadata` → `details`, `status` → `success`, `agentId` → `agent_id`)
+  2. Fixed MessageFilter (`toAgentId` → `agentId`)
+  3. Removed invalid fields from CreateAgentInput (`framework`, `frameworkPreference`)
+  4. Removed invalid fields from CreateTaskInput (`status`, `description`)
+  5. Fixed MessageInput to use correct structure (`from_agent_id`, `to_agent_id`, `timestamp`, `priority`, `message_path`, `read`)
+  6. Added underscore prefix to unused parameters to satisfy TypeScript strict mode
+
+  **Build Status**: `npm run build` passes with 0 TypeScript errors ✅
+
+  **Test Status**:
+  - Total tests: 547 (increased from 499 due to previously blocked suites now compiling)
+  - Passing: 456 tests (83.4%)
+  - Failing: 90 tests (runtime/assertion failures, NOT TypeScript errors)
+  - Passing suites: 15/32
+  - Common: 1075/1075 ✅
+  - CLI: 115/115 ✅
+  - Core: 456/547 (90 runtime failures remain)
+
+  **Status**: All TypeScript compilation errors are now fixed. Remaining failures are runtime test assertion failures that require deeper investigation and fixes to test logic or implementation code.
 
 - Task 1.8 (COMPLETED) + Task 1.9 (COMPLETED): Fixed ALL TypeScript compilation errors in core package tests and verified build passes
 

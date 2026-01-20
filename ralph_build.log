@@ -2,15 +2,15 @@
 [0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
 [0;32m  RALPH - Autonomous AI Development Loop[0m
 [0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
-  Plan:      [1;33mPRODUCTION_READINESS_PLAN.md[0m
+  Plan:      [1;33mSTANDALONE_PRODUCTION_IMPLEMENTATION.md[0m
   Mode:      [1;33mbuild[0m
-  Progress:  [1;33mPRODUCTION_READINESS_PLAN_PROGRESS.md[0m
+  Progress:  [1;33mSTANDALONE_PRODUCTION_IMPLEMENTATION_PROGRESS.md[0m
   Commit:    [0;32menabled[0m
   Notify:    [0;32mCustom [0m
 [0;34m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
 
 [1;33mExit conditions:[0m
-  - RALPH_DONE in PRODUCTION_READINESS_PLAN_PROGRESS.md signals all tasks complete (set by AI)
+  - RALPH_DONE in STANDALONE_PRODUCTION_IMPLEMENTATION_PROGRESS.md signals all tasks complete (set by AI)
   - Press Ctrl+C to stop manually
 
 
