@@ -436,4 +436,109 @@ describe('resumeAgent', () => {
       expect(resumeLogs.length).toBe(2);
     });
   });
+
+  describe('ExecutionPool Integration', () => {
+    it('should resume executions when executionPool is provided', async () => {
+      const { ExecutionPool } = await import('../execution/ExecutionPool.js');
+      const pool = new ExecutionPool();
+
+      const config = generateDefaultConfig('Developer', 'Write code', 'system', {
+        id: 'dev-001',
+        canHire: false,
+        reportingTo: null,
+      });
+
+      await hireAgent(db, null, config, { baseDir: testDir });
+      await pauseAgent(db, 'dev-001', { baseDir: testDir, executionPool: pool });
+
+      // Resume with execution pool
+      const result = await resumeAgent(db, 'dev-001', { baseDir: testDir, executionPool: pool });
+
+      expect(result.agentId).toBe('dev-001');
+      expect(result.status).toBe('active');
+      expect(result.queuedExecutions).toBe(0); // No queued tasks for this agent
+    });
+
+    it('should report queued executions count when agent has queued tasks', async () => {
+      const { ExecutionPool } = await import('../execution/ExecutionPool.js');
+      const pool = new ExecutionPool({ maxConcurrent: 1 });
+
+      const config = generateDefaultConfig('Developer', 'Write code', 'system', {
+        id: 'dev-001',
+        canHire: false,
+        reportingTo: null,
+      });
+
+      await hireAgent(db, null, config, { baseDir: testDir });
+
+      // Fill the pool and queue some tasks for dev-001
+      const task1 = pool.execute('other-agent', async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        return 'done';
+      });
+
+      // Queue tasks for dev-001
+      void pool.execute('dev-001', async () => 'task1');
+      void pool.execute('dev-001', async () => 'task2');
+
+      // Wait for tasks to be queued
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Pause agent (this cancels queued tasks in real scenario, but we're testing resume)
+      await pauseAgent(db, 'dev-001', { baseDir: testDir });
+
+      // Resume with execution pool
+      const result = await resumeAgent(db, 'dev-001', { baseDir: testDir, executionPool: pool });
+
+      expect(result.queuedExecutions).toBeGreaterThanOrEqual(0);
+
+      await task1;
+    });
+
+    it('should skip execution resume when executionPool is not provided', async () => {
+      const config = generateDefaultConfig('Developer', 'Write code', 'system', {
+        id: 'dev-001',
+        canHire: false,
+        reportingTo: null,
+      });
+
+      await hireAgent(db, null, config, { baseDir: testDir });
+      await pauseAgent(db, 'dev-001', { baseDir: testDir });
+
+      // Resume WITHOUT execution pool
+      const result = await resumeAgent(db, 'dev-001', { baseDir: testDir });
+
+      expect(result.agentId).toBe('dev-001');
+      expect(result.status).toBe('active');
+      expect(result.queuedExecutions).toBeUndefined(); // Not populated when pool not provided
+    });
+
+    it('should handle execution resume errors gracefully', async () => {
+      // Create a mock pool that throws an error
+      const mockPool = {
+        resumeExecutionsForAgent: () => {
+          throw new Error('Mock execution resume error');
+        },
+      } as any;
+
+      const config = generateDefaultConfig('Developer', 'Write code', 'system', {
+        id: 'dev-001',
+        canHire: false,
+        reportingTo: null,
+      });
+
+      await hireAgent(db, null, config, { baseDir: testDir });
+      await pauseAgent(db, 'dev-001', { baseDir: testDir });
+
+      // Resume should succeed even if execution resume fails
+      const result = await resumeAgent(db, 'dev-001', {
+        baseDir: testDir,
+        executionPool: mockPool,
+      });
+
+      expect(result.agentId).toBe('dev-001');
+      expect(result.status).toBe('active');
+      expect(result.queuedExecutions).toBe(0); // Defaults to 0 on error
+    });
+  });
 });

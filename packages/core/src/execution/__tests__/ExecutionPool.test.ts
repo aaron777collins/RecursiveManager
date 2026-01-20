@@ -1477,4 +1477,123 @@ describe('ExecutionPool', () => {
       await task1;
     });
   });
+
+  describe('resumeExecutionsForAgent()', () => {
+    it('should return 0 queued executions when agent has no queued tasks', () => {
+      const result = pool.resumeExecutionsForAgent('agent-1');
+      expect(result.queuedExecutions).toBe(0);
+    });
+
+    it('should return queued execution count for agent', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+
+      // Fill pool
+      const task1 = p.execute('agent-1', createDelayedTask('task1', 100));
+
+      // Queue tasks for agent-2
+      void p.execute('agent-2', createDelayedTask('task2', 10));
+      void p.execute('agent-2', createDelayedTask('task3', 10));
+
+      await waitFor(() => p.getQueueDepth() === 2);
+
+      const result = p.resumeExecutionsForAgent('agent-2');
+      expect(result.queuedExecutions).toBe(2);
+
+      await task1;
+    });
+
+    it('should trigger queue processing when called', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 2 });
+
+      // Fill pool
+      const task1 = p.execute('agent-1', createDelayedTask('task1', 50));
+      const task2 = p.execute('agent-2', createDelayedTask('task2', 50));
+
+      await waitFor(() => p.getStatistics().activeCount === 2);
+
+      // Queue a task
+      const task3Promise = p.execute('agent-3', createDelayedTask('task3', 10));
+
+      await waitFor(() => p.getQueueDepth() === 1);
+
+      // Complete one task to free a slot
+      await task1;
+
+      // Resume executions should trigger queue processing
+      p.resumeExecutionsForAgent('agent-3');
+
+      // The queued task should start executing
+      await waitFor(() => p.getQueueDepth() === 0);
+      await waitFor(() => p.isExecuting('agent-3'));
+
+      await Promise.all([task2, task3Promise]);
+    });
+
+    it('should not affect other agents queued tasks', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+
+      // Fill pool
+      const task1 = p.execute('agent-1', createDelayedTask('task1', 100));
+
+      // Queue tasks for multiple agents
+      void p.execute('agent-2', createDelayedTask('task2', 10));
+      void p.execute('agent-3', createDelayedTask('task3', 10));
+      void p.execute('agent-2', createDelayedTask('task4', 10));
+
+      await waitFor(() => p.getQueueDepth() === 3);
+
+      // Resume agent-2
+      const result = p.resumeExecutionsForAgent('agent-2');
+      expect(result.queuedExecutions).toBe(2);
+
+      // Verify queue still has all tasks
+      expect(p.getQueueDepth()).toBe(3);
+
+      await task1;
+    });
+
+    it('should return 0 for agent with only active executions', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 2 });
+
+      // Start active execution for agent-1
+      const task1 = p.execute('agent-1', createDelayedTask('task1', 100));
+
+      await waitFor(() => p.isExecuting('agent-1'));
+
+      const result = p.resumeExecutionsForAgent('agent-1');
+      expect(result.queuedExecutions).toBe(0);
+
+      await task1;
+    });
+
+    it('should work with agent that was never paused', () => {
+      // Resume executions for agent that was never in the pool
+      const result = pool.resumeExecutionsForAgent('never-existed');
+      expect(result.queuedExecutions).toBe(0);
+    });
+
+    it('should handle multiple resume calls for same agent', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+
+      // Fill pool
+      const task1 = p.execute('agent-1', createDelayedTask('task1', 100));
+
+      // Queue tasks
+      void p.execute('agent-2', createDelayedTask('task2', 10));
+      void p.execute('agent-2', createDelayedTask('task3', 10));
+
+      await waitFor(() => p.getQueueDepth() === 2);
+
+      // Multiple resume calls
+      const result1 = p.resumeExecutionsForAgent('agent-2');
+      const result2 = p.resumeExecutionsForAgent('agent-2');
+      const result3 = p.resumeExecutionsForAgent('agent-2');
+
+      expect(result1.queuedExecutions).toBe(2);
+      expect(result2.queuedExecutions).toBe(2);
+      expect(result3.queuedExecutions).toBe(2);
+
+      await task1;
+    });
+  });
 });

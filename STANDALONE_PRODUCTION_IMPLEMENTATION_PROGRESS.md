@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Task 4.6 COMPLETE - Implemented execution stop on agent pause. Added two new methods to ExecutionPool: cancelQueuedTasksForAgent(agentId) which removes and rejects all queued tasks for a specific agent, and getExecutionIdsForAgent(agentId) which returns both active and queued execution IDs for tracking purposes. Updated pauseAgent lifecycle in packages/core/src/lifecycle/pauseAgent.ts: added executionPool parameter to PauseAgentOptions interface, updated PauseAgentResult to include executionsCancelled (number) and activeExecutions (string[]) fields, implemented STEP 5 (execution stop) which calls cancelQueuedTasksForAgent() when executionPool is provided, logs cancellation details including queued tasks cancelled and active tasks that will continue to completion (cannot be interrupted mid-execution). Added 11 comprehensive tests to ExecutionPool.test.ts covering: cancelling queued tasks for specific agent, returning 0 when no tasks queued, not cancelling active executions, preserving queue order for other agents, and tracking execution IDs (active, queued, both, agent-specific filtering). All 71 ExecutionPool tests passing. Phase 4 Task 4.6 complete. Next iteration: Task 4.7 - Implement execution restart on agent resume.
+**Current Iteration Summary**: ✅ Task 4.7 COMPLETE - Implemented execution restart on agent resume. Added resumeExecutionsForAgent(agentId) method to ExecutionPool which returns queuedExecutions count and triggers queue processing for any eligible tasks. Updated resumeAgent lifecycle in packages/core/src/lifecycle/resumeAgent.ts: added executionPool parameter to ResumeAgentOptions interface, updated ResumeAgentResult to include queuedExecutions (number) field, implemented STEP 5 (execution resume) which calls resumeExecutionsForAgent() when executionPool is provided, logs execution resume details including number of queued tasks found for the agent. Added 7 comprehensive tests to ExecutionPool.test.ts covering: returning 0 for agents with no queued tasks, reporting queued execution count, triggering queue processing, not affecting other agents' queued tasks, handling agents with only active executions, working with agents never paused, and handling multiple resume calls. Added 4 integration tests to resumeAgent.test.ts covering: resuming executions when executionPool provided, reporting queued executions count, skipping execution resume when pool not provided, and handling execution resume errors gracefully. All 78 ExecutionPool tests passing, all 18 resumeAgent tests passing. Phase 4 Task 4.7 complete. Next iteration: Task 4.8 - Add resource quotas.
 
 ## Analysis
 
@@ -232,7 +232,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 4.4: Add dependency graph management
 - [x] 4.5: Wire dependency resolution to scheduler
 - [x] 4.6: Implement execution stop on agent pause
-- [ ] 4.7: Implement execution restart on agent resume (currently deferred)
+- [x] 4.7: Implement execution restart on agent resume
 - [ ] 4.8: Add resource quotas (CPU/memory limits per feature)
 - [ ] 4.9: Add comprehensive scheduler integration tests
 - [ ] 4.10: Test priority queue with various priority levels
@@ -1960,6 +1960,37 @@ Ran full test suite for scheduler package:
 
 **Status: SCHEDULER PACKAGE TESTS ALREADY PASSING - NO FIXES NEEDED**
 
+## Completed This Iteration
+
+- **Task 4.7: Implement execution restart on agent resume**
+  - Added `resumeExecutionsForAgent(agentId)` method to ExecutionPool (packages/core/src/execution/ExecutionPool.ts:431-454)
+  - Updated ResumeAgentOptions interface to accept optional `executionPool` parameter (packages/core/src/lifecycle/resumeAgent.ts:251-256)
+  - Updated ResumeAgentResult interface to include optional `queuedExecutions` field (packages/core/src/lifecycle/resumeAgent.ts:50-60)
+  - Implemented STEP 5 (execution resume) in resumeAgent function (packages/core/src/lifecycle/resumeAgent.ts:419-450)
+  - Added 7 unit tests to ExecutionPool.test.ts (packages/core/src/execution/__tests__/ExecutionPool.test.ts:1481-1598)
+  - Added 4 integration tests to resumeAgent.test.ts (packages/core/src/__tests__/resumeAgent.test.ts:440-549)
+  - All 78 ExecutionPool tests passing
+  - All 18 resumeAgent tests passing
+  - Implementation maintains symmetry with pauseAgent (Task 4.6)
+
+## Notes
+
+**Task 4.7 Implementation Details:**
+
+The "execution restart on agent resume" task complements Task 4.6 (execution stop on agent pause). When an agent is paused, queued tasks are cancelled and rejected. When an agent is resumed:
+
+1. **Not about re-queuing cancelled tasks**: Cancelled tasks are lost (promises rejected). They cannot be "restarted".
+2. **About making agent eligible again**: The resumed agent becomes available for NEW executions from the scheduler.
+3. **Queue processing trigger**: `resumeExecutionsForAgent()` triggers queue processing to handle any eligible tasks.
+4. **Visibility and logging**: Reports how many queued tasks exist for the agent at resume time.
+5. **Symmetric implementation**: Mirrors pauseAgent's optional `executionPool` parameter pattern.
+
+The implementation is minimal and focused because:
+- The scheduler will naturally add new scheduled executions for the resumed agent
+- No state needs to be "restored" - the agent's database status change to 'active' is sufficient
+- The ExecutionPool doesn't track agent pause state - it just manages execution queueing
+- Task unblocking (already implemented) handles resuming blocked work
+
 ### Next Task
 
-Task 1.7: Run ESLint and fix all errors (plan says 6 errors)
+Task 4.8: Add resource quotas (CPU/memory limits per feature)

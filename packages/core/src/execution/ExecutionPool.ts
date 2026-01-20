@@ -429,6 +429,31 @@ export class ExecutionPool {
   }
 
   /**
+   * Resume executions for an agent
+   *
+   * This method is called when an agent is resumed from pause. It attempts to
+   * process any queued tasks for the agent that may now be eligible to run.
+   *
+   * Note: Unlike cancelQueuedTasksForAgent(), this doesn't modify the queue.
+   * It simply triggers queue processing to pick up any waiting tasks.
+   * The scheduler is responsible for adding new scheduled executions.
+   *
+   * @param agentId - Agent ID being resumed
+   * @returns Object with queued execution count
+   */
+  resumeExecutionsForAgent(agentId: string): { queuedExecutions: number } {
+    const { queued } = this.getExecutionIdsForAgent(agentId);
+
+    // Trigger queue processing to handle any eligible tasks
+    // This ensures that if the agent has queued tasks, they get processed now
+    this.processNextTask();
+
+    return {
+      queuedExecutions: queued.length,
+    };
+  }
+
+  /**
    * Get maximum concurrent executions limit
    *
    * @returns Max concurrent limit

@@ -27,6 +27,7 @@ import {
 } from '@recursive-manager/common';
 import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 import { unblockTasksForResumedAgent, UnblockTasksResult } from './taskBlocking';
+import { ExecutionPool } from '../execution/ExecutionPool.js';
 
 /**
  * Custom error for resume operation failures
@@ -52,6 +53,11 @@ export interface ResumeAgentResult {
   previousStatus: string;
   notificationsSent: number;
   tasksUnblocked: UnblockTasksResult;
+  /**
+   * Number of queued executions found for this agent
+   * Only populated if executionPool is provided
+   */
+  queuedExecutions?: number;
 }
 
 /**
@@ -242,6 +248,12 @@ export interface ResumeAgentOptions extends PathOptions {
    * Defaults to the target agent's manager (reporting_to) or 'system' if no manager
    */
   performedBy?: string;
+  /**
+   * Execution pool for managing queued executions
+   * If provided, will trigger queue processing for any eligible tasks
+   * If not provided, execution resume will be skipped
+   */
+  executionPool?: ExecutionPool;
 }
 
 /**
@@ -404,13 +416,38 @@ export async function resumeAgent(
       // Don't throw - notification failure is non-critical
     }
 
-    // STEP 5: RESCHEDULE EXECUTIONS (Future implementation)
-    // TODO: When scheduler is implemented (Phase 4+), add logic to:
-    // - Add agent back to scheduler's execution queue
-    // - Calculate next execution time based on schedule.json
-    // - Update scheduler state to include this agent
-    // - Handle any immediate/overdue executions
-    logger.debug('Rescheduling phase skipped (scheduler not yet implemented)', { agentId });
+    // STEP 5: RESUME EXECUTIONS
+    logger.info('Resuming executions for agent', { agentId });
+
+    let queuedExecutions = 0;
+    if (options.executionPool) {
+      try {
+        // Resume executions by triggering queue processing
+        const resumeResult = options.executionPool.resumeExecutionsForAgent(agentId);
+        queuedExecutions = resumeResult.queuedExecutions;
+
+        logger.info('Executions resumed', {
+          agentId,
+          queuedExecutions,
+        });
+
+        if (queuedExecutions > 0) {
+          logger.info('Agent has queued executions that will be processed', {
+            agentId,
+            queuedExecutions,
+          });
+        }
+      } catch (err) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        logger.error('Failed to resume executions', {
+          agentId,
+          error: error.message,
+        });
+        // Don't throw - execution resume failure is non-critical for resume operation
+      }
+    } else {
+      logger.debug('Execution resume phase skipped (no executionPool provided)', { agentId });
+    }
 
     // SUCCESS
     const result: ResumeAgentResult = {
@@ -419,6 +456,9 @@ export async function resumeAgent(
       previousStatus,
       notificationsSent,
       tasksUnblocked,
+      ...(options.executionPool && {
+        queuedExecutions,
+      }),
     };
 
     logger.info('Agent resume completed successfully', {
