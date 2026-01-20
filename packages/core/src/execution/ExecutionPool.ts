@@ -6,6 +6,11 @@
  */
 
 /**
+ * Task priority levels
+ */
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+/**
  * Task in the execution queue
  */
 export interface QueuedTask<T = unknown> {
@@ -21,6 +26,8 @@ export interface QueuedTask<T = unknown> {
   reject: (error: Error) => void;
   /** Timestamp when task was queued */
   queuedAt: Date;
+  /** Task priority (default: 'medium') */
+  priority: TaskPriority;
 }
 
 /**
@@ -85,9 +92,10 @@ export class ExecutionPool {
    *
    * @param agentId - Agent ID executing the task
    * @param execute - Function to execute
+   * @param priority - Task priority (default: 'medium')
    * @returns Promise that resolves with execution result
    */
-  async execute<T>(agentId: string, execute: () => Promise<T>): Promise<T> {
+  async execute<T>(agentId: string, execute: () => Promise<T>, priority: TaskPriority = 'medium'): Promise<T> {
     // Generate unique execution ID
     const executionId = `exec-${++this.executionIdCounter}`;
 
@@ -105,6 +113,7 @@ export class ExecutionPool {
         resolve: resolve as (value: unknown) => void,
         reject,
         queuedAt: new Date(),
+        priority,
       });
     });
   }
@@ -140,6 +149,7 @@ export class ExecutionPool {
    * Process the next task in the queue
    *
    * Called automatically when a task completes to maintain max concurrency.
+   * Selects tasks by priority (urgent > high > medium > low), with FIFO order for same-priority tasks.
    */
   private processNextTask(): void {
     // If pool is at capacity or queue is empty, do nothing
@@ -147,8 +157,8 @@ export class ExecutionPool {
       return;
     }
 
-    // Get next task from queue (FIFO)
-    const task = this.queue.shift();
+    // Find highest priority task in queue
+    const task = this.selectHighestPriorityTask();
     if (!task) {
       return;
     }
@@ -159,6 +169,45 @@ export class ExecutionPool {
 
     // Execute the queued task
     this.executeTask(task.executionId, task.agentId, task.execute).then(task.resolve).catch(task.reject);
+  }
+
+  /**
+   * Select the highest priority task from the queue
+   *
+   * Priority ranking: urgent (4) > high (3) > medium (2) > low (1)
+   * For same-priority tasks, uses FIFO order (earliest queued first)
+   *
+   * @returns Highest priority task, or undefined if queue is empty
+   */
+  private selectHighestPriorityTask(): QueuedTask | undefined {
+    if (this.queue.length === 0) {
+      return undefined;
+    }
+
+    // Priority numeric values for comparison
+    const priorityRank: Record<TaskPriority, number> = {
+      urgent: 4,
+      high: 3,
+      medium: 2,
+      low: 1,
+    };
+
+    // Find index of highest priority task (FIFO for ties)
+    let highestPriorityIndex = 0;
+    let highestPriority = priorityRank[this.queue[0]!.priority];
+
+    for (let i = 1; i < this.queue.length; i++) {
+      const taskPriority = priorityRank[this.queue[i]!.priority];
+      if (taskPriority > highestPriority) {
+        highestPriority = taskPriority;
+        highestPriorityIndex = i;
+      }
+      // For same priority, keep first task (FIFO)
+    }
+
+    // Remove and return the selected task
+    const [task] = this.queue.splice(highestPriorityIndex, 1);
+    return task;
   }
 
   /**

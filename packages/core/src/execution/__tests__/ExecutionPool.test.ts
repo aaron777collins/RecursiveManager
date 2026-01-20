@@ -732,4 +732,311 @@ describe('ExecutionPool', () => {
       expect(p.getStatistics().totalFailed).toBe(2);
     });
   });
+
+  describe('priority queue', () => {
+    it('should execute urgent priority tasks before high priority', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+      const executionOrder: string[] = [];
+
+      // Start first task to block the pool
+      const promise1 = p.execute('agent-1', async () => {
+        executionOrder.push('first');
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return 'first';
+      });
+
+      await waitFor(() => p.isExecuting('agent-1'));
+
+      // Queue tasks with different priorities
+      const promise2 = p.execute(
+        'agent-2',
+        async () => {
+          executionOrder.push('high');
+          return 'high';
+        },
+        'high'
+      );
+
+      const promise3 = p.execute(
+        'agent-3',
+        async () => {
+          executionOrder.push('urgent');
+          return 'urgent';
+        },
+        'urgent'
+      );
+
+      expect(p.getQueueDepth()).toBe(2);
+
+      await Promise.all([promise1, promise2, promise3]);
+
+      // Urgent should execute before high
+      expect(executionOrder).toEqual(['first', 'urgent', 'high']);
+    });
+
+    it('should execute tasks in priority order: urgent > high > medium > low', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+      const executionOrder: string[] = [];
+
+      // Start first task to block pool
+      const promise1 = p.execute('agent-1', async () => {
+        executionOrder.push('blocker');
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return 'blocker';
+      });
+
+      await waitFor(() => p.isExecuting('agent-1'));
+
+      // Queue tasks with all priority levels
+      const promiseLow = p.execute(
+        'agent-low',
+        async () => {
+          executionOrder.push('low');
+          return 'low';
+        },
+        'low'
+      );
+
+      const promiseMedium = p.execute(
+        'agent-medium',
+        async () => {
+          executionOrder.push('medium');
+          return 'medium';
+        },
+        'medium'
+      );
+
+      const promiseHigh = p.execute(
+        'agent-high',
+        async () => {
+          executionOrder.push('high');
+          return 'high';
+        },
+        'high'
+      );
+
+      const promiseUrgent = p.execute(
+        'agent-urgent',
+        async () => {
+          executionOrder.push('urgent');
+          return 'urgent';
+        },
+        'urgent'
+      );
+
+      expect(p.getQueueDepth()).toBe(4);
+
+      await Promise.all([promise1, promiseLow, promiseMedium, promiseHigh, promiseUrgent]);
+
+      // Should execute in priority order
+      expect(executionOrder).toEqual(['blocker', 'urgent', 'high', 'medium', 'low']);
+    });
+
+    it('should maintain FIFO order for same-priority tasks', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+      const executionOrder: string[] = [];
+
+      // Start blocker
+      const promise1 = p.execute('agent-1', async () => {
+        executionOrder.push('blocker');
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return 'blocker';
+      });
+
+      await waitFor(() => p.isExecuting('agent-1'));
+
+      // Queue multiple high-priority tasks - should maintain FIFO
+      const promise2 = p.execute(
+        'agent-2',
+        async () => {
+          executionOrder.push('high-1');
+          return 'high-1';
+        },
+        'high'
+      );
+
+      const promise3 = p.execute(
+        'agent-3',
+        async () => {
+          executionOrder.push('high-2');
+          return 'high-2';
+        },
+        'high'
+      );
+
+      const promise4 = p.execute(
+        'agent-4',
+        async () => {
+          executionOrder.push('high-3');
+          return 'high-3';
+        },
+        'high'
+      );
+
+      await Promise.all([promise1, promise2, promise3, promise4]);
+
+      // Same priority should maintain FIFO order
+      expect(executionOrder).toEqual(['blocker', 'high-1', 'high-2', 'high-3']);
+    });
+
+    it('should use medium priority by default', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+      const executionOrder: string[] = [];
+
+      // Start blocker
+      const promise1 = p.execute('agent-1', async () => {
+        executionOrder.push('blocker');
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return 'blocker';
+      });
+
+      await waitFor(() => p.isExecuting('agent-1'));
+
+      // Queue low priority task
+      const promiseLow = p.execute(
+        'agent-low',
+        async () => {
+          executionOrder.push('low');
+          return 'low';
+        },
+        'low'
+      );
+
+      // Queue task without priority (default medium)
+      const promiseDefault = p.execute('agent-default', async () => {
+        executionOrder.push('default');
+        return 'default';
+      });
+
+      await Promise.all([promise1, promiseLow, promiseDefault]);
+
+      // Default (medium) should execute before low
+      expect(executionOrder).toEqual(['blocker', 'default', 'low']);
+    });
+
+    it('should handle complex priority interleaving', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+      const executionOrder: string[] = [];
+
+      // Start blocker
+      const promise1 = p.execute('agent-1', async () => {
+        executionOrder.push('blocker');
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return 'blocker';
+      });
+
+      await waitFor(() => p.isExecuting('agent-1'));
+
+      // Queue in mixed order
+      const promises = [
+        p.execute(
+          'agent-2',
+          async () => {
+            executionOrder.push('low');
+            return 'low';
+          },
+          'low'
+        ),
+        p.execute(
+          'agent-3',
+          async () => {
+            executionOrder.push('high-1');
+            return 'high-1';
+          },
+          'high'
+        ),
+        p.execute(
+          'agent-4',
+          async () => {
+            executionOrder.push('medium');
+            return 'medium';
+          },
+          'medium'
+        ),
+        p.execute(
+          'agent-5',
+          async () => {
+            executionOrder.push('urgent');
+            return 'urgent';
+          },
+          'urgent'
+        ),
+        p.execute(
+          'agent-6',
+          async () => {
+            executionOrder.push('high-2');
+            return 'high-2';
+          },
+          'high'
+        ),
+      ];
+
+      await Promise.all([promise1, ...promises]);
+
+      // Should sort by priority, then FIFO within same priority
+      expect(executionOrder).toEqual(['blocker', 'urgent', 'high-1', 'high-2', 'medium', 'low']);
+    });
+
+    it('should update queue with priorities correctly', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+
+      const promise1 = p.execute('agent-1', createDelayedTask('r1', 50));
+      await waitFor(() => p.isExecuting('agent-1'));
+
+      p.execute('agent-2', createDelayedTask('r2', 10), 'low');
+      p.execute('agent-3', createDelayedTask('r3', 10), 'urgent');
+      p.execute('agent-4', createDelayedTask('r4', 10), 'medium');
+
+      expect(p.getQueueDepth()).toBe(3);
+
+      await promise1;
+
+      // All tasks should eventually complete
+      await waitFor(() => p.getQueueDepth() === 0);
+    });
+
+    it('should handle priority with concurrent executions', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 2 });
+      const executionOrder: string[] = [];
+
+      // Fill pool with 2 tasks
+      const promise1 = p.execute('agent-1', async () => {
+        executionOrder.push('concurrent-1');
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return 'c1';
+      });
+
+      const promise2 = p.execute('agent-2', async () => {
+        executionOrder.push('concurrent-2');
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        return 'c2';
+      });
+
+      await waitFor(() => p.getActiveExecutions().length === 2);
+
+      // Queue tasks with priorities
+      const promise3 = p.execute(
+        'agent-3',
+        async () => {
+          executionOrder.push('low');
+          return 'low';
+        },
+        'low'
+      );
+
+      const promise4 = p.execute(
+        'agent-4',
+        async () => {
+          executionOrder.push('urgent');
+          return 'urgent';
+        },
+        'urgent'
+      );
+
+      await Promise.all([promise1, promise2, promise3, promise4]);
+
+      // Urgent should execute before low
+      expect(executionOrder.slice(2)).toEqual(['urgent', 'low']);
+    });
+  });
 });

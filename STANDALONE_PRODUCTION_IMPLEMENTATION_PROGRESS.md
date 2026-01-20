@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Task 3.8 COMPLETE - Updated CLI documentation with comprehensive help text for all 6 new commands (analyze, hire, fire, message, run, logs). Added detailed documentation to docs/cli-reference.md including command descriptions, arguments, options, usage examples, and explanations. Updated README.md CLI Interface section to list all 12 commands with brief descriptions. Phase 3 is now COMPLETE with all CLI commands implemented, tested, and documented. Next iteration: Task 4.1 - Begin Phase 4 Scheduler Enhancements.
+**Current Iteration Summary**: ✅ Tasks 4.1 & 4.2 COMPLETE - Implemented priority queue in ExecutionPool with priority-based task scheduling (urgent > high > medium > low). Added TaskPriority type, enhanced QueuedTask interface with priority field, updated execute() method with optional priority parameter (defaults to 'medium'), and implemented selectHighestPriorityTask() method. Maintains FIFO order for same-priority tasks. Added 7 comprehensive priority tests (all passing). Phase 4 Tasks 4.1 and 4.2 complete. Next iteration: Task 4.3 - Implement inter-task dependency specification.
 
 ## Analysis
 
@@ -226,8 +226,8 @@ The plan has 12 phases, but dependencies are:
 
 **Note**: Most scheduler features implemented. Missing pieces:
 
-- [ ] 4.1: Implement priority queue (replace FIFO with priority-based)
-- [ ] 4.2: Add task priority field to execution pool
+- [x] 4.1: Implement priority queue (replace FIFO with priority-based)
+- [x] 4.2: Add task priority field to execution pool
 - [ ] 4.3: Implement inter-task dependency specification
 - [ ] 4.4: Add dependency graph management
 - [ ] 4.5: Wire dependency resolution to scheduler
@@ -574,7 +574,42 @@ This ensures:
 
 ## Completed This Iteration
 
-- **Task 3.8: Update CLI help text and documentation** (COMPLETE ✅):
+- **Task 4.1 & 4.2: Implement priority queue in ExecutionPool** (COMPLETE ✅):
+
+  **Summary**: Implemented priority-based task scheduling in the ExecutionPool, replacing pure FIFO with priority queue while maintaining FIFO order for same-priority tasks. Added comprehensive test coverage for priority ordering.
+
+  **Implementation Details**:
+  1. **Added TaskPriority type**: `'low' | 'medium' | 'high' | 'urgent'` to ExecutionPool.ts
+  2. **Enhanced QueuedTask interface**: Added `priority: TaskPriority` field
+  3. **Updated execute() method**: Added optional `priority` parameter (defaults to 'medium')
+  4. **Implemented selectHighestPriorityTask()**: New private method to select tasks by priority ranking:
+     - Priority ranking: urgent (4) > high (3) > medium (2) > low (1)
+     - For same-priority tasks, maintains FIFO order (earliest queued first)
+     - Uses array splice to remove selected task from queue
+  5. **Modified processNextTask()**: Replaced `queue.shift()` with `selectHighestPriorityTask()`
+
+  **Test Coverage Added** (7 new tests, all passing):
+  - Execute urgent tasks before high priority
+  - Execute tasks in full priority order (urgent > high > medium > low)
+  - Maintain FIFO order for same-priority tasks
+  - Use medium priority by default
+  - Handle complex priority interleaving
+  - Update queue with priorities correctly
+  - Handle priority with concurrent executions
+
+  **Files Modified**:
+  - packages/core/src/execution/ExecutionPool.ts (added priority support, 67 new lines)
+  - packages/core/src/execution/__tests__/ExecutionPool.test.ts (added 7 priority tests, 235 new lines)
+
+  **Validation**:
+  - Build passes: TypeScript compilation successful ✅
+  - All 52 ExecutionPool tests passing (45 existing + 7 new) ✅
+  - Backward compatible: Existing FIFO test still passes with default medium priority ✅
+  - No breaking changes: Optional priority parameter defaults to 'medium' ✅
+
+  **Status**: Phase 4 Tasks 4.1 and 4.2 COMPLETE. Priority queue fully functional and tested.
+
+- **Previous Iteration - Task 3.8: Update CLI help text and documentation** (COMPLETE ✅):
 
   **Summary**: Updated CLI documentation with comprehensive help text for all 6 new commands. Added detailed documentation to cli-reference.md and updated README.md to list all available commands.
 
