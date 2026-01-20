@@ -137,6 +137,79 @@ recursive-manager update --history
 - **[EDGE_CASES_AND_CONTINGENCIES.md](./EDGE_CASES_AND_CONTINGENCIES.md)** - Edge case handling
 - **[IMPLEMENTATION_PHASES.md](./IMPLEMENTATION_PHASES.md)** - Phased implementation plan
 
+### AI Provider & Integration Guides
+
+- **[AI_PROVIDER_GUIDE.md](./docs/AI_PROVIDER_GUIDE.md)** - Complete guide to configuring AI providers
+- **[AICEO_INTEGRATION_GUIDE.md](./docs/AICEO_INTEGRATION_GUIDE.md)** - Integration with AICEO Gateway for centralized LLM access
+
+## AI Provider Configuration
+
+RecursiveManager supports multiple AI providers with flexible configuration for both multi-perspective analysis and agent execution.
+
+### Supported Providers
+
+- **AICEO Gateway** (Recommended): Centralized rate-limited access with shared quota management across platforms
+- **Direct Anthropic**: Direct API calls to Claude models
+- **Direct OpenAI**: Direct API calls to GPT models
+- **GLM Direct**: Direct API calls to GLM models
+- **Custom Providers**: Support for custom LLM endpoints
+
+### Quick Configuration
+
+Configure your AI provider via environment variables:
+
+```bash
+# Use AICEO Gateway (recommended for shared quota management)
+export AI_PROVIDER=aiceo-gateway
+export AICEO_GATEWAY_URL=http://localhost:4000/api/glm/submit
+export AICEO_GATEWAY_API_KEY=your-shared-secret
+export AICEO_GATEWAY_PROVIDER=glm
+export AICEO_GATEWAY_MODEL=glm-4.7
+
+# Or use direct Anthropic
+export AI_PROVIDER=anthropic-direct
+export ANTHROPIC_API_KEY=sk-ant-...
+export ANTHROPIC_MODEL=claude-sonnet-4-5
+
+# Configure fallback provider
+export AI_FALLBACK_PROVIDER=glm-direct
+export GLM_API_KEY=your-glm-api-key
+```
+
+📖 **[Read the full AI Provider Guide](./docs/AI_PROVIDER_GUIDE.md)** for detailed configuration, provider comparison, and troubleshooting.
+
+## Integration with AICEO
+
+RecursiveManager integrates seamlessly with AICEO's GLM Gateway to enable:
+
+- **Centralized Rate Limiting**: Shared quota management across all platforms (AICEO, RecursiveManager, Slack bots, etc.)
+- **Priority Queue**: High/normal/low priority request handling
+- **Cost Tracking**: Centralized LLM API cost monitoring and analytics
+- **Automatic Failover**: Falls back to direct providers if gateway unavailable
+- **Request Logging**: Full audit trail of all LLM requests
+
+### Quick Integration
+
+1. **Start AICEO Gateway**:
+   ```bash
+   cd /path/to/AICEO
+   npm run dev
+   ```
+
+2. **Configure RecursiveManager**:
+   ```bash
+   export AI_PROVIDER=aiceo-gateway
+   export AICEO_GATEWAY_URL=http://localhost:4000/api/glm/submit
+   export AICEO_GATEWAY_API_KEY=your-shared-secret
+   ```
+
+3. **Test Integration**:
+   ```bash
+   recursive-manager analyze "Should we implement Redis caching?"
+   ```
+
+📖 **[Read the full AICEO Integration Guide](./docs/AICEO_INTEGRATION_GUIDE.md)** for step-by-step setup, testing, quota management, and monitoring.
+
 ### Core Concepts
 
 #### Agent Hierarchy
@@ -162,14 +235,40 @@ Each agent has:
 
 #### Multi-Perspective Analysis
 
-Before major decisions (hiring, firing, strategic changes), agents spawn sub-agents to analyze from multiple perspectives:
-- Security: What are the risks?
-- Architecture: Is this scalable?
-- Simplicity: Is this the simplest solution?
-- Financial: What's the cost/benefit?
-- UX: How does this affect user experience?
+Before major decisions (hiring, firing, strategic changes), agents automatically trigger multi-perspective analysis using 8 specialized AI agents running in parallel:
 
-Results synthesized into a decision with confidence levels and reasoning.
+**The 8 Perspectives:**
+1. **Security**: Identifies risks, vulnerabilities, and compliance issues
+2. **Architecture**: Analyzes scalability, maintainability, and technical debt
+3. **Simplicity**: Advocates for YAGNI principle and reducing complexity
+4. **Financial**: Evaluates costs, benefits, ROI, and resource utilization
+5. **Marketing**: Assesses positioning, messaging, and competitive advantage
+6. **UX**: Examines user experience, usability, and accessibility
+7. **Growth**: Considers adoption, retention, and virality
+8. **Emotional**: Evaluates team morale, user sentiment, and psychological impact
+
+**Example Usage:**
+```bash
+# Manual analysis
+recursive-manager analyze "Should we migrate to microservices?"
+
+# Output: All 8 perspectives with confidence scores, synthesized decision
+# ┌─────────────┬────────────┬────────────────────────────┐
+# │ Perspective │ Confidence │ Summary                     │
+# ├─────────────┼────────────┼────────────────────────────┤
+# │ Security    │ 0.85       │ Increases attack surface... │
+# │ Architecture│ 0.82       │ Better scalability but...   │
+# │ ...         │ ...        │ ...                         │
+# └─────────────┴────────────┴────────────────────────────┘
+```
+
+Results are synthesized into a decision with overall confidence levels (accounting for agreement/disagreement between perspectives) and full reasoning. All analyses are cached and persisted to agent workspaces for audit trails.
+
+**Automatic Triggers:**
+- Before hiring a new agent
+- Before firing an agent
+- Before major configuration changes
+- On-demand via CLI command
 
 ## Architecture
 
