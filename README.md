@@ -362,10 +362,19 @@ RecursiveManager is now in **Alpha** status. The core system is functional with 
 
 ✅ **CLI Interface**
 - `recursive-manager init` - Initialize with goal
-- `recursive-manager status` - Show org chart
+- `recursive-manager status` - Show org chart and agent details
+- `recursive-manager hire` - Hire new agents into the hierarchy
+- `recursive-manager fire` - Fire agents with subordinate handling
+- `recursive-manager message` - Send messages to agents for reactive execution
+- `recursive-manager run` - Manually trigger agent execution
+- `recursive-manager logs` - View and filter agent logs
+- `recursive-manager analyze` - Run multi-perspective AI analysis
 - `recursive-manager update` - Self-update system
-- `recursive-manager config` - Configuration wizard
+- `recursive-manager config` - Configuration management
 - `recursive-manager debug` - Agent debugging
+- `recursive-manager rollback` - Restore from snapshots
+
+📖 **[Complete CLI Reference](./docs/cli-reference.md)** - Full documentation for all commands
 
 ✅ **Documentation**
 - Comprehensive website with MkDocs Material

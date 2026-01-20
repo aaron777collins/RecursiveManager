@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Task 3.7 COMPLETE - Created comprehensive integration tests for all 5 new CLI commands (hire, fire, message, run, logs). Implemented 63 test cases across 2,035 lines of test code in 5 test files. Tests cover basic functionality, validation, edge cases, error handling, and follow existing patterns from config/debug integration tests. All tests use proper mocks, temporary directories, real database operations, and proper cleanup. Next iteration: Task 3.8 - Update CLI help text and documentation.
+**Current Iteration Summary**: ✅ Task 3.8 COMPLETE - Updated CLI documentation with comprehensive help text for all 6 new commands (analyze, hire, fire, message, run, logs). Added detailed documentation to docs/cli-reference.md including command descriptions, arguments, options, usage examples, and explanations. Updated README.md CLI Interface section to list all 12 commands with brief descriptions. Phase 3 is now COMPLETE with all CLI commands implemented, tested, and documented. Next iteration: Task 4.1 - Begin Phase 4 Scheduler Enhancements.
 
 ## Analysis
 
@@ -220,7 +220,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 3.5: Implement enhanced `logs` command - COMPLETE (created logs.ts with filtering, enabled in cli.ts)
 - [x] 3.6: Register all new commands in packages/cli/src/cli.ts - COMPLETE (all 5 new commands registered)
 - [x] 3.7: Add integration tests for new commands - COMPLETE (created 5 comprehensive test files)
-- [ ] 3.8: Update CLI help text and documentation
+- [x] 3.8: Update CLI help text and documentation - COMPLETE (updated cli-reference.md and README.md)
 
 ### Phase 4: Scheduler Enhancements
 
@@ -574,7 +574,47 @@ This ensures:
 
 ## Completed This Iteration
 
-- **Task 3.7: Add integration tests for new commands** (COMPLETE ✅):
+- **Task 3.8: Update CLI help text and documentation** (COMPLETE ✅):
+
+  **Summary**: Updated CLI documentation with comprehensive help text for all 6 new commands. Added detailed documentation to cli-reference.md and updated README.md to list all available commands.
+
+  **Documentation Updates**:
+  1. **docs/cli-reference.md**:
+     - Added complete documentation for `analyze` command with multi-perspective analysis explanation
+     - Added complete documentation for `hire` command with all options, arguments, examples
+     - Added complete documentation for `fire` command with subordinate handling strategies
+     - Added complete documentation for `message` command with priority levels and channels
+     - Added complete documentation for `run` command with execution modes
+     - Added complete documentation for `logs` command with filtering and follow mode
+     - Each command section includes: description, arguments, options, detailed examples, usage notes
+
+  2. **README.md**:
+     - Updated CLI Interface section from 5 commands to 12 commands
+     - Added all new commands: hire, fire, message, run, logs, analyze
+     - Added brief descriptions for each command
+     - Added link to complete CLI reference documentation
+
+  **Commands Documented**:
+  - `analyze` - Multi-perspective AI analysis (8 specialized agents)
+  - `hire` - Hire new agents with full configuration options
+  - `fire` - Fire agents with subordinate handling (reassign, promote, cascade)
+  - `message` - Send messages with priority and channel options
+  - `run` - Manual execution in continuous or reactive mode
+  - `logs` - View logs with filtering, grep, follow mode
+
+  **Files Modified**:
+  - docs/cli-reference.md (added 230 lines of documentation)
+  - README.md (updated CLI Interface section, added 7 new commands + reference link)
+
+  **Validation**:
+  - All commands have comprehensive help text ✅
+  - All options and arguments documented ✅
+  - Multiple usage examples for each command ✅
+  - Clear explanations of execution modes and strategies ✅
+
+  **Status**: Phase 3 (Complete All CLI Commands) is now COMPLETE with all 12 commands implemented, tested, and documented.
+
+- **Previous Task 3.7: Add integration tests for new commands** (COMPLETE ✅):
 
   **Summary**: Created comprehensive integration tests for all 5 new CLI commands (hire, fire, message, run, logs). Each test file includes multiple test scenarios covering basic functionality, validation, edge cases, and error handling.
 
