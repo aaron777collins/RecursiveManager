@@ -20,6 +20,7 @@ import {
 } from '@recursive-manager/common';
 import { AgentLock, AgentLockError } from './AgentLock';
 import { ExecutionPool, type PoolStatistics } from './ExecutionPool';
+import type { MultiPerspectiveResult } from '../ai-analysis/multi-perspective.js';
 
 // Re-export for external use
 export { AgentLock, AgentLockError };
@@ -752,6 +753,415 @@ export class ExecutionOrchestrator {
    */
   getPoolStatistics(): PoolStatistics {
     return this.executionPool.getStatistics();
+  }
+
+  /**
+   * Perform multi-perspective analysis on a decision or question
+   *
+   * Runs all 8 perspective agents (Security, Architecture, Simplicity, Financial,
+   * Marketing, UX, Growth, Emotional) in parallel to provide comprehensive analysis.
+   *
+   * @param context - The decision or question to analyze
+   * @returns Promise resolving to multi-perspective analysis result
+   * @throws AnalysisError if analysis fails
+   *
+   * @example
+   * ```typescript
+   * const result = await orchestrator.analyzeDecision("Should we migrate to microservices?");
+   * console.log(result.summary);
+   * console.log(`Overall confidence: ${result.overallConfidence}`);
+   * ```
+   */
+  async analyzeDecision(context: string): Promise<MultiPerspectiveResult> {
+    const logger = createAgentLogger('multi-perspective-analysis');
+    logger.info('Starting multi-perspective analysis', { contextLength: context.length });
+
+    try {
+      // Create provider with health check and automatic fallback
+      const { ProviderFactory } = await import('../ai-analysis/providers/factory.js');
+      const provider = await ProviderFactory.createWithHealthCheck();
+
+      // Create multi-perspective analysis orchestrator
+      const { MultiPerspectiveAnalysis } = await import('../ai-analysis/multi-perspective.js');
+      const analysis = new MultiPerspectiveAnalysis(provider);
+
+      // Run analysis with timeout protection
+      const result = await this.executeWithTimeout(
+        () => analysis.analyze(context),
+        this.maxAnalysisTime,
+        `Multi-perspective analysis timed out after ${this.maxAnalysisTime}ms`
+      );
+
+      logger.info('Multi-perspective analysis completed', {
+        overallConfidence: result.overallConfidence,
+        executionTime: result.executionTime,
+        perspectiveCount: result.perspectives.length,
+      });
+
+      return result;
+    } catch (error) {
+      logger.error('Multi-perspective analysis failed', { error });
+      throw new AnalysisError(
+        `Failed to complete multi-perspective analysis: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
+
+  /**
+   * Hire a new agent with optional multi-perspective analysis
+   *
+   * Optionally performs analysis before hiring to evaluate the decision.
+   * If requiresAnalysis is true, runs multi-perspective analysis on the hiring decision.
+   *
+   * @param managerId - ID of the manager agent (null for root agents)
+   * @param config - Agent configuration including identity, role, and capabilities
+   * @param options - Additional options including requiresAnalysis flag
+   * @returns Promise resolving to hire result and optional analysis
+   * @throws ExecutionError if hiring fails
+   *
+   * @example
+   * ```typescript
+   * const result = await orchestrator.hireAgentWithAnalysis('manager-1', {
+   *   identity: { id: 'agent-123', displayName: 'Security Expert' },
+   *   role: { title: 'Security Expert', description: '...' },
+   *   capabilities: { canHire: false, canFire: false }
+   * }, {
+   *   requiresAnalysis: true
+   * });
+   * console.log(result.analysis?.summary);
+   * console.log(result.hireResult);
+   * ```
+   */
+  async hireAgentWithAnalysis(
+    managerId: string | null | undefined,
+    config: any,
+    options: { requiresAnalysis?: boolean; baseDir?: string } = {}
+  ): Promise<{ hireResult: any; analysis?: MultiPerspectiveResult }> {
+    const logger = createAgentLogger('hire-agent');
+    let analysis: MultiPerspectiveResult | undefined;
+
+    const agentId = config.identity?.id || 'unknown';
+    const role = config.role?.title || config.role || 'unknown';
+
+    // Perform analysis if required
+    if (options.requiresAnalysis) {
+      logger.info('Performing multi-perspective analysis for hire decision', {
+        agentId,
+        role,
+        managerId: managerId ?? undefined,
+      });
+
+      const context = `Should I hire a new agent with role "${role}"?
+
+Agent Details:
+- Agent ID: ${agentId}
+- Role: ${role}
+- Manager: ${managerId || 'None (root agent)'}
+
+Consider:
+1. Whether this role is needed for the organization
+2. The costs and benefits of adding this agent
+3. Whether the team has capacity to onboard and manage this agent
+4. Potential risks and concerns
+5. Alternative solutions to the problem this agent would solve`;
+
+      analysis = await this.analyzeDecision(context);
+
+      logger.info('Hire analysis completed', {
+        overallConfidence: analysis.overallConfidence,
+        perspectiveCount: analysis.perspectives.length,
+      });
+    }
+
+    // Proceed with hiring
+    const { hireAgent } = await import('../lifecycle/hireAgent.js');
+    const dbConnection = this.database.getConnection();
+
+    try {
+      const pathOptions = options.baseDir ? { baseDir: options.baseDir } : {};
+      const hireResult = await hireAgent(
+        dbConnection.db,
+        managerId ?? null,
+        config,
+        pathOptions
+      );
+
+      logger.info('Agent hired successfully', { agentId, role });
+
+      return { hireResult, analysis };
+    } catch (error) {
+      logger.error('Agent hire failed', { agentId, role, error });
+      throw new ExecutionError(
+        `Failed to hire agent ${agentId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
+
+  /**
+   * Fire an agent with optional multi-perspective analysis
+   *
+   * Optionally performs analysis before firing to evaluate the decision.
+   * If requiresAnalysis is true, runs multi-perspective analysis on the firing decision.
+   *
+   * @param agentId - Unique identifier of the agent to fire
+   * @param strategy - Fire strategy: 'reassign', 'promote', or 'cascade'
+   * @param options - Additional options including requiresAnalysis flag
+   * @returns Promise resolving to fire result and optional analysis
+   * @throws ExecutionError if firing fails
+   *
+   * @example
+   * ```typescript
+   * const result = await orchestrator.fireAgentWithAnalysis('agent-123', 'reassign', {
+   *   requiresAnalysis: true
+   * });
+   * console.log(result.analysis?.summary);
+   * console.log(result.fireResult);
+   * ```
+   */
+  async fireAgentWithAnalysis(
+    agentId: string,
+    strategy: 'reassign' | 'promote' | 'cascade' = 'reassign',
+    options: { requiresAnalysis?: boolean; baseDir?: string } = {}
+  ): Promise<{ fireResult: any; analysis?: MultiPerspectiveResult }> {
+    const logger = createAgentLogger('fire-agent');
+    let analysis: MultiPerspectiveResult | undefined;
+
+    // Load agent details for analysis
+    const dbConnection = this.database.getConnection();
+    const agent = await getAgent(dbConnection.db, agentId);
+
+    if (!agent) {
+      throw new ExecutionError(`Agent not found: ${agentId}`);
+    }
+
+    // Perform analysis if required
+    if (options.requiresAnalysis) {
+      logger.info('Performing multi-perspective analysis for fire decision', {
+        agentId,
+        strategy,
+        agentRole: agent.role,
+      });
+
+      const context = `Should I fire agent "${agentId}" (${agent.role})?
+
+Agent Details:
+- Agent ID: ${agentId}
+- Role: ${agent.role}
+- Status: ${agent.status}
+- Manager: ${agent.reporting_to || 'None (root agent)'}
+
+Fire Strategy: ${strategy}
+- reassign: Reassign subordinates to grandparent (fired agent's manager)
+- promote: Promote subordinates to grandparent's level
+- cascade: Recursively fire all subordinates
+
+Consider:
+1. Whether firing this agent is the right decision
+2. The impact on team morale and productivity
+3. How to handle orphaned subordinates and tasks
+4. Potential risks and unintended consequences
+5. Alternative solutions (pause, reassign, coaching)`;
+
+      analysis = await this.analyzeDecision(context);
+
+      logger.info('Fire analysis completed', {
+        overallConfidence: analysis.overallConfidence,
+        perspectiveCount: analysis.perspectives.length,
+      });
+    }
+
+    // Proceed with firing
+    const { fireAgent } = await import('../lifecycle/fireAgent.js');
+
+    try {
+      const pathOptions = options.baseDir ? { baseDir: options.baseDir } : {};
+      const fireResult = await fireAgent(dbConnection.db, agentId, strategy, pathOptions);
+
+      logger.info('Agent fired successfully', { agentId, strategy });
+
+      return { fireResult, analysis };
+    } catch (error) {
+      logger.error('Agent fire failed', { agentId, strategy, error });
+      throw new ExecutionError(
+        `Failed to fire agent ${agentId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
+
+  /**
+   * Pause an agent with optional multi-perspective analysis
+   *
+   * Optionally performs analysis before pausing to evaluate the decision.
+   * If requiresAnalysis is true, runs multi-perspective analysis on the pause decision.
+   *
+   * @param agentId - Unique identifier of the agent to pause
+   * @param options - Additional options including requiresAnalysis flag
+   * @returns Promise resolving to pause result and optional analysis
+   * @throws ExecutionError if pausing fails
+   *
+   * @example
+   * ```typescript
+   * const result = await orchestrator.pauseAgentWithAnalysis('agent-123', {
+   *   requiresAnalysis: true
+   * });
+   * ```
+   */
+  async pauseAgentWithAnalysis(
+    agentId: string,
+    options: { requiresAnalysis?: boolean; performedBy?: string; baseDir?: string } = {}
+  ): Promise<{ pauseResult: any; analysis?: MultiPerspectiveResult }> {
+    const logger = createAgentLogger('pause-agent');
+    let analysis: MultiPerspectiveResult | undefined;
+
+    // Load agent details for analysis
+    const dbConnection = this.database.getConnection();
+    const agent = await getAgent(dbConnection.db, agentId);
+
+    if (!agent) {
+      throw new ExecutionError(`Agent not found: ${agentId}`);
+    }
+
+    // Perform analysis if required
+    if (options.requiresAnalysis) {
+      logger.info('Performing multi-perspective analysis for pause decision', {
+        agentId,
+        agentRole: agent.role,
+      });
+
+      const context = `Should I pause agent "${agentId}" (${agent.role})?
+
+Agent Details:
+- Agent ID: ${agentId}
+- Role: ${agent.role}
+- Status: ${agent.status}
+- Manager: ${agent.reporting_to || 'None (root agent)'}
+
+Consider:
+1. Whether pausing is the right action vs. other alternatives
+2. The impact on active tasks and subordinates
+3. Duration of the pause
+4. Team morale and productivity impact
+5. Communication and transition planning`;
+
+      analysis = await this.analyzeDecision(context);
+
+      logger.info('Pause analysis completed', {
+        overallConfidence: analysis.overallConfidence,
+      });
+    }
+
+    // Proceed with pausing
+    const { pauseAgent } = await import('../lifecycle/pauseAgent.js');
+
+    try {
+      const pauseOptions: { performedBy?: string; baseDir?: string } = {};
+      if (options.performedBy) pauseOptions.performedBy = options.performedBy;
+      if (options.baseDir) pauseOptions.baseDir = options.baseDir;
+
+      const pauseResult = await pauseAgent(dbConnection.db, agentId, pauseOptions);
+
+      logger.info('Agent paused successfully', { agentId });
+
+      return { pauseResult, analysis };
+    } catch (error) {
+      logger.error('Agent pause failed', { agentId, error });
+      throw new ExecutionError(
+        `Failed to pause agent ${agentId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
+  }
+
+  /**
+   * Resume an agent with optional multi-perspective analysis
+   *
+   * Optionally performs analysis before resuming to evaluate readiness.
+   * If requiresAnalysis is true, runs multi-perspective analysis on the resume decision.
+   *
+   * @param agentId - Unique identifier of the agent to resume
+   * @param options - Additional options including requiresAnalysis flag
+   * @returns Promise resolving to resume result and optional analysis
+   * @throws ExecutionError if resuming fails
+   *
+   * @example
+   * ```typescript
+   * const result = await orchestrator.resumeAgentWithAnalysis('agent-123', {
+   *   requiresAnalysis: true
+   * });
+   * ```
+   */
+  async resumeAgentWithAnalysis(
+    agentId: string,
+    options: { requiresAnalysis?: boolean; performedBy?: string; baseDir?: string } = {}
+  ): Promise<{ resumeResult: any; analysis?: MultiPerspectiveResult }> {
+    const logger = createAgentLogger('resume-agent');
+    let analysis: MultiPerspectiveResult | undefined;
+
+    // Load agent details for analysis
+    const dbConnection = this.database.getConnection();
+    const agent = await getAgent(dbConnection.db, agentId);
+
+    if (!agent) {
+      throw new ExecutionError(`Agent not found: ${agentId}`);
+    }
+
+    // Perform analysis if required
+    if (options.requiresAnalysis) {
+      logger.info('Performing multi-perspective analysis for resume decision', {
+        agentId,
+        agentRole: agent.role,
+      });
+
+      const context = `Should I resume agent "${agentId}" (${agent.role})?
+
+Agent Details:
+- Agent ID: ${agentId}
+- Role: ${agent.role}
+- Status: ${agent.status}
+- Manager: ${agent.reporting_to || 'None (root agent)'}
+
+Consider:
+1. Whether the issues that led to pausing are resolved
+2. Agent readiness to resume work
+3. Task backlog and prioritization
+4. Resource availability
+5. Communication and transition planning`;
+
+      analysis = await this.analyzeDecision(context);
+
+      logger.info('Resume analysis completed', {
+        overallConfidence: analysis.overallConfidence,
+      });
+    }
+
+    // Proceed with resuming
+    const { resumeAgent } = await import('../lifecycle/resumeAgent.js');
+
+    try {
+      const resumeOptions: { performedBy?: string; baseDir?: string } = {};
+      if (options.performedBy) resumeOptions.performedBy = options.performedBy;
+      if (options.baseDir) resumeOptions.baseDir = options.baseDir;
+
+      const resumeResult = await resumeAgent(dbConnection.db, agentId, resumeOptions);
+
+      logger.info('Agent resumed successfully', { agentId });
+
+      return { resumeResult, analysis };
+    } catch (error) {
+      logger.error('Agent resume failed', { agentId, error });
+      throw new ExecutionError(
+        `Failed to resume agent ${agentId}: ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+    }
   }
 }
 
