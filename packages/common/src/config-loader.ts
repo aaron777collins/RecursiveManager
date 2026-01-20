@@ -82,10 +82,24 @@ export async function loadAgentConfig(
       configPath,
     });
 
-    // 2. Check if file exists
+    // 2. Check if file exists and is a file (not a directory)
     try {
-      await fs.access(configPath);
+      const stats = await fs.stat(configPath);
+      if (stats.isDirectory()) {
+        const error = new ConfigLoadError(
+          `Agent configuration path is a directory, not a file: ${configPath}. Expected a config.json file.`,
+          agentId
+        );
+        logger.error('Config path is a directory', {
+          agentId,
+          configPath,
+        });
+        throw error;
+      }
     } catch (err) {
+      if (err instanceof ConfigLoadError) {
+        throw err;
+      }
       throw new ConfigLoadError(
         `Agent configuration file not found: ${configPath}`,
         agentId,

@@ -318,16 +318,15 @@ describe('notifyTaskCompletion', () => {
         },
         permissions: {
           canHire: true,
-          canFire: true,
           maxSubordinates: 10,
-          hiringBudget: 1000,
+          hiringBudget: 10,
+          workspaceQuotaMB: 500,
         },
         framework: {
           primary: 'claude-code',
         },
         communication: {
           notifyOnCompletion: false,
-          notifyOnDelegation: true,
         },
       };
 
@@ -370,16 +369,15 @@ describe('notifyTaskCompletion', () => {
         },
         permissions: {
           canHire: true,
-          canFire: true,
           maxSubordinates: 10,
-          hiringBudget: 1000,
+          hiringBudget: 10,
+          workspaceQuotaMB: 500,
         },
         framework: {
           primary: 'claude-code',
         },
         communication: {
           notifyOnCompletion: false,
-          notifyOnDelegation: true,
         },
       };
 
@@ -425,15 +423,14 @@ describe('notifyTaskCompletion', () => {
         },
         permissions: {
           canHire: true,
-          canFire: true,
           maxSubordinates: 10,
-          hiringBudget: 1000,
+          hiringBudget: 10,
+          workspaceQuotaMB: 500,
         },
         framework: {
           primary: 'claude-code',
         },
         communication: {
-          notifyOnDelegation: true,
         },
         // No notifyOnCompletion field (testing default behavior)
       };

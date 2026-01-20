@@ -135,9 +135,17 @@ export async function detectCorruption(
   validator?: (content: string) => Promise<boolean> | boolean
 ): Promise<CorruptionInfo | null> {
   try {
-    // Check if file exists
+    // Check if file exists and is a file (not a directory)
     try {
-      await fs.access(filePath);
+      const stats = await fs.stat(filePath);
+      if (stats.isDirectory()) {
+        return {
+          filePath,
+          corruptionType: 'read_error',
+          originalError: new Error('Path is a directory, not a file'),
+          detectedAt: new Date(),
+        };
+      }
     } catch (err) {
       return {
         filePath,
@@ -215,9 +223,17 @@ export function detectCorruptionSync(
   validator?: (content: string) => boolean
 ): CorruptionInfo | null {
   try {
-    // Check if file exists
+    // Check if file exists and is a file (not a directory)
     try {
-      fsSync.accessSync(filePath);
+      const stats = fsSync.statSync(filePath);
+      if (stats.isDirectory()) {
+        return {
+          filePath,
+          corruptionType: 'read_error',
+          originalError: new Error('Path is a directory, not a file'),
+          detectedAt: new Date(),
+        };
+      }
     } catch (err) {
       return {
         filePath,
@@ -424,6 +440,17 @@ export async function attemptRecovery(
   };
 
   try {
+    // Check if path is a directory - cannot recover from directories
+    try {
+      const stats = await fs.stat(filePath);
+      if (stats.isDirectory()) {
+        result.error = 'Cannot recover from a directory';
+        return result;
+      }
+    } catch (err) {
+      // File doesn't exist - can't back it up, but might be able to restore from backup
+    }
+
     // Backup the corrupt file before attempting recovery
     if (backupCorruptFile) {
       try {
@@ -479,6 +506,17 @@ export function attemptRecoverySync(
   };
 
   try {
+    // Check if path is a directory - cannot recover from directories
+    try {
+      const stats = fsSync.statSync(filePath);
+      if (stats.isDirectory()) {
+        result.error = 'Cannot recover from a directory';
+        return result;
+      }
+    } catch (err) {
+      // File doesn't exist - can't back it up, but might be able to restore from backup
+    }
+
     // Backup the corrupt file
     if (backupCorruptFile) {
       try {

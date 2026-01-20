@@ -127,13 +127,17 @@ describe('monitorDeadlocks', () => {
       });
 
       // Set up linear blocking: A blocks on B, B blocks on C
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskC.id]),
+        'blocked',
         taskB.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskB.id]),
+        'blocked',
         taskA.id
+      
       );
 
       const result = await monitorDeadlocks(db, { dataDir: testDir });
@@ -156,13 +160,17 @@ describe('monitorDeadlocks', () => {
         title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskB.id]),
+        'blocked',
         taskA.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskA.id]),
+        'blocked',
         taskB.id
+      
       );
 
       const result = await monitorDeadlocks(db, { dataDir: testDir });
@@ -197,17 +205,23 @@ describe('monitorDeadlocks', () => {
         title: 'Task C',        priority: 'high',        taskPath: 'Task C',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskB.id]),
+        'blocked',
         taskA.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskC.id]),
+        'blocked',
         taskB.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskA.id]),
+        'blocked',
         taskC.id
+      
       );
 
       const result = await monitorDeadlocks(db, { dataDir: testDir });
@@ -239,17 +253,23 @@ describe('monitorDeadlocks', () => {
         title: 'Task C',        priority: 'high',        taskPath: 'Task C',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskB.id]),
+        'blocked',
         taskA.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskC.id]),
+        'blocked',
         taskB.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskA.id]),
+        'blocked',
         taskC.id
+      
       );
 
       const result = await monitorDeadlocks(db, { dataDir: testDir });
@@ -290,21 +310,29 @@ describe('monitorDeadlocks', () => {
       });
 
       // Create cycle: A -> B -> C -> D -> A
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskB.id]),
+        'blocked',
         taskA.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskC.id]),
+        'blocked',
         taskB.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskD.id]),
+        'blocked',
         taskC.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskA.id]),
+        'blocked',
         taskD.id
+      
       );
 
       const result = await monitorDeadlocks(db, { dataDir: testDir });
@@ -332,13 +360,17 @@ describe('monitorDeadlocks', () => {
         title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskB.id]),
+        'blocked',
         taskA.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskA.id]),
+        'blocked',
         taskB.id
+      
       );
 
       // Create second cycle: C -> D -> C
@@ -352,13 +384,17 @@ describe('monitorDeadlocks', () => {
         title: 'Task D',        priority: 'high',        taskPath: 'Task D',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskD.id]),
+        'blocked',
         taskC.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskC.id]),
+        'blocked',
         taskD.id
+      
       );
 
       const result = await monitorDeadlocks(db, { dataDir: testDir });
@@ -396,31 +432,38 @@ describe('monitorDeadlocks', () => {
         title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskB.id]),
+        'blocked',
         taskA.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskA.id]),
+        'blocked',
         taskB.id
+      
       );
 
       // Create non-deadlocked blocked task: C -> D (where D is active)
       const taskD = createTask(db, {
         agentId: agentD,
         title: 'Task D',        priority: 'high',
-        status: 'active', // Not blocked,
         taskPath: 'Task D',
       });
+      // Ensure taskD is active (not blocked)
+      db.prepare('UPDATE tasks SET status = ? WHERE id = ?').run('active', taskD.id);
 
       const taskC = createTask(db, {
         agentId: agentC,
         title: 'Task C',        priority: 'high',        taskPath: 'Task C',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskD.id]),
+        'blocked',
         taskC.id
+      
       );
 
       const result = await monitorDeadlocks(db, { dataDir: testDir });
@@ -455,13 +498,17 @@ describe('monitorDeadlocks', () => {
         title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskB.id]),
+        'blocked',
         taskA.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskA.id]),
+        'blocked',
         taskB.id
+      
       );
 
       // Create a task with corrupted blocked_by data
@@ -470,7 +517,7 @@ describe('monitorDeadlocks', () => {
         title: 'Task C',        priority: 'high',        taskPath: 'Task C',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run('invalid json{{{', taskC.id);
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run('invalid json{{{', 'blocked', taskC.id);
 
       const result = await monitorDeadlocks(db, { dataDir: testDir });
 
@@ -491,13 +538,17 @@ describe('monitorDeadlocks', () => {
         title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskB.id]),
+        'blocked',
         taskA.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskA.id]),
+        'blocked',
         taskB.id
+      
       );
 
       // Create second cycle: C -> D -> C
@@ -511,13 +562,17 @@ describe('monitorDeadlocks', () => {
         title: 'Task D',        priority: 'high',        taskPath: 'Task D',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskD.id]),
+        'blocked',
         taskC.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskC.id]),
+        'blocked',
         taskD.id
+      
       );
 
       // Delete agentA's directory to cause notification failure
@@ -585,13 +640,17 @@ describe('monitorDeadlocks', () => {
         title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskB.id]),
+        'blocked',
         taskA.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskA.id]),
+        'blocked',
         taskB.id
+      
       );
 
       const result = await monitorDeadlocks(db, { dataDir: testDir });
@@ -654,13 +713,17 @@ describe('monitorDeadlocks', () => {
         title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskB.id]),
+        'blocked',
         taskA.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskA.id]),
+        'blocked',
         taskB.id
+      
       );
 
       const result = await monitorDeadlocks(db, { dataDir: testDir, force: true });
@@ -689,10 +752,12 @@ describe('monitorDeadlocks', () => {
         });
 
         // Block on a non-existent task (no circular dependency)
-        db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
-          JSON.stringify(['non-existent-task']),
-          task.id
-        );
+        db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
+        JSON.stringify(['non-existent-task']),
+        'blocked',
+        task.id
+        
+      );
       }
 
       // Create one actual deadlock: A -> B -> A
@@ -706,13 +771,17 @@ describe('monitorDeadlocks', () => {
         title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskB.id]),
+        'blocked',
         taskA.id
+      
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
         JSON.stringify([taskA.id]),
+        'blocked',
         taskB.id
+      
       );
 
       const startTime = Date.now();

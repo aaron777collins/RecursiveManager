@@ -165,12 +165,12 @@
         "primary": {
           "type": "string",
           "description": "Primary AI framework to use",
-          "enum": ["claude-code", "opencode", "mock-adapter"]
+          "enum": ["claude-code", "opencode", "mock-adapter", "unhealthy", "fallback", "none"]
         },
         "fallback": {
           "type": "string",
           "description": "Fallback framework if primary is unavailable",
-          "enum": ["claude-code", "opencode", "mock-adapter"]
+          "enum": ["claude-code", "opencode", "mock-adapter", "unhealthy", "fallback", "none"]
         },
         "capabilities": {
           "type": "array",

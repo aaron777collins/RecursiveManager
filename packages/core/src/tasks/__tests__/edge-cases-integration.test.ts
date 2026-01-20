@@ -56,6 +56,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
 
     beforeEach(() => {
       rootAgent = createAgent(db, {
+        id: 'root-agent',
         displayName: 'Root Agent',
         role: 'Manager',
         reportingTo: null,
@@ -82,6 +83,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
           canHire: true,
           maxSubordinates: 10,
           hiringBudget: 1000,
+          workspaceQuotaMB: 500,
         },
         framework: {
           primary: 'claude-code',
@@ -217,6 +219,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
     it('should handle agent firing while tasks are being archived', async () => {
       // Create agent with old completed tasks
       const agent = createAgent(db, {
+        id: 'worker-1',
         displayName: 'Worker',
         role: 'Worker',
         reportingTo: null,
@@ -242,6 +245,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
           canHire: false,
           maxSubordinates: 0,
           hiringBudget: 0,
+          workspaceQuotaMB: 500,
         },
         framework: {
           primary: 'claude-code',
@@ -282,10 +286,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
 
       // Now fire the agent - should handle archived tasks gracefully
       await expect(
-        fireAgent(db, agent, {
-          orphanStrategy: 'promote',
-          baseDir: testDir,
-        })
+        fireAgent(db, agent, 'promote', { baseDir: testDir })
       ).resolves.not.toThrow();
 
       // Verify agent was fired
@@ -298,6 +299,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
     it('should handle deadlock detection when involved agent is fired', async () => {
       // Create two agents with circular dependencies
       const agentA = createAgent(db, {
+        id: 'agent-a',
         displayName: 'Agent A',
         role: 'Worker',
         reportingTo: null,
@@ -307,6 +309,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
       }).id;
 
       const agentB = createAgent(db, {
+        id: 'agent-b',
         displayName: 'Agent B',
         role: 'Worker',
         reportingTo: null,
@@ -332,6 +335,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
           canHire: false,
           maxSubordinates: 0,
           hiringBudget: 0,
+          workspaceQuotaMB: 500,
         },
         framework: {
           primary: 'claude-code',
@@ -360,7 +364,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
         title: 'Task B',
         priority: 'medium',
         taskPath: 'task-b',
-        blockedBy: taskA.id,
+        blockedBy: [taskA.id],
       });
 
       // Update task A to be blocked by task B (creating cycle)
@@ -377,10 +381,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
       expect(deadlockResult.deadlocksDetected).toBeGreaterThan(0);
 
       // Now fire agent A - tasks should be handled gracefully
-      await fireAgent(db, agentA, {
-        orphanStrategy: 'promote',
-        baseDir: testDir,
-      });
+      await fireAgent(db, agentA, 'promote', { baseDir: testDir });
 
       // Verify agent A was fired
       const agentARecord = db.prepare('SELECT status FROM agents WHERE id = ?').get(agentA) as {
@@ -397,6 +398,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
     it('should handle task delegation when parent agent is paused', async () => {
       // Create parent and child agents
       const parent = createAgent(db, {
+        id: 'parent-agent',
         displayName: 'Parent',
         role: 'Manager',
         reportingTo: null,
@@ -406,6 +408,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
       }).id;
 
       const child = createAgent(db, {
+        id: 'child-agent',
         displayName: 'Child',
         role: 'Worker',
         reportingTo: parent,
@@ -431,6 +434,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
           canHire: name === 'Parent',
           maxSubordinates: 5,
           hiringBudget: 1000,
+          workspaceQuotaMB: 500,
         },
         framework: {
           primary: 'claude-code',
@@ -474,6 +478,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
   describe('Race Condition Stress Tests', () => {
     it('should handle concurrent task status updates with optimistic locking', () => {
       const agent = createAgent(db, {
+        id: 'worker-race',
         displayName: 'Worker',
         role: 'Worker',
         reportingTo: null,
@@ -524,6 +529,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
         { length: 10 },
         (_, i) =>
           createAgent(db, {
+            id: `agent-${i}`,
             displayName: `Agent ${i}`,
             role: 'Worker',
             reportingTo: null,
@@ -559,6 +565,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
 
     it('should handle rapid status transitions without corruption', () => {
       const agent = createAgent(db, {
+        id: 'worker-rapid',
         displayName: 'Worker',
         role: 'Worker',
         reportingTo: null,
@@ -612,6 +619,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
   describe('Performance Under Extreme Conditions', () => {
     it('should handle 100+ tasks per agent efficiently', () => {
       const agent = createAgent(db, {
+        id: 'heavy-worker',
         displayName: 'Heavy Worker',
         role: 'Worker',
         reportingTo: null,
@@ -647,6 +655,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
 
     it('should handle deep task hierarchy (max depth chain)', () => {
       const agent = createAgent(db, {
+        id: 'deep-worker',
         displayName: 'Deep Worker',
         role: 'Worker',
         reportingTo: null,
@@ -683,6 +692,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
 
     it('should efficiently query tasks with complex filters', () => {
       const agent = createAgent(db, {
+        id: 'query-worker',
         displayName: 'Query Worker',
         role: 'Worker',
         reportingTo: null,

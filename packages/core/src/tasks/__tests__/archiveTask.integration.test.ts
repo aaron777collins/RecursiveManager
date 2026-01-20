@@ -14,7 +14,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as tar from 'tar';
 import { archiveOldTasks, compressOldArchives } from '../archiveTask';
-import { createTask, completeTask, createAgent, runMigrations, allMigrations } from '@recursive-manager/common';
+import { createTask, completeTask, createAgent, runMigrations, allMigrations, getAgentDirectory } from '@recursive-manager/common';
 
 describe('Task Archival - Integration Tests', () => {
   let db: Database.Database;
@@ -80,13 +80,15 @@ describe('Task Archival - Integration Tests', () => {
       }
 
       // Archive the tasks
-      const archivedCount = await archiveOldTasks(db, 7);
+      const archivedCount = await archiveOldTasks(db, 7, { baseDir: tempDir });
       expect(archivedCount).toBe(3);
 
       // Verify each task is in the correct archive directory
       for (const { id, date } of taskIds) {
         const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const agentDir = path.join(tempDir, 'agents', agent.id);
+        // Use getAgentDirectory to get the correct sharded path
+        const { getAgentDirectory } = await import('@recursive-manager/common');
+        const agentDir = getAgentDirectory(agent.id, { baseDir: tempDir });
         const archiveDir = path.join(agentDir, 'tasks', 'archive', yearMonth, id);
 
         const exists = await fs
@@ -146,11 +148,11 @@ describe('Task Archival - Integration Tests', () => {
       );
 
       // Archive the tasks
-      const archivedCount = await archiveOldTasks(db, 0); // Archive all
+      const archivedCount = await archiveOldTasks(db, 0, { baseDir: tempDir }); // Archive all
       expect(archivedCount).toBe(2);
 
       // Verify they're in different month directories
-      const agentDir = path.join(tempDir, 'agents', agent.id, 'tasks', 'archive');
+      const agentDir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'archive');
       const jan2024 = path.join(agentDir, '2024-01', task1.id);
       const feb2024 = path.join(agentDir, '2024-02', task2.id);
 
@@ -205,7 +207,7 @@ describe('Task Archival - Integration Tests', () => {
       }
 
       // Archive the tasks
-      await archiveOldTasks(db, 7);
+      await archiveOldTasks(db, 7, { baseDir: tempDir });
 
       // Verify all tasks have status 'archived'
       for (const id of taskIds) {
@@ -254,7 +256,7 @@ describe('Task Archival - Integration Tests', () => {
       );
 
       // Archive the task
-      await archiveOldTasks(db, 7);
+      await archiveOldTasks(db, 7, { baseDir: tempDir });
 
       // Verify task is archived
       const archivedTask = db.prepare('SELECT status FROM tasks WHERE id = ?').get(task.id) as {
@@ -285,6 +287,9 @@ describe('Task Archival - Integration Tests', () => {
           displayName: 'Agent 1',
           role: 'Developer',
           reportingTo: null,
+          createdBy: 'test',
+          mainGoal: 'Develop',
+          configPath: '/test/agent-1/config.json',
         }
       );
 
@@ -295,6 +300,9 @@ describe('Task Archival - Integration Tests', () => {
           displayName: 'Agent 2',
           role: 'Designer',
           reportingTo: null,
+          createdBy: 'test',
+          mainGoal: 'Design',
+          configPath: '/test/agent-2/config.json',
         }
       );
 
@@ -325,27 +333,17 @@ describe('Task Archival - Integration Tests', () => {
       );
 
       // Archive tasks
-      const archivedCount = await archiveOldTasks(db, 7);
+      const archivedCount = await archiveOldTasks(db, 7, { baseDir: tempDir });
       expect(archivedCount).toBe(2);
 
       // Verify each agent has their own archive directory
       const yearMonth = `${tenDaysAgo.getFullYear()}-${String(tenDaysAgo.getMonth() + 1).padStart(2, '0')}`;
 
-      const agent1Archive = path.join(
-        tempDir,
-        'agents',
-        agent1.id,
-        'tasks',
-        'archive',
+      const agent1Archive = path.join(getAgentDirectory(agent1.id, { baseDir: tempDir }), 'tasks', 'archive',
         yearMonth,
         task1.id
       );
-      const agent2Archive = path.join(
-        tempDir,
-        'agents',
-        agent2.id,
-        'tasks',
-        'archive',
+      const agent2Archive = path.join(getAgentDirectory(agent2.id, { baseDir: tempDir }), 'tasks', 'archive',
         yearMonth,
         task2.id
       );
@@ -364,21 +362,11 @@ describe('Task Archival - Integration Tests', () => {
       ).toBe(true);
 
       // Verify tasks don't cross-contaminate
-      const agent1HasTask2 = path.join(
-        tempDir,
-        'agents',
-        agent1.id,
-        'tasks',
-        'archive',
+      const agent1HasTask2 = path.join(getAgentDirectory(agent1.id, { baseDir: tempDir }), 'tasks', 'archive',
         yearMonth,
         task2.id
       );
-      const agent2HasTask1 = path.join(
-        tempDir,
-        'agents',
-        agent2.id,
-        'tasks',
-        'archive',
+      const agent2HasTask1 = path.join(getAgentDirectory(agent2.id, { baseDir: tempDir }), 'tasks', 'archive',
         yearMonth,
         task1.id
       );
@@ -431,12 +419,12 @@ describe('Task Archival - Integration Tests', () => {
 
       // Create task directory with a file
       const yearMonth = `${hundredDaysAgo.getFullYear()}-${String(hundredDaysAgo.getMonth() + 1).padStart(2, '0')}`;
-      const completedDir = path.join(tempDir, 'agents', agent.id, 'tasks', 'completed', task.id);
+      const completedDir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'completed', task.id);
       await fs.mkdir(completedDir, { recursive: true });
       await fs.writeFile(path.join(completedDir, 'test.txt'), 'test content');
 
       // Step 1: Archive the task
-      const archivedCount = await archiveOldTasks(db, 7);
+      const archivedCount = await archiveOldTasks(db, 7, { baseDir: tempDir });
       expect(archivedCount).toBe(1);
 
       // Verify task is archived
@@ -447,9 +435,7 @@ describe('Task Archival - Integration Tests', () => {
 
       // Verify directory moved to archive
       const archiveDir = path.join(
-        tempDir,
-        'agents',
-        agent.id,
+        getAgentDirectory(agent.id, { baseDir: tempDir }),
         'tasks',
         'archive',
         yearMonth,
@@ -463,7 +449,7 @@ describe('Task Archival - Integration Tests', () => {
       ).toBe(true);
 
       // Step 2: Compress the archive
-      const compressedCount = await compressOldArchives(db, 90);
+      const compressedCount = await compressOldArchives(db, 90, { baseDir: tempDir });
       expect(compressedCount).toBe(1);
 
       // Verify directory is replaced with .tar.gz
@@ -558,12 +544,12 @@ describe('Task Archival - Edge Cases', () => {
       );
 
       // Create directory only for task2
-      const task2Dir = path.join(tempDir, 'agents', agent.id, 'tasks', 'completed', task2.id);
+      const task2Dir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'completed', task2.id);
       await fs.mkdir(task2Dir, { recursive: true });
       await fs.writeFile(path.join(task2Dir, 'test.txt'), 'content');
 
       // Archive should continue even though task1 directory doesn't exist
-      const archivedCount = await archiveOldTasks(db, 7);
+      const archivedCount = await archiveOldTasks(db, 7, { baseDir: tempDir });
 
       // Should archive at least task2 (task1 may or may not count depending on error handling)
       expect(archivedCount).toBeGreaterThanOrEqual(1);
@@ -605,7 +591,7 @@ describe('Task Archival - Edge Cases', () => {
       );
 
       // Create task directory with a symbolic link to a non-existent file
-      const taskDir = path.join(tempDir, 'agents', agent.id, 'tasks', 'completed', task.id);
+      const taskDir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'completed', task.id);
       await fs.mkdir(taskDir, { recursive: true });
       await fs.writeFile(path.join(taskDir, 'good-file.txt'), 'content');
 
@@ -617,7 +603,7 @@ describe('Task Archival - Edge Cases', () => {
       }
 
       // Archival should succeed or fail gracefully
-      const archivedCount = await archiveOldTasks(db, 7);
+      const archivedCount = await archiveOldTasks(db, 7, { baseDir: tempDir });
       expect(archivedCount).toBeGreaterThanOrEqual(0);
     });
   });
@@ -654,12 +640,7 @@ describe('Task Archival - Edge Cases', () => {
 
       // Create empty archive directory
       const yearMonth = `${hundredDaysAgo.getFullYear()}-${String(hundredDaysAgo.getMonth() + 1).padStart(2, '0')}`;
-      const archiveDir = path.join(
-        tempDir,
-        'agents',
-        agent.id,
-        'tasks',
-        'archive',
+      const archiveDir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'archive',
         yearMonth,
         task.id
       );
@@ -669,7 +650,7 @@ describe('Task Archival - Edge Cases', () => {
       db.prepare('UPDATE tasks SET status = ? WHERE id = ?').run('archived', task.id);
 
       // Compression should handle empty directory
-      const compressedCount = await compressOldArchives(db, 90);
+      const compressedCount = await compressOldArchives(db, 90, { baseDir: tempDir });
       expect(compressedCount).toBeGreaterThanOrEqual(0);
     });
 
@@ -704,12 +685,7 @@ describe('Task Archival - Edge Cases', () => {
 
       // Create archive directory with a 1MB file
       const yearMonth = `${hundredDaysAgo.getFullYear()}-${String(hundredDaysAgo.getMonth() + 1).padStart(2, '0')}`;
-      const archiveDir = path.join(
-        tempDir,
-        'agents',
-        agent.id,
-        'tasks',
-        'archive',
+      const archiveDir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'archive',
         yearMonth,
         task.id
       );
@@ -723,7 +699,7 @@ describe('Task Archival - Edge Cases', () => {
       db.prepare('UPDATE tasks SET status = ? WHERE id = ?').run('archived', task.id);
 
       // Compression should succeed
-      const compressedCount = await compressOldArchives(db, 90);
+      const compressedCount = await compressOldArchives(db, 90, { baseDir: tempDir });
       expect(compressedCount).toBe(1);
 
       // Verify tarball exists and is smaller than original (due to compression)
@@ -763,12 +739,7 @@ describe('Task Archival - Edge Cases', () => {
 
       // Create archive directory with files containing special characters
       const yearMonth = `${hundredDaysAgo.getFullYear()}-${String(hundredDaysAgo.getMonth() + 1).padStart(2, '0')}`;
-      const archiveDir = path.join(
-        tempDir,
-        'agents',
-        agent.id,
-        'tasks',
-        'archive',
+      const archiveDir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'archive',
         yearMonth,
         task.id
       );
@@ -783,7 +754,7 @@ describe('Task Archival - Edge Cases', () => {
       db.prepare('UPDATE tasks SET status = ? WHERE id = ?').run('archived', task.id);
 
       // Compression should succeed
-      const compressedCount = await compressOldArchives(db, 90);
+      const compressedCount = await compressOldArchives(db, 90, { baseDir: tempDir });
       expect(compressedCount).toBe(1);
 
       // Verify all files are in tarball
@@ -833,26 +804,21 @@ describe('Task Archival - Edge Cases', () => {
       );
 
       // Create task directory with executable file
-      const completedDir = path.join(tempDir, 'agents', agent.id, 'tasks', 'completed', task.id);
+      const completedDir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'completed', task.id);
       await fs.mkdir(completedDir, { recursive: true });
       const scriptPath = path.join(completedDir, 'script.sh');
       await fs.writeFile(scriptPath, '#!/bin/bash\necho "test"');
       await fs.chmod(scriptPath, 0o755); // Make executable
 
       // Archive the task
-      await archiveOldTasks(db, 7);
+      await archiveOldTasks(db, 7, { baseDir: tempDir });
 
       // Compress the archive
-      await compressOldArchives(db, 90);
+      await compressOldArchives(db, 90, { baseDir: tempDir });
 
       // Extract and verify permissions
       const yearMonth = `${hundredDaysAgo.getFullYear()}-${String(hundredDaysAgo.getMonth() + 1).padStart(2, '0')}`;
-      const tarballPath = path.join(
-        tempDir,
-        'agents',
-        agent.id,
-        'tasks',
-        'archive',
+      const tarballPath = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'archive',
         yearMonth,
         `${task.id}.tar.gz`
       );
@@ -902,24 +868,19 @@ describe('Task Archival - Edge Cases', () => {
       );
 
       // Create nested directory structure
-      const completedDir = path.join(tempDir, 'agents', agent.id, 'tasks', 'completed', task.id);
+      const completedDir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'completed', task.id);
       await fs.mkdir(path.join(completedDir, 'a', 'b', 'c'), { recursive: true });
       await fs.writeFile(path.join(completedDir, 'a', 'file1.txt'), 'level 1');
       await fs.writeFile(path.join(completedDir, 'a', 'b', 'file2.txt'), 'level 2');
       await fs.writeFile(path.join(completedDir, 'a', 'b', 'c', 'file3.txt'), 'level 3');
 
       // Archive and compress
-      await archiveOldTasks(db, 7);
-      await compressOldArchives(db, 90);
+      await archiveOldTasks(db, 7, { baseDir: tempDir });
+      await compressOldArchives(db, 90, { baseDir: tempDir });
 
       // Extract and verify structure
       const yearMonth = `${hundredDaysAgo.getFullYear()}-${String(hundredDaysAgo.getMonth() + 1).padStart(2, '0')}`;
-      const tarballPath = path.join(
-        tempDir,
-        'agents',
-        agent.id,
-        'tasks',
-        'archive',
+      const tarballPath = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'archive',
         yearMonth,
         `${task.id}.tar.gz`
       );
@@ -984,7 +945,7 @@ describe('Task Archival - Edge Cases', () => {
 
       // Measure archival time
       const startTime = Date.now();
-      const archivedCount = await archiveOldTasks(db, 7);
+      const archivedCount = await archiveOldTasks(db, 7, { baseDir: tempDir });
       const duration = Date.now() - startTime;
 
       expect(archivedCount).toBe(taskCount);

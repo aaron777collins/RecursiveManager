@@ -107,6 +107,7 @@ function createValidConfig(
       canHire: false,
       maxSubordinates: 0,
       hiringBudget: 0,
+      workspaceQuotaMB: 500,
     },
     framework: {
       primary: framework,
@@ -189,7 +190,6 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         createdBy: 'system',
         mainGoal: 'Build software',
         configPath: `/agents/${agentId}/config.json`,
-        schedule: { mode: 'continuous' },
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Engineer'));
@@ -199,7 +199,6 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         agentId,
         title: 'Test task',
         priority: 'high',
-        status: 'in_progress',
         taskPath: 'Test task',
       });
 
@@ -225,7 +224,6 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         createdBy: 'system',
         mainGoal: 'Build software',
         configPath: `/agents/${agentId}/config.json`,
-        schedule: { mode: 'continuous' },
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Engineer'));
@@ -254,13 +252,12 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         createdBy: 'system',
         mainGoal: 'Build',
         configPath: `/agents/${agentId}/config.json`,
-        schedule: { mode: 'continuous' },
       });
 
       db.prepare('UPDATE agents SET status = ? WHERE id = ?').run('paused', agentId);
 
       await expect(orchestrator.executeContinuous(agentId)).rejects.toThrow(
-        'Agent is not active (status: paused)'
+        'Agent test-paused is not active (status: paused)'
       );
     });
   });
@@ -311,7 +308,6 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         createdBy: 'system',
         mainGoal: 'Build',
         configPath: `/agents/${agentId}/config.json`,
-        schedule: { mode: 'continuous' },
       });
 
       // Update the config to include fallback
@@ -341,13 +337,12 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         createdBy: 'system',
         mainGoal: 'Build',
         configPath: `/agents/${agentId}/config.json`,
-        schedule: { mode: 'continuous' },
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Engineer'));
 
       let execution1Started = false;
-      mockAdapter.executeAgent = async (agentId, mode) => {
+      mockAdapter.executeAgent = async (_agentId, _mode) => {
         execution1Started = true;
         await new Promise((resolve) => setTimeout(resolve, 100));
         return {
@@ -378,7 +373,6 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         createdBy: 'system',
         mainGoal: 'Build',
         configPath: `/agents/${agentId}/config.json`,
-        schedule: { mode: 'continuous' },
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Engineer'));
@@ -402,7 +396,6 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         createdBy: 'system',
         mainGoal: 'Build',
         configPath: `/agents/${agentId}/config.json`,
-        schedule: { mode: 'continuous' },
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Engineer'));
@@ -430,7 +423,6 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         createdBy: 'system',
         mainGoal: 'Build',
         configPath: `/agents/${agentId}/config.json`,
-        schedule: { mode: 'continuous' },
       });
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Engineer'));

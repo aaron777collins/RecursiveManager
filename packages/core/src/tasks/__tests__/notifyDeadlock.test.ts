@@ -96,6 +96,7 @@ describe('notifyDeadlock', () => {
         canHire: false,
         maxSubordinates: 0,
         hiringBudget: 0,
+        workspaceQuotaMB: 500,
       },
       framework: {
         primary: 'claude-code',
@@ -171,16 +172,18 @@ describe('notifyDeadlock', () => {
 
       // Verify message files were written to inbox
       const inboxPathA = getInboxPath(agentA, { baseDir: testDir });
-      const inboxFilesA = await fs.readdir(inboxPathA);
+      const unreadPathA = path.join(inboxPathA, 'unread');
+      const inboxFilesA = await fs.readdir(unreadPathA);
       expect(inboxFilesA.length).toBeGreaterThan(0);
 
       const inboxPathB = getInboxPath(agentB, { baseDir: testDir });
-      const inboxFilesB = await fs.readdir(inboxPathB);
+      const unreadPathB = path.join(inboxPathB, 'unread');
+      const inboxFilesB = await fs.readdir(unreadPathB);
       expect(inboxFilesB.length).toBeGreaterThan(0);
 
       // Read message content and verify it contains cycle information
       const messageFileA = inboxFilesA[0]!;
-      const messageContentA = await fs.readFile(path.join(inboxPathA, messageFileA), 'utf-8');
+      const messageContentA = await fs.readFile(path.join(unreadPathA, messageFileA), 'utf-8');
       expect(messageContentA).toContain('Task Deadlock Detected');
       expect(messageContentA).toContain('Task A');
       expect(messageContentA).toContain('Task B');
@@ -291,8 +294,9 @@ describe('notifyDeadlock', () => {
 
       // Read message content and verify it mentions both tasks
       const inboxPathA = getInboxPath(agentA, { baseDir: testDir });
-      const inboxFilesA = await fs.readdir(inboxPathA);
-      const messageContentA = await fs.readFile(path.join(inboxPathA, inboxFilesA[0]!), 'utf-8');
+      const unreadPathA = path.join(inboxPathA, 'unread');
+      const inboxFilesA = await fs.readdir(unreadPathA);
+      const messageContentA = await fs.readFile(path.join(unreadPathA, inboxFilesA[0]!), 'utf-8');
       expect(messageContentA).toContain('Your tasks are involved');
       expect(messageContentA).toContain('Task A1');
       expect(messageContentA).toContain('Task A2');
@@ -321,6 +325,7 @@ describe('notifyDeadlock', () => {
             canHire: false,
             maxSubordinates: 0,
             hiringBudget: 0,
+            workspaceQuotaMB: 500,
           },
           framework: {
             primary: 'claude-code',
@@ -400,6 +405,7 @@ describe('notifyDeadlock', () => {
             canHire: false,
             maxSubordinates: 0,
             hiringBudget: 0,
+            workspaceQuotaMB: 500,
           },
           framework: {
             primary: 'claude-code',
@@ -595,8 +601,9 @@ describe('notifyDeadlock', () => {
 
       // Read message content
       const inboxPathA = getInboxPath(agentA, { baseDir: testDir });
-      const inboxFilesA = await fs.readdir(inboxPathA);
-      const messageContentA = await fs.readFile(path.join(inboxPathA, inboxFilesA[0]!), 'utf-8');
+      const unreadPathA = path.join(inboxPathA, 'unread');
+      const inboxFilesA = await fs.readdir(unreadPathA);
+      const messageContentA = await fs.readFile(path.join(unreadPathA, inboxFilesA[0]!), 'utf-8');
 
       // Verify required sections
       expect(messageContentA).toContain('Task Deadlock Detected');

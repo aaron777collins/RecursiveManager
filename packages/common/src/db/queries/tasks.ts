@@ -637,6 +637,15 @@ export function updateParentTaskProgress(db: Database.Database, parentTaskId: st
  * ```
  */
 export function completeTask(db: Database.Database, id: string, version: number): TaskRecord {
+  // First check if task is already archived
+  const currentTask = getTask(db, id);
+  if (!currentTask) {
+    throw new Error(`Task not found: ${id}`);
+  }
+  if (currentTask.status === 'archived') {
+    throw new Error(`Cannot complete archived task: ${id}`);
+  }
+
   const completedTask = updateTaskStatus(db, id, 'completed', version);
 
   // Update parent task progress recursively (Task 2.3.14)

@@ -154,9 +154,9 @@ describe('Task Lifecycle Integration Tests', () => {
 
       // Verify task still in database but marked archived
       const archivedTask = getTask(db, task.id);
-      expect(archivedTask?.status).toBe('completed');
+      expect(archivedTask?.status).toBe('archived');
 
-      // Verify archived file exists
+      // Verify archived directory exists (not compressed yet - compression is separate)
       const year = tenDaysAgo.getFullYear();
       const month = String(tenDaysAgo.getMonth() + 1).padStart(2, '0');
       const archivePath = path.join(
@@ -167,7 +167,7 @@ describe('Task Lifecycle Integration Tests', () => {
         'tasks',
         'archive',
         `${year}-${month}`,
-        `${task.id}.tar.gz`
+        task.id
       );
       expect(fs.existsSync(archivePath)).toBe(true);
 
@@ -357,7 +357,7 @@ describe('Task Lifecycle Integration Tests', () => {
 
       // Verify parent progress updated
       let parent = getTask(db, parentTask.id);
-      expect(parent?.percent_complete).toBeCloseTo(33.33, 1); // 1 of 3 = ~33%
+      expect(parent?.percent_complete).toBe(33); // 1 of 3 = 33% (rounded to nearest integer)
 
       // Complete second child
       const child2InProgress = updateTaskStatus(db, child2.id, 'in-progress', child2.version);
@@ -365,7 +365,7 @@ describe('Task Lifecycle Integration Tests', () => {
 
       // Verify parent progress updated
       parent = getTask(db, parentTask.id);
-      expect(parent?.percent_complete).toBeCloseTo(66.67, 1); // 2 of 3 = ~67%
+      expect(parent?.percent_complete).toBe(67); // 2 of 3 = 67% (rounded to nearest integer)
 
       // Complete third child
       const child3InProgress = updateTaskStatus(db, child3.id, 'in-progress', child3.version);
@@ -563,6 +563,7 @@ describe('Task Lifecycle Integration Tests', () => {
           canHire: false,
           maxSubordinates: 0,
           hiringBudget: 0,
+          workspaceQuotaMB: 500,
         },
         framework: {
           primary: 'claude-code',
@@ -683,6 +684,7 @@ describe('Task Lifecycle Integration Tests', () => {
           canHire: false,
           maxSubordinates: 0,
           hiringBudget: 0,
+          workspaceQuotaMB: 500,
         },
         framework: {
           primary: 'claude-code',
@@ -827,6 +829,7 @@ describe('Task Lifecycle Integration Tests', () => {
           canHire: false,
           maxSubordinates: 0,
           hiringBudget: 0,
+          workspaceQuotaMB: 500,
         },
         framework: {
           primary: 'claude-code',

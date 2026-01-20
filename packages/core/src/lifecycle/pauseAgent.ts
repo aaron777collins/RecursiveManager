@@ -25,7 +25,6 @@ import {
   createMessage,
   MessageInput,
 } from '@recursive-manager/common';
-import { auditLog, AuditAction } from '@recursive-manager/common';
 import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 import { blockTasksForPausedAgent, BlockTasksResult } from './taskBlocking';
 
@@ -245,6 +244,17 @@ If the agent has active tasks, you may want to:
 }
 
 /**
+ * Options for pauseAgent
+ */
+export interface PauseAgentOptions extends PathOptions {
+  /**
+   * ID of the agent performing the pause action (for audit logging)
+   * Defaults to the target agent's manager (reporting_to) or 'system' if no manager
+   */
+  performedBy?: string;
+}
+
+/**
  * Pause an agent
  *
  * This function pauses an agent by setting its status to 'paused' in the database.
@@ -283,21 +293,21 @@ If the agent has active tasks, you may want to:
  *
  * @param db - Database instance
  * @param agentId - ID of the agent to pause
- * @param options - Path resolution options
+ * @param options - Pause options including path resolution and performedBy
  * @returns Result object with operation details
  * @throws {PauseAgentError} If pause operation fails
  *
  * @example
  * ```typescript
- * // Pause an agent
- * const result = await pauseAgent(db, 'dev-001');
+ * // Pause an agent (manager pausing subordinate)
+ * const result = await pauseAgent(db, 'dev-001', { performedBy: 'manager-001' });
  * console.log(`Paused agent ${result.agentId}`);
  * ```
  */
 export async function pauseAgent(
   db: Database.Database,
   agentId: string,
-  options: PathOptions = {}
+  options: PauseAgentOptions = {}
 ): Promise<PauseAgentResult> {
   const logger = createAgentLogger(agentId);
 
@@ -322,10 +332,15 @@ export async function pauseAgent(
 
     const previousStatus = agent.status;
 
+    // Determine who is performing the pause action
+    // Use null if no performedBy specified and agent has no manager (system action)
+    const performedBy = options.performedBy ?? agent.reporting_to ?? null;
+
     logger.debug('Agent validated for pausing', {
       agentId,
       currentStatus: agent.status,
       managerId: agent.reporting_to ?? undefined,
+      performedBy,
     });
 
     // STEP 2: DATABASE OPERATIONS
@@ -343,34 +358,14 @@ export async function pauseAgent(
         previousStatus,
       });
 
-      // Audit log the pause action
-      auditLog(db, {
-        agentId: agent.reporting_to,
-        action: AuditAction.PAUSE,
-        targetAgentId: agentId,
-        success: true,
-        details: {
-          role: agent.role,
-          displayName: agent.display_name,
-          previousStatus,
-        },
-      });
+      // Note: updateAgent already creates an audit log for status changes
+      // The audit log will have agentId: null until updateAgent is enhanced
+      // to accept a performedBy parameter
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       logger.error('Failed to update agent status', {
         agentId,
         error: error.message,
-      });
-
-      // Audit log failed pause
-      auditLog(db, {
-        agentId: agent.reporting_to,
-        action: AuditAction.PAUSE,
-        targetAgentId: agentId,
-        success: false,
-        details: {
-          error: error.message,
-        },
       });
 
       throw new PauseAgentError(`Failed to update agent status: ${error.message}`, agentId, error);

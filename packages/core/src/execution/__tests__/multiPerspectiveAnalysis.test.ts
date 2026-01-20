@@ -14,7 +14,6 @@ import {
   runMigrations,
   allMigrations,
   DatabasePool,
-  type AgentConfig,
 } from '@recursive-manager/common';
 import { ExecutionOrchestrator } from '../index';
 
@@ -77,43 +76,6 @@ class AdapterRegistry {
 
     return null;
   }
-}
-
-// Helper to create valid AgentConfig
-function createValidConfig(agentId: string, role: string): AgentConfig {
-  return {
-    version: '1.0.0',
-    identity: {
-      id: agentId,
-      role,
-      goal: 'Test goal',
-      reportingTo: null,
-    },
-    permissions: {
-      canHire: false,
-      canFire: false,
-      maxSubordinates: 0,
-      hiringBudget: 0,
-    },
-    framework: {
-      primary: 'mock-adapter',
-      fallback: undefined,
-    },
-    communication: {
-      preferredChannels: [],
-    },
-    behavior: {
-      autonomyLevel: 'guided',
-      decisionMakingStyle: 'collaborative',
-      escalationPolicy: 'always',
-      workingHours: null,
-    },
-    metadata: {
-      createdAt: new Date().toISOString(),
-      lastModified: new Date().toISOString(),
-      version: 1,
-    },
-  };
 }
 
 // Mock adapter for testing

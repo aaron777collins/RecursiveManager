@@ -23,9 +23,19 @@ export { hireAgent, HireAgentError } from './hireAgent';
 
 export { fireAgent, FireAgentError, type FireStrategy, type FireAgentResult } from './fireAgent';
 
-export { pauseAgent, PauseAgentError, type PauseAgentResult } from './pauseAgent';
+export {
+  pauseAgent,
+  PauseAgentError,
+  type PauseAgentResult,
+  type PauseAgentOptions,
+} from './pauseAgent';
 
-export { resumeAgent, ResumeAgentError, type ResumeAgentResult } from './resumeAgent';
+export {
+  resumeAgent,
+  ResumeAgentError,
+  type ResumeAgentResult,
+  type ResumeAgentOptions,
+} from './resumeAgent';
 
 export {
   blockTasksForPausedAgent,

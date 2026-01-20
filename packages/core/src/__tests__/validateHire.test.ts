@@ -25,6 +25,7 @@ import {
   AuditAction,
   runMigrations,
   allMigrations,
+  getConfigPath,
 } from '@recursive-manager/common';
 import { saveAgentConfig, generateDefaultConfig } from '../config';
 import path from 'path';
@@ -186,7 +187,7 @@ describe('validateHire', () => {
       const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 2;
-      config.permissions.hiringBudget = 5;
+      config.permissions.hiringBudget = 2; // Cannot exceed maxSubordinates
       saveAgentConfig('manager', config);
 
       // Create 2 subordinates
@@ -380,9 +381,9 @@ describe('validateHire', () => {
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 5;
       config.permissions.hiringBudget = 3;
-      await saveAgentConfig('manager', config);
+      await saveAgentConfig('manager', config, { baseDir: testDir });
 
-      const result = await validateHire(db, 'manager', 'new-hire');
+      const result = await validateHire(db, 'manager', 'new-hire', undefined, { baseDir: testDir });
       expect(result.valid).toBe(true);
       expect(result.errors).toEqual([]);
     });
@@ -411,9 +412,11 @@ describe('validateHire', () => {
 
       const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = true;
-      await saveAgentConfig('manager', config);
+      config.permissions.maxSubordinates = 5; // Required when canHire is true
+      config.permissions.hiringBudget = 3;
+      await saveAgentConfig('manager', config, { baseDir: testDir });
 
-      const result = await validateHire(db, 'manager', 'new-hire');
+      const result = await validateHire(db, 'manager', 'new-hire', undefined, { baseDir: testDir });
       expect(result.valid).toBe(false);
       expect(result.errors[0]!.code).toBe('MANAGER_NOT_ACTIVE');
     });
@@ -603,11 +606,11 @@ describe('validateHire', () => {
       config.permissions.hiringBudget = 0;
 
       // Write config directly to bypass business validation
-      const configPath = path.join(testDir, 'manager', 'config.json');
+      const configPath = getConfigPath('manager', { baseDir: testDir });
       fs.ensureDirSync(path.dirname(configPath));
       fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
-      const result = await validateHire(db, 'manager', 'new-hire');
+      const result = await validateHire(db, 'manager', 'new-hire', undefined, { baseDir: testDir });
       expect(result.valid).toBe(false); // Will fail because maxSubordinates = 0
       expect(result.warnings?.length).toBeGreaterThan(0);
       expect(result.warnings?.some((w: any) => w.code === 'INCONSISTENT_PERMISSIONS')).toBe(true);

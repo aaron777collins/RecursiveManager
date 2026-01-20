@@ -6,8 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import Database from 'better-sqlite3';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as zlib from 'zlib';
-import { promisify } from 'util';
+import * as tar from 'tar';
 import { archiveOldTasks, getCompletedTasks, compressOldArchives } from '../archiveTask';
 import {
   initializeDatabase,
@@ -16,9 +15,8 @@ import {
   createAgent,
   runMigrations,
   allMigrations,
+  getAgentDirectory,
 } from '@recursive-manager/common';
-
-const gunzip = promisify(zlib.gunzip);
 
 describe('archiveOldTasks', () => {
   let db: Database.Database;
@@ -106,7 +104,7 @@ describe('archiveOldTasks', () => {
     ).run(twoDaysAgo.toISOString(), task2.id);
 
     // Archive tasks older than 7 days
-    const archivedCount = await archiveOldTasks(db, 7);
+    const archivedCount = await archiveOldTasks(db, 7, { baseDir: tempDir });
 
     // Should archive only the old task (10 days ago)
     expect(archivedCount).toBe(1);
@@ -133,7 +131,7 @@ describe('archiveOldTasks', () => {
     });
 
     // Archive tasks (should return 0)
-    const archivedCount = await archiveOldTasks(db, 7);
+    const archivedCount = await archiveOldTasks(db, 7, { baseDir: tempDir });
 
     expect(archivedCount).toBe(0);
   });
@@ -171,7 +169,7 @@ describe('archiveOldTasks', () => {
     ).run(completionDate.toISOString(), task.id);
 
     // Archive the task
-    const archivedCount = await archiveOldTasks(db, 7);
+    const archivedCount = await archiveOldTasks(db, 7, { baseDir: tempDir });
 
     expect(archivedCount).toBe(1);
 
@@ -228,7 +226,7 @@ describe('archiveOldTasks', () => {
     // Archive the tasks
     // Note: Both should succeed in this test, but the function is designed to
     // continue even if one fails
-    const archivedCount = await archiveOldTasks(db, 7);
+    const archivedCount = await archiveOldTasks(db, 7, { baseDir: tempDir });
 
     // Both tasks should be archived
     expect(archivedCount).toBeGreaterThanOrEqual(0);
@@ -507,7 +505,7 @@ describe('compressOldArchives', () => {
     ).run(hundredDaysAgo.toISOString(), task.id);
 
     // Archive the task first
-    await archiveOldTasks(db, 7);
+    await archiveOldTasks(db, 7, { baseDir: tempDir });
 
     // Verify task is archived
     const archivedTask = db.prepare('SELECT * FROM tasks WHERE id = ?').get(task.id) as any;
@@ -517,14 +515,14 @@ describe('compressOldArchives', () => {
     const archiveYearMonth = `${hundredDaysAgo.getFullYear()}-${String(
       hundredDaysAgo.getMonth() + 1
     ).padStart(2, '0')}`;
-    const taskDir = path.join(tempDir, agent.id, 'tasks', 'archive', archiveYearMonth, task.id);
+    const taskDir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'archive', archiveYearMonth, task.id);
 
     await fs.mkdir(taskDir, { recursive: true });
     await fs.writeFile(path.join(taskDir, 'test.txt'), 'test content');
     await fs.writeFile(path.join(taskDir, 'data.json'), '{"key":"value"}');
 
     // Compress archives older than 90 days
-    const compressedCount = await compressOldArchives(db, 90);
+    const compressedCount = await compressOldArchives(db, 90, { baseDir: tempDir });
 
     // Should compress 1 task
     expect(compressedCount).toBe(1);
@@ -579,19 +577,19 @@ describe('compressOldArchives', () => {
     ).run(thirtyDaysAgo.toISOString(), task.id);
 
     // Archive the task first
-    await archiveOldTasks(db, 7);
+    await archiveOldTasks(db, 7, { baseDir: tempDir });
 
     // Create files in the archived task directory
     const archiveYearMonth = `${thirtyDaysAgo.getFullYear()}-${String(
       thirtyDaysAgo.getMonth() + 1
     ).padStart(2, '0')}`;
-    const taskDir = path.join(tempDir, agent.id, 'tasks', 'archive', archiveYearMonth, task.id);
+    const taskDir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'archive', archiveYearMonth, task.id);
 
     await fs.mkdir(taskDir, { recursive: true });
     await fs.writeFile(path.join(taskDir, 'test.txt'), 'test content');
 
     // Compress archives older than 90 days
-    const compressedCount = await compressOldArchives(db, 90);
+    const compressedCount = await compressOldArchives(db, 90, { baseDir: tempDir });
 
     // Should NOT compress any tasks
     expect(compressedCount).toBe(0);
@@ -646,13 +644,13 @@ describe('compressOldArchives', () => {
     ).run(hundredDaysAgo.toISOString(), task.id);
 
     // Archive the task
-    await archiveOldTasks(db, 7);
+    await archiveOldTasks(db, 7, { baseDir: tempDir });
 
     // Create the archive directory and file
     const archiveYearMonth = `${hundredDaysAgo.getFullYear()}-${String(
       hundredDaysAgo.getMonth() + 1
     ).padStart(2, '0')}`;
-    const taskDir = path.join(tempDir, agent.id, 'tasks', 'archive', archiveYearMonth, task.id);
+    const taskDir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'archive', archiveYearMonth, task.id);
 
     await fs.mkdir(taskDir, { recursive: true });
     await fs.writeFile(path.join(taskDir, 'test.txt'), 'test content');
@@ -662,7 +660,7 @@ describe('compressOldArchives', () => {
     await fs.writeFile(compressedFile, 'existing compressed data');
 
     // Run compression (should skip this task and just clean up directory)
-    const compressedCount = await compressOldArchives(db, 90);
+    const compressedCount = await compressOldArchives(db, 90, { baseDir: tempDir });
 
     // Should count as compressed (directory cleanup)
     expect(compressedCount).toBe(1);
@@ -725,7 +723,7 @@ describe('compressOldArchives', () => {
     ).run(task.id);
 
     // Run compression (should handle missing directory)
-    const compressedCount = await compressOldArchives(db, 90);
+    const compressedCount = await compressOldArchives(db, 90, { baseDir: tempDir });
 
     // Should return 0 (no directory to compress)
     expect(compressedCount).toBe(0);
@@ -765,13 +763,13 @@ describe('compressOldArchives', () => {
     ).run(hundredDaysAgo.toISOString(), task.id);
 
     // Archive the task
-    await archiveOldTasks(db, 7);
+    await archiveOldTasks(db, 7, { baseDir: tempDir });
 
     // Create test files
     const archiveYearMonth = `${hundredDaysAgo.getFullYear()}-${String(
       hundredDaysAgo.getMonth() + 1
     ).padStart(2, '0')}`;
-    const taskDir = path.join(tempDir, agent.id, 'tasks', 'archive', archiveYearMonth, task.id);
+    const taskDir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'archive', archiveYearMonth, task.id);
 
     await fs.mkdir(taskDir, { recursive: true });
     await fs.writeFile(path.join(taskDir, 'file1.txt'), 'content 1');
@@ -782,18 +780,26 @@ describe('compressOldArchives', () => {
     await fs.writeFile(path.join(taskDir, 'subdir', 'file3.txt'), 'content 3');
 
     // Compress the archive
-    await compressOldArchives(db, 90);
+    await compressOldArchives(db, 90, { baseDir: tempDir });
 
-    // Read and decompress the archive
+    // Extract and verify the archive
     const compressedFile = `${taskDir}.tar.gz`;
-    const compressedData = await fs.readFile(compressedFile);
-    const decompressed = await gunzip(compressedData);
-    const archive = JSON.parse(decompressed.toString('utf-8'));
+    const extractDir = path.join(tempDir, 'extract-test');
+    await fs.mkdir(extractDir, { recursive: true });
+
+    await tar.extract({
+      file: compressedFile,
+      cwd: extractDir,
+    });
 
     // Verify the archive contains all files
-    expect(archive['file1.txt']).toBe('content 1');
-    expect(archive['file2.txt']).toBe('content 2');
-    expect(archive['subdir/file3.txt']).toBe('content 3');
+    const file1Content = await fs.readFile(path.join(extractDir, task.id, 'file1.txt'), 'utf-8');
+    const file2Content = await fs.readFile(path.join(extractDir, task.id, 'file2.txt'), 'utf-8');
+    const file3Content = await fs.readFile(path.join(extractDir, task.id, 'subdir', 'file3.txt'), 'utf-8');
+
+    expect(file1Content).toBe('content 1');
+    expect(file2Content).toBe('content 2');
+    expect(file3Content).toBe('content 3');
   });
 
   it('should handle empty result set gracefully', async () => {
@@ -809,7 +815,7 @@ describe('compressOldArchives', () => {
     });
 
     // Run compression (should return 0)
-    const compressedCount = await compressOldArchives(db, 90);
+    const compressedCount = await compressOldArchives(db, 90, { baseDir: tempDir });
 
     expect(compressedCount).toBe(0);
   });
@@ -857,19 +863,19 @@ describe('compressOldArchives', () => {
     ).run(hundredDaysAgo.toISOString(), task1.id, task2.id);
 
     // Archive both tasks
-    await archiveOldTasks(db, 7);
+    await archiveOldTasks(db, 7, { baseDir: tempDir });
 
     // Create directory for task2 only (task1 directory missing)
     const archiveYearMonth = `${hundredDaysAgo.getFullYear()}-${String(
       hundredDaysAgo.getMonth() + 1
     ).padStart(2, '0')}`;
-    const task2Dir = path.join(tempDir, agent.id, 'tasks', 'archive', archiveYearMonth, task2.id);
+    const task2Dir = path.join(getAgentDirectory(agent.id, { baseDir: tempDir }), 'tasks', 'archive', archiveYearMonth, task2.id);
 
     await fs.mkdir(task2Dir, { recursive: true });
     await fs.writeFile(path.join(task2Dir, 'test.txt'), 'test content');
 
     // Run compression
-    const compressedCount = await compressOldArchives(db, 90);
+    const compressedCount = await compressOldArchives(db, 90, { baseDir: tempDir });
 
     // Should compress at least task2
     expect(compressedCount).toBeGreaterThanOrEqual(1);

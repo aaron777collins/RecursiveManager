@@ -107,6 +107,7 @@ function createValidConfig(
       canHire: false,
       maxSubordinates: 0,
       hiringBudget: 0,
+      workspaceQuotaMB: 500,
     },
     framework: {
       primary: framework,

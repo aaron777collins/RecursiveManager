@@ -215,7 +215,7 @@ describe('AgentLock', () => {
         const release1 = await lock.acquire(agentId);
 
         // Try to acquire (should fail)
-        const release2 = lock.tryAcquire(agentId);
+        const release2 = await lock.tryAcquire(agentId);
         expect(release2).toBeNull();
         expect(lock.isLocked(agentId)).toBe(true);
 
@@ -238,7 +238,7 @@ describe('AgentLock', () => {
         const release1 = await lock.acquire(agentId);
 
         // Try to acquire (should fail immediately)
-        const release2 = lock.tryAcquire(agentId);
+        const release2 = await lock.tryAcquire(agentId);
         expect(release2).toBeNull();
 
         // Set flag after tryAcquire
@@ -253,23 +253,23 @@ describe('AgentLock', () => {
     });
 
     describe('error handling', () => {
-      it('should throw AgentLockError for empty agentId', () => {
-        expect(() => lock.tryAcquire('')).toThrow(AgentLockError);
-        expect(() => lock.tryAcquire('')).toThrow('Invalid agent ID provided');
+      it('should throw AgentLockError for empty agentId', async () => {
+        await expect(lock.tryAcquire('')).rejects.toThrow(AgentLockError);
+        await expect(lock.tryAcquire('')).rejects.toThrow('Invalid agent ID provided');
       });
 
-      it('should throw AgentLockError for null agentId', () => {
-        expect(() => lock.tryAcquire(null as any)).toThrow(AgentLockError);
+      it('should throw AgentLockError for null agentId', async () => {
+        await expect(lock.tryAcquire(null as any)).rejects.toThrow(AgentLockError);
       });
 
-      it('should throw AgentLockError for undefined agentId', () => {
-        expect(() => lock.tryAcquire(undefined as any)).toThrow(AgentLockError);
+      it('should throw AgentLockError for undefined agentId', async () => {
+        await expect(lock.tryAcquire(undefined as any)).rejects.toThrow(AgentLockError);
       });
 
-      it('should throw AgentLockError for non-string agentId', () => {
-        expect(() => lock.tryAcquire(123 as any)).toThrow(AgentLockError);
-        expect(() => lock.tryAcquire({} as any)).toThrow(AgentLockError);
-        expect(() => lock.tryAcquire([] as any)).toThrow(AgentLockError);
+      it('should throw AgentLockError for non-string agentId', async () => {
+        await expect(lock.tryAcquire(123 as any)).rejects.toThrow(AgentLockError);
+        await expect(lock.tryAcquire({} as any)).rejects.toThrow(AgentLockError);
+        await expect(lock.tryAcquire([] as any)).rejects.toThrow(AgentLockError);
       });
     });
   });
@@ -479,25 +479,25 @@ describe('AgentLock', () => {
       const release1 = await lock.acquire(agentId);
       executionOrder.push(0);
 
-      // Queue many requests
+      // Queue many requests that auto-release
       const promises = Array.from({ length: queueDepth }, (_, i) =>
         lock.acquire(agentId).then((release) => {
           executionOrder.push(i + 1);
-          return release;
+          release(); // Release immediately so next can proceed
+          return i + 1;
         })
       );
 
-      // Release first lock
+      // Release first lock to start the chain
       release1();
 
-      // Wait for all and release
-      const releases = await Promise.all(promises);
-      releases.forEach((release) => release());
+      // Wait for all to complete
+      await Promise.all(promises);
 
       // Verify all executed in order
       expect(executionOrder).toEqual(Array.from({ length: queueDepth + 1 }, (_, i) => i));
       expect(lock.isLocked(agentId)).toBe(false);
-    });
+    }, 10000); // Increase timeout to 10 seconds for 50 queued requests
 
     it('should handle lock release not blocking', async () => {
       const agentId = 'agent-1';

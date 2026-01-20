@@ -9,15 +9,12 @@
  */
 
 import type { Database } from 'better-sqlite3';
-import { getAgentDirectory } from '@recursive-manager/common';
+import { getAgentDirectory, type PathOptions } from '@recursive-manager/common';
 import { moveTaskDirectory } from './createTaskDirectory';
 import type { TaskRecord, TaskStatus } from '@recursive-manager/common';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as zlib from 'zlib';
-import { promisify } from 'util';
-
-const gzip = promisify(zlib.gzip);
+import * as tar from 'tar';
 
 /**
  * Archive old completed tasks by moving them to archive/{YYYY-MM}/ directories
@@ -32,6 +29,7 @@ const gzip = promisify(zlib.gzip);
  *
  * @param db - Database instance
  * @param olderThanDays - Archive tasks completed more than this many days ago (default: 7)
+ * @param options - Path options for resolving agent directories
  * @returns Count of tasks archived
  *
  * @example
@@ -47,7 +45,7 @@ const gzip = promisify(zlib.gzip);
  * console.log(`Archived ${count30} tasks older than 30 days`);
  * ```
  */
-export async function archiveOldTasks(db: Database, olderThanDays: number = 7): Promise<number> {
+export async function archiveOldTasks(db: Database, olderThanDays: number = 7, options: PathOptions = {}): Promise<number> {
   // Calculate the cutoff date
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
@@ -112,7 +110,7 @@ export async function archiveOldTasks(db: Database, olderThanDays: number = 7): 
       const archiveStatus = `archive/${year}-${month}` as TaskStatus;
 
       // Move the task directory from completed/ to archive/{YYYY-MM}/
-      await moveTaskDirectory(task.agent_id, task.id, 'completed' as TaskStatus, archiveStatus);
+      await moveTaskDirectory(task.agent_id, task.id, 'completed' as TaskStatus, archiveStatus, options);
 
       // Update the database status
       const now = new Date().toISOString();
@@ -235,6 +233,7 @@ export function getCompletedTasks(db: Database, agentId?: string): TaskRecord[] 
  *
  * @param db - Database instance
  * @param olderThanDays - Compress archives older than this many days (default: 90)
+ * @param options - Path options for resolving agent directories
  * @returns Promise that resolves to count of tasks compressed
  *
  * @example
@@ -252,7 +251,8 @@ export function getCompletedTasks(db: Database, agentId?: string): TaskRecord[] 
  */
 export async function compressOldArchives(
   db: Database,
-  olderThanDays: number = 90
+  olderThanDays: number = 90,
+  options: PathOptions = {}
 ): Promise<number> {
   // Calculate the cutoff date
   const cutoffDate = new Date();
@@ -293,7 +293,7 @@ export async function compressOldArchives(
       const archiveYearMonth = `${year}-${month}`;
 
       // Construct the task directory path
-      const agentDir = getAgentDirectory(task.agent_id);
+      const agentDir = getAgentDirectory(task.agent_id, options);
       const taskDir = path.join(agentDir, 'tasks', 'archive', archiveYearMonth, task.id);
 
       // Check if the directory exists (and hasn't been compressed already)
@@ -341,55 +341,23 @@ export async function compressOldArchives(
 /**
  * Compress a directory into a tar.gz file
  *
- * This is a simplified implementation that creates a gzipped archive.
- * In production, you might want to use a proper tar library like 'tar' npm package.
+ * Uses the 'tar' npm package to create a proper tar.gz archive.
  *
  * @param sourceDir - Directory to compress
  * @param outputFile - Output .tar.gz file path
  */
 async function compressDirectory(sourceDir: string, outputFile: string): Promise<void> {
-  // Create a simple archive by recursively reading all files and their contents
-  const files = await getAllFilesRecursive(sourceDir);
+  // Get the parent directory and the directory name
+  const parentDir = path.dirname(sourceDir);
+  const dirName = path.basename(sourceDir);
 
-  // Create an archive object with file paths and contents
-  const archive: Record<string, string> = {};
-  for (const file of files) {
-    const relativePath = path.relative(sourceDir, file);
-    const content = await fs.readFile(file, 'utf-8');
-    archive[relativePath] = content;
-  }
-
-  // Serialize the archive as JSON and compress it
-  const archiveJson = JSON.stringify(archive, null, 2);
-  const compressed = await gzip(Buffer.from(archiveJson, 'utf-8'));
-
-  // Write the compressed data to the output file
-  await fs.writeFile(outputFile, compressed);
-}
-
-/**
- * Get all files in a directory recursively
- *
- * @param dir - Directory to scan
- * @returns Array of file paths
- */
-async function getAllFilesRecursive(dir: string): Promise<string[]> {
-  const files: string[] = [];
-
-  async function scan(currentDir: string) {
-    const entries = await fs.readdir(currentDir, { withFileTypes: true });
-
-    for (const entry of entries) {
-      const fullPath = path.join(currentDir, entry.name);
-
-      if (entry.isDirectory()) {
-        await scan(fullPath);
-      } else {
-        files.push(fullPath);
-      }
-    }
-  }
-
-  await scan(dir);
-  return files;
+  // Create tar.gz archive using the tar library
+  await tar.create(
+    {
+      gzip: true,
+      file: outputFile,
+      cwd: parentDir,
+    },
+    [dirName]
+  );
 }

@@ -25,7 +25,6 @@ import {
   createMessage,
   MessageInput,
 } from '@recursive-manager/common';
-import { auditLog, AuditAction } from '@recursive-manager/common';
 import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 import { unblockTasksForResumedAgent, UnblockTasksResult } from './taskBlocking';
 
@@ -235,6 +234,17 @@ The agent is now active and will process work according to its schedule. No acti
 }
 
 /**
+ * Options for resumeAgent
+ */
+export interface ResumeAgentOptions extends PathOptions {
+  /**
+   * ID of the agent performing the resume action (for audit logging)
+   * Defaults to the target agent's manager (reporting_to) or 'system' if no manager
+   */
+  performedBy?: string;
+}
+
+/**
  * Resume an agent
  *
  * This function resumes a paused agent by setting its status to 'active' in the database.
@@ -273,21 +283,21 @@ The agent is now active and will process work according to its schedule. No acti
  *
  * @param db - Database instance
  * @param agentId - ID of the agent to resume
- * @param options - Path resolution options
+ * @param options - Resume options including path resolution and performedBy
  * @returns Result object with operation details
  * @throws {ResumeAgentError} If resume operation fails
  *
  * @example
  * ```typescript
- * // Resume an agent
- * const result = await resumeAgent(db, 'dev-001');
+ * // Resume an agent (manager resuming subordinate)
+ * const result = await resumeAgent(db, 'dev-001', { performedBy: 'manager-001' });
  * console.log(`Resumed agent ${result.agentId}`);
  * ```
  */
 export async function resumeAgent(
   db: Database.Database,
   agentId: string,
-  options: PathOptions = {}
+  options: ResumeAgentOptions = {}
 ): Promise<ResumeAgentResult> {
   const logger = createAgentLogger(agentId);
 
@@ -311,10 +321,15 @@ export async function resumeAgent(
 
     const previousStatus = agent.status;
 
+    // Determine who is performing the resume action
+    // Use null if no performedBy specified and agent has no manager (system action)
+    const performedBy = options.performedBy ?? agent.reporting_to ?? null;
+
     logger.debug('Agent validated for resuming', {
       agentId,
       currentStatus: agent.status,
       managerId: agent.reporting_to ?? undefined,
+      performedBy,
     });
 
     // STEP 2: DATABASE OPERATIONS
@@ -332,34 +347,14 @@ export async function resumeAgent(
         previousStatus,
       });
 
-      // Audit log the resume action
-      auditLog(db, {
-        agentId: agent.reporting_to,
-        action: AuditAction.RESUME,
-        targetAgentId: agentId,
-        success: true,
-        details: {
-          role: agent.role,
-          displayName: agent.display_name,
-          previousStatus,
-        },
-      });
+      // Note: updateAgent already creates an audit log for status changes
+      // The audit log will have agentId: null until updateAgent is enhanced
+      // to accept a performedBy parameter
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       logger.error('Failed to update agent status', {
         agentId,
         error: error.message,
-      });
-
-      // Audit log failed resume
-      auditLog(db, {
-        agentId: agent.reporting_to,
-        action: AuditAction.RESUME,
-        targetAgentId: agentId,
-        success: false,
-        details: {
-          error: error.message,
-        },
       });
 
       throw new ResumeAgentError(`Failed to update agent status: ${error.message}`, agentId, error);

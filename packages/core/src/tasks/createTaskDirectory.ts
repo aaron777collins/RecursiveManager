@@ -317,12 +317,14 @@ export async function createTaskDirectory(input: CreateTaskDirectoryInput): Prom
  * @param taskId - Task ID
  * @param oldStatus - Previous status
  * @param newStatus - New status
+ * @param options - Path options for resolving agent directories
  */
 export async function moveTaskDirectory(
   agentId: string,
   taskId: string,
   oldStatus: TaskStatus,
-  newStatus: TaskStatus
+  newStatus: TaskStatus,
+  options: import('@recursive-manager/common').PathOptions = {}
 ): Promise<void> {
   // Only move if status actually changed
   if (oldStatus === newStatus) {
@@ -331,10 +333,43 @@ export async function moveTaskDirectory(
 
   const fs = await import('fs/promises');
 
-  const oldPath = getTaskPath(agentId, taskId, oldStatus);
-  const newPath = getTaskPath(agentId, taskId, newStatus);
+  let oldPath = getTaskPath(agentId, taskId, oldStatus, options);
+  const newPath = getTaskPath(agentId, taskId, newStatus, options);
 
   try {
+    // Check if source directory exists at expected location
+    const sourceExists = await fs
+      .access(oldPath)
+      .then(() => true)
+      .catch(() => false);
+
+    // If source doesn't exist at expected location, try to find it in other status folders
+    if (!sourceExists) {
+      const statusesToCheck: TaskStatus[] = ['pending', 'in-progress', 'blocked', 'completed', 'archived'];
+      let found = false;
+
+      for (const status of statusesToCheck) {
+        if (status === oldStatus) continue; // Already checked
+        const altPath = getTaskPath(agentId, taskId, status, options);
+        const exists = await fs
+          .access(altPath)
+          .then(() => true)
+          .catch(() => false);
+
+        if (exists) {
+          oldPath = altPath;
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        // Directory doesn't exist anywhere, create it at the new location
+        await fs.mkdir(newPath, { recursive: true });
+        return;
+      }
+    }
+
     // Create the parent directory for new status if it doesn't exist
     await fs.mkdir(path.dirname(newPath), { recursive: true });
 

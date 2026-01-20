@@ -153,7 +153,18 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
     runMigrations(db, allMigrations);
 
     dbPool = {
-      getConnection: () => db,
+      getConnection: () => ({
+        db,
+        close: () => db.close(),
+        healthCheck: () => {
+          try {
+            db.prepare('SELECT 1').get();
+            return true;
+          } catch {
+            return false;
+          }
+        },
+      }),
       close: () => db.close(),
     } as unknown as DatabasePool;
 
