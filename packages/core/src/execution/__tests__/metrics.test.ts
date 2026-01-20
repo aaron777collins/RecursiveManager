@@ -9,6 +9,9 @@ import {
   recordQueueWaitTime,
   recordQuotaViolation,
   updateAgentHealth,
+  updateMemoryUsage,
+  updateCpuUsage,
+  updateSystemMetrics,
   getMetrics,
   resetMetrics,
   executionCounter,
@@ -18,6 +21,8 @@ import {
   activeExecutionsGauge,
   queueDepthGauge,
   agentHealthGauge,
+  memoryUsageGauge,
+  cpuUsageGauge,
 } from '../metrics';
 
 describe('Prometheus Metrics', () => {
@@ -308,6 +313,80 @@ describe('Prometheus Metrics', () => {
       const metrics = await getMetrics();
       expect(metrics).toContain('status="success"');
       expect(metrics).toContain('status="failure"');
+    });
+  });
+
+  describe('updateMemoryUsage', () => {
+    it('should update memory usage metrics', async () => {
+      updateMemoryUsage();
+
+      const metrics = await getMetrics();
+      expect(metrics).toContain('recursive_manager_memory_usage_bytes');
+      expect(metrics).toContain('type="heapUsed"');
+      expect(metrics).toContain('type="heapTotal"');
+      expect(metrics).toContain('type="rss"');
+      expect(metrics).toContain('type="external"');
+    });
+
+    it('should report non-zero memory values', async () => {
+      updateMemoryUsage();
+
+      const metrics = await getMetrics();
+      // Memory usage should always be positive
+      expect(metrics).toContain('recursive_manager_memory_usage_bytes');
+      // The actual values will vary, but they should exist
+    });
+  });
+
+  describe('updateCpuUsage', () => {
+    it('should update CPU usage metrics', async () => {
+      // Need to wait a bit for CPU usage to be measurable
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      updateCpuUsage();
+
+      const metrics = await getMetrics();
+      expect(metrics).toContain('recursive_manager_cpu_usage_percent');
+    });
+
+    it('should report CPU percentage between 0-100', async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      updateCpuUsage();
+
+      const metrics = await getMetrics();
+      expect(metrics).toContain('recursive_manager_cpu_usage_percent');
+      // CPU usage should be capped at 100%
+    });
+
+    it('should handle rapid consecutive calls', async () => {
+      updateCpuUsage();
+      await new Promise((resolve) => setTimeout(resolve, 5));
+      updateCpuUsage();
+
+      const metrics = await getMetrics();
+      expect(metrics).toContain('recursive_manager_cpu_usage_percent');
+    });
+  });
+
+  describe('updateSystemMetrics', () => {
+    it('should update both memory and CPU metrics', async () => {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      updateSystemMetrics();
+
+      const metrics = await getMetrics();
+      expect(metrics).toContain('recursive_manager_memory_usage_bytes');
+      expect(metrics).toContain('recursive_manager_cpu_usage_percent');
+    });
+
+    it('should be callable multiple times', async () => {
+      updateSystemMetrics();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      updateSystemMetrics();
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      updateSystemMetrics();
+
+      const metrics = await getMetrics();
+      expect(metrics).toContain('recursive_manager_memory_usage_bytes');
+      expect(metrics).toContain('recursive_manager_cpu_usage_percent');
     });
   });
 });

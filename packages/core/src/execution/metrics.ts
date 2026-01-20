@@ -111,6 +111,27 @@ export const agentHealthGauge = new Gauge({
 });
 
 /**
+ * Gauge: Current memory usage in bytes
+ * Tracks heap used, heap total, RSS, and external memory
+ */
+export const memoryUsageGauge = new Gauge({
+  name: 'recursive_manager_memory_usage_bytes',
+  help: 'Current memory usage in bytes',
+  labelNames: ['type'], // heapUsed, heapTotal, rss, external
+  registers: [metricsRegistry],
+});
+
+/**
+ * Gauge: CPU usage percentage (0-100)
+ * Based on process.cpuUsage() measurements
+ */
+export const cpuUsageGauge = new Gauge({
+  name: 'recursive_manager_cpu_usage_percent',
+  help: 'CPU usage percentage over last measurement interval',
+  registers: [metricsRegistry],
+});
+
+/**
  * Counter: Multi-perspective analysis executions
  * Labels: status (success|failure)
  */
@@ -223,6 +244,60 @@ export function recordQuotaViolation(violationType: 'memory' | 'cpu' | 'time', a
  */
 export function updateAgentHealth(agentId: string, healthScore: number): void {
   agentHealthGauge.set({ agent_id: agentId }, healthScore);
+}
+
+/**
+ * Helper function to update memory usage metrics
+ * Collects current process memory usage and updates gauges
+ */
+export function updateMemoryUsage(): void {
+  const memUsage = process.memoryUsage();
+
+  memoryUsageGauge.set({ type: 'heapUsed' }, memUsage.heapUsed);
+  memoryUsageGauge.set({ type: 'heapTotal' }, memUsage.heapTotal);
+  memoryUsageGauge.set({ type: 'rss' }, memUsage.rss);
+  memoryUsageGauge.set({ type: 'external' }, memUsage.external);
+}
+
+// Track CPU usage state for calculating percentage
+let lastCpuUsage = process.cpuUsage();
+let lastCpuTime = Date.now();
+
+/**
+ * Helper function to update CPU usage metrics
+ * Calculates CPU usage percentage based on elapsed time
+ */
+export function updateCpuUsage(): void {
+  const currentCpuUsage = process.cpuUsage(lastCpuUsage);
+  const currentTime = Date.now();
+  const elapsedTimeMs = currentTime - lastCpuTime;
+
+  if (elapsedTimeMs === 0) {
+    return; // Avoid division by zero
+  }
+
+  // Convert CPU time from microseconds to milliseconds
+  const cpuTimeMs = (currentCpuUsage.user + currentCpuUsage.system) / 1000;
+
+  // Calculate CPU usage percentage
+  // cpuTimeMs / elapsedTimeMs gives fraction of time spent on CPU
+  // Multiply by 100 to get percentage
+  const cpuPercent = Math.min(100, (cpuTimeMs / elapsedTimeMs) * 100);
+
+  cpuUsageGauge.set(cpuPercent);
+
+  // Update state for next measurement
+  lastCpuUsage = process.cpuUsage();
+  lastCpuTime = currentTime;
+}
+
+/**
+ * Helper function to update all system metrics (memory + CPU)
+ * Convenience function for updating both metrics at once
+ */
+export function updateSystemMetrics(): void {
+  updateMemoryUsage();
+  updateCpuUsage();
 }
 
 /**
