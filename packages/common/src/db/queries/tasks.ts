@@ -269,7 +269,7 @@ export function createTask(db: Database.Database, input: CreateTaskInput): TaskR
       last_updated,
       last_executed,
       execution_count
-    ) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, 0, 0, 0, ?, NULL, ?, ?, ?, 0, ?, NULL, 0)
+    ) VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, 0, 0, 0, ?, NULL, ?, ?, ?, 1, ?, NULL, 0)
   `);
 
   const updateParentSubtaskCount = db.prepare(`
