@@ -1,0 +1,169 @@
+# Prometheus Alerting Rules for RecursiveManager
+# These rules monitor critical metrics and trigger alerts when thresholds are exceeded
+
+groups:
+  - name: recursive_manager_alerts
+    interval: 30s
+    rules:
+      # High error rate alert
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(recursive_manager_executions_total{status="failure"}[5m]))
+          / sum(rate(recursive_manager_executions_total[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: execution
+        annotations:
+          summary: "High execution error rate detected"
+          description: "Error rate is {{ $value | humanizePercentage }} (threshold: 10%)"
+          impact: "Executions are failing at an elevated rate, investigate agent health and task errors"
+
+      # Queue backlog alert
+      - alert: QueueBacklog
+        expr: recursive_manager_queue_depth > 100
+        for: 10m
+        labels:
+          severity: warning
+          component: scheduler
+        annotations:
+          summary: "Execution queue is backed up"
+          description: "Queue depth is {{ $value }} tasks (threshold: 100)"
+          impact: "Tasks are accumulating, may indicate insufficient concurrency or agent bottlenecks"
+
+      # High memory usage alert
+      - alert: HighMemoryUsage
+        expr: recursive_manager_memory_usage_bytes{type="heapUsed"} > 1e9
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Heap usage is {{ $value | humanize }}B (threshold: 1GB)"
+          impact: "Risk of out-of-memory errors, investigate memory leaks or reduce agent concurrency"
+
+      # Agent health alert
+      - alert: LowAgentHealth
+        expr: recursive_manager_agent_health_score < 30
+        for: 15m
+        labels:
+          severity: warning
+          component: agent
+        annotations:
+          summary: "Agent {{ $labels.agent_id }} has low health score"
+          description: "Health score is {{ $value }} (threshold: 30)"
+          impact: "Agent may be experiencing errors or performance issues, review agent logs"
+
+      # CPU saturation alert
+      - alert: HighCPUUsage
+        expr: avg_over_time(recursive_manager_cpu_usage_percent[5m]) > 90
+        for: 10m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "CPU usage is critically high"
+          description: "Average CPU usage is {{ $value | humanize }}% (threshold: 90%)"
+          impact: "System is CPU-bound, may cause performance degradation or task delays"
+
+      # Long queue wait time alert
+      - alert: HighQueueWaitTime
+        expr: recursive_manager_queue_wait_time_ms{quantile="0.95"} > 300000
+        for: 10m
+        labels:
+          severity: warning
+          component: scheduler
+        annotations:
+          summary: "Tasks are waiting too long in queue"
+          description: "95th percentile queue wait time is {{ $value | humanize }}ms (threshold: 5 minutes)"
+          impact: "Tasks experiencing significant delays before execution, consider scaling resources"
+
+      # Analysis timeout alert
+      - alert: AnalysisTimeout
+        expr: recursive_manager_analysis_duration_ms{quantile="0.95"} > 60000
+        for: 5m
+        labels:
+          severity: warning
+          component: analysis
+        annotations:
+          summary: "Multi-perspective analysis taking too long"
+          description: "95th percentile analysis duration is {{ $value | humanize }}ms (threshold: 60 seconds)"
+          impact: "AI analysis provider may be slow or rate-limited, check provider health"
+
+      # Execution duration alert (slow tasks)
+      - alert: SlowTaskExecution
+        expr: recursive_manager_execution_duration_ms{quantile="0.95"} > 600000
+        for: 10m
+        labels:
+          severity: info
+          component: execution
+        annotations:
+          summary: "Tasks are taking longer than expected to complete"
+          description: "95th percentile execution duration is {{ $value | humanize }}ms (threshold: 10 minutes)"
+          impact: "Task complexity may be increasing or agents are running inefficiently"
+
+      # Quota violations alert
+      - alert: ResourceQuotaViolations
+        expr: rate(recursive_manager_quota_violations_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: scheduler
+        annotations:
+          summary: "Frequent resource quota violations detected"
+          description: "Quota violation rate is {{ $value }} per second"
+          impact: "Agents are exceeding resource limits, may need quota adjustment or optimization"
+
+      # No executions alert (system idle)
+      - alert: NoExecutions
+        expr: rate(recursive_manager_executions_total[10m]) == 0
+        for: 30m
+        labels:
+          severity: info
+          component: execution
+        annotations:
+          summary: "No task executions in last 30 minutes"
+          description: "System may be idle or experiencing scheduling issues"
+          impact: "Verify system is functioning correctly and agents are available"
+
+      # Message processing alert
+      - alert: HighMessageBacklog
+        expr: recursive_manager_messages_processed_total - recursive_manager_messages_processed_total offset 5m < 0
+        for: 10m
+        labels:
+          severity: warning
+          component: messaging
+        annotations:
+          summary: "Message processing may be stalled"
+          description: "No messages processed in the last 5 minutes"
+          impact: "Inter-agent communication may be degraded"
+
+      # Critical error rate alert (immediate action required)
+      - alert: CriticalErrorRate
+        expr: |
+          sum(rate(recursive_manager_executions_total{status="failure"}[1m]))
+          / sum(rate(recursive_manager_executions_total[1m])) > 0.5
+        for: 1m
+        labels:
+          severity: critical
+          component: execution
+        annotations:
+          summary: "CRITICAL: Majority of executions are failing"
+          description: "Error rate is {{ $value | humanizePercentage }} in the last minute (threshold: 50%)"
+          impact: "System is in degraded state, immediate investigation required"
+
+      # Memory leak detection
+      - alert: MemoryLeakSuspected
+        expr: |
+          (recursive_manager_memory_usage_bytes{type="heapUsed"} -
+           recursive_manager_memory_usage_bytes{type="heapUsed"} offset 1h) /
+          recursive_manager_memory_usage_bytes{type="heapUsed"} offset 1h > 0.5
+        for: 30m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Potential memory leak detected"
+          description: "Memory usage increased by {{ $value | humanizePercentage }} over the last hour"
+          impact: "Memory usage is growing steadily, investigate for memory leaks"

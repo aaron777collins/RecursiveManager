@@ -129,11 +129,32 @@ global:
   scrape_interval: 15s  # Change this value
 ```
 
-### Configuring Alerts
+### Alerting
 
-1. Create alerting rules in `monitoring/prometheus-alerts.yml`
-2. Update `prometheus.yml` to include the rules file
-3. Configure alert manager in Grafana
+Alert rules are configured in `prometheus-alerts.yml` and automatically loaded by Prometheus.
+
+**Available Alerts:**
+- **HighErrorRate** - Warns when error rate exceeds 10% for 5 minutes
+- **QueueBacklog** - Warns when queue depth exceeds 100 tasks for 10 minutes
+- **HighMemoryUsage** - Critical alert when heap usage exceeds 1GB
+- **LowAgentHealth** - Warns when agent health score drops below 30
+- **HighCPUUsage** - Critical alert when CPU usage exceeds 90%
+- **HighQueueWaitTime** - Warns when 95th percentile wait time exceeds 5 minutes
+- **AnalysisTimeout** - Warns when AI analysis takes longer than 60 seconds
+- **SlowTaskExecution** - Info when 95th percentile execution exceeds 10 minutes
+- **ResourceQuotaViolations** - Warns on frequent quota violations
+- **NoExecutions** - Info alert when system is idle for 30 minutes
+- **CriticalErrorRate** - Critical alert when >50% of executions fail
+- **MemoryLeakSuspected** - Warns when memory grows 50% over 1 hour
+
+**View Alerts:**
+- Prometheus Alerts page: http://localhost:9090/alerts
+- View firing alerts and their states
+
+**Configure Notifications (Optional):**
+1. Deploy AlertManager: Add alertmanager service to docker-compose.yml
+2. Uncomment alerting section in prometheus.yml
+3. Configure notification channels (Slack, email, PagerDuty, etc.) in AlertManager config
 
 ## Troubleshooting
 
