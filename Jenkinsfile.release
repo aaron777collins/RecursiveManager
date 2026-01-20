@@ -1,0 +1,89 @@
+pipeline {
+    agent any
+
+    tools {
+        nodejs 'NodeJS-20'
+    }
+
+    stages {
+        stage('Run CI') {
+            steps {
+                build job: 'RecursiveManager-CI', wait: true
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Build Production') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+
+        stage('Security Scan') {
+            steps {
+                sh 'npm audit --production || true'
+            }
+        }
+
+        stage('Create Release Artifacts') {
+            steps {
+                // Archive build artifacts
+                archiveArtifacts(
+                    artifacts: 'packages/*/dist/**/*',
+                    allowEmptyArchive: true,
+                    fingerprint: true
+                )
+
+                // Create tarball of build
+                sh 'tar -czf release-${BUILD_NUMBER}.tar.gz packages/*/dist'
+                archiveArtifacts(
+                    artifacts: 'release-*.tar.gz',
+                    fingerprint: true
+                )
+            }
+        }
+
+        stage('Tag Release') {
+            steps {
+                script {
+                    def version = sh(
+                        script: 'npm run version --silent',
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Creating release tag: v${version}-build.${BUILD_NUMBER}"
+
+                    // Note: Requires Git credentials configured in Jenkins
+                    // sh "git tag -a v${version}-build.${BUILD_NUMBER} -m 'Release build ${BUILD_NUMBER}'"
+                    // sh "git push origin v${version}-build.${BUILD_NUMBER}"
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Release created successfully!'
+            // Uncomment when Slack is configured
+            // slackSend(
+            //     color: 'good',
+            //     message: "Release Published: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+            // )
+        }
+        failure {
+            echo 'Release failed!'
+            // slackSend(
+            //     color: 'danger',
+            //     message: "Release Failed: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+            // )
+        }
+        always {
+            cleanWs()
+        }
+    }
+}

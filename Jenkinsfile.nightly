@@ -1,0 +1,114 @@
+pipeline {
+    agent any
+
+    triggers {
+        cron('H 2 * * *')  // Run at 2 AM daily
+    }
+
+    tools {
+        nodejs 'NodeJS-20'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Full Lint') {
+            steps {
+                sh 'npm run lint'
+            }
+        }
+
+        stage('Type Check') {
+            steps {
+                sh 'npm run type-check'
+            }
+        }
+
+        stage('Full Build') {
+            steps {
+                sh 'npm run build'
+            }
+        }
+
+        stage('Full Test Suite') {
+            steps {
+                sh 'npm test'
+            }
+        }
+
+        stage('Test Coverage') {
+            steps {
+                sh 'npm run test:coverage'
+            }
+        }
+
+        stage('Dependency Check') {
+            steps {
+                echo 'Checking for outdated dependencies...'
+                sh 'npm outdated || true'
+
+                echo 'Running security audit...'
+                sh 'npm audit || true'
+            }
+        }
+
+        stage('Code Quality Checks') {
+            steps {
+                // Check code formatting
+                sh 'npm run format:check || true'
+            }
+        }
+
+        stage('Generate Reports') {
+            steps {
+                // Archive test results
+                junit(
+                    allowEmptyResults: true,
+                    testResults: '**/junit.xml,**/test-results/**/*.xml'
+                )
+
+                // Publish coverage report
+                publishHTML([
+                    allowMissing: true,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'coverage',
+                    reportFiles: 'index.html',
+                    reportName: 'Coverage Report'
+                ])
+            }
+        }
+    }
+
+    post {
+        always {
+            script {
+                def status = currentBuild.result ?: 'SUCCESS'
+                echo "Nightly Build Complete: ${status}"
+
+                // Uncomment when Slack is configured
+                // slackSend(
+                //     color: status == 'SUCCESS' ? 'good' : 'danger',
+                //     message: "Nightly Build Complete: ${status} - ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                // )
+            }
+            cleanWs()
+        }
+        success {
+            echo 'Nightly build passed!'
+        }
+        failure {
+            echo 'Nightly build failed - investigation needed'
+        }
+    }
+}
