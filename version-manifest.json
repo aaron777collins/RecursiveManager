@@ -1,0 +1,32 @@
+{
+  "latest": "1.0.0",
+  "stable": "1.0.0",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "released": "2026-01-20T19:43:00Z",
+      "changelog_url": "https://github.com/aaron777collins/RecursiveManager/releases/tag/v1.0.0",
+      "assets": {
+        "linux": {
+          "filename": "recursive-manager-v1.0.0-linux.tar.gz",
+          "url": "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursive-manager-v1.0.0-linux.tar.gz",
+          "size": 19922944
+        },
+        "macos": {
+          "filename": "recursive-manager-v1.0.0-macos.tar.gz",
+          "url": "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursive-manager-v1.0.0-macos.tar.gz",
+          "size": 19922944
+        },
+        "windows": {
+          "filename": "recursive-manager-v1.0.0-windows.tar.gz",
+          "url": "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursive-manager-v1.0.0-windows.tar.gz",
+          "size": 19922944
+        }
+      },
+      "checksums_url": "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/checksums.txt",
+      "minimum_node_version": "18.0.0"
+    }
+  ],
+  "install_script_url": "https://raw.githubusercontent.com/aaron777collins/RecursiveManager/master/scripts/install-binary.sh",
+  "upgrade_script_url": "https://raw.githubusercontent.com/aaron777collins/RecursiveManager/master/scripts/upgrade.sh"
+}
