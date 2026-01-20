@@ -52,6 +52,63 @@ export interface RecursiveManagerConfig {
 
   /** Path to Claude Code executable */
   claudeCodePath: string;
+
+  // AI Provider Configuration
+  /** AI provider to use for multi-perspective analysis */
+  aiProvider: string;
+
+  /** Fallback AI provider if primary is unavailable */
+  aiFallbackProvider?: string;
+
+  // AICEO Gateway Configuration
+  /** AICEO Gateway API endpoint */
+  aiceoGatewayUrl?: string;
+
+  /** AICEO Gateway API key for authentication */
+  aiceoGatewayApiKey?: string;
+
+  /** Provider for AICEO Gateway to use (glm, anthropic, openai) */
+  aiceoGatewayProvider?: string;
+
+  /** Model for AICEO Gateway to use */
+  aiceoGatewayModel?: string;
+
+  /** Request priority for AICEO Gateway (high, normal, low) */
+  aiceoGatewayPriority?: string;
+
+  // Direct Anthropic Configuration
+  /** Anthropic API key */
+  anthropicApiKey?: string;
+
+  /** Anthropic API endpoint */
+  anthropicApiUrl?: string;
+
+  /** Anthropic model to use */
+  anthropicModel?: string;
+
+  // Direct OpenAI Configuration
+  /** OpenAI API key */
+  openaiApiKey?: string;
+
+  /** OpenAI API endpoint */
+  openaiApiUrl?: string;
+
+  /** OpenAI model to use */
+  openaiModel?: string;
+
+  // Custom Provider Configuration
+  /** Custom provider endpoint URL */
+  customProviderUrl?: string;
+
+  /** Custom provider API key */
+  customProviderApiKey?: string;
+
+  /** Custom provider request format (openai, anthropic, custom) */
+  customProviderFormat?: string;
+
+  // Analysis Configuration
+  /** Cache TTL for analysis results in milliseconds */
+  analysisCacheTtlMs?: number;
 }
 
 /**
@@ -101,6 +158,35 @@ export function loadConfig(): RecursiveManagerConfig {
     ),
     defaultFramework: process.env.DEFAULT_FRAMEWORK || 'claude-code',
     claudeCodePath: process.env.CLAUDE_CODE_PATH || 'claude',
+
+    // AI Provider Configuration
+    aiProvider: process.env.AI_PROVIDER || 'aiceo-gateway',
+    aiFallbackProvider: process.env.AI_FALLBACK_PROVIDER,
+
+    // AICEO Gateway Configuration
+    aiceoGatewayUrl: process.env.AICEO_GATEWAY_URL || 'http://localhost:4000/api/glm/submit',
+    aiceoGatewayApiKey: process.env.AICEO_GATEWAY_API_KEY,
+    aiceoGatewayProvider: process.env.AICEO_GATEWAY_PROVIDER || 'glm',
+    aiceoGatewayModel: process.env.AICEO_GATEWAY_MODEL || 'glm-4.7',
+    aiceoGatewayPriority: process.env.AICEO_GATEWAY_PRIORITY || 'high',
+
+    // Direct Anthropic Configuration
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    anthropicApiUrl: process.env.ANTHROPIC_API_URL || 'https://api.anthropic.com/v1/messages',
+    anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-5',
+
+    // Direct OpenAI Configuration
+    openaiApiKey: process.env.OPENAI_API_KEY,
+    openaiApiUrl: process.env.OPENAI_API_URL || 'https://api.openai.com/v1/chat/completions',
+    openaiModel: process.env.OPENAI_MODEL || 'gpt-4-turbo',
+
+    // Custom Provider Configuration
+    customProviderUrl: process.env.CUSTOM_PROVIDER_URL,
+    customProviderApiKey: process.env.CUSTOM_PROVIDER_API_KEY,
+    customProviderFormat: process.env.CUSTOM_PROVIDER_FORMAT,
+
+    // Analysis Configuration
+    analysisCacheTtlMs: parseInt(process.env.ANALYSIS_CACHE_TTL_MS || '3600000', 10),
   };
 }
 
