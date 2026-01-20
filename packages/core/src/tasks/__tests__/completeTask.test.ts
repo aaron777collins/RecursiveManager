@@ -68,6 +68,7 @@ describe('completeTaskWithFiles', () => {
         agentId: 'test-agent',
         title: 'Test Task',
         priority: 'medium',
+        taskPath: 'Test Task',
       });
 
       // Create task directory
@@ -117,8 +118,8 @@ describe('completeTaskWithFiles', () => {
         id: 'parent-task',
         agentId: 'test-agent',
         title: 'Parent Task',
-        description: 'Parent task description',
         priority: 'high',
+        taskPath: 'Parent Task',
       });
 
       // Create subtask
@@ -126,9 +127,9 @@ describe('completeTaskWithFiles', () => {
         id: 'subtask-001',
         agentId: 'test-agent',
         title: 'Subtask',
-        description: 'Subtask description',
         priority: 'medium',
         parentTaskId: parentTask.id,
+        taskPath: 'Parent Task / Subtask',
       });
 
       // Create directories for both tasks
@@ -179,6 +180,7 @@ describe('completeTaskWithFiles', () => {
         agentId: 'test-agent',
         title: 'Test Task',
         priority: 'medium',
+        taskPath: 'Test Task',
       });
 
       // Create task directory
@@ -213,6 +215,7 @@ describe('completeTaskWithFiles', () => {
         agentId: 'test-agent',
         title: 'Test Task',
         priority: 'medium',
+        taskPath: 'Test Task',
       });
 
       // Create task directory in completed/ (unusual but possible)

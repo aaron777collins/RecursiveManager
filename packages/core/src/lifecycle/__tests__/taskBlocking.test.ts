@@ -38,14 +38,14 @@ describe('Task Blocking for Paused Agents', () => {
         id: 'test-agent-001',
         role: 'Developer',
         displayName: 'Test Dev',
-        goal: 'Test development',
-        framework: 'claude-code',
-        status: 'active',
-        reporting_to: null,
+        mainGoal: 'Test development',
+        createdBy: 'test',
+        configPath: '/tmp/test-agent-001.json',
+        reportingTo: null,
       });
 
       // Create some tasks
-      const task1 = createTask(db, {
+      createTask(db, {
         id: 'task-001',
         agentId: agent.id,
         title: 'Pending task',
@@ -53,7 +53,7 @@ describe('Task Blocking for Paused Agents', () => {
         taskPath: 'Pending task',
       });
 
-      const task2 = createTask(db, {
+      createTask(db, {
         id: 'task-002',
         agentId: agent.id,
         title: 'Another pending task',
@@ -92,10 +92,10 @@ describe('Task Blocking for Paused Agents', () => {
         id: 'test-agent-002',
         role: 'Developer',
         displayName: 'Test Dev 2',
-        goal: 'Test development',
-        framework: 'claude-code',
-        status: 'active',
-        reporting_to: null,
+        mainGoal: 'Test development',
+        createdBy: 'test',
+        configPath: '/tmp/test-agent-002.json',
+        reportingTo: null,
       });
 
       // Block tasks
@@ -114,10 +114,10 @@ describe('Task Blocking for Paused Agents', () => {
         id: 'test-agent-003',
         role: 'Developer',
         displayName: 'Test Dev 3',
-        goal: 'Test development',
-        framework: 'claude-code',
-        status: 'active',
-        reporting_to: null,
+        mainGoal: 'Test development',
+        createdBy: 'test',
+        configPath: '/tmp/test-agent-003.json',
+        reportingTo: null,
       });
 
       // Create a task that's already blocked by something else
@@ -163,14 +163,14 @@ describe('Task Blocking for Paused Agents', () => {
         id: 'test-agent-004',
         role: 'Developer',
         displayName: 'Test Dev 4',
-        goal: 'Test development',
-        framework: 'claude-code',
-        status: 'active',
-        reporting_to: null,
+        mainGoal: 'Test development',
+        createdBy: 'test',
+        configPath: '/tmp/test-agent-004.json',
+        reportingTo: null,
       });
 
       // Create and block tasks
-      const task1 = createTask(db, {
+      createTask(db, {
         id: 'task-004',
         agentId: agent.id,
         title: 'Blocked task',
@@ -202,10 +202,10 @@ describe('Task Blocking for Paused Agents', () => {
         id: 'test-agent-005',
         role: 'Developer',
         displayName: 'Test Dev 5',
-        goal: 'Test development',
-        framework: 'claude-code',
-        status: 'active',
-        reporting_to: null,
+        mainGoal: 'Test development',
+        createdBy: 'test',
+        configPath: '/tmp/test-agent-005.json',
+        reportingTo: null,
       });
 
       // Create a task
@@ -254,10 +254,10 @@ describe('Task Blocking for Paused Agents', () => {
         id: 'test-agent-006',
         role: 'Developer',
         displayName: 'Test Dev 6',
-        goal: 'Test development',
-        framework: 'claude-code',
-        status: 'active',
-        reporting_to: null,
+        mainGoal: 'Test development',
+        createdBy: 'test',
+        configPath: '/tmp/test-agent-006.json',
+        reportingTo: null,
       });
 
       // Unblock tasks (no tasks exist)

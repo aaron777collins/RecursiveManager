@@ -52,17 +52,15 @@ describe('archiveOldTasks', () => {
 
   it('should archive completed tasks older than 7 days', async () => {
     // Create a test agent
-    const agent = createAgent(
-      db,
-      {
-        id: 'test-agent',
-        name: 'Test Agent',
-        role: 'Developer',
-        goal: 'Test archival',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      }
-    );
+    const agent = createAgent(db, {
+      id: 'test-agent',
+      role: 'Developer',
+      displayName: 'Test Agent',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test archival',
+      configPath: path.join(tempDir, 'test-agent', 'config.json'),
+    });
 
     // Create a task and complete it (simulating 10 days ago)
     const task1 = createTask(db, {
@@ -124,18 +122,15 @@ describe('archiveOldTasks', () => {
 
   it('should handle empty result set gracefully', async () => {
     // Create a test agent with no tasks
-    void (await createAgent(
-      db,
-      {
-        id: 'test-agent-empty',
-        name: 'Test Agent Empty',
-        role: 'Developer',
-        goal: 'Test archival',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    ));
+    createAgent(db, {
+      id: 'test-agent-empty',
+      role: 'Developer',
+      displayName: 'Test Agent Empty',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test archival',
+      configPath: path.join(tempDir, 'test-agent-empty', 'config.json'),
+    });
 
     // Archive tasks (should return 0)
     const archivedCount = await archiveOldTasks(db, 7);
@@ -145,18 +140,15 @@ describe('archiveOldTasks', () => {
 
   it('should organize archived tasks by year-month', async () => {
     // Create a test agent
-    const agent = await createAgent(
-      db,
-      {
-        id: 'test-agent-months',
-        name: 'Test Agent Months',
-        role: 'Developer',
-        goal: 'Test archival',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent = createAgent(db, {
+      id: 'test-agent-months',
+      role: 'Developer',
+      displayName: 'Test Agent Months',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test archival',
+      configPath: path.join(tempDir, 'test-agent-months', 'config.json'),
+    });
 
     // Create and complete a task
     const task = createTask(db, {
@@ -193,18 +185,15 @@ describe('archiveOldTasks', () => {
 
   it('should continue processing even if one task fails', async () => {
     // Create a test agent
-    const agent = await createAgent(
-      db,
-      {
-        id: 'test-agent-partial',
-        name: 'Test Agent Partial',
-        role: 'Developer',
-        goal: 'Test archival',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent = createAgent(db, {
+      id: 'test-agent-partial',
+      role: 'Developer',
+      displayName: 'Test Agent Partial',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test archival',
+      configPath: path.join(tempDir, 'test-agent-partial', 'config.json'),
+    });
 
     // Create two tasks
     const task1 = createTask(db, {
@@ -279,31 +268,25 @@ describe('getCompletedTasks', () => {
 
   it('should return completed tasks for a specific agent', async () => {
     // Create test agents
-    const agent1 = await createAgent(
-      db,
-      {
-        id: 'agent-1',
-        name: 'Agent 1',
-        role: 'Developer',
-        goal: 'Test',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent1 = createAgent(db, {
+      id: 'agent-1',
+      role: 'Developer',
+      displayName: 'Agent 1',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test',
+      configPath: path.join(tempDir, 'agent-1', 'config.json'),
+    });
 
-    const agent2 = await createAgent(
-      db,
-      {
-        id: 'agent-2',
-        name: 'Agent 2',
-        role: 'Developer',
-        goal: 'Test',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent2 = createAgent(db, {
+      id: 'agent-2',
+      role: 'Developer',
+      displayName: 'Agent 2',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test',
+      configPath: path.join(tempDir, 'agent-2', 'config.json'),
+    });
 
     // Create and complete tasks for both agents
     const task1 = createTask(db, {
@@ -325,41 +308,35 @@ describe('getCompletedTasks', () => {
     // Get completed tasks for agent1
     const agent1Tasks = getCompletedTasks(db, agent1.id);
     expect(agent1Tasks).toHaveLength(1);
-    expect(agent1Tasks[0].id).toBe(task1.id);
+    expect(agent1Tasks[0]!.id).toBe(task1.id);
 
     // Get completed tasks for agent2
     const agent2Tasks = getCompletedTasks(db, agent2.id);
     expect(agent2Tasks).toHaveLength(1);
-    expect(agent2Tasks[0].id).toBe(task2.id);
+    expect(agent2Tasks[0]!.id).toBe(task2.id);
   });
 
   it('should return all completed tasks when no agent specified', async () => {
     // Create test agents
-    const agent1 = await createAgent(
-      db,
-      {
-        id: 'agent-all-1',
-        name: 'Agent All 1',
-        role: 'Developer',
-        goal: 'Test',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent1 = createAgent(db, {
+      id: 'agent-all-1',
+      role: 'Developer',
+      displayName: 'Agent All 1',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test',
+      configPath: path.join(tempDir, 'agent-all-1', 'config.json'),
+    });
 
-    const agent2 = await createAgent(
-      db,
-      {
-        id: 'agent-all-2',
-        name: 'Agent All 2',
-        role: 'Developer',
-        goal: 'Test',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent2 = createAgent(db, {
+      id: 'agent-all-2',
+      role: 'Developer',
+      displayName: 'Agent All 2',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test',
+      configPath: path.join(tempDir, 'agent-all-2', 'config.json'),
+    });
 
     // Create and complete tasks for both agents
     const task1 = createTask(db, {
@@ -385,18 +362,15 @@ describe('getCompletedTasks', () => {
 
   it('should return empty array when no completed tasks', async () => {
     // Create a test agent
-    const agent = await createAgent(
-      db,
-      {
-        id: 'agent-empty',
-        name: 'Agent Empty',
-        role: 'Developer',
-        goal: 'Test',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent = createAgent(db, {
+      id: 'agent-empty',
+      role: 'Developer',
+      displayName: 'Agent Empty',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test',
+      configPath: path.join(tempDir, 'agent-empty', 'config.json'),
+    });
 
     // Get completed tasks (should be empty)
     const tasks = getCompletedTasks(db, agent.id);
@@ -405,18 +379,15 @@ describe('getCompletedTasks', () => {
 
   it('should order completed tasks by completion date', async () => {
     // Create a test agent
-    const agent = await createAgent(
-      db,
-      {
-        id: 'agent-order',
-        name: 'Agent Order',
-        role: 'Developer',
-        goal: 'Test',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent = createAgent(db, {
+      id: 'agent-order',
+      role: 'Developer',
+      displayName: 'Agent Order',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test',
+      configPath: path.join(tempDir, 'agent-order', 'config.json'),
+    });
 
     // Create and complete multiple tasks
     const task1 = createTask(db, {
@@ -460,8 +431,8 @@ describe('getCompletedTasks', () => {
     // Get completed tasks (should be ordered oldest first)
     const tasks = getCompletedTasks(db, agent.id);
     expect(tasks).toHaveLength(2);
-    expect(tasks[0].id).toBe(task1.id); // Oldest
-    expect(tasks[1].id).toBe(task2.id); // More recent
+    expect(tasks[0]!.id).toBe(task1.id); // Oldest
+    expect(tasks[1]!.id).toBe(task2.id); // More recent
   });
 });
 
@@ -504,18 +475,15 @@ describe('compressOldArchives', () => {
 
   it('should compress archived tasks older than 90 days', async () => {
     // Create a test agent
-    const agent = await createAgent(
-      db,
-      {
-        id: 'test-agent-compress',
-        name: 'Test Agent Compress',
-        role: 'Developer',
-        goal: 'Test compression',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent = createAgent(db, {
+      id: 'test-agent-compress',
+      role: 'Developer',
+      displayName: 'Test Agent Compress',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test compression',
+      configPath: path.join(tempDir, 'test-agent-compress', 'config.json'),
+    });
 
     // Create a task and complete it
     const task = createTask(db, {
@@ -579,18 +547,15 @@ describe('compressOldArchives', () => {
 
   it('should not compress recent archived tasks', async () => {
     // Create a test agent
-    const agent = await createAgent(
-      db,
-      {
-        id: 'test-agent-recent',
-        name: 'Test Agent Recent',
-        role: 'Developer',
-        goal: 'Test compression',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent = createAgent(db, {
+      id: 'test-agent-recent',
+      role: 'Developer',
+      displayName: 'Test Agent Recent',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test compression',
+      configPath: path.join(tempDir, 'test-agent-recent', 'config.json'),
+    });
 
     // Create a task and complete it
     const task = createTask(db, {
@@ -649,18 +614,15 @@ describe('compressOldArchives', () => {
 
   it('should handle already compressed archives', async () => {
     // Create a test agent
-    const agent = await createAgent(
-      db,
-      {
-        id: 'test-agent-existing',
-        name: 'Test Agent Existing',
-        role: 'Developer',
-        goal: 'Test compression',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent = createAgent(db, {
+      id: 'test-agent-existing',
+      role: 'Developer',
+      displayName: 'Test Agent Existing',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test compression',
+      configPath: path.join(tempDir, 'test-agent-existing', 'config.json'),
+    });
 
     // Create a task and complete it
     const task = createTask(db, {
@@ -722,18 +684,15 @@ describe('compressOldArchives', () => {
 
   it('should handle missing directories gracefully', async () => {
     // Create a test agent
-    const agent = await createAgent(
-      db,
-      {
-        id: 'test-agent-missing',
-        name: 'Test Agent Missing',
-        role: 'Developer',
-        goal: 'Test compression',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent = createAgent(db, {
+      id: 'test-agent-missing',
+      role: 'Developer',
+      displayName: 'Test Agent Missing',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test compression',
+      configPath: path.join(tempDir, 'test-agent-missing', 'config.json'),
+    });
 
     // Create a task and complete it
     const task = createTask(db, {
@@ -774,18 +733,15 @@ describe('compressOldArchives', () => {
 
   it('should compress the archive content correctly', async () => {
     // Create a test agent
-    const agent = await createAgent(
-      db,
-      {
-        id: 'test-agent-content',
-        name: 'Test Agent Content',
-        role: 'Developer',
-        goal: 'Test compression',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent = createAgent(db, {
+      id: 'test-agent-content',
+      role: 'Developer',
+      displayName: 'Test Agent Content',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test compression',
+      configPath: path.join(tempDir, 'test-agent-content', 'config.json'),
+    });
 
     // Create a task and complete it
     const task = createTask(db, {
@@ -842,18 +798,15 @@ describe('compressOldArchives', () => {
 
   it('should handle empty result set gracefully', async () => {
     // Create a test agent with no archived tasks
-    const agent = await createAgent(
-      db,
-      {
-        id: 'test-agent-no-archives',
-        name: 'Test Agent No Archives',
-        role: 'Developer',
-        goal: 'Test compression',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    createAgent(db, {
+      id: 'test-agent-no-archives',
+      role: 'Developer',
+      displayName: 'Test Agent No Archives',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test compression',
+      configPath: path.join(tempDir, 'test-agent-no-archives', 'config.json'),
+    });
 
     // Run compression (should return 0)
     const compressedCount = await compressOldArchives(db, 90);
@@ -863,18 +816,15 @@ describe('compressOldArchives', () => {
 
   it('should continue processing even if one task fails', async () => {
     // Create a test agent
-    const agent = await createAgent(
-      db,
-      {
-        id: 'test-agent-partial-compress',
-        name: 'Test Agent Partial Compress',
-        role: 'Developer',
-        goal: 'Test compression',
-        reportingTo: null,
-        frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
-    );
+    const agent = createAgent(db, {
+      id: 'test-agent-partial-compress',
+      role: 'Developer',
+      displayName: 'Test Agent Partial Compress',
+      createdBy: 'test',
+      reportingTo: null,
+      mainGoal: 'Test compression',
+      configPath: path.join(tempDir, 'test-agent-partial-compress', 'config.json'),
+    });
 
     // Create two tasks
     const task1 = createTask(db, {

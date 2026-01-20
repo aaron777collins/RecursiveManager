@@ -131,14 +131,14 @@ describe('notifyDeadlock', () => {
         agentId: agentA,
         title: 'Task A',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task B',
       });
 
       // Set up blocking relationships
@@ -158,23 +158,23 @@ describe('notifyDeadlock', () => {
       expect(messageIds).toHaveLength(2);
 
       // Verify messages were created in database
-      const messages = getMessages(db, { toAgentId: agentA });
+      const messages = getMessages(db, { agentId: agentA });
       expect(messages).toHaveLength(1);
       expect(messages[0]!.subject).toContain('DEADLOCK');
       expect(messages[0]!.priority).toBe('urgent');
       expect(messages[0]!.action_required).toBe(true);
       expect(messages[0]!.from_agent_id).toBe('system');
 
-      const messagesB = getMessages(db, { toAgentId: agentB });
+      const messagesB = getMessages(db, { agentId: agentB });
       expect(messagesB).toHaveLength(1);
       expect(messagesB[0]!.subject).toContain('DEADLOCK');
 
       // Verify message files were written to inbox
-      const inboxPathA = getInboxPath(agentA, testDir);
+      const inboxPathA = getInboxPath(agentA, { baseDir: testDir });
       const inboxFilesA = await fs.readdir(inboxPathA);
       expect(inboxFilesA.length).toBeGreaterThan(0);
 
-      const inboxPathB = getInboxPath(agentB, testDir);
+      const inboxPathB = getInboxPath(agentB, { baseDir: testDir });
       const inboxFilesB = await fs.readdir(inboxPathB);
       expect(inboxFilesB.length).toBeGreaterThan(0);
 
@@ -193,22 +193,21 @@ describe('notifyDeadlock', () => {
         agentId: agentA,
         title: 'Task A',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task B',
       });
 
       const taskC = createTask(db, {
         agentId: agentC,
         title: 'Task C',
-        description: 'Task C description',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task C',
       });
 
       // Set up blocking relationships
@@ -234,9 +233,9 @@ describe('notifyDeadlock', () => {
       expect(messageIds).toHaveLength(3);
 
       // Verify all agents received notifications
-      expect(getMessages(db, { toAgentId: agentA })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agentB })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agentC })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentA })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentB })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentC })).toHaveLength(1);
     });
 
     it('should handle agent owning multiple tasks in cycle', async () => {
@@ -244,24 +243,22 @@ describe('notifyDeadlock', () => {
       const taskA1 = createTask(db, {
         agentId: agentA,
         title: 'Task A1',
-        description: 'Task A1 description',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task A1',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task B',
       });
 
       const taskA2 = createTask(db, {
         agentId: agentA,
         title: 'Task A2',
-        description: 'Task A2 description',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task A2',
       });
 
       // Set up blocking relationships
@@ -287,13 +284,13 @@ describe('notifyDeadlock', () => {
       expect(messageIds).toHaveLength(2);
 
       // Verify agentA received one notification mentioning both tasks
-      const messagesA = getMessages(db, { toAgentId: agentA });
+      const messagesA = getMessages(db, { agentId: agentA });
       expect(messagesA).toHaveLength(1);
       expect(messagesA[0]!.subject).toContain('Task A1');
       expect(messagesA[0]!.subject).toContain('Task A2');
 
       // Read message content and verify it mentions both tasks
-      const inboxPathA = getInboxPath(agentA, testDir);
+      const inboxPathA = getInboxPath(agentA, { baseDir: testDir });
       const inboxFilesA = await fs.readdir(inboxPathA);
       const messageContentA = await fs.readFile(path.join(inboxPathA, inboxFilesA[0]!), 'utf-8');
       expect(messageContentA).toContain('Your tasks are involved');
@@ -340,7 +337,7 @@ describe('notifyDeadlock', () => {
             tags: [],
           },
         },
-        testDir
+        { baseDir: testDir }
       );
 
       // Create tasks forming a deadlock: A -> B -> A
@@ -348,14 +345,14 @@ describe('notifyDeadlock', () => {
         agentId: agentA,
         title: 'Task A',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -374,11 +371,11 @@ describe('notifyDeadlock', () => {
       expect(messageIds).toHaveLength(1);
 
       // Verify agentA did NOT receive notification
-      const messagesA = getMessages(db, { toAgentId: agentA });
+      const messagesA = getMessages(db, { agentId: agentA });
       expect(messagesA).toHaveLength(0);
 
       // Verify agentB did receive notification
-      const messagesB = getMessages(db, { toAgentId: agentB });
+      const messagesB = getMessages(db, { agentId: agentB });
       expect(messagesB).toHaveLength(1);
     });
 
@@ -419,7 +416,7 @@ describe('notifyDeadlock', () => {
             tags: [],
           },
         },
-        testDir
+        { baseDir: testDir }
       );
 
       // Create tasks forming a deadlock
@@ -427,14 +424,14 @@ describe('notifyDeadlock', () => {
         agentId: agentA,
         title: 'Task A',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -456,7 +453,7 @@ describe('notifyDeadlock', () => {
       expect(messageIds).toHaveLength(2);
 
       // Verify agentA received notification
-      const messagesA = getMessages(db, { toAgentId: agentA });
+      const messagesA = getMessages(db, { agentId: agentA });
       expect(messagesA).toHaveLength(1);
     });
   });
@@ -467,7 +464,7 @@ describe('notifyDeadlock', () => {
         agentId: agentA,
         title: 'Task A',
         priority: 'high',
-        status: 'active',
+        taskPath: 'Task A',
       });
 
       await expect(notifyDeadlock(db, [taskA.id], { dataDir: testDir })).rejects.toThrow(
@@ -491,14 +488,14 @@ describe('notifyDeadlock', () => {
         agentId: agentA,
         title: 'Task A',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -522,7 +519,7 @@ describe('notifyDeadlock', () => {
       expect(messageIds.length).toBeGreaterThanOrEqual(1);
 
       // Verify agentB received notification
-      const messagesB = getMessages(db, { toAgentId: agentB });
+      const messagesB = getMessages(db, { agentId: agentB });
       expect(messagesB).toHaveLength(1);
     });
 
@@ -532,14 +529,14 @@ describe('notifyDeadlock', () => {
         agentId: agentA,
         title: 'Task A',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -575,14 +572,14 @@ describe('notifyDeadlock', () => {
         agentId: agentA,
         title: 'Task A',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -597,9 +594,9 @@ describe('notifyDeadlock', () => {
       await notifyDeadlock(db, [taskA.id, taskB.id], { dataDir: testDir });
 
       // Read message content
-      const inboxPathA = getInboxPath(agentA, testDir);
+      const inboxPathA = getInboxPath(agentA, { baseDir: testDir });
       const inboxFilesA = await fs.readdir(inboxPathA);
-      const messageContentA = await fs.readFile(path.join(inboxPathA, inboxFilesA[0]), 'utf-8');
+      const messageContentA = await fs.readFile(path.join(inboxPathA, inboxFilesA[0]!), 'utf-8');
 
       // Verify required sections
       expect(messageContentA).toContain('Task Deadlock Detected');
@@ -623,14 +620,14 @@ describe('notifyDeadlock', () => {
         agentId: agentA,
         title: 'Task A',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -645,8 +642,8 @@ describe('notifyDeadlock', () => {
       await notifyDeadlock(db, [taskA.id, taskB.id], { dataDir: testDir });
 
       // Verify both messages share the same thread ID
-      const messagesA = getMessages(db, { toAgentId: agentA });
-      const messagesB = getMessages(db, { toAgentId: agentB });
+      const messagesA = getMessages(db, { agentId: agentA });
+      const messagesB = getMessages(db, { agentId: agentB });
 
       expect(messagesA[0]!.thread_id).toBeDefined();
       expect(messagesB[0]!.thread_id).toBeDefined();
@@ -661,14 +658,14 @@ describe('notifyDeadlock', () => {
         agentId: agentA,
         title: 'Task A',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -713,14 +710,14 @@ describe('notifyDeadlock', () => {
         agentId: agentA,
         title: 'Task A',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
         priority: 'high',
-        status: 'blocked',
+        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(

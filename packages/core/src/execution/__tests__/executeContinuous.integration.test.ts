@@ -200,6 +200,7 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         description: 'Test',
         priority: 'high',
         status: 'in_progress',
+        taskPath: 'Test task',
       });
 
       const result = await orchestrator.executeContinuous(agentId);

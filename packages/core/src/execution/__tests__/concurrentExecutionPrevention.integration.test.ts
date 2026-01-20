@@ -499,6 +499,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
         description: 'Test',
         priority: 'high',
         status: 'in_progress',
+        taskPath: 'Test task',
       });
 
       // Start first execution

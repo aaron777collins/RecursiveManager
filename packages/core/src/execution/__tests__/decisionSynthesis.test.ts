@@ -23,7 +23,6 @@ import {
   runMigrations,
   allMigrations,
   DatabasePool,
-  type AgentConfig,
 } from '@recursive-manager/common';
 import { ExecutionOrchestrator } from '../index';
 
@@ -96,7 +95,7 @@ function createMockAdapter(name: string, healthy = true): FrameworkAdapter {
     name,
     async executeAgent(
       _agentId: string,
-      mode: 'continuous' | 'reactive',
+      _mode: 'continuous' | 'reactive',
       _context: any
     ): Promise<ExecutionResult> {
       return {

@@ -79,21 +79,12 @@ describe('monitorDeadlocks', () => {
         notifyOnDelegation: true,
         notifyOnDeadlock: true,
       },
-      behavior: {
-        executionMode: 'continuous',
-        autonomy: 'low',
-        escalationThreshold: 3,
-      },
-      metadata: {
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      },
-    });
+                });
 
-    await saveAgentConfig(agentA, createDefaultConfig(agentA, 'Agent A'), testDir);
-    await saveAgentConfig(agentB, createDefaultConfig(agentB, 'Agent B'), testDir);
-    await saveAgentConfig(agentC, createDefaultConfig(agentC, 'Agent C'), testDir);
-    await saveAgentConfig(agentD, createDefaultConfig(agentD, 'Agent D'), testDir);
+    await saveAgentConfig(agentA, createDefaultConfig(agentA, 'Agent A'), { baseDir: testDir });
+    await saveAgentConfig(agentB, createDefaultConfig(agentB, 'Agent B'), { baseDir: testDir });
+    await saveAgentConfig(agentC, createDefaultConfig(agentC, 'Agent C'), { baseDir: testDir });
+    await saveAgentConfig(agentD, createDefaultConfig(agentD, 'Agent D'), { baseDir: testDir });
   });
 
   afterEach(async () => {
@@ -107,10 +98,7 @@ describe('monitorDeadlocks', () => {
       // Create some active tasks (not blocked)
       createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Active task',
-        priority: 'high',
-        status: 'active',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       const result = await monitorDeadlocks(db, { dataDir: testDir });
@@ -125,26 +113,17 @@ describe('monitorDeadlocks', () => {
       // Create blocked tasks without circular dependencies: A -> B -> C (linear)
       const taskC = createTask(db, {
         agentId: agentC,
-        title: 'Task C',
-        description: 'Task C',
-        priority: 'high',
-        status: 'active',
+        title: 'Task C',        priority: 'high',        taskPath: 'Task C',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
-        title: 'Task B',
-        description: 'Task B',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
       const taskA = createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Task A',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       // Set up linear blocking: A blocks on B, B blocks on C
@@ -169,18 +148,12 @@ describe('monitorDeadlocks', () => {
       // Create simple deadlock: A -> B -> A
       const taskA = createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Task A',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
-        title: 'Task B',
-        description: 'Task B',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -203,34 +176,25 @@ describe('monitorDeadlocks', () => {
       expect(result.cycles[0]).toHaveLength(2);
 
       // Verify notifications were sent
-      expect(getMessages(db, { toAgentId: agentA })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agentB })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentA })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentB })).toHaveLength(1);
     });
 
     it('should detect three-way deadlock cycle', async () => {
       // Create deadlock: A -> B -> C -> A
       const taskA = createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Task A',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
-        title: 'Task B',
-        description: 'Task B',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
       const taskC = createTask(db, {
         agentId: agentC,
-        title: 'Task C',
-        description: 'Task C',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task C',        priority: 'high',        taskPath: 'Task C',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -262,26 +226,17 @@ describe('monitorDeadlocks', () => {
       // All three tasks are blocked, so we'll detect the same cycle 3 times
       const taskA = createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Task A',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
-        title: 'Task B',
-        description: 'Task B',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
       const taskC = createTask(db, {
         agentId: agentC,
-        title: 'Task C',
-        description: 'Task C',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task C',        priority: 'high',        taskPath: 'Task C',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -307,43 +262,31 @@ describe('monitorDeadlocks', () => {
       expect(result.notificationsSent).toBe(3);
 
       // All three agents should receive exactly one notification
-      expect(getMessages(db, { toAgentId: agentA })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agentB })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agentC })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentA })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentB })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentC })).toHaveLength(1);
     });
 
     it('should correctly identify rotated cycles as the same cycle', async () => {
       // Create a cycle where tasks are discovered in different orders
       const taskA = createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Task A',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
-        title: 'Task B',
-        description: 'Task B',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
       const taskC = createTask(db, {
         agentId: agentC,
-        title: 'Task C',
-        description: 'Task C',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task C',        priority: 'high',        taskPath: 'Task C',
       });
 
       const taskD = createTask(db, {
         agentId: agentD,
-        title: 'Task D',
-        description: 'Task D',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task D',        priority: 'high',        taskPath: 'Task D',
       });
 
       // Create cycle: A -> B -> C -> D -> A
@@ -381,18 +324,12 @@ describe('monitorDeadlocks', () => {
       // Create first cycle: A -> B -> A
       const taskA = createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Task A',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
-        title: 'Task B',
-        description: 'Task B',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -407,18 +344,12 @@ describe('monitorDeadlocks', () => {
       // Create second cycle: C -> D -> C
       const taskC = createTask(db, {
         agentId: agentC,
-        title: 'Task C',
-        description: 'Task C',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task C',        priority: 'high',        taskPath: 'Task C',
       });
 
       const taskD = createTask(db, {
         agentId: agentD,
-        title: 'Task D',
-        description: 'Task D',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task D',        priority: 'high',        taskPath: 'Task D',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -447,28 +378,22 @@ describe('monitorDeadlocks', () => {
       expect(result.deadlockedTaskIds).toContain(taskD.id);
 
       // All agents should receive notifications
-      expect(getMessages(db, { toAgentId: agentA })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agentB })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agentC })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agentD })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentA })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentB })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentC })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentD })).toHaveLength(1);
     });
 
     it('should handle mix of deadlocked and non-deadlocked blocked tasks', async () => {
       // Create deadlock cycle: A -> B -> A
       const taskA = createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Task A',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
-        title: 'Task B',
-        description: 'Task B',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -483,18 +408,14 @@ describe('monitorDeadlocks', () => {
       // Create non-deadlocked blocked task: C -> D (where D is active)
       const taskD = createTask(db, {
         agentId: agentD,
-        title: 'Task D',
-        description: 'Task D',
-        priority: 'high',
-        status: 'active', // Not blocked
+        title: 'Task D',        priority: 'high',
+        status: 'active', // Not blocked,
+        taskPath: 'Task D',
       });
 
       const taskC = createTask(db, {
         agentId: agentC,
-        title: 'Task C',
-        description: 'Task C',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task C',        priority: 'high',        taskPath: 'Task C',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -526,18 +447,12 @@ describe('monitorDeadlocks', () => {
       // Create valid deadlock: A -> B -> A
       const taskA = createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Task A',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
-        title: 'Task B',
-        description: 'Task B',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -552,10 +467,7 @@ describe('monitorDeadlocks', () => {
       // Create a task with corrupted blocked_by data
       const taskC = createTask(db, {
         agentId: agentC,
-        title: 'Task C',
-        description: 'Task C',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task C',        priority: 'high',        taskPath: 'Task C',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run('invalid json{{{', taskC.id);
@@ -571,18 +483,12 @@ describe('monitorDeadlocks', () => {
       // Create first cycle: A -> B -> A
       const taskA = createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Task A',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
-        title: 'Task B',
-        description: 'Task B',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -597,18 +503,12 @@ describe('monitorDeadlocks', () => {
       // Create second cycle: C -> D -> C
       const taskC = createTask(db, {
         agentId: agentC,
-        title: 'Task C',
-        description: 'Task C',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task C',        priority: 'high',        taskPath: 'Task C',
       });
 
       const taskD = createTask(db, {
         agentId: agentD,
-        title: 'Task D',
-        description: 'Task D',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task D',        priority: 'high',        taskPath: 'Task D',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -633,8 +533,8 @@ describe('monitorDeadlocks', () => {
       expect(result.notificationsSent).toBeGreaterThanOrEqual(2);
 
       // Verify second cycle agents received notifications
-      expect(getMessages(db, { toAgentId: agentC })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agentD })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentC })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentD })).toHaveLength(1);
     });
   });
 
@@ -670,34 +570,19 @@ describe('monitorDeadlocks', () => {
             notifyOnDelegation: true,
             notifyOnDeadlock: false, // Disable deadlock notifications
           },
-          behavior: {
-            executionMode: 'continuous',
-            autonomy: 'low',
-            escalationThreshold: 3,
-          },
-          metadata: {
-            version: 1,
-            updatedAt: new Date().toISOString(),
-          },
-        },
-        testDir
+                            },
+        { baseDir: testDir }
       );
 
       // Create deadlock: A -> B -> A
       const taskA = createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Task A',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
-        title: 'Task B',
-        description: 'Task B',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -718,10 +603,10 @@ describe('monitorDeadlocks', () => {
       expect(result.notificationsSent).toBe(1);
 
       // Verify agentA did NOT receive notification
-      expect(getMessages(db, { toAgentId: agentA })).toHaveLength(0);
+      expect(getMessages(db, { agentId: agentA })).toHaveLength(0);
 
       // Verify agentB did receive notification
-      expect(getMessages(db, { toAgentId: agentB })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentB })).toHaveLength(1);
     });
 
     it('should force notifications when force = true', async () => {
@@ -753,35 +638,20 @@ describe('monitorDeadlocks', () => {
           notifyOnDelegation: true,
           notifyOnDeadlock: false, // Disable
         },
-        behavior: {
-          executionMode: 'continuous',
-          autonomy: 'low',
-          escalationThreshold: 3,
-        },
-        metadata: {
-          version: 1,
-          updatedAt: new Date().toISOString(),
-        },
-      });
+                      });
 
-      await saveAgentConfig(agentA, disabledConfig(agentA), testDir);
-      await saveAgentConfig(agentB, disabledConfig(agentB), testDir);
+      await saveAgentConfig(agentA, disabledConfig(agentA), { baseDir: testDir });
+      await saveAgentConfig(agentB, disabledConfig(agentB), { baseDir: testDir });
 
       // Create deadlock: A -> B -> A
       const taskA = createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Task A',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
-        title: 'Task B',
-        description: 'Task B',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
@@ -802,8 +672,8 @@ describe('monitorDeadlocks', () => {
       expect(result.notificationsSent).toBe(2);
 
       // Both agents should receive notifications
-      expect(getMessages(db, { toAgentId: agentA })).toHaveLength(1);
-      expect(getMessages(db, { toAgentId: agentB })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentA })).toHaveLength(1);
+      expect(getMessages(db, { agentId: agentB })).toHaveLength(1);
     });
   });
 
@@ -814,9 +684,8 @@ describe('monitorDeadlocks', () => {
         const task = createTask(db, {
           agentId: agentA,
           title: `Task ${i}`,
-          description: `Task ${i}`,
           priority: 'high',
-          status: 'blocked',
+          taskPath: `task-${i}`,
         });
 
         // Block on a non-existent task (no circular dependency)
@@ -829,18 +698,12 @@ describe('monitorDeadlocks', () => {
       // Create one actual deadlock: A -> B -> A
       const taskA = createTask(db, {
         agentId: agentA,
-        title: 'Task A',
-        description: 'Task A',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task A',        priority: 'high',        taskPath: 'Task A',
       });
 
       const taskB = createTask(db, {
         agentId: agentB,
-        title: 'Task B',
-        description: 'Task B',
-        priority: 'high',
-        status: 'blocked',
+        title: 'Task B',        priority: 'high',        taskPath: 'Task B',
       });
 
       db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
