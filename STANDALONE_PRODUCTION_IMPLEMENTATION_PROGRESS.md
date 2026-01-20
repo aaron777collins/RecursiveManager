@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Task 3.4 COMPLETE - Fixed run command implementation. Corrected DatabasePool instantiation from `new DatabasePool()` (private constructor) to `DatabasePool.getInstance()` singleton pattern. Changed cleanup from `dbPool.closeAll()` to `dbPool.close()`. Enabled command registration in cli.ts. Commands hire, fire, message, and run are now complete. Next iteration: Task 3.5 - Implement enhanced logs command.
+**Current Iteration Summary**: ✅ Task 3.5 COMPLETE - Implemented enhanced logs command with comprehensive filtering capabilities. Created logs.ts with support for: log level filtering, time range filtering (--since/--until), grep pattern matching, multi-agent viewing (--all), follow mode (tail -f), JSON/JSONL parsing, and multiple output formats. Registered command in cli.ts. All 5 missing CLI commands (hire, fire, message, run, logs) are now complete and enabled. Next iteration: Task 3.7 - Add integration tests for new commands.
 
 ## Analysis
 
@@ -217,8 +217,8 @@ The plan has 12 phases, but dependencies are:
 - [x] 3.2: Implement `fire` command - COMPLETE (no errors found, enabled in cli.ts, build passes)
 - [x] 3.3: Implement `message` command - COMPLETE (no errors found, enabled in cli.ts, build passes)
 - [x] 3.4: Implement `run` command - COMPLETE (fixed DatabasePool singleton pattern, enabled in cli.ts)
-- [ ] 3.5: Implement enhanced `logs` command - NOT STARTED
-- [ ] 3.6: Register all new commands in packages/cli/src/cli.ts - BLOCKED (waiting for commands to be fixed)
+- [x] 3.5: Implement enhanced `logs` command - COMPLETE (created logs.ts with filtering, enabled in cli.ts)
+- [x] 3.6: Register all new commands in packages/cli/src/cli.ts - COMPLETE (all 5 new commands registered)
 - [ ] 3.7: Add integration tests for new commands
 - [ ] 3.8: Update CLI help text and documentation
 
@@ -573,6 +573,75 @@ This ensures:
 - Collaboration-friendly workflow
 
 ## Completed This Iteration
+
+- **Task 3.5: Implemented enhanced `logs` command** (COMPLETE ✅):
+
+  **Summary**: Created a comprehensive logs viewing command with advanced filtering and formatting capabilities. The command supports single-agent and multi-agent log viewing with rich filtering options.
+
+  **Implementation Details**:
+  1. **File Created**: packages/cli/src/commands/logs.ts (393 lines)
+  2. **Registration**: Added import and registration in packages/cli/src/cli.ts (lines 22, 43)
+  3. **JSONL Parsing**: Parses JSON lines format with fallback for legacy plain text logs
+  4. **Filtering Capabilities**:
+     - By log level (debug, info, warn, error) with hierarchical filtering
+     - By time range (--since and --until timestamps)
+     - By grep pattern (case-insensitive regex search)
+     - By line limit (-n flag, default 50, use 0 for all)
+  5. **Viewing Modes**:
+     - Single agent: `logs <agent-id>` - Shows logs for specific agent
+     - All agents: `logs --all` - Shows combined logs from all agents with agent labels
+     - Follow mode: `-f` flag - Tail -f style live log following
+  6. **Output Formats**:
+     - Colored CLI output with level-based coloring (error=red, warn=yellow, info=blue)
+     - JSON output (--json flag) with structured metadata
+     - Comprehensive statistics (filtered/total entries, log file path)
+
+  **Key Features**:
+  - **Log Entry Interface**: Structured parsing of timestamp, level, message, metadata
+  - **Filter Function**: Combines multiple filter criteria (level, time, pattern)
+  - **Format Function**: Colorized output with metadata display
+  - **Agent Discovery**: Scans logs directory to find all agent log files
+  - **Validation**: Verifies agent exists in database before reading logs
+  - **Error Handling**: Graceful handling of missing files, invalid agents, parsing errors
+  - **Signal Handling**: Proper SIGINT handling for follow mode (Ctrl+C to stop)
+  - **Resource Cleanup**: Database connections properly closed in finally blocks
+
+  **Command Usage Examples**:
+  ```bash
+  # View last 50 lines from agent
+  recursive-manager logs ceo-001
+
+  # View last 100 lines with error level filter
+  recursive-manager logs cto-002 -n 100 --level error
+
+  # View logs since timestamp
+  recursive-manager logs backend-003 --since "2026-01-20 10:00:00"
+
+  # Search logs for pattern
+  recursive-manager logs frontend-004 --grep "execution failed"
+
+  # View all agent logs combined
+  recursive-manager logs --all
+
+  # Follow logs in real-time
+  recursive-manager logs worker-005 -f
+
+  # Output as JSON
+  recursive-manager logs manager-006 --json
+  ```
+
+  **Files Modified**:
+  - packages/cli/src/commands/logs.ts (created, 393 lines)
+  - packages/cli/src/cli.ts (added import on line 22, registration on line 43)
+
+  **Validation**:
+  - TypeScript verification: No compilation errors ✅
+  - Import verification: All imports correct (verified against common package exports) ✅
+  - Type checking: All types match their definitions (LogLevel, LogEntry, LogsOptions) ✅
+  - Consistency check: Follows patterns from debug.ts and status.ts commands ✅
+  - Code analysis: Proper error handling, resource cleanup, signal handling ✅
+
+  **Status**: Enhanced logs command fully implemented, registered, and verified
 
 - **Task 3.4: Implemented `run` command** (COMPLETE ✅):
 
