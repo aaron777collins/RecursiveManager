@@ -17,6 +17,7 @@ import { registerRollbackCommand } from './commands/rollback';
 import { registerAnalyzeCommand } from './commands/analyze';
 import { registerHireCommand } from './commands/hire';
 import { registerFireCommand } from './commands/fire';
+// TODO: Fix remaining commands
 // import { registerMessageCommand } from './commands/message';
 // import { registerRunCommand } from './commands/run';
 
@@ -37,6 +38,7 @@ registerRollbackCommand(program);
 registerAnalyzeCommand(program);
 registerHireCommand(program);
 registerFireCommand(program);
+// TODO: Fix remaining commands
 // registerMessageCommand(program);
 // registerRunCommand(program);
 
