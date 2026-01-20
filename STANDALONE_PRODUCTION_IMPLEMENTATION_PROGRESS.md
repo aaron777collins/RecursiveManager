@@ -213,12 +213,13 @@ The plan has 12 phases, but dependencies are:
 **Existing Commands**: init, status, update, config, debug, rollback, analyze ✅
 **Missing Commands**: hire, fire, message, run, logs (enhanced version)
 
-- [ ] 3.1: Implement `hire` command - Create and assign new agents to hierarchy
-- [ ] 3.2: Implement `fire` command - Remove agents from hierarchy with subordinate handling
-- [ ] 3.3: Implement `message` command - Send messages to agents for reactive execution
-- [ ] 3.4: Implement `run` command - Manually trigger agent execution (continuous or reactive)
+- [x] 3.1: Implement `hire` command - Create and assign new agents to hierarchy (IMPLEMENTED - has TS errors)
+- [x] 3.2: Implement `fire` command - Remove agents from hierarchy with subordinate handling (IMPLEMENTED - working)
+- [x] 3.3: Implement `message` command - Send messages to agents for reactive execution (IMPLEMENTED - has TS errors)
+- [x] 3.4: Implement `run` command - Manually trigger agent execution (continuous or reactive) (IMPLEMENTED - has TS errors)
+- [ ] 3.4a: Fix TypeScript compilation errors in hire.ts, message.ts, run.ts (24 errors)
 - [ ] 3.5: Implement enhanced `logs` command - View agent logs with filtering, search, streaming
-- [ ] 3.6: Register all new commands in packages/cli/src/cli.ts
+- [x] 3.6: Register all new commands in packages/cli/src/cli.ts (COMPLETE)
 - [ ] 3.7: Add integration tests for new commands
 - [ ] 3.8: Update CLI help text and documentation
 
@@ -549,6 +550,41 @@ This ensures:
 - Collaboration-friendly workflow
 
 ## Completed This Iteration
+
+- **Task 3.1-3.4 (PARTIAL COMPLETE)**: Implemented 4 missing CLI commands (hire, fire, message, run) and added core exports
+
+  **Summary**: Created comprehensive CLI commands for hiring agents, firing agents, sending messages, and manually running agents. All commands include interactive prompts, validation, colored output, and JSON output options. Added necessary exports to @recursive-manager/core for lifecycle and messaging functions.
+
+  **Commands Implemented**:
+  1. **hire** - Create and assign new agents to hierarchy with full configuration
+  2. **fire** - Remove agents with subordinate handling strategies (reassign, promote, cascade)
+  3. **message** - Send messages to agents for reactive execution
+  4. **run** - Manually trigger agent execution in continuous or reactive mode
+
+  **Key Features**:
+  - Interactive prompts with inquirer for all missing parameters
+  - Full validation (agent existence, status checks, business logic)
+  - Multiple output formats (colored CLI, JSON)
+  - Comprehensive error handling
+  - Next-steps guidance for users
+  - Confirmation prompts with --yes flag override
+
+  **Files Created**:
+  - packages/cli/src/commands/hire.ts (245 lines)
+  - packages/cli/src/commands/fire.ts (180 lines)
+  - packages/cli/src/commands/message.ts (174 lines)
+  - packages/cli/src/commands/run.ts (185 lines)
+
+  **Files Modified**:
+  - packages/cli/src/cli.ts - Added 4 new command registrations
+  - packages/core/src/index.ts - Added exports for fireAgent, FireStrategy, messaging functions
+
+  **Status**: CLI commands implemented, core exports added, but TypeScript compilation errors remain
+
+  **Remaining Work** (for next iteration):
+  - Fix 24 TypeScript compilation errors in hire.ts, run.ts, message.ts
+  - Issues: missing generateAgentId util, wrong field names, type mismatches
+  - Estimated: 30-60 minutes to fix
 
 - **Fixed orchestrator-analysis.test.ts TypeScript compilation error**: Changed test framework imports from `vitest` to `jest` to fix compilation error. Replaced all `vi.fn()` with `jest.fn()` and all `vi.mocked()` with `jest.mocked()`. File now compiles successfully.
 

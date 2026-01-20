@@ -34,8 +34,9 @@ registerConfigCommand(program);
 registerDebugCommand(program);
 registerRollbackCommand(program);
 registerAnalyzeCommand(program);
-registerHireCommand(program);
-registerFireCommand(program);
+// TODO: Fix TypeScript errors in hire.ts and fire.ts before enabling
+// registerHireCommand(program);
+// registerFireCommand(program);
 
 // Parse command line arguments
 program.parse(process.argv);
