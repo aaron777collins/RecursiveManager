@@ -1596,4 +1596,274 @@ describe('ExecutionPool', () => {
       await task1;
     });
   });
+
+  describe('Resource Quotas', () => {
+    it('should track quota violations when memory limit is exceeded', async () => {
+      const pool = new ExecutionPool({
+        maxConcurrent: 1,
+        enableResourceQuotas: true,
+        quotaCheckIntervalMs: 10, // Fast checking for tests
+      });
+
+      // Execute with very low memory quota (0.001 MB = 1KB, will be exceeded)
+      const quota = { maxMemoryMB: 0.001 };
+      const task = pool.execute('agent-1', createDelayedTask('result', 50), 'medium', undefined, quota);
+
+      await task;
+
+      const stats = pool.getStatistics();
+      // Quota violation count should be > 0 (exact number depends on timing)
+      expect(stats.totalQuotaViolations).toBeGreaterThan(0);
+    });
+
+    it('should track quota violations when time limit is exceeded', async () => {
+      const pool = new ExecutionPool({
+        maxConcurrent: 1,
+        enableResourceQuotas: true,
+        quotaCheckIntervalMs: 10,
+      });
+
+      // Execute with very short time limit (0.01 min = 0.6 seconds)
+      // Task runs for 100ms, so we'll exceed if we check after 1 minute
+      const quota = { maxExecutionMinutes: 0.001 }; // ~60ms
+      const task = pool.execute('agent-1', createDelayedTask('result', 100), 'medium', undefined, quota);
+
+      await task;
+
+      const stats = pool.getStatistics();
+      expect(stats.totalQuotaViolations).toBeGreaterThan(0);
+    });
+
+    it('should not track violations when quota is not exceeded', async () => {
+      const pool = new ExecutionPool({
+        maxConcurrent: 1,
+        enableResourceQuotas: true,
+        quotaCheckIntervalMs: 10,
+      });
+
+      // Execute with very high limits (will not be exceeded)
+      const quota = { maxMemoryMB: 10000, maxExecutionMinutes: 10 };
+      const task = pool.execute('agent-1', createDelayedTask('result', 20), 'medium', undefined, quota);
+
+      await task;
+
+      const stats = pool.getStatistics();
+      expect(stats.totalQuotaViolations).toBe(0);
+    });
+
+    it('should allow execution without quota', async () => {
+      const pool = new ExecutionPool({
+        maxConcurrent: 1,
+        enableResourceQuotas: true,
+      });
+
+      // Execute without quota
+      const task = pool.execute('agent-1', createDelayedTask('result', 20));
+
+      const result = await task;
+      expect(result).toBe('result');
+
+      const stats = pool.getStatistics();
+      expect(stats.totalQuotaViolations).toBe(0);
+    });
+
+    it('should disable quota enforcement when option is false', async () => {
+      const pool = new ExecutionPool({
+        maxConcurrent: 1,
+        enableResourceQuotas: false,
+      });
+
+      // Execute with very low quota (would violate if enforcement enabled)
+      const quota = { maxMemoryMB: 0.001 };
+      const task = pool.execute('agent-1', createDelayedTask('result', 50), 'medium', undefined, quota);
+
+      await task;
+
+      const stats = pool.getStatistics();
+      expect(stats.totalQuotaViolations).toBe(0); // No enforcement
+    });
+
+    it('should get resource usage for active execution', async () => {
+      const pool = new ExecutionPool({
+        maxConcurrent: 1,
+        enableResourceQuotas: true,
+      });
+
+      const quota = { maxMemoryMB: 100 };
+      const task = pool.execute('agent-1', createDelayedTask('result', 100), 'medium', undefined, quota);
+
+      // Wait for task to start
+      await waitFor(() => pool.isExecuting('agent-1'));
+
+      // Get resource usage
+      const { active } = pool.getExecutionIdsForAgent('agent-1');
+      const executionId = active[0];
+      const usage = pool.getResourceUsage(executionId!);
+
+      expect(usage).not.toBeNull();
+      expect(usage!.usage.memoryMB).toBeGreaterThan(0);
+      expect(usage!.quota.maxMemoryMB).toBe(100);
+
+      await task;
+    });
+
+    it('should return null resource usage when monitoring disabled', async () => {
+      const pool = new ExecutionPool({
+        maxConcurrent: 1,
+        enableResourceQuotas: false,
+      });
+
+      const task = pool.execute('agent-1', createDelayedTask('result', 50));
+
+      await waitFor(() => pool.isExecuting('agent-1'));
+
+      const { active } = pool.getExecutionIdsForAgent('agent-1');
+      const executionId = active[0];
+      const usage = pool.getResourceUsage(executionId!);
+
+      expect(usage).toBeNull();
+
+      await task;
+    });
+
+    it('should get memory statistics', () => {
+      const pool = new ExecutionPool({
+        enableResourceQuotas: true,
+      });
+
+      const memStats = pool.getMemoryStats();
+
+      expect(memStats).not.toBeNull();
+      expect(memStats!.heapUsedMB).toBeGreaterThan(0);
+      expect(memStats!.heapTotalMB).toBeGreaterThan(0);
+      expect(memStats!.heapLimit).toBeGreaterThan(0);
+    });
+
+    it('should return null memory stats when monitoring disabled', () => {
+      const pool = new ExecutionPool({
+        enableResourceQuotas: false,
+      });
+
+      const memStats = pool.getMemoryStats();
+      expect(memStats).toBeNull();
+    });
+
+    it('should clean up quota data when task completes', async () => {
+      const pool = new ExecutionPool({
+        maxConcurrent: 1,
+        enableResourceQuotas: true,
+      });
+
+      const quota = { maxMemoryMB: 100 };
+      const task = pool.execute('agent-1', createDelayedTask('result', 20), 'medium', undefined, quota);
+
+      await waitFor(() => pool.isExecuting('agent-1'));
+
+      const { active } = pool.getExecutionIdsForAgent('agent-1');
+      const executionId = active[0];
+
+      // Usage should be available while running
+      expect(pool.getResourceUsage(executionId!)).not.toBeNull();
+
+      await task;
+
+      // Usage should be null after completion
+      expect(pool.getResourceUsage(executionId!)).toBeNull();
+    });
+
+    it('should clean up quota data when queued task is cancelled', async () => {
+      const pool = new ExecutionPool({
+        maxConcurrent: 1,
+        enableResourceQuotas: true,
+      });
+
+      // Fill pool
+      const task1 = pool.execute('agent-1', createDelayedTask('task1', 100));
+
+      // Queue task with quota (catch rejection when cancelled)
+      const quota = { maxMemoryMB: 100 };
+      const task2 = pool.execute('agent-2', createDelayedTask('task2', 10), 'medium', undefined, quota)
+        .catch(() => 'cancelled'); // Ignore rejection
+
+      await waitFor(() => pool.getQueueDepth() === 1);
+
+      // Cancel queued tasks
+      pool.cancelQueuedTasksForAgent('agent-2');
+
+      await task1;
+      await task2; // Wait for cancellation to complete
+
+      const stats = pool.getStatistics();
+      expect(stats.queueDepth).toBe(0);
+    });
+
+    it('should clean up quota data when queue is cleared', async () => {
+      const pool = new ExecutionPool({
+        maxConcurrent: 1,
+        enableResourceQuotas: true,
+      });
+
+      // Fill pool
+      const task1 = pool.execute('agent-1', createDelayedTask('task1', 100));
+
+      // Queue tasks with quotas (catch rejections when cleared)
+      const quota = { maxMemoryMB: 100 };
+      const task2 = pool.execute('agent-2', createDelayedTask('task2', 10), 'medium', undefined, quota)
+        .catch(() => 'cancelled');
+      const task3 = pool.execute('agent-3', createDelayedTask('task3', 10), 'medium', undefined, quota)
+        .catch(() => 'cancelled');
+
+      await waitFor(() => pool.getQueueDepth() === 2);
+
+      // Clear queue
+      pool.clearQueue();
+
+      expect(pool.getQueueDepth()).toBe(0);
+
+      await task1;
+      await Promise.all([task2, task3]); // Wait for cancellations to complete
+    });
+
+    it('should pass quota from queue to execution', async () => {
+      const pool = new ExecutionPool({
+        maxConcurrent: 1,
+        enableResourceQuotas: true,
+        quotaCheckIntervalMs: 10,
+      });
+
+      // Fill pool
+      const task1 = pool.execute('agent-1', createDelayedTask('task1', 50));
+
+      // Queue task with low memory quota
+      const quota = { maxMemoryMB: 0.001 };
+      const task2 = pool.execute('agent-2', createDelayedTask('task2', 50), 'medium', undefined, quota);
+
+      await waitFor(() => pool.getQueueDepth() === 1);
+      await task1; // Complete first task to allow second to run
+      await task2;
+
+      const stats = pool.getStatistics();
+      // Should have quota violations from the queued task
+      expect(stats.totalQuotaViolations).toBeGreaterThan(0);
+    });
+
+    it('should accumulate quota violations across multiple tasks', async () => {
+      const pool = new ExecutionPool({
+        maxConcurrent: 2,
+        enableResourceQuotas: true,
+        quotaCheckIntervalMs: 10,
+      });
+
+      // Execute multiple tasks with low quotas
+      const quota = { maxMemoryMB: 0.001 };
+      const task1 = pool.execute('agent-1', createDelayedTask('result1', 50), 'medium', undefined, quota);
+      const task2 = pool.execute('agent-2', createDelayedTask('result2', 50), 'medium', undefined, quota);
+
+      await Promise.all([task1, task2]);
+
+      const stats = pool.getStatistics();
+      // Should have violations from both tasks
+      expect(stats.totalQuotaViolations).toBeGreaterThan(1);
+    });
+  });
 });

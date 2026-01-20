@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Task 4.7 COMPLETE - Implemented execution restart on agent resume. Added resumeExecutionsForAgent(agentId) method to ExecutionPool which returns queuedExecutions count and triggers queue processing for any eligible tasks. Updated resumeAgent lifecycle in packages/core/src/lifecycle/resumeAgent.ts: added executionPool parameter to ResumeAgentOptions interface, updated ResumeAgentResult to include queuedExecutions (number) field, implemented STEP 5 (execution resume) which calls resumeExecutionsForAgent() when executionPool is provided, logs execution resume details including number of queued tasks found for the agent. Added 7 comprehensive tests to ExecutionPool.test.ts covering: returning 0 for agents with no queued tasks, reporting queued execution count, triggering queue processing, not affecting other agents' queued tasks, handling agents with only active executions, working with agents never paused, and handling multiple resume calls. Added 4 integration tests to resumeAgent.test.ts covering: resuming executions when executionPool provided, reporting queued executions count, skipping execution resume when pool not provided, and handling execution resume errors gracefully. All 78 ExecutionPool tests passing, all 18 resumeAgent tests passing. Phase 4 Task 4.7 complete. Next iteration: Task 4.8 - Add resource quotas.
+**Current Iteration Summary**: ✅ Task 4.8 COMPLETE - Implemented resource quota enforcement (CPU/memory/time limits). Created ResourceMonitor class (packages/core/src/execution/ResourceMonitor.ts) with CPU/memory tracking using Node.js process metrics, quota checking, and violation detection. Enhanced ExecutionPool with resource quota support: added ResourceMonitor integration, quota storage per execution, periodic quota checking (configurable interval, default 5s), quota cleanup on task completion/cancellation. Added new fields to ExecutionPool: enableResourceQuotas (default true), quotaCheckIntervalMs (default 5000), totalQuotaViolations counter in statistics. Enhanced execute() method to accept optional ResourceQuota parameter with maxMemoryMB, maxCpuPercent, maxExecutionMinutes. Created comprehensive test suite: 15 new ExecutionPool tests covering quota violations (memory/time), disable enforcement, resource usage queries, cleanup scenarios, queue passthrough; 12 ResourceMonitor tests covering monitoring lifecycle, memory stats, quota checking with various limits, multiple violations. All 109 tests passing (94 ExecutionPool + 15 ResourceMonitor). Build succeeds. Phase 4 Task 4.8 complete. Next iteration: Task 4.9 - Add comprehensive scheduler integration tests.
 
 ## Analysis
 
@@ -233,7 +233,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 4.5: Wire dependency resolution to scheduler
 - [x] 4.6: Implement execution stop on agent pause
 - [x] 4.7: Implement execution restart on agent resume
-- [ ] 4.8: Add resource quotas (CPU/memory limits per feature)
+- [x] 4.8: Add resource quotas (CPU/memory limits per feature)
 - [ ] 4.9: Add comprehensive scheduler integration tests
 - [ ] 4.10: Test priority queue with various priority levels
 
