@@ -138,9 +138,7 @@ export function registerRunCommand(program: Command): void {
             } else {
               result = await orchestrator.executeReactive(agentId, {
                 type: 'manual',
-                timestamp: new Date().toISOString(),
-                priority: 'normal',
-                source: 'cli',
+                timestamp: new Date(),
               });
             }
 
@@ -156,15 +154,18 @@ export function registerRunCommand(program: Command): void {
               console.log(code(`  Agent: ${agent.display_name} (${agent.role})`));
               console.log(code(`  Mode: ${mode}`));
               console.log(code(`  Status: ${result.success ? 'Success' : 'Failed'}`));
-              console.log(code(`  Duration: ${result.duration_ms}ms`));
-              if (result.tasks_completed) {
-                console.log(code(`  Tasks Completed: ${result.tasks_completed}`));
+              console.log(code(`  Duration: ${result.duration}ms`));
+              if (result.tasksCompleted > 0) {
+                console.log(code(`  Tasks Completed: ${result.tasksCompleted}`));
               }
-              if (result.messages_processed) {
-                console.log(code(`  Messages Processed: ${result.messages_processed}`));
+              if (result.messagesProcessed > 0) {
+                console.log(code(`  Messages Processed: ${result.messagesProcessed}`));
               }
-              if (result.error) {
-                console.log(code(`  Error: ${result.error}`));
+              if (result.errors && result.errors.length > 0) {
+                console.log(code(`  Errors: ${result.errors.length}`));
+                result.errors.forEach((err, idx) => {
+                  console.log(code(`    ${idx + 1}. ${err.message}`));
+                });
               }
               console.log();
 

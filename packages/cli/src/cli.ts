@@ -16,8 +16,9 @@ import { registerDebugCommand } from './commands/debug';
 import { registerRollbackCommand } from './commands/rollback';
 import { registerAnalyzeCommand } from './commands/analyze';
 import { registerHireCommand } from './commands/hire';
-// TODO: Fix TypeScript errors in fire.ts before enabling
-// import { registerFireCommand } from './commands/fire';
+import { registerFireCommand } from './commands/fire';
+// import { registerMessageCommand } from './commands/message';
+// import { registerRunCommand } from './commands/run';
 
 const program = new Command();
 
@@ -35,8 +36,9 @@ registerDebugCommand(program);
 registerRollbackCommand(program);
 registerAnalyzeCommand(program);
 registerHireCommand(program);
-// TODO: Fix TypeScript errors in fire.ts before enabling
-// registerFireCommand(program);
+registerFireCommand(program);
+// registerMessageCommand(program);
+// registerRunCommand(program);
 
 // Parse command line arguments
 program.parse(process.argv);

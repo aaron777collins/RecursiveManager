@@ -5,7 +5,7 @@
 import { Command } from 'commander';
 import { header, success, error, info, code } from '../utils/colors';
 import { createSpinner } from '../utils/spinner';
-import { input, select, confirm, editor } from '../utils/prompts';
+import { input, confirm, editor } from '../utils/prompts';
 import * as fs from 'fs';
 import * as path from 'path';
 import { initializeDatabase, getAgent } from '@recursive-manager/common';
@@ -161,7 +161,7 @@ export function registerMessageCommand(program: Command): void {
 
           // Write message to agent's inbox
           const messagePath = await writeMessageToInbox(agentId, message, {
-            baseDir: dataDir,
+            dataDir,
           });
 
           spinner.succeed('Message sent successfully!');
