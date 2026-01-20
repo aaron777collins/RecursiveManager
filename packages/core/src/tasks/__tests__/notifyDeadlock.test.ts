@@ -514,7 +514,8 @@ describe('notifyDeadlock', () => {
       );
 
       // Delete agentA's directory to cause write failure
-      const agentDirA = path.join(testDir, 'agents', agentA.substring(0, 2), agentA);
+      const { getAgentDirectory } = await import('@recursive-manager/common');
+      const agentDirA = getAgentDirectory(agentA, { baseDir: testDir });
       await fs.remove(agentDirA);
 
       // Send notifications - should not throw, but should log error
@@ -555,13 +556,9 @@ describe('notifyDeadlock', () => {
       );
 
       // Delete agentA's config file
-      const configPath = path.join(
-        testDir,
-        'agents',
-        agentA.substring(0, 2),
-        agentA,
-        'config.json'
-      );
+      const { getAgentDirectory } = await import('@recursive-manager/common');
+      const agentDirA = getAgentDirectory(agentA, { baseDir: testDir });
+      const configPath = path.join(agentDirA, 'config.json');
       await fs.remove(configPath);
 
       // Send notifications - should proceed despite missing config
@@ -737,7 +734,8 @@ describe('notifyDeadlock', () => {
       );
 
       // Delete agentA's directory to cause failure
-      const agentDirA = path.join(testDir, 'agents', agentA.substring(0, 2), agentA);
+      const { getAgentDirectory } = await import('@recursive-manager/common');
+      const agentDirA = getAgentDirectory(agentA, { baseDir: testDir });
       await fs.remove(agentDirA);
 
       await notifyDeadlock(db, [taskA.id, taskB.id], { dataDir: testDir });

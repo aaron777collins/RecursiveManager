@@ -116,7 +116,7 @@ describe('Task Lifecycle Integration Tests', () => {
 
       // Move directory to reflect status change
       const inProgressPath = getTaskPath('manager-001', task.id, 'in-progress');
-      await fs.move(pendingPath, inProgressPath);
+      await fs.move(pendingPath, inProgressPath, { overwrite: true });
 
       // Verify directory moved
       expect(fs.existsSync(pendingPath)).toBe(false);
@@ -147,7 +147,7 @@ describe('Task Lifecycle Integration Tests', () => {
       );
 
       // Run archival process
-      const archivedCount = await archiveOldTasks(db, 7, { baseDir: testDir });
+      const archivedCount = await archiveOldTasks(db, 7);
 
       // Verify task was archived
       expect(archivedCount).toBe(1);

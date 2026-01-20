@@ -70,7 +70,7 @@ export async function completeTaskWithFiles(
 
   // Move the task directory from old status to completed
   // This implements Task 2.3.15: Move completed tasks to completed/ directory
-  await moveTaskDirectory(completedTask.agent_id, taskId, oldStatus, 'completed');
+  await moveTaskDirectory(completedTask.agent_id, taskId, oldStatus, 'completed', options?.dataDir ? { baseDir: options.dataDir } : {});
 
   // Notify the manager of task completion
   // This implements Task 2.3.16: Notify manager of completion
