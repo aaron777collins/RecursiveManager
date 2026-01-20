@@ -1,0 +1,212 @@
+version: '3.8'
+
+services:
+  # RecursiveManager Main Application
+  recursive-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: recursive-manager
+    restart: unless-stopped
+
+    # Environment variables (see .env.example for all options)
+    environment:
+      # Core Configuration
+      NODE_ENV: production
+      RECURSIVE_MANAGER_HOME: /app/data
+      RECURSIVE_MANAGER_DATA_DIR: /app/data
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FILE: /app/logs/recursive-manager.log
+
+      # Agent Configuration
+      MAX_AGENT_DEPTH: ${MAX_AGENT_DEPTH:-5}
+      MAX_AGENTS_PER_MANAGER: ${MAX_AGENTS_PER_MANAGER:-10}
+      AGENT_TIMEOUT_MS: ${AGENT_TIMEOUT_MS:-300000}
+
+      # Execution
+      WORKER_POOL_SIZE: ${WORKER_POOL_SIZE:-5}
+      CONTINUOUS_EXECUTION_INTERVAL_MS: ${CONTINUOUS_EXECUTION_INTERVAL_MS:-5000}
+
+      # Framework Adapters
+      DEFAULT_FRAMEWORK: ${DEFAULT_FRAMEWORK:-claude-code}
+
+      # Database Configuration
+      DATABASE_TYPE: ${DATABASE_TYPE:-file}
+      DATABASE_PATH: /app/data/recursive-manager.db
+
+      # Database Encryption (optional)
+      DATABASE_ENCRYPTION_KEY: ${DATABASE_ENCRYPTION_KEY:-}
+      DATABASE_ENCRYPTION_USE_KDF: ${DATABASE_ENCRYPTION_USE_KDF:-true}
+
+      # Secret Management (optional)
+      SECRET_ENCRYPTION_KEY: ${SECRET_ENCRYPTION_KEY:-}
+      SECRET_ENCRYPTION_USE_KDF: ${SECRET_ENCRYPTION_USE_KDF:-false}
+      SECRET_CACHE_EXPIRY_MS: ${SECRET_CACHE_EXPIRY_MS:-300000}
+
+      # AI Provider Configuration
+      AI_PROVIDER: ${AI_PROVIDER:-aiceo-gateway}
+      AI_FALLBACK_PROVIDER: ${AI_FALLBACK_PROVIDER:-glm-direct}
+      AGENT_EXECUTION_PROVIDER: ${AGENT_EXECUTION_PROVIDER:-aiceo-gateway}
+
+      # AICEO Gateway
+      AICEO_GATEWAY_URL: ${AICEO_GATEWAY_URL:-http://localhost:4000/api/glm/submit}
+      AICEO_GATEWAY_API_KEY: ${AICEO_GATEWAY_API_KEY:-}
+      AICEO_GATEWAY_PROVIDER: ${AICEO_GATEWAY_PROVIDER:-glm}
+      AICEO_GATEWAY_MODEL: ${AICEO_GATEWAY_MODEL:-glm-4.7}
+      AICEO_GATEWAY_PRIORITY: ${AICEO_GATEWAY_PRIORITY:-high}
+
+      # Direct GLM (Fallback)
+      GLM_API_KEY: ${GLM_API_KEY:-}
+      GLM_API_URL: ${GLM_API_URL:-https://open.bigmodel.cn/api/paas/v4/chat/completions}
+      GLM_MODEL: ${GLM_MODEL:-glm-4.7}
+
+      # Direct Anthropic
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      ANTHROPIC_API_URL: ${ANTHROPIC_API_URL:-https://api.anthropic.com/v1/messages}
+      ANTHROPIC_BASE_URL: ${ANTHROPIC_BASE_URL:-https://api.anthropic.com}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-5}
+
+      # Direct OpenAI
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_API_URL: ${OPENAI_API_URL:-https://api.openai.com/v1/chat/completions}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4-turbo}
+
+      # Custom Provider
+      CUSTOM_PROVIDER_URL: ${CUSTOM_PROVIDER_URL:-}
+      CUSTOM_PROVIDER_API_KEY: ${CUSTOM_PROVIDER_API_KEY:-}
+      CUSTOM_PROVIDER_FORMAT: ${CUSTOM_PROVIDER_FORMAT:-openai}
+
+      # Analysis Configuration
+      ANALYSIS_CACHE_TTL_MS: ${ANALYSIS_CACHE_TTL_MS:-3600000}
+
+      # Notifications (optional)
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+      DISCORD_WEBHOOK_URL: ${DISCORD_WEBHOOK_URL:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+
+      # GitHub Integration (optional)
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_REPO: ${GITHUB_REPO:-}
+
+    # Volume mounts for persistence
+    volumes:
+      # Data directory (databases, snapshots, state)
+      - recursive-manager-data:/app/data
+      # Log directory
+      - recursive-manager-logs:/app/logs
+      # Optional: Mount local .env file for configuration
+      # - ./.env:/app/.env:ro
+
+    # Port exposure (if future API server is added)
+    ports:
+      - "${PORT:-3000}:3000"
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('healthy')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+      retries: 3
+
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+    # Network configuration
+    networks:
+      - recursive-manager-network
+
+  # Optional: AICEO Gateway Service (if running locally)
+  # Uncomment this section if you want to run the AICEO Gateway in the same stack
+  # aiceo-gateway:
+  #   image: aiceo-gateway:latest  # Replace with your actual image
+  #   container_name: aiceo-gateway
+  #   restart: unless-stopped
+  #   environment:
+  #     PORT: 4000
+  #     GLM_API_KEY: ${GLM_API_KEY:-}
+  #     ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+  #     OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  #   ports:
+  #     - "4000:4000"
+  #   networks:
+  #     - recursive-manager-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # Optional: Monitoring Stack (Prometheus + Grafana)
+  # Uncomment when Phase 9 (Monitoring) is implemented
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: recursive-manager-prometheus
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+  #     - prometheus-data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #   ports:
+  #     - "9090:9090"
+  #   networks:
+  #     - recursive-manager-network
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: recursive-manager-grafana
+  #   restart: unless-stopped
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+  #   volumes:
+  #     - grafana-data:/var/lib/grafana
+  #     - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+  #   ports:
+  #     - "3001:3000"
+  #   depends_on:
+  #     - prometheus
+  #   networks:
+  #     - recursive-manager-network
+
+# Named volumes for data persistence
+volumes:
+  recursive-manager-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_VOLUME_PATH:-./data}
+
+  recursive-manager-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOGS_VOLUME_PATH:-./logs}
+
+  # Uncomment when monitoring is enabled
+  # prometheus-data:
+  #   driver: local
+  # grafana-data:
+  #   driver: local
+
+# Network configuration
+networks:
+  recursive-manager-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
