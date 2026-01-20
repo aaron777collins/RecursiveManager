@@ -161,7 +161,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 1.5: Fix any remaining test failures in adapters package
 - [x] 1.6: Fix any remaining test failures in scheduler package
 - [x] 1.7: Run ESLint and fix all errors (plan says 6 errors)
-- [x] 1.8: Verify 100% test pass rate (PROGRESS: 444/499 passing - 88.9% pass rate, 13/32 suites passing)
+- [ ] 1.8: Verify 100% test pass rate (PROGRESS: 444/499 passing - 88.9% pass rate, 13/32 suites passing, 54 failures remaining)
 - [x] 1.9: Build all packages (npm run build) - PASSES ✅
 - [ ] 1.10: Verify type-check passes (npm run type-check)
 
