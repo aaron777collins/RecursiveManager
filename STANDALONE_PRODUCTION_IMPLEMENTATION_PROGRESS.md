@@ -345,7 +345,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 9.8: Set up Grafana dashboards
 - [x] 9.9: Add correlation IDs to all logs
 - [x] 9.10: Configure log levels via environment
-- [ ] 9.11: Create monitoring documentation
+- [x] 9.11: Create monitoring documentation
 - [ ] 9.12: Set up alerting rules
 
 ### Phase 10: Complete Documentation
@@ -363,7 +363,7 @@ The plan has 12 phases, but dependencies are:
 - [ ] 10.9: Create docs/DEPLOYMENT.md (production guide)
 - [x] 10.10: Create docs/DOCKER.md (Docker usage)
 - [ ] 10.11: Create docs/JENKINS.md (Jenkins CI/CD setup)
-- [ ] 10.12: Create docs/MONITORING.md (monitoring & metrics)
+- [x] 10.12: Create docs/MONITORING.md (monitoring & metrics)
 - [ ] 10.13: Complete docs/SECURITY.md (best practices)
 - [ ] 10.14: Create docs/TROUBLESHOOTING.md (common issues)
 - [ ] 10.15: Create docs/FAQ.md
@@ -473,10 +473,76 @@ The plan has 12 phases, but dependencies are:
 - ✅ **Phase 6: COMPLETE** - Security hardening complete
 - ⚠️ **Phase 7: BLOCKED** - Jenkins CI/CD requires system-level access (no sudo in container)
 - ✅ **Phase 8: COMPLETE** - Docker production deployment fully working (12/12 tasks complete)
-- 🔄 **Phase 9: IN PROGRESS** - Monitoring and metrics implementation in progress (10/12 tasks complete - 83%)
-- ⏸️ **Phase 10-12: NOT STARTED**
+- 🔄 **Phase 9: IN PROGRESS** - Monitoring and metrics implementation in progress (11/12 tasks complete - 92%)
+- 🔄 **Phase 10: IN PROGRESS** - Documentation in progress (3/18 tasks complete - 17%)
+- ⏸️ **Phase 11-12: NOT STARTED**
 
 ### Completed This Iteration
+
+**Task 9.11: Create Monitoring Documentation** ✅
+
+Created comprehensive monitoring and metrics documentation at `docs/MONITORING.md`:
+
+**1. Comprehensive Documentation** (`docs/MONITORING.md`)
+- **Table of Contents**: 10 major sections covering all monitoring aspects
+- **Overview**: Monitoring stack introduction (Prometheus, Grafana, Winston, prom-client)
+- **Quick Start**: 4-step setup guide to get monitoring running in 5 minutes
+- **Metrics Reference**: Complete documentation of all 14 Prometheus metrics:
+  - Execution metrics (executions_total, execution_duration_ms, active_executions)
+  - Queue metrics (queue_depth, queue_wait_time_ms)
+  - Agent metrics (tasks_completed_total, messages_processed_total, agent_health_score)
+  - Resource metrics (quota_violations_total, memory_usage_bytes, cpu_usage_percent)
+  - Analysis metrics (analysis_executions_total, analysis_duration_ms)
+- **Prometheus Configuration**: Scrape interval, retention, storage customization
+- **Grafana Dashboards**: Detailed descriptions of all 3 pre-built dashboards:
+  - RecursiveManager Overview (system-wide metrics)
+  - Agent Performance (per-agent analytics)
+  - System Metrics (CPU/memory/resource monitoring)
+- **CLI Metrics Server**: Complete guide to `recursive-manager metrics` command
+- **Logging System**: Integration with Winston, correlation IDs, log levels
+- **Alerting**: Example Prometheus alert rules and Grafana alert configuration
+- **Best Practices**: Metrics collection, dashboard design, retention, security, performance
+- **Troubleshooting**: Solutions for 10+ common monitoring issues
+
+**2. Metrics Documentation Highlights**
+- **40+ PromQL example queries** demonstrating how to use each metric
+- **Alert examples**: High error rate, queue backlog, memory usage, agent health, CPU saturation
+- **Dashboard customization guide**: UI editing and JSON export/import
+- **Log format examples**: Console and JSON output with correlation IDs
+- **Integration links**: References to logging guide and other documentation
+
+**3. Production-Ready Content**
+- **Access URLs**: Grafana (3001), Prometheus (9090), Metrics endpoint (3000)
+- **Security guidance**: Password changes, network security, access control
+- **Performance tuning**: Scrape intervals, retention policies, query optimization
+- **Data persistence**: Docker volume management and backup procedures
+- **Resource planning**: Memory/CPU guidelines for Prometheus and Grafana
+
+**4. Cross-References**
+- Links to `docs/guides/logging.md` for logging details
+- Links to `docs/DOCKER.md` for Docker deployment
+- Links to `docs/configuration.md` for environment variables
+- Links to `docs/cli-reference.md` for CLI commands
+- External links to Prometheus, Grafana, Winston, prom-client docs
+
+**Benefits Achieved:**
+- ✅ Complete monitoring system documentation from setup to troubleshooting
+- ✅ Production-ready with real-world examples and best practices
+- ✅ All 14 metrics fully documented with PromQL query examples
+- ✅ Comprehensive alerting guide with 5 example alert rules
+- ✅ Dashboard customization guide for both UI and JSON methods
+- ✅ Troubleshooting section covering 10+ common issues
+- ✅ Integrated with existing logging and Docker documentation
+- ✅ Clear migration path from development to production monitoring
+
+**Files Created:**
+- `docs/MONITORING.md` - NEW comprehensive 600+ line monitoring guide
+
+**Tasks Completed:**
+- ✅ Task 9.11: Create monitoring documentation (Phase 9)
+- ✅ Task 10.12: Create docs/MONITORING.md (Phase 10)
+
+### Previous Iteration
 
 **Task 9.10: Configure Log Levels via Environment** ✅
 
