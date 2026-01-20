@@ -273,22 +273,82 @@ Latest security audit results (as of task 6.8 completion):
 
 ### CI/CD Integration
 
-Add security audits to your CI/CD pipeline:
+RecursiveManager has security audits integrated into its CI/CD pipeline:
+
+#### Continuous Integration (CI)
+
+Security scanning runs automatically on every push and pull request via `.github/workflows/ci.yml`:
 
 ```yaml
-# .github/workflows/security.yml
-name: Security Audit
-on: [push, pull_request]
-jobs:
-  audit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-      - run: npm ci
-      - run: npm run security:audit
+security:
+  name: Security Scan
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run npm audit
+      run: npm audit --audit-level=moderate
+      continue-on-error: true
+
+    - name: Run security audit script
+      run: |
+        chmod +x scripts/security-audit.sh
+        ./scripts/security-audit.sh
+      continue-on-error: true
+
+    - name: Upload security audit results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-audit-results
+        path: /tmp/npm-audit.txt
+```
+
+**Note**: The CI pipeline uses `continue-on-error: true` to report vulnerabilities without blocking builds. This allows you to see security issues without stopping development.
+
+#### Release Pipeline
+
+Security audits are **enforced** in the release pipeline (`.github/workflows/release.yml`) with stricter checks:
+
+```yaml
+security-check:
+  name: Security Check
+  runs-on: ubuntu-latest
+  steps:
+    - name: Run npm audit (fail on high/critical)
+      run: npm audit --audit-level=high
+
+    - name: Run security audit script
+      run: ./scripts/security-audit.sh
+
+release:
+  runs-on: ubuntu-latest
+  needs: [security-check]
+  # ... release steps only run if security check passes
+```
+
+**Key differences from CI**:
+- Release uses `--audit-level=high` (fails on high/critical vulnerabilities)
+- No `continue-on-error` - security issues **block** releases
+- Full security audit must pass before creating releases
+
+To add security audits to your own CI/CD pipeline:
+
+```yaml
+# Example for other CI systems
+- run: npm ci
+- run: npm audit --audit-level=moderate
+- run: npm run security:audit
 ```
 
 ### Scheduled Audits
