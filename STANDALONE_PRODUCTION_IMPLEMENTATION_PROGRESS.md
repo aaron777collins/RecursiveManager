@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: Fixed ClaudeCodeAdapter test failures by adding ANTHROPIC_API_KEY to test environment and clearing default mocks for error scenarios. All 2337 tests now passing (2354 total, 17 skipped) = 100% pass rate of non-skipped tests ✅. Phase 1 COMPLETE. Ready to move to Phase 2.
+**Current Iteration Summary**: Fixed ClaudeCodeAdapter test failures by adding ANTHROPIC_API_KEY to test environment and clearing default mocks for error scenarios. All 2337 tests now passing (2354 total, 17 skipped) = 100% pass rate of non-skipped tests ✅. Phase 1 COMPLETE ✅. Phase 2 COMPLETE ✅ (verified in previous iteration). Next: Phase 3 CLI commands (hire, fire, message, run) need to be fixed from .TODO files.
 
 ## Analysis
 
@@ -463,15 +463,38 @@ The plan has 12 phases, but dependencies are:
 
 ## Notes
 
-### Critical Path
+### Current Status (Updated This Iteration)
 
-1. **Phase 1 MUST complete first** - Cannot proceed if tests fail
-2. **Phase 2 is most critical** - Real AI analysis is core feature, currently stubbed
-3. **Phase 7 (Jenkins) is largest effort** - 30 tasks for new infrastructure
-4. **Phase 8 (Docker) can run parallel** after Phase 1
-5. **Phase 10 (Docs) can run parallel** with implementation
-6. **Phase 11 blocks on Phase 1** - Cannot publish with failing tests
-7. **Phase 12 is final gate**
+- ✅ **Phase 1: COMPLETE** - All tests passing (2337/2337 non-skipped tests, 100% pass rate)
+- ✅ **Phase 2: COMPLETE** - Multi-perspective AI analysis fully implemented (verified in previous iteration)
+- 🔄 **Phase 3: IN PROGRESS** - 4 CLI commands exist but disabled (.TODO files) due to TypeScript errors
+  - hire.ts.TODO - needs fixes for missing generateAgentId, incorrect field names
+  - fire.ts.TODO - needs fix for non-existent databaseUpdated field
+  - message.ts.TODO - needs fixes for non-exported messaging functions
+  - run.ts.TODO - needs fixes for private constructor access, field name mismatches
+- ⏸️ **Phase 4-12: NOT STARTED**
+
+### Next Task for Build Mode
+
+**Task 3.1: Implement `hire` command**
+- Fix hire.ts.TODO and rename to hire.ts
+- Remove `generateAgentId` import (doesn't exist)
+- Use `generateDefaultConfig` from @recursive-manager/core instead
+- Fix field names to match current API
+- Re-enable command registration in cli.ts
+- Validate with tests
+- Estimated time: 30-45 minutes
+
+### Critical Path (UPDATED)
+
+1. ✅ **Phase 1 COMPLETE** - All tests passing, build stable
+2. ✅ **Phase 2 COMPLETE** - Real AI analysis fully functional
+3. 🔄 **Phase 3 IN PROGRESS** - Fix 4 CLI commands (next priority)
+4. **Phase 7 (Jenkins) is largest effort** - 30 tasks for new infrastructure
+5. **Phase 8 (Docker) can run parallel** after Phase 1
+6. **Phase 10 (Docs) can run parallel** with implementation
+7. **Phase 11 blocks on Phase 1** - Cannot publish with failing tests ✅ (now unblocked)
+8. **Phase 12 is final gate**
 
 ### Architecture Strengths
 
@@ -482,13 +505,14 @@ The plan has 12 phases, but dependencies are:
 - Security fundamentals are solid
 - CLI is polished and user-friendly
 
-### Key Risks
+### Key Risks (UPDATED)
 
-1. **Multi-perspective AI stubs** - Will fail in production usage
-2. **Jenkins setup** - New infrastructure, time-consuming
+1. ~~**Multi-perspective AI stubs**~~ - ✅ RESOLVED (fully implemented and tested)
+2. **Jenkins setup** - New infrastructure, time-consuming (30 tasks)
 3. **Docker** - No containerization yet
-4. **Unknown test failures** - Must verify immediately
-5. **Prometheus integration** - New dependency
+4. ~~**Unknown test failures**~~ - ✅ RESOLVED (100% pass rate achieved)
+5. **CLI commands** - 4 commands disabled due to TypeScript errors (high priority to fix)
+6. **Prometheus integration** - New dependency for monitoring
 
 ### Recommendations
 
