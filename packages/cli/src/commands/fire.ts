@@ -164,8 +164,9 @@ export function registerFireCommand(program: Command): void {
             console.log(code(`  Agent: ${agent.display_name} (${agent.role})`));
             console.log(code(`  Strategy: ${strategy}`));
             console.log(code(`  Orphans Handled: ${result.orphansHandled}`));
-            console.log(code(`  Files Archived: ${result.filesArchived}`));
-            console.log(code(`  Database Updated: ${result.databaseUpdated}`));
+            console.log(code(`  Tasks Reassigned: ${result.tasksReassigned}`));
+            console.log(code(`  Tasks Archived: ${result.tasksArchived}`));
+            console.log(code(`  Files Archived: ${result.filesArchived ? 'Yes' : 'No'}`));
             console.log();
 
             if (result.orphansHandled > 0) {

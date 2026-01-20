@@ -3,7 +3,7 @@
  */
 
 import { Command } from 'commander';
-import { header, success, error, info, code, warning } from '../utils/colors';
+import { header, success, error, info, code } from '../utils/colors';
 import { createSpinner } from '../utils/spinner';
 import { input, select, confirm, number } from '../utils/prompts';
 import * as fs from 'fs';
@@ -12,9 +12,9 @@ import {
   initializeDatabase,
   getAgent,
   AgentConfig,
-  generateAgentId,
 } from '@recursive-manager/common';
 import { hireAgent } from '@recursive-manager/core';
+import * as crypto from 'crypto';
 
 interface HireOptions {
   dataDir?: string;
@@ -92,6 +92,10 @@ export function registerHireCommand(program: Command): void {
           }
 
           // Verify manager exists
+          if (!managerId) {
+            console.log(error('❌ Manager ID is required'));
+            process.exit(1);
+          }
           const manager = getAgent(db, managerId);
           if (!manager) {
             console.log(error(`❌ Manager agent not found: ${managerId}`));
@@ -138,8 +142,10 @@ export function registerHireCommand(program: Command): void {
               { name: 'OpenCode', value: 'opencode' },
             ], 0));
 
-          // Generate agent ID
-          const agentId = generateAgentId(role);
+          // Generate agent ID based on role
+          const rolePrefix = role.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 10);
+          const randomSuffix = crypto.randomBytes(2).toString('hex').substring(0, 3);
+          const agentId = `${rolePrefix}-${randomSuffix}`;
 
           // Create agent config
           const agentConfig: AgentConfig = {
@@ -150,13 +156,13 @@ export function registerHireCommand(program: Command): void {
               role,
               displayName,
               createdAt: new Date().toISOString(),
-              createdBy: managerId,
-              reportingTo: managerId,
+              createdBy: managerId as string,
+              reportingTo: managerId as string,
             },
             goal: {
               mainGoal: goal,
-              keyResults: [],
-              successMetrics: [],
+              subGoals: [],
+              successCriteria: [],
             },
             permissions: {
               canHire,
@@ -171,22 +177,14 @@ export function registerHireCommand(program: Command): void {
               capabilities: [],
             },
             behavior: {
-              proactivity: 0.5,
-              riskTolerance: 0.3,
-              communicationFrequency: 'normal',
-              decisionMakingStyle: 'balanced',
+              verbosity: 3,
+              maxExecutionTime: 60,
+              requireApprovalForExecution: false,
+              continuousMode: false,
             },
           };
 
-          // Create config path
-          const configPath = path.resolve(
-            dataDir,
-            'agents',
-            agentId.substring(0, 2),
-            agentId,
-            'config.json'
-          );
-          agentConfig.identity.configPath = configPath;
+          // Config path will be created by hireAgent - no need to set it in identity
 
           console.log();
           console.log(info('Agent Configuration:'));
@@ -213,7 +211,7 @@ export function registerHireCommand(program: Command): void {
           const spinner = createSpinner('Hiring agent...');
 
           // Call hireAgent function
-          const agent = await hireAgent(db, managerId, agentConfig, { baseDir: dataDir });
+          const agent = await hireAgent(db, managerId as string, agentConfig, { baseDir: dataDir });
 
           spinner.succeed(`Agent hired successfully!`);
 
