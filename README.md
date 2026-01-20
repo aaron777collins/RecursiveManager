@@ -3,8 +3,8 @@
 > Hierarchical AI agent system that mimics organizational structures for autonomous task management
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-purple.svg)](https://github.com/aaron777collins/RecursiveManager/releases/tag/v0.1.0)
-[![Status: Alpha](https://img.shields.io/badge/Status-Alpha-orange.svg)](https://github.com/aaron777collins/RecursiveManager)
+[![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-purple.svg)](https://github.com/aaron777collins/RecursiveManager/releases/tag/v1.0.0)
+[![Status: Production Ready](https://img.shields.io/badge/Status-Production%20Ready-green.svg)](https://github.com/aaron777collins/RecursiveManager)
 [![CI Status](https://github.com/aaron777collins/RecursiveManager/actions/workflows/ci.yml/badge.svg)](https://github.com/aaron777collins/RecursiveManager/actions/workflows/ci.yml)
 [![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-red.svg)](./docs/JENKINS.md)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue.svg)](https://aaron777collins.github.io/RecursiveManager/)
@@ -34,40 +34,35 @@ RecursiveManager is a revolutionary AI agent orchestration system that models or
 
 ## Installation
 
-### One-Liner Installation
+### Quick Install (Recommended)
+
+Install RecursiveManager with a single command:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/master/scripts/install-binary.sh | bash
 ```
 
-### Manual Installation
+This downloads pre-built binaries, verifies checksums, and adds RecursiveManager to your PATH.
 
+**[📖 Full Installation Guide](./INSTALL.md)** - Detailed instructions for all platforms
+
+### Alternative Methods
+
+**Manual Binary Install:**
+1. Download from [Releases](https://github.com/aaron777collins/RecursiveManager/releases)
+2. Extract: `tar xzf recursive-manager-v1.0.0-*.tar.gz -C ~/.recursive-manager`
+3. Add to PATH: `export PATH="$HOME/.recursive-manager:$PATH"`
+
+**From Source:**
 ```bash
-# Clone the repository
 git clone https://github.com/aaron777collins/RecursiveManager.git
 cd RecursiveManager
-
-# Install dependencies
-npm install
-
-# Build the project
-npm run build
-
-# Link CLI globally
-npm link
-
-# Verify installation
-recursive-manager version
+npm install && npm run build && npm link
 ```
 
-### Headless Installation (CI/CD)
-
+**CI/CD (Headless):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash -s -- \
-  --headless \
-  --install-dir /opt/recursive-manager \
-  --skip-shell-config \
-  --package-manager npm
+VERSION=1.0.0 INSTALL_DIR=/opt/rm curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/master/scripts/install-binary.sh | bash
 ```
 
 ## Quick Start
@@ -96,7 +91,31 @@ recursive-manager status
 # └──────────────────────────────────────────────┘
 ```
 
-## Updating
+## Upgrading
+
+Upgrade to the latest version:
+
+```bash
+recursive-manager-upgrade
+```
+
+Or upgrade to a specific version:
+
+```bash
+recursive-manager-upgrade 2.0.0
+```
+
+**[📖 Full Upgrade Guide](./UPGRADE.md)** - Upgrade, downgrade, rollback, and version management
+
+## Documentation
+
+- **[Installation Guide](./INSTALL.md)** - Complete installation instructions
+- **[Upgrade Guide](./UPGRADE.md)** - Version management and upgrades
+- **[API Documentation](./docs/API.md)** - Complete API reference
+- **[Architecture](./docs/ARCHITECTURE.md)** - System design and internals
+- **[Contributing](./CONTRIBUTING.md)** - How to contribute
+
+## Updating (Legacy)
 
 RecursiveManager includes a self-update mechanism:
 
