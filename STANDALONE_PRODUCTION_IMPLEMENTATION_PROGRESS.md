@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Task 6.4 COMPLETE - Implemented comprehensive database encryption at rest using AES-256-GCM with PBKDF2 key derivation. Created DatabaseEncryption class in packages/common/src/db/encryption.ts (243 lines) with authenticated encryption, random IVs, and optional key derivation. Added DatabaseOptions encryption parameters (encryptionKey, encryptionUseKDF). Added environment variable support (DATABASE_ENCRYPTION_KEY, DATABASE_ENCRYPTION_USE_KDF). Created 49 comprehensive unit tests covering encryption/decryption, key derivation, tampering detection, edge cases, and security properties (all passing, 1136/1136 total tests). Updated .env.example and docs/architecture/database.md with encryption usage guide. No native dependencies - pure Node.js crypto for cross-platform compatibility. Next iteration: Task 6.5 - Add secret management system for API keys.
+**Current Iteration Summary**: ✅ Task 6.5 COMPLETE - Implemented comprehensive secret management system for API keys with encryption and audit logging. Created APIKeyManager class (packages/common/src/secrets/api-key-manager.ts, 243 lines) with AES-256-GCM encryption, in-memory caching (configurable expiry), metadata tracking (creation, access, expiration), and secret rotation support (manual/auto policies). Created SecretAuditLogger class (packages/common/src/secrets/audit-logger.ts, 145 lines) tracking all secret operations (stored, accessed, deleted, rotated, expired, exported, imported) with filtering and statistics. Added 73 comprehensive unit tests (api-key-manager.test.ts + audit-logger.test.ts) covering encryption, caching, rotation, expiration, import/export, and audit logging - all passing (1209/1209 total tests). Created detailed documentation (docs/security/secret-management.md, 550+ lines) with API reference, security best practices, and integration examples. Updated .env.example with SECRET_ENCRYPTION_KEY, SECRET_ENCRYPTION_USE_KDF, and SECRET_CACHE_EXPIRY_MS variables. Exported from @recursive-manager/common package index. Next iteration: Task 6.6 - Implement .env file support for sensitive config.
 
 ## Analysis
 
@@ -257,7 +257,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 6.2: SKIPPED - Add rate limiting per-IP (No API server exists - CLI only)
 - [x] 6.3: Add request size limits for CLI inputs - COMPLETE
 - [x] 6.4: Implement encryption at rest for database (SQLite encryption) - COMPLETE
-- [ ] 6.5: Add secret management system for API keys
+- [x] 6.5: Add secret management system for API keys - COMPLETE
 - [ ] 6.6: Implement .env file support for sensitive config
 - [x] 6.7: SKIPPED - Add security headers (No API server exists - CLI only)
 - [ ] 6.8: Run security audit with npm audit
@@ -574,7 +574,49 @@ This ensures:
 
 ## Completed This Iteration
 
-- **Task 6.4: Implement encryption at rest for database** (COMPLETE ✅):
+- **Task 6.5: Add secret management system for API keys** (COMPLETE ✅):
+
+  **Summary**: Implemented comprehensive secret management system with AES-256-GCM encryption, audit logging, in-memory caching, metadata tracking, and secret rotation policies.
+
+  **Implementation Details**:
+
+  1. **APIKeyManager Class** (`packages/common/src/secrets/api-key-manager.ts` - 243 lines):
+     - Centralized manager for storing, retrieving, and rotating encrypted secrets
+     - AES-256-GCM encryption via DatabaseEncryption integration
+     - In-memory decrypted cache with configurable expiry (default: 5 minutes)
+     - Metadata tracking: creation date, last accessed, expiration, rotation policy
+     - Secret rotation support: manual, auto (with interval days), or none
+     - Import/export for backup and migration (encrypted format)
+     - Methods: `storeSecret()`, `getSecret()`, `deleteSecret()`, `rotateSecret()`, `listSecrets()`, `getMetadata()`, `isExpired()`, `needsRotation()`, `getSecretsNeedingRotation()`, `clearAllCache()`, `exportSecrets()`, `importSecrets()`
+
+  2. **SecretAuditLogger Class** (`packages/common/src/secrets/audit-logger.ts` - 145 lines):
+     - Audit logging for all secret operations
+     - Tracks: SECRET_STORED, SECRET_ACCESSED, SECRET_DELETED, SECRET_ROTATED, SECRET_EXPIRED, CACHE_CLEARED, SECRETS_EXPORTED, SECRETS_IMPORTED, UNAUTHORIZED_ACCESS, ENCRYPTION_FAILURE, DECRYPTION_FAILURE
+     - Filtering by action, secret name, timestamp
+     - Failed attempt tracking
+     - Statistics: total entries, successful/failed accesses, rotations, deletions
+     - Export log as JSON
+     - Configurable max entries (default: 10,000)
+
+  3. **Configuration**:
+     - Environment variables: `SECRET_ENCRYPTION_KEY`, `SECRET_ENCRYPTION_USE_KDF`, `SECRET_CACHE_EXPIRY_MS`
+     - Updated `.env.example` with secret management documentation
+     - Exported from `@recursive-manager/common` package index
+
+  4. **Documentation** (`docs/security/secret-management.md` - 550+ lines):
+     - Complete API reference with code examples
+     - Security best practices (key generation, rotation, audit monitoring)
+     - Integration examples for AI providers
+     - Troubleshooting guide
+     - Quick start and configuration guide
+
+  5. **Testing** (73 tests - all passing):
+     - `api-key-manager.test.ts`: 43 tests covering encryption, caching, rotation, expiration, import/export, audit integration
+     - `audit-logger.test.ts`: 30 tests covering logging, filtering, statistics, max entries, timestamps
+
+  **Test Results**: 1209/1209 tests passing (100% pass rate maintained)
+
+- **Previous: Task 6.4: Implement encryption at rest for database** (COMPLETE ✅):
 
   **Summary**: Implemented comprehensive application-level encryption for sensitive database fields using AES-256-GCM authenticated encryption with PBKDF2 key derivation.
 

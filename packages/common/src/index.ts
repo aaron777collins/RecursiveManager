@@ -282,3 +282,18 @@ export {
   type PidInfo,
   type PidOptions,
 } from './pid-manager';
+
+// Database Encryption (Phase 6.4)
+export {
+  DatabaseEncryption,
+  type EncryptedData,
+} from './db/encryption';
+
+// Secret Management (Phase 6.5)
+export {
+  APIKeyManager,
+  SecretAuditLogger,
+  type SecretMetadata,
+  type StoredSecret,
+  type AuditLogEntry,
+} from './secrets';
