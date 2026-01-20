@@ -6,6 +6,7 @@
 [![Version: 0.1.0](https://img.shields.io/badge/Version-0.1.0-purple.svg)](https://github.com/aaron777collins/RecursiveManager/releases/tag/v0.1.0)
 [![Status: Alpha](https://img.shields.io/badge/Status-Alpha-orange.svg)](https://github.com/aaron777collins/RecursiveManager)
 [![CI Status](https://github.com/aaron777collins/RecursiveManager/actions/workflows/ci.yml/badge.svg)](https://github.com/aaron777collins/RecursiveManager/actions/workflows/ci.yml)
+[![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-red.svg)](./docs/JENKINS.md)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue.svg)](https://aaron777collins.github.io/RecursiveManager/)
 [![Docs Build](https://github.com/aaron777collins/RecursiveManager/actions/workflows/docs.yml/badge.svg)](https://github.com/aaron777collins/RecursiveManager/actions/workflows/docs.yml)
 
@@ -141,6 +142,10 @@ recursive-manager update --history
 
 - **[AI_PROVIDER_GUIDE.md](./docs/AI_PROVIDER_GUIDE.md)** - Complete guide to configuring AI providers
 - **[AICEO_INTEGRATION_GUIDE.md](./docs/AICEO_INTEGRATION_GUIDE.md)** - Integration with AICEO Gateway for centralized LLM access
+
+### CI/CD & DevOps
+
+- **[JENKINS.md](./docs/JENKINS.md)** - Jenkins CI/CD pipeline setup and configuration
 
 ## AI Provider Configuration
 
@@ -351,6 +356,10 @@ RecursiveManager is now in **Alpha** status. The core system is functional with 
 - Development guides
 
 ✅ **CI/CD**
+- Jenkins pipelines for continuous integration
+- Automated testing and coverage reporting
+- Release pipeline with security scanning
+- Nightly builds with dependency checks
 - Automated documentation deployment
 - Release automation on version tags
 
