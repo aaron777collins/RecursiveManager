@@ -187,7 +187,7 @@ export async function loadConfig(
 export async function loadTasks(db: Database, agentId: string): Promise<TaskSchema[]> {
   try {
     const tasks = getActiveTasks(db, agentId);
-    return tasks.map(convertTaskToSchema);
+    return Promise.resolve(tasks.map(convertTaskToSchema));
   } catch (err) {
     throw new ContextLoadError(
       `Failed to load active tasks: ${(err as Error).message}`,
@@ -218,7 +218,7 @@ export async function loadMessages(
       unreadOnly: true,
       limit: maxMessages,
     });
-    return messages.map(convertMessageToSchema);
+    return Promise.resolve(messages.map(convertMessageToSchema));
   } catch (err) {
     throw new ContextLoadError(
       `Failed to load messages: ${(err as Error).message}`,

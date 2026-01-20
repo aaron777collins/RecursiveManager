@@ -17,13 +17,13 @@ describe('ScheduleManager', () => {
   let scheduleManager: ScheduleManager;
   let testDbPath: string;
 
-  beforeEach(async () => {
+  beforeEach(() => {
     // Create a temporary database for testing
     testDbPath = path.join(__dirname, `test-${Date.now()}.db`);
     db = new SqliteDatabase(testDbPath);
 
     // Apply migrations
-    await runMigrations(db, allMigrations);
+    runMigrations(db, allMigrations);
 
     // Create test agents required for foreign key constraints
     const insertAgent = db.prepare(`

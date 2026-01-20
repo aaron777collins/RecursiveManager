@@ -391,7 +391,7 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
       return buildReactivePrompt(config, messages, context);
     } else {
       // Fallback for unknown modes
-      throw new Error(`Unknown execution mode: ${mode}`);
+      throw new Error(`Unknown execution mode: ${String(mode)}`);
     }
   }
 

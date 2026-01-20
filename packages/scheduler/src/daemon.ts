@@ -30,8 +30,8 @@ const logger = winston.createLogger({
       format: winston.format.combine(
         winston.format.colorize(),
         winston.format.printf(({ level, message, timestamp, ...meta }) => {
-          const metaStr = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
-          return `${timestamp} ${level}: ${message} ${metaStr}`;
+          const metaStr: string = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
+          return `${String(timestamp)} ${String(level)}: ${String(message)} ${metaStr}`;
         })
       ),
     }),
@@ -183,6 +183,7 @@ async function schedulerLoop(): Promise<void> {
   });
 
   // Main loop
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
       // Get schedules ready to execute
