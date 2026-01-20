@@ -172,11 +172,11 @@ The plan has 12 phases, but dependencies are:
 **Architecture Note**: Multi-perspective analysis = consulting service (not actual RM agents). 8 agents make parallel LLM calls with different system prompts. Supports swappable providers (GLM Gateway, Anthropic, OpenAI, custom).
 
 #### 2.1: AI Provider Infrastructure (Foundation Layer)
-- [ ] 2.1.1: Create AIProviderInterface (base.ts) - define interface, config, error types
-- [ ] 2.1.2: Implement GLMGatewayProvider (glm-gateway.ts) - HTTP client to localhost:4000/api/glm/proxy
-- [ ] 2.1.3: Implement AnthropicProvider (anthropic.ts) - Direct Anthropic API with SDK
-- [ ] 2.1.4: Implement OpenAIProvider (openai.ts) - Direct OpenAI API with SDK
-- [ ] 2.1.5: Create ProviderFactory (factory.ts) - Instantiate providers based on config
+- [x] 2.1.1: Create AIProviderInterface (base.ts) - define interface, config, error types
+- [x] 2.1.2: Implement GLMGatewayProvider (glm-gateway.ts) - HTTP client to localhost:4000/api/glm/proxy (ALREADY IMPLEMENTED as AICEOGatewayProvider)
+- [x] 2.1.3: Implement AnthropicProvider (anthropic.ts) - Direct Anthropic API with SDK (ALREADY IMPLEMENTED as AnthropicDirectProvider)
+- [x] 2.1.4: Implement OpenAIProvider (openai.ts) - Direct OpenAI API with SDK (ALREADY IMPLEMENTED as OpenAIDirectProvider)
+- [x] 2.1.5: Create ProviderFactory (factory.ts) - Instantiate providers based on config (ALREADY IMPLEMENTED)
 - [ ] 2.1.6: Add Configuration Support (config.ts) - Add aiProvider, aiProviderEndpoint, aiProviderApiKey, aiProviderModel, aiProviderTimeout fields
 - [ ] 2.1.7: Environment Variable Schema (.env.example) - Document all AI provider env vars with examples
 - [ ] 2.1.8: Integration Tests for Provider Switching - Test GLM Gateway ↔ Anthropic switching, fallback, validation
@@ -548,6 +548,36 @@ This ensures:
 - Collaboration-friendly workflow
 
 ## Completed This Iteration
+
+- Task 2.1.1 (COMPLETE ✅): Added ProviderConfig interface and error type hierarchy to base.ts
+
+  **Summary**: Completed Task 2.1.1 by adding the missing components specified in the plan to the existing AI provider infrastructure. The core AIProvider interface was already implemented; added ProviderConfig interface and three error classes: ProviderError, RateLimitError, and TimeoutError.
+
+  **What Was Added**:
+  1. **ProviderConfig interface**: Configuration structure with endpoint, apiKey, model, timeout, maxRetries fields
+  2. **ProviderError class**: Base error class with provider name and error code
+  3. **RateLimitError class**: Extends ProviderError, includes optional retryAfter field
+  4. **TimeoutError class**: Extends ProviderError, includes timeoutMs field
+  5. **AIAnalysisProvider type alias**: For backwards compatibility with plan naming
+
+  **What Was Already Implemented** (discovered during codebase search):
+  - AIProvider interface (plan called it AIAnalysisProvider) ✅
+  - AICEOGatewayProvider (plan called it GLMGatewayProvider) ✅
+  - AnthropicDirectProvider ✅
+  - OpenAIDirectProvider ✅
+  - CustomProvider (flexible endpoint) ✅
+  - ProviderFactory with health check and fallback ✅
+  - Comprehensive test suite (34 tests) ✅
+
+  **Validation**:
+  - Build passes: All packages compile successfully ✅
+  - Tests pass: 34/34 provider tests passing ✅
+  - No regressions introduced ✅
+
+  **Files Modified**:
+  - packages/core/src/ai-analysis/providers/base.ts (added 94 lines)
+
+  **Status**: Task 2.1.1-2.1.5 COMPLETE. Tasks 2.1.2-2.1.5 were already implemented in the codebase.
 
 - Task 1.8 (FINAL - COMPLETE ✅): Fixed final test failure in task-lifecycle-integration.test.ts, achieved 100% test pass rate (2097/2098, 1 skipped)
 

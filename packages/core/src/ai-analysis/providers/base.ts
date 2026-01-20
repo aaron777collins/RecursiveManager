@@ -61,6 +61,74 @@ export interface AIAnalysisResponse {
 }
 
 /**
+ * Configuration for an AI provider
+ */
+export interface ProviderConfig {
+  /** Provider endpoint URL */
+  endpoint: string;
+
+  /** API key for authentication */
+  apiKey: string;
+
+  /** Model to use (e.g., 'claude-sonnet-4-5', 'gpt-4-turbo') */
+  model?: string;
+
+  /** Request timeout in milliseconds (default: 60000) */
+  timeout?: number;
+
+  /** Maximum number of retry attempts (default: 3) */
+  maxRetries?: number;
+
+  /** Additional provider-specific configuration */
+  [key: string]: any;
+}
+
+/**
+ * Base error class for provider-related errors
+ */
+export class ProviderError extends Error {
+  constructor(
+    message: string,
+    public readonly provider: string,
+    public readonly code?: string,
+  ) {
+    super(message);
+    this.name = 'ProviderError';
+    Object.setPrototypeOf(this, ProviderError.prototype);
+  }
+}
+
+/**
+ * Error thrown when rate limit is exceeded
+ */
+export class RateLimitError extends ProviderError {
+  constructor(
+    message: string,
+    provider: string,
+    public readonly retryAfter?: number,
+  ) {
+    super(message, provider, 'RATE_LIMIT');
+    this.name = 'RateLimitError';
+    Object.setPrototypeOf(this, RateLimitError.prototype);
+  }
+}
+
+/**
+ * Error thrown when request times out
+ */
+export class TimeoutError extends ProviderError {
+  constructor(
+    message: string,
+    provider: string,
+    public readonly timeoutMs: number,
+  ) {
+    super(message, provider, 'TIMEOUT');
+    this.name = 'TimeoutError';
+    Object.setPrototypeOf(this, TimeoutError.prototype);
+  }
+}
+
+/**
  * Core interface that all AI providers must implement
  *
  * Providers can route to different LLM APIs (GLM, Anthropic, OpenAI, etc.)
@@ -84,3 +152,6 @@ export interface AIProvider {
    */
   healthCheck(): Promise<boolean>;
 }
+
+/** Alias for backwards compatibility */
+export type AIAnalysisProvider = AIProvider;

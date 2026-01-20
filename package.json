@@ -34,7 +34,9 @@
     "clean": "turbo run clean && rm -rf node_modules",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
-    "version": "echo $npm_package_version"
+    "version": "echo $npm_package_version",
+    "test:ci": "turbo run test --no-cache",
+    "build:binaries": "node scripts/build-binaries.js"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.3.1",
