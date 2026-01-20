@@ -5,11 +5,11 @@
  * and automatic fallback support.
  */
 
-import { AIProvider } from './base.js';
-import { AICEOGatewayProvider } from './aiceo-gateway.js';
-import { AnthropicDirectProvider } from './anthropic-direct.js';
-import { OpenAIDirectProvider } from './openai-direct.js';
-import { CustomProvider } from './custom.js';
+import { AIProvider } from './base';
+import { AICEOGatewayProvider } from './aiceo-gateway';
+import { AnthropicDirectProvider } from './anthropic-direct';
+import { OpenAIDirectProvider } from './openai-direct';
+import { CustomProvider } from './custom';
 
 /**
  * Factory for creating AI provider instances
