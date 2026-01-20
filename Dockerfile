@@ -57,7 +57,19 @@ COPY packages/scheduler/package.json ./packages/scheduler/
 # Install production dependencies only
 RUN npm ci --omit=dev
 
-# Stage 4: Final production image
+# Stage 4: Security scanning
+FROM aquasec/trivy:latest AS security-scan
+
+WORKDIR /scan
+
+# Copy the builder stage for scanning
+COPY --from=builder /app /scan/app
+
+# Run security scan on dependencies and code
+# Note: In CI/CD, add --exit-code 1 to fail build on vulnerabilities
+RUN trivy fs --severity HIGH,CRITICAL --no-progress /scan/app || true
+
+# Stage 5: Final production image
 FROM node:20-alpine AS production
 
 # Install runtime dependencies
