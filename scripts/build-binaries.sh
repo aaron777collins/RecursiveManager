@@ -44,9 +44,9 @@ check_prerequisites() {
     fi
 
     # Check for @vercel/ncc (for bundling)
-    if ! npm list -g @vercel/ncc &> /dev/null; then
-        log_warn "@vercel/ncc not found globally. Installing..."
-        npm install -g @vercel/ncc
+    if ! [ -f "$ROOT_DIR/node_modules/.bin/ncc" ]; then
+        log_warn "@vercel/ncc not found. Installing locally..."
+        cd "$ROOT_DIR" && npm install --save-dev @vercel/ncc
     fi
 
     log_info "Prerequisites check passed ✓"
@@ -70,7 +70,7 @@ create_bundle() {
     cd "$ROOT_DIR"
 
     # Bundle the CLI entry point with ncc
-    ncc build packages/cli/dist/cli.js \
+    "$ROOT_DIR/node_modules/.bin/ncc" build packages/cli/dist/cli.js \
         --out "$BUILD_DIR/bundle-$platform" \
         --minify \
         --target node18 \
