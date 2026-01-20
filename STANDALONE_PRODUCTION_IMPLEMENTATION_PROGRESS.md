@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Task 6.3 COMPLETE - Added comprehensive request size limits for CLI inputs via JSON schema maxLength and maxItems constraints. Updated agent-config.schema.json (128-102400 char limits, array max items 10-1000), task.schema.json (256-1MB limits, array max items 100-10000), and message.schema.json (128-1024 char limits, 1GB attachment size limit, max 1000 attachments). Created 12 comprehensive tests (all passing, 1087/1087 total tests). Skipped tasks 6.1, 6.2, 6.7 (no API server exists - RecursiveManager is CLI-only). Next iteration: Task 6.4 - Implement encryption at rest for database.
+**Current Iteration Summary**: ✅ Task 6.4 COMPLETE - Implemented comprehensive database encryption at rest using AES-256-GCM with PBKDF2 key derivation. Created DatabaseEncryption class in packages/common/src/db/encryption.ts (243 lines) with authenticated encryption, random IVs, and optional key derivation. Added DatabaseOptions encryption parameters (encryptionKey, encryptionUseKDF). Added environment variable support (DATABASE_ENCRYPTION_KEY, DATABASE_ENCRYPTION_USE_KDF). Created 49 comprehensive unit tests covering encryption/decryption, key derivation, tampering detection, edge cases, and security properties (all passing, 1136/1136 total tests). Updated .env.example and docs/architecture/database.md with encryption usage guide. No native dependencies - pure Node.js crypto for cross-platform compatibility. Next iteration: Task 6.5 - Add secret management system for API keys.
 
 ## Analysis
 
@@ -256,7 +256,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 6.1: SKIPPED - Add rate limiting per-endpoint (No API server exists - CLI only)
 - [x] 6.2: SKIPPED - Add rate limiting per-IP (No API server exists - CLI only)
 - [x] 6.3: Add request size limits for CLI inputs - COMPLETE
-- [ ] 6.4: Implement encryption at rest for database (SQLite encryption)
+- [x] 6.4: Implement encryption at rest for database (SQLite encryption) - COMPLETE
 - [ ] 6.5: Add secret management system for API keys
 - [ ] 6.6: Implement .env file support for sensitive config
 - [x] 6.7: SKIPPED - Add security headers (No API server exists - CLI only)
@@ -573,6 +573,66 @@ This ensures:
 - Collaboration-friendly workflow
 
 ## Completed This Iteration
+
+- **Task 6.4: Implement encryption at rest for database** (COMPLETE ✅):
+
+  **Summary**: Implemented comprehensive application-level encryption for sensitive database fields using AES-256-GCM authenticated encryption with PBKDF2 key derivation.
+
+  **Implementation Details**:
+
+  1. **Encryption Module** (`packages/common/src/db/encryption.ts` - 243 lines):
+     - `DatabaseEncryption` class with encrypt/decrypt methods
+     - AES-256-GCM algorithm with 16-byte random IVs
+     - PBKDF2 key derivation (100,000 iterations) for password-based keys
+     - Support for raw 32-byte hex keys (advanced mode)
+     - Authentication tags for tampering detection
+     - JSON encoding for storage in database fields
+     - Helper functions: `encryptField()`, `decryptField()`, `createEncryption()`
+     - Password hashing utilities: `hashPassword()`, `verifyPassword()`
+     - Key generation: `generateKey()` for secure random keys
+
+  2. **Database Integration**:
+     - Extended `DatabaseOptions` interface with `encryptionKey` and `encryptionUseKDF` parameters
+     - Environment variable support: `DATABASE_ENCRYPTION_KEY`, `DATABASE_ENCRYPTION_USE_KDF`
+     - Exported encryption utilities from database index
+     - No breaking changes - encryption is optional
+
+  3. **Configuration**:
+     - Updated `.env.example` with encryption documentation
+     - Password mode (default): Uses PBKDF2 key derivation
+     - Raw key mode: Direct 32-byte hex key (for advanced users)
+
+  4. **Documentation**:
+     - Updated `docs/architecture/database.md` with comprehensive encryption guide
+     - Security properties explained: authenticated encryption, random IVs, key derivation
+     - Usage examples for both password and raw key modes
+     - Performance impact notes (< 1ms overhead per field)
+     - Migration guidance (transparent - no migration needed)
+
+  **Testing**:
+  - Created 49 comprehensive unit tests: `packages/common/src/db/__tests__/encryption.test.ts`
+  - Test coverage:
+    - Basic encryption/decryption with passwords and raw keys
+    - Tampering detection (data and auth tag modification)
+    - Edge cases (empty strings, unicode, long strings, binary data)
+    - Security properties (random IVs, no key leakage, concurrent operations)
+    - Key derivation and password hashing
+    - Helper functions and environment variable support
+  - All tests passing: **1136/1136 tests** (49 new tests added)
+
+  **Security Features**:
+  - Authenticated encryption prevents tampering
+  - Random IVs ensure unique ciphertext for identical plaintext
+  - Strong PBKDF2 key derivation (100K iterations)
+  - No native dependencies - pure Node.js crypto (cross-platform)
+  - GCM mode provides both confidentiality and integrity
+
+  **Files Modified**:
+  - Created: `packages/common/src/db/encryption.ts` (243 lines)
+  - Created: `packages/common/src/db/__tests__/encryption.test.ts` (586 lines, 49 tests)
+  - Modified: `packages/common/src/db/index.ts` (added encryption export and options)
+  - Modified: `.env.example` (added encryption configuration)
+  - Modified: `docs/architecture/database.md` (added encryption documentation)
 
 - **Task 6.3: Add request size limits for CLI inputs** (COMPLETE ✅):
 

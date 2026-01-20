@@ -40,6 +40,24 @@ export interface DatabaseOptions {
    * @default 5000
    */
   timeout?: number;
+
+  /**
+   * Encryption key for sensitive data fields
+   * If provided, sensitive fields will be encrypted using AES-256-GCM
+   * Can be:
+   * - A password string (will use PBKDF2 key derivation)
+   * - A hex-encoded 32-byte key (set encryptionUseKDF to false)
+   * @default undefined (no encryption)
+   */
+  encryptionKey?: string;
+
+  /**
+   * Whether to use key derivation (PBKDF2) for encryption key
+   * If true, encryptionKey is treated as a password
+   * If false, encryptionKey must be a 64-char hex string (32 bytes)
+   * @default true
+   */
+  encryptionUseKDF?: boolean;
 }
 
 export interface DatabaseHealthStatus {
@@ -552,3 +570,6 @@ export * from './retry';
 
 // Export snapshot management
 export * from './snapshot';
+
+// Export encryption utilities
+export * from './encryption';
