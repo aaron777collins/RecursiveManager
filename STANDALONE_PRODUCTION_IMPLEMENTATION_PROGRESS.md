@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Task 9.7 COMPLETE - Configured Prometheus scraping endpoint. Created complete HTTP metrics server (MetricsServer class) with Express.js serving Prometheus metrics at GET /metrics endpoint. Implemented CLI command 'recursive-manager metrics' with port/host configuration. Added comprehensive test suite with 15 test cases using supertest. Updated Docker configuration with health checks using /health endpoint. Created Prometheus configuration file (monitoring/prometheus.yml) for scraping metrics. Fixed turbo.json for Turbo 2.x compatibility (pipeline → tasks). All metrics now accessible via HTTP for Prometheus scraping. Phase 9 now 7/12 tasks complete.
+**Current Iteration Summary**: ✅ Task 9.8 COMPLETE - Set up Grafana dashboards. Created complete Grafana provisioning structure with datasource configuration, dashboard provisioning config, and 3 comprehensive dashboards (Overview, Agent Performance, System Metrics). Uncommented Prometheus and Grafana services in docker-compose.yml with proper volume mounts. Created monitoring/README.md with complete setup guide, troubleshooting, and best practices. Phase 9 now 8/12 tasks complete (67% complete).
 
 ## Analysis
 
@@ -342,7 +342,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 9.5: Add queue depth metrics (Already implemented - queueDepthGauge)
 - [x] 9.6: Add memory/CPU usage metrics (Implemented memoryUsageGauge and cpuUsageGauge)
 - [x] 9.7: Configure Prometheus scraping endpoint
-- [ ] 9.8: Set up Grafana dashboards
+- [x] 9.8: Set up Grafana dashboards
 - [ ] 9.9: Add correlation IDs to all logs
 - [ ] 9.10: Configure log levels via environment
 - [ ] 9.11: Create monitoring documentation
@@ -473,110 +473,107 @@ The plan has 12 phases, but dependencies are:
 - ✅ **Phase 6: COMPLETE** - Security hardening complete
 - ⚠️ **Phase 7: BLOCKED** - Jenkins CI/CD requires system-level access (no sudo in container)
 - ✅ **Phase 8: COMPLETE** - Docker production deployment fully working (12/12 tasks complete)
-- 🔄 **Phase 9: IN PROGRESS** - Monitoring and metrics implementation in progress (7/12 tasks complete)
+- 🔄 **Phase 9: IN PROGRESS** - Monitoring and metrics implementation in progress (8/12 tasks complete - 67%)
 - ⏸️ **Phase 10-12: NOT STARTED**
 
 ### Completed This Iteration
 
-**Task 9.7: Configure Prometheus Scraping Endpoint** ✅
+**Task 9.8: Set up Grafana Dashboards** ✅
 
-Implemented a complete HTTP metrics server for Prometheus scraping:
+Implemented complete Grafana dashboard infrastructure with provisioning and 3 comprehensive dashboards:
 
-**1. MetricsServer Implementation** (`packages/core/src/server/metrics-server.ts`)
-- Created Express-based HTTP server with metrics endpoint
-- Endpoints implemented:
-  - `GET /` - Server information and available endpoints
-  - `GET /health` - Health check with uptime and timestamp
-  - `GET /metrics` - Prometheus metrics in text format (Content-Type: text/plain; version=0.0.4)
-- Features:
-  - Configurable host and port
-  - Request logging with duration tracking
-  - Graceful start/stop with error handling
-  - Security: Disabled X-Powered-By header
-  - 404 handler for unknown routes
-  - Global error handler
-  - Port conflict detection and error reporting
-- Exports: MetricsServer class, startMetricsServer helper, MetricsServerConfig type
+**1. Directory Structure Created** (`monitoring/grafana/`)
+- `provisioning/datasources/` - Prometheus datasource configuration
+- `provisioning/dashboards/` - Dashboard provisioning configuration and JSON files
+- Organized structure ready for automatic dashboard loading on Grafana startup
 
-**2. CLI Command** (`packages/cli/src/commands/metrics.ts`)
-- Implemented `recursive-manager metrics` command
-- Options:
-  - `-p, --port <port>` - Port to listen on (default: 3000)
-  - `-h, --host <host>` - Host to bind to (default: 0.0.0.0)
-- Features:
-  - Port validation (1-65535 range)
-  - Colored console output with endpoint URLs
-  - Graceful shutdown on SIGINT/SIGTERM
-  - Helpful error messages with suggestions for port conflicts
-- Registered in CLI entry point (`packages/cli/src/cli.ts`)
+**2. Prometheus Datasource Configuration** (`monitoring/grafana/provisioning/datasources/prometheus.yml`)
+- Configured Prometheus as default datasource
+- Connection URL: `http://prometheus:9090`
+- Query timeout: 60s, scrape interval: 15s
+- HTTP POST method for better query performance
+- Read-only mode (editable: false)
 
-**3. Docker Configuration Updates** (`docker-compose.yml`)
-- Updated port exposure comment to clarify metrics server usage
-- Changed healthcheck to use metrics server health endpoint: `GET /health`
-- Added `METRICS_PORT` environment variable support (default: 3000)
-- Updated Prometheus service configuration with dependency on recursive-manager
-- Added note about requiring `monitoring/prometheus.yml` configuration file
+**3. Dashboard Provisioning Configuration** (`monitoring/grafana/provisioning/dashboards/dashboards.yml`)
+- Auto-loads dashboards from provisioning directory
+- Updates every 10 seconds
+- Allows UI updates (allowUiUpdates: true)
+- Organized in "RecursiveManager" folder
 
-**4. Prometheus Configuration** (`monitoring/prometheus.yml`)
-- Created Prometheus scrape configuration
-- Configured to scrape RecursiveManager at `recursive-manager:3000/metrics`
-- Scrape interval: 15s, timeout: 10s
-- Included Prometheus self-monitoring job
-- Added placeholders for alerting and rule files
+**4. RecursiveManager Overview Dashboard** (`overview.json`)
+- **Key Metrics**: Execution rate, active executions, queue depth, execution status breakdown
+- **Time Series Panels**:
+  - Execution duration percentiles (p50, p95, p99)
+  - Active vs queued executions comparison
+  - Queue wait time percentiles
+  - Quota violations rate
+- **Gauges**: Real-time execution stats with color thresholds
+- **Refresh**: Auto-refresh every 10 seconds
+- **Time Range**: Last 1 hour (configurable)
 
-**5. Comprehensive Test Suite** (`packages/core/src/server/__tests__/metrics-server.test.ts`)
-- 15 test cases covering:
-  - Server construction with default and custom hosts
-  - Start/stop lifecycle
-  - Port conflict detection
-  - All endpoints (/, /health, /metrics)
-  - Error handling for metrics generation failures
-  - 404 handling for unknown routes
-  - Security (X-Powered-By header removal)
-  - Prometheus content-type header validation
-  - Helper function (startMetricsServer)
-  - Express app instance access
-- Uses supertest for HTTP endpoint testing
-- Mocks getMetrics function for isolation
+**5. Agent Performance Dashboard** (`agent-performance.json`)
+- **Per-Agent Metrics**:
+  - Executions by agent (time series)
+  - Agent health scores (0-100 gauge)
+  - Tasks completed per agent
+  - Messages processed per agent
+  - Execution duration p95 per agent
+- **Agent Success Table**: Sortable table showing success rates
+- **Status Breakdown**: Stacked area chart showing success/failure by agent
+- **Legend**: Includes mean and max calculations
 
-**6. Dependencies Added**
-- Installed `express` in @recursive-manager/core
-- Installed `@types/express` as dev dependency
-- Installed `supertest` and `@types/supertest` for testing
+**6. System Metrics Dashboard** (`system-metrics.json`)
+- **Resource Monitoring**:
+  - CPU usage percentage (with yellow/red thresholds at 70%/90%)
+  - Memory usage breakdown (heapUsed, heapTotal, RSS, external)
+  - Current resource gauges with thresholds
+- **System Health**:
+  - Quota violations by type
+  - Memory growth rate
+  - Overall execution duration percentiles
+- **Total Execution Rate**: System-wide execution throughput
 
-**7. Core Package Exports** (`packages/core/src/index.ts`)
-- Exported MetricsServer, startMetricsServer, and MetricsServerConfig
-- All metrics server functionality available from @recursive-manager/core
+**7. Docker Configuration Updates** (`docker-compose.yml`)
+- **Uncommented Services**: Prometheus and Grafana services now active
+- **Grafana Configuration**:
+  - Admin password via `GRAFANA_ADMIN_PASSWORD` env var (default: admin)
+  - Port 3001:3000 (Grafana UI accessible at http://localhost:3001)
+  - Volume mounts for dashboards AND datasources provisioning
+  - Depends on Prometheus service
+- **Prometheus Configuration**:
+  - Port 9090:9090 (Prometheus UI at http://localhost:9090)
+  - Scrapes RecursiveManager metrics every 15s
+  - Depends on recursive-manager service
+- **Volume Definitions**: Added prometheus-data and grafana-data volumes
 
-**8. Fixed Turbo Configuration** (`turbo.json`)
-- Updated `pipeline` to `tasks` for Turbo 2.x compatibility
+**8. Comprehensive Documentation** (`monitoring/README.md`)
+- **Quick Start Guide**: Step-by-step setup instructions
+- **Configuration Details**: All config files explained
+- **Available Metrics**: Complete list of all Prometheus metrics
+- **Dashboard Descriptions**: Detailed explanation of each dashboard panel
+- **Customization Guide**: How to add custom dashboards and alerts
+- **Troubleshooting**: Common issues and solutions
+- **Best Practices**: Security, retention, backups, resource management
+- **Backup Procedures**: Commands for backing up Prometheus and Grafana data
 
-**Usage**:
-```bash
-# Start metrics server on default port 3000
-recursive-manager metrics
+**Dashboards Include**:
+- 8+ visualization panels per dashboard (24 total panels)
+- Histogram percentile queries (p50, p95, p99)
+- Rate calculations for trends
+- Color-coded thresholds (green/yellow/red)
+- Table views with sorting
+- Legend with statistical calculations (mean, max)
+- Auto-refresh and configurable time ranges
 
-# Start on custom port
-recursive-manager metrics --port 9090
+**Access URLs** (when running):
+- Grafana: http://localhost:3001 (admin/admin)
+- Prometheus: http://localhost:9090
+- RecursiveManager Metrics: http://localhost:3000/metrics
 
-# Start on specific host
-recursive-manager metrics --host 127.0.0.1
-
-# Metrics available at: http://localhost:3000/metrics
-# Health check at: http://localhost:3000/health
-```
-
-**Docker Deployment**:
-- Metrics server runs inside container on port 3000
-- Exposed on host via `METRICS_PORT` environment variable
-- Prometheus can scrape from `recursive-manager:3000/metrics`
-- Health checks use `/health` endpoint
-
-**Next Steps for Full Monitoring**:
-- Task 9.8: Set up Grafana dashboards
+**Next Steps**:
 - Task 9.9: Add correlation IDs to logs
 - Task 9.10: Configure log levels via environment
-- Task 9.11: Create monitoring documentation
+- Task 9.11: Create monitoring documentation (PARTIALLY COMPLETE - monitoring/README.md exists)
 - Task 9.12: Set up alerting rules
 
 ### Next Task for Build Mode

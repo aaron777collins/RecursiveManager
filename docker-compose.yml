@@ -148,41 +148,40 @@ services:
   #     timeout: 10s
   #     retries: 3
 
-  # Optional: Monitoring Stack (Prometheus + Grafana)
-  # Uncomment these services to enable monitoring
-  # Note: Requires creating monitoring/prometheus.yml configuration file
-  # prometheus:
-  #   image: prom/prometheus:latest
-  #   container_name: recursive-manager-prometheus
-  #   restart: unless-stopped
-  #   volumes:
-  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-  #     - prometheus-data:/prometheus
-  #   command:
-  #     - '--config.file=/etc/prometheus/prometheus.yml'
-  #     - '--storage.tsdb.path=/prometheus'
-  #   ports:
-  #     - "9090:9090"
-  #   networks:
-  #     - recursive-manager-network
-  #   depends_on:
-  #     - recursive-manager
+  # Monitoring Stack (Prometheus + Grafana)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: recursive-manager-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - recursive-manager-network
+    depends_on:
+      - recursive-manager
 
-  # grafana:
-  #   image: grafana/grafana:latest
-  #   container_name: recursive-manager-grafana
-  #   restart: unless-stopped
-  #   environment:
-  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
-  #   volumes:
-  #     - grafana-data:/var/lib/grafana
-  #     - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
-  #   ports:
-  #     - "3001:3000"
-  #   depends_on:
-  #     - prometheus
-  #   networks:
-  #     - recursive-manager-network
+  grafana:
+    image: grafana/grafana:latest
+    container_name: recursive-manager-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - recursive-manager-network
 
 # Named volumes for data persistence
 volumes:
@@ -200,11 +199,10 @@ volumes:
       o: bind
       device: ${LOGS_VOLUME_PATH:-./logs}
 
-  # Uncomment when monitoring is enabled
-  # prometheus-data:
-  #   driver: local
-  # grafana-data:
-  #   driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
 
 # Network configuration
 networks:
