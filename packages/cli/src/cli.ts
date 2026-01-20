@@ -17,8 +17,8 @@ import { registerRollbackCommand } from './commands/rollback';
 import { registerAnalyzeCommand } from './commands/analyze';
 import { registerHireCommand } from './commands/hire';
 import { registerFireCommand } from './commands/fire';
-// TODO: Fix remaining commands
-// import { registerMessageCommand } from './commands/message';
+import { registerMessageCommand } from './commands/message';
+// TODO: Fix remaining command
 // import { registerRunCommand } from './commands/run';
 
 const program = new Command();
@@ -38,8 +38,8 @@ registerRollbackCommand(program);
 registerAnalyzeCommand(program);
 registerHireCommand(program);
 registerFireCommand(program);
-// TODO: Fix remaining commands
-// registerMessageCommand(program);
+registerMessageCommand(program);
+// TODO: Fix remaining command
 // registerRunCommand(program);
 
 // Parse command line arguments
