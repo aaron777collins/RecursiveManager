@@ -5,7 +5,7 @@
  * including analyzeDecision() method and decision triggers for lifecycle operations.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { ExecutionOrchestrator } from '../index.js';
 import type { AdapterRegistry } from '@recursive-manager/adapters';
 import type { DatabasePool } from '@recursive-manager/common';
@@ -56,20 +56,20 @@ class MockAIProvider implements AIProvider {
 
 // Mock dependencies
 const mockAdapterRegistry = {
-  getAdapter: vi.fn(),
-  hasAdapter: vi.fn(() => true),
+  getAdapter: jest.fn(),
+  hasAdapter: jest.fn(() => true),
 } as unknown as AdapterRegistry;
 
 const mockDatabase = {
-  query: vi.fn(),
-  transaction: vi.fn(),
-  release: vi.fn(),
+  query: jest.fn(),
+  transaction: jest.fn(),
+  release: jest.fn(),
 } as unknown as DatabasePool;
 
 // Mock the provider factory
-vi.mock('../../ai-analysis/providers/factory.js', () => ({
+jest.mock('../../ai-analysis/providers/factory.js', () => ({
   ProviderFactory: {
-    createWithHealthCheck: vi.fn(),
+    createWithHealthCheck: jest.fn(),
   },
 }));
 
@@ -79,14 +79,14 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis Integration', () =>
 
   beforeEach(async () => {
     // Reset mocks
-    vi.clearAllMocks();
+    jest.clearAllMocks();
 
     // Create mock provider
     mockProvider = new MockAIProvider();
 
     // Set up provider factory mock
     const { ProviderFactory } = await import('../../ai-analysis/providers/factory.js');
-    vi.mocked(ProviderFactory.createWithHealthCheck).mockResolvedValue(mockProvider);
+    jest.mocked(ProviderFactory.createWithHealthCheck).mockResolvedValue(mockProvider);
 
     // Create orchestrator
     orchestrator = new ExecutionOrchestrator({
@@ -99,7 +99,7 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis Integration', () =>
 
   afterEach(() => {
     mockProvider.reset();
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('analyzeDecision()', () => {
@@ -205,7 +205,7 @@ describe('ExecutionOrchestrator - Multi-Perspective Analysis Integration', () =>
     it('should handle provider errors gracefully', async () => {
       // Mock provider factory to throw error
       const { ProviderFactory } = await import('../../ai-analysis/providers/factory.js');
-      vi.mocked(ProviderFactory.createWithHealthCheck).mockRejectedValueOnce(
+      jest.mocked(ProviderFactory.createWithHealthCheck).mockRejectedValueOnce(
         new Error('No available AI providers')
       );
 
