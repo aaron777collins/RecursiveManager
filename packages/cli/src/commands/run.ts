@@ -13,7 +13,8 @@ import {
   getAgent,
   DatabasePool,
 } from '@recursive-manager/common';
-import { ExecutionOrchestrator, AdapterRegistry } from '@recursive-manager/core';
+import { ExecutionOrchestrator } from '@recursive-manager/core';
+import { AdapterRegistry } from '@recursive-manager/adapters';
 
 interface RunOptions {
   dataDir?: string;
