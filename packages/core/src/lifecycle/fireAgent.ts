@@ -956,6 +956,12 @@ export async function fireAgent(
     // STEP 1: VALIDATION
     logger.debug('Validating agent status', { agentId });
 
+    // Validate fire strategy
+    const validStrategies: FireStrategy[] = ['reassign', 'promote', 'cascade'];
+    if (!validStrategies.includes(strategy)) {
+      throw new FireAgentError(`Unknown fire strategy: ${strategy}`, agentId);
+    }
+
     const agent = getAgent(db, agentId);
     if (!agent) {
       throw new FireAgentError('Agent not found in database', agentId);

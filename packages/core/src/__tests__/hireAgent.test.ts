@@ -419,7 +419,7 @@ describe('hireAgent', () => {
         id: 'mgr-001',
         canHire: true,
         maxSubordinates: 2,
-        hiringBudget: 10, // High budget but low maxSubordinates
+        hiringBudget: 2, // Budget must not exceed maxSubordinates
         reportingTo: null,
       });
       await hireAgent(db, null, managerConfig, { baseDir: testDir });
