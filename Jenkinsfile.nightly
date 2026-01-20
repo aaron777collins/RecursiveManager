@@ -22,9 +22,9 @@ pipeline {
             }
         }
 
-        stage('Full Lint') {
+        stage('Full Test Suite') {
             steps {
-                sh 'npm run lint'
+                sh 'npm run test:coverage'
             }
         }
 
@@ -34,58 +34,42 @@ pipeline {
             }
         }
 
-        stage('Full Build') {
+        stage('Lint Check') {
+            steps {
+                sh 'npm run lint'
+            }
+        }
+
+        stage('Build Check') {
             steps {
                 sh 'npm run build'
             }
         }
 
-        stage('Full Test Suite') {
-            steps {
-                sh 'npm test'
-            }
-        }
-
-        stage('Test Coverage') {
-            steps {
-                sh 'npm run test:coverage'
-            }
-        }
-
         stage('Dependency Check') {
             steps {
-                echo 'Checking for outdated dependencies...'
                 sh 'npm outdated || true'
-
-                echo 'Running security audit...'
                 sh 'npm audit || true'
-            }
-        }
-
-        stage('Code Quality Checks') {
-            steps {
-                // Check code formatting
-                sh 'npm run format:check || true'
             }
         }
 
         stage('Generate Reports') {
             steps {
-                // Archive test results
-                junit(
-                    allowEmptyResults: true,
-                    testResults: '**/junit.xml,**/test-results/**/*.xml'
-                )
-
-                // Publish coverage report
+                // Publish test coverage
                 publishHTML([
                     allowMissing: true,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
                     reportDir: 'coverage',
                     reportFiles: 'index.html',
-                    reportName: 'Coverage Report'
+                    reportName: 'Nightly Coverage Report'
                 ])
+
+                // Archive test results if available
+                junit(
+                    allowEmptyResults: true,
+                    testResults: '**/junit.xml,**/test-results/**/*.xml'
+                )
             }
         }
     }
@@ -94,21 +78,17 @@ pipeline {
         always {
             script {
                 def status = currentBuild.result ?: 'SUCCESS'
+                def color = status == 'SUCCESS' ? 'good' : 'danger'
+
                 echo "Nightly Build Complete: ${status}"
 
                 // Uncomment when Slack is configured
                 // slackSend(
-                //     color: status == 'SUCCESS' ? 'good' : 'danger',
-                //     message: "Nightly Build Complete: ${status} - ${env.JOB_NAME} #${env.BUILD_NUMBER}"
+                //     color: color,
+                //     message: "Nightly Build Complete: ${status}\nJob: ${env.JOB_NAME} #${env.BUILD_NUMBER}"
                 // )
             }
             cleanWs()
-        }
-        success {
-            echo 'Nightly build passed!'
-        }
-        failure {
-            echo 'Nightly build failed - investigation needed'
         }
     }
 }
