@@ -14,6 +14,7 @@ import { registerUpdateCommand } from './commands/update';
 import { registerConfigCommand } from './commands/config';
 import { registerDebugCommand } from './commands/debug';
 import { registerRollbackCommand } from './commands/rollback';
+import { registerAnalyzeCommand } from './commands/analyze';
 
 const program = new Command();
 
@@ -29,6 +30,7 @@ registerUpdateCommand(program);
 registerConfigCommand(program);
 registerDebugCommand(program);
 registerRollbackCommand(program);
+registerAnalyzeCommand(program);
 
 // Parse command line arguments
 program.parse(process.argv);

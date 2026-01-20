@@ -61,6 +61,9 @@ export {
   type ExecutionOrchestratorOptions,
 } from './execution';
 
+// Multi-Perspective Analysis (Phase 3.1)
+export { type MultiPerspectiveResult } from './ai-analysis/multi-perspective';
+
 // Execution State Management (Phase 3.3)
 export {
   saveExecutionResult,
