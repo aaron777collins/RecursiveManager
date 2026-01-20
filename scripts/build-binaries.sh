@@ -54,6 +54,11 @@ check_prerequisites() {
 
 # Build the project
 build_project() {
+    if [ -f "$ROOT_DIR/packages/cli/dist/cli.js" ]; then
+        log_info "RecursiveManager already built, skipping build step..."
+        return 0
+    fi
+
     log_info "Building RecursiveManager..."
     cd "$ROOT_DIR"
     npm run build
