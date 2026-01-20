@@ -104,7 +104,8 @@ pipeline {
             echo 'Build failed!'
         }
         always {
-            cleanWs()
+            // Workspace will be cleaned on next build
+            echo 'Build complete'
         }
     }
 }
