@@ -21,6 +21,7 @@ import {
 import { AgentLock, AgentLockError } from './AgentLock';
 import { ExecutionPool, type PoolStatistics } from './ExecutionPool';
 import type { MultiPerspectiveResult } from '../ai-analysis/multi-perspective.js';
+import { recordExecution, recordAnalysis } from './metrics.js';
 
 // Re-export for external use
 export { AgentLock, AgentLockError };
@@ -191,6 +192,16 @@ export class ExecutionOrchestrator {
         // Calculate duration
         const duration = Date.now() - startTime;
 
+        // Record Prometheus metrics
+        recordExecution({
+          mode: 'continuous',
+          agentId,
+          durationMs: duration,
+          success: result.success,
+          tasksCompleted: result.tasksCompleted,
+          messagesProcessed: result.messagesProcessed,
+        });
+
         // Log audit event
         auditLog(dbConnection.db, {
           agentId,
@@ -213,6 +224,17 @@ export class ExecutionOrchestrator {
         return result;
       } catch (error) {
         const duration = Date.now() - startTime;
+
+        // Record failed execution metrics
+        recordExecution({
+          mode: 'continuous',
+          agentId,
+          durationMs: duration,
+          success: false,
+          tasksCompleted: 0,
+          messagesProcessed: 0,
+        });
+
         logger.error('Continuous execution failed', {
           error: error instanceof Error ? error.message : String(error),
           duration,
@@ -330,6 +352,16 @@ export class ExecutionOrchestrator {
         // Calculate duration
         const duration = Date.now() - startTime;
 
+        // Record Prometheus metrics
+        recordExecution({
+          mode: 'reactive',
+          agentId,
+          durationMs: duration,
+          success: result.success,
+          tasksCompleted: result.tasksCompleted,
+          messagesProcessed: result.messagesProcessed,
+        });
+
         // Log audit event
         auditLog(dbConnection.db, {
           agentId,
@@ -356,6 +388,17 @@ export class ExecutionOrchestrator {
         return result;
       } catch (error) {
         const duration = Date.now() - startTime;
+
+        // Record failed execution metrics
+        recordExecution({
+          mode: 'reactive',
+          agentId,
+          durationMs: duration,
+          success: false,
+          tasksCompleted: 0,
+          messagesProcessed: 0,
+        });
+
         logger.error('Reactive execution failed', {
           error: error instanceof Error ? error.message : String(error),
           duration,

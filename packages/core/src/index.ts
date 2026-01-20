@@ -67,6 +67,30 @@ export {
   type PoolStatistics,
 } from './execution';
 
+// Prometheus Metrics (Phase 9)
+export {
+  metricsRegistry,
+  executionCounter,
+  executionDuration,
+  tasksCompletedCounter,
+  messagesProcessedCounter,
+  activeExecutionsGauge,
+  queueDepthGauge,
+  queueWaitTime,
+  quotaViolationsCounter,
+  agentHealthGauge,
+  analysisCounter,
+  analysisDuration,
+  recordExecution,
+  recordAnalysis,
+  updatePoolMetrics,
+  recordQueueWaitTime,
+  recordQuotaViolation,
+  updateAgentHealth,
+  getMetrics,
+  resetMetrics,
+} from './execution/metrics';
+
 // Multi-Perspective Analysis (Phase 3.1)
 export { type MultiPerspectiveResult } from './ai-analysis/multi-perspective';
 
