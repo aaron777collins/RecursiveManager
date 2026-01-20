@@ -107,7 +107,7 @@ describe('Task Query API', () => {
       expect(task.blocked_by).toBe('[]');
       expect(task.blocked_since).toBeNull();
       expect(task.task_path).toBe('Build new feature');
-      expect(task.version).toBe(0);
+      expect(task.version).toBe(1);
       expect(task.created_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/); // ISO 8601
       expect(task.started_at).toBeNull();
       expect(task.completed_at).toBeNull();
@@ -657,13 +657,13 @@ describe('Task Query API', () => {
       });
 
       expect(task.status).toBe('pending');
-      expect(task.version).toBe(0);
+      expect(task.version).toBe(1);
 
       // Update status
       const updated = updateTaskStatus(db, task.id, 'in-progress', task.version);
 
       expect(updated.status).toBe('in-progress');
-      expect(updated.version).toBe(1); // version incremented
+      expect(updated.version).toBe(2); // version incremented
     });
 
     it('should set started_at timestamp when transitioning to in-progress', () => {
@@ -778,7 +778,7 @@ describe('Task Query API', () => {
       updateTaskStatus(db, task.id, 'in-progress', task.version);
 
       expect(() => updateTaskStatus(db, task.id, 'completed', task.version)).toThrow(
-        /Expected version 0.*modified by another process.*re-fetch/
+        /Expected version 1.*modified by another process.*re-fetch/
       );
     });
 
@@ -793,22 +793,22 @@ describe('Task Query API', () => {
       // Update 1: pending -> in-progress
       const v1 = updateTaskStatus(db, task.id, 'in-progress', task.version);
       expect(v1.status).toBe('in-progress');
-      expect(v1.version).toBe(1);
+      expect(v1.version).toBe(2);
 
       // Update 2: in-progress -> blocked
       const v2 = updateTaskStatus(db, task.id, 'blocked', v1.version);
       expect(v2.status).toBe('blocked');
-      expect(v2.version).toBe(2);
+      expect(v2.version).toBe(3);
 
       // Update 3: blocked -> in-progress
       const v3 = updateTaskStatus(db, task.id, 'in-progress', v2.version);
       expect(v3.status).toBe('in-progress');
-      expect(v3.version).toBe(3);
+      expect(v3.version).toBe(4);
 
       // Update 4: in-progress -> completed
       const v4 = updateTaskStatus(db, task.id, 'completed', v3.version);
       expect(v4.status).toBe('completed');
-      expect(v4.version).toBe(4);
+      expect(v4.version).toBe(5);
     });
 
     it('should allow all valid status transitions', () => {
@@ -847,12 +847,12 @@ describe('Task Query API', () => {
       const process1Task = getTask(db, task.id)!;
       const process2Task = getTask(db, task.id)!;
 
-      expect(process1Task.version).toBe(0);
-      expect(process2Task.version).toBe(0);
+      expect(process1Task.version).toBe(1);
+      expect(process2Task.version).toBe(1);
 
       // Process 1 updates successfully
       const process1Update = updateTaskStatus(db, task.id, 'in-progress', process1Task.version);
-      expect(process1Update.version).toBe(1);
+      expect(process1Update.version).toBe(2);
 
       // Process 2 tries to update with old version - should fail
       expect(() => updateTaskStatus(db, task.id, 'blocked', process2Task.version)).toThrow(
@@ -861,11 +861,11 @@ describe('Task Query API', () => {
 
       // Process 2 should re-fetch and retry
       const refreshedTask = getTask(db, task.id)!;
-      expect(refreshedTask.version).toBe(1);
+      expect(refreshedTask.version).toBe(2);
 
       const process2Retry = updateTaskStatus(db, task.id, 'blocked', refreshedTask.version);
       expect(process2Retry.status).toBe('blocked');
-      expect(process2Retry.version).toBe(2);
+      expect(process2Retry.version).toBe(3);
     });
   });
 
@@ -1093,7 +1093,7 @@ describe('Task Query API', () => {
       expect(returnedTask.blocked_by).toBe('[]');
       expect(returnedTask.blocked_since).toBeNull();
       expect(returnedTask.task_path).toBe('Full task');
-      expect(returnedTask.version).toBe(0);
+      expect(returnedTask.version).toBe(1);
     });
 
     it('should include tasks at all depths', () => {
@@ -1927,17 +1927,17 @@ describe('Task Query API', () => {
       });
 
       expect(task.percent_complete).toBe(0);
-      expect(task.version).toBe(0);
+      expect(task.version).toBe(1);
 
       // Update progress to 50%
       const updated1 = updateTaskProgress(db, task.id, 50, task.version);
       expect(updated1.percent_complete).toBe(50);
-      expect(updated1.version).toBe(1);
+      expect(updated1.version).toBe(2);
 
       // Update progress to 100%
       const updated2 = updateTaskProgress(db, updated1.id, 100, updated1.version);
       expect(updated2.percent_complete).toBe(100);
-      expect(updated2.version).toBe(2);
+      expect(updated2.version).toBe(3);
     });
 
     it('should clamp progress to 0-100 range', () => {
@@ -1977,7 +1977,7 @@ describe('Task Query API', () => {
       // Task should remain unchanged
       const unchanged = getTask(db, task.id);
       expect(unchanged?.percent_complete).toBe(0);
-      expect(unchanged?.version).toBe(0);
+      expect(unchanged?.version).toBe(1);
     });
 
     it('should log successful progress update to audit log', () => {
@@ -2007,8 +2007,8 @@ describe('Task Query API', () => {
       const details = JSON.parse(progressUpdate!.details!);
       expect(details.previousProgress).toBe(0);
       expect(details.newProgress).toBe(75);
-      expect(details.previousVersion).toBe(0);
-      expect(details.newVersion).toBe(1);
+      expect(details.previousVersion).toBe(1);
+      expect(details.newVersion).toBe(2);
     });
 
     it('should log failed progress update to audit log', () => {
