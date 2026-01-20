@@ -28,6 +28,8 @@ export interface QueuedTask<T = unknown> {
   queuedAt: Date;
   /** Task priority (default: 'medium') */
   priority: TaskPriority;
+  /** Task IDs that must complete before this task can execute */
+  dependencies?: string[];
 }
 
 /**
@@ -79,6 +81,8 @@ export class ExecutionPool {
   private totalQueueWaitTime = 0;
   /** Execution ID counter */
   private executionIdCounter = 0;
+  /** Set of completed execution IDs (for dependency tracking) */
+  private readonly completed: Set<string> = new Set();
 
   constructor(options: ExecutionPoolOptions = {}) {
     this.maxConcurrent = options.maxConcurrent ?? 10;
@@ -93,18 +97,28 @@ export class ExecutionPool {
    * @param agentId - Agent ID executing the task
    * @param execute - Function to execute
    * @param priority - Task priority (default: 'medium')
+   * @param dependencies - Optional array of execution IDs that must complete before this task can execute
    * @returns Promise that resolves with execution result
    */
-  async execute<T>(agentId: string, execute: () => Promise<T>, priority: TaskPriority = 'medium'): Promise<T> {
+  async execute<T>(
+    agentId: string,
+    execute: () => Promise<T>,
+    priority: TaskPriority = 'medium',
+    dependencies?: string[],
+  ): Promise<T> {
     // Generate unique execution ID
     const executionId = `exec-${++this.executionIdCounter}`;
 
-    // If pool is not at capacity, execute immediately
-    if (this.active.size < this.maxConcurrent) {
+    // Check if dependencies are satisfied
+    const hasDependencies = dependencies && dependencies.length > 0;
+    const dependenciesSatisfied = !hasDependencies || this.areDependenciesSatisfied(dependencies);
+
+    // If pool is not at capacity AND dependencies are satisfied, execute immediately
+    if (this.active.size < this.maxConcurrent && dependenciesSatisfied) {
       return this.executeTask(executionId, agentId, execute);
     }
 
-    // Queue the task and wait for a slot
+    // Queue the task and wait for a slot (or for dependencies to be satisfied)
     return new Promise<T>((resolve, reject) => {
       this.queue.push({
         executionId,
@@ -114,6 +128,7 @@ export class ExecutionPool {
         reject,
         queuedAt: new Date(),
         priority,
+        dependencies,
       });
     });
   }
@@ -133,6 +148,8 @@ export class ExecutionPool {
     try {
       const result = await execute();
       this.totalProcessed++;
+      // Mark task as completed for dependency tracking
+      this.completed.add(executionId);
       return result;
     } catch (error) {
       this.totalFailed++;
@@ -176,8 +193,9 @@ export class ExecutionPool {
    *
    * Priority ranking: urgent (4) > high (3) > medium (2) > low (1)
    * For same-priority tasks, uses FIFO order (earliest queued first)
+   * Only selects tasks whose dependencies are satisfied
    *
-   * @returns Highest priority task, or undefined if queue is empty
+   * @returns Highest priority task with satisfied dependencies, or undefined if none found
    */
   private selectHighestPriorityTask(): QueuedTask | undefined {
     if (this.queue.length === 0) {
@@ -192,22 +210,53 @@ export class ExecutionPool {
       low: 1,
     };
 
-    // Find index of highest priority task (FIFO for ties)
-    let highestPriorityIndex = 0;
-    let highestPriority = priorityRank[this.queue[0]!.priority];
+    // Find index of highest priority task with satisfied dependencies (FIFO for ties)
+    let highestPriorityIndex = -1;
+    let highestPriority = -1;
 
-    for (let i = 1; i < this.queue.length; i++) {
-      const taskPriority = priorityRank[this.queue[i]!.priority];
-      if (taskPriority > highestPriority) {
+    for (let i = 0; i < this.queue.length; i++) {
+      const task = this.queue[i]!;
+      const taskPriority = priorityRank[task.priority];
+
+      // Check if dependencies are satisfied
+      const dependenciesSatisfied = this.areDependenciesSatisfied(task.dependencies);
+
+      // Skip tasks with unsatisfied dependencies
+      if (!dependenciesSatisfied) {
+        continue;
+      }
+
+      // Select this task if it's higher priority (or first eligible task)
+      if (highestPriorityIndex === -1 || taskPriority > highestPriority) {
         highestPriority = taskPriority;
         highestPriorityIndex = i;
       }
       // For same priority, keep first task (FIFO)
     }
 
+    // No eligible tasks found
+    if (highestPriorityIndex === -1) {
+      return undefined;
+    }
+
     // Remove and return the selected task
     const [task] = this.queue.splice(highestPriorityIndex, 1);
     return task;
+  }
+
+  /**
+   * Check if all dependencies are satisfied
+   *
+   * @param dependencies - Array of execution IDs (or undefined)
+   * @returns True if all dependencies are completed (or no dependencies exist)
+   */
+  private areDependenciesSatisfied(dependencies?: string[]): boolean {
+    if (!dependencies || dependencies.length === 0) {
+      return true;
+    }
+
+    // All dependencies must be in the completed set
+    return dependencies.every((depId) => this.completed.has(depId));
   }
 
   /**
@@ -292,5 +341,28 @@ export class ExecutionPool {
    */
   getMaxConcurrent(): number {
     return this.maxConcurrent;
+  }
+
+  /**
+   * Get list of completed execution IDs
+   *
+   * Useful for verifying dependency satisfaction and debugging.
+   *
+   * @returns Array of completed execution IDs
+   */
+  getCompletedExecutions(): string[] {
+    return Array.from(this.completed);
+  }
+
+  /**
+   * Check if specific dependencies are satisfied
+   *
+   * Public method for external dependency checking.
+   *
+   * @param dependencies - Array of execution IDs to check
+   * @returns True if all dependencies are completed
+   */
+  areDependenciesComplete(dependencies: string[]): boolean {
+    return this.areDependenciesSatisfied(dependencies);
   }
 }

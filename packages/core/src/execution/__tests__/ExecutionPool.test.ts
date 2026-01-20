@@ -1039,4 +1039,252 @@ describe('ExecutionPool', () => {
       expect(executionOrder.slice(2)).toEqual(['urgent', 'low']);
     });
   });
+
+  describe('dependency handling', () => {
+    it('should execute task with satisfied dependencies immediately', async () => {
+      // Execute first task
+      await pool.execute('agent-1', async () => 'task1');
+
+      // Get the execution ID of the completed task
+      const execId1 = pool.getCompletedExecutions()[0]!;
+      expect(execId1).toBe('exec-1');
+
+      // Task 2 depends on task 1 (already completed)
+      const result = await pool.execute('agent-2', async () => 'task2', 'medium', [execId1]);
+      expect(result).toBe('task2');
+    });
+
+    it('should queue task with unsatisfied dependencies', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 10 });
+
+      const executionOrder: string[] = [];
+
+      // Start a slow task
+      const promise1 = p.execute('agent-1', async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        executionOrder.push('task1');
+        return 'task1';
+      });
+
+      // Wait a bit to ensure task1 is running
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Get the execution ID of the running task
+      const activeExecs = p.getActiveExecutions();
+      expect(activeExecs.length).toBe(1);
+
+      // Task 2 depends on task 1 (not yet completed) - should queue
+      const promise2 = p.execute(
+        'agent-2',
+        async () => {
+          executionOrder.push('task2');
+          return 'task2';
+        },
+        'medium',
+        ['exec-1'] // First execution ID
+      );
+
+      // task2 should be queued
+      await waitFor(() => p.getQueueDepth() === 1);
+      expect(executionOrder).toEqual([]); // task1 still running, task2 queued
+
+      // Wait for both to complete
+      await Promise.all([promise1, promise2]);
+
+      // task1 should complete before task2
+      expect(executionOrder).toEqual(['task1', 'task2']);
+    });
+
+    it('should handle multiple dependencies', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 10 });
+
+      const executionOrder: string[] = [];
+
+      // Start two slow tasks
+      const promise1 = p.execute('agent-1', async () => {
+        await new Promise((resolve) => setTimeout(resolve, 30));
+        executionOrder.push('task1');
+        return 'task1';
+      });
+
+      const promise2 = p.execute('agent-2', async () => {
+        await new Promise((resolve) => setTimeout(resolve, 30));
+        executionOrder.push('task2');
+        return 'task2';
+      });
+
+      // Wait for both to start
+      await waitFor(() => p.getActiveExecutions().length === 2);
+
+      // Task 3 depends on both task1 and task2
+      const promise3 = p.execute(
+        'agent-3',
+        async () => {
+          executionOrder.push('task3');
+          return 'task3';
+        },
+        'medium',
+        ['exec-1', 'exec-2']
+      );
+
+      // task3 should be queued
+      await waitFor(() => p.getQueueDepth() === 1);
+
+      await Promise.all([promise1, promise2, promise3]);
+
+      // task1 and task2 should complete before task3
+      expect(executionOrder[2]).toBe('task3');
+      expect(executionOrder.slice(0, 2)).toContain('task1');
+      expect(executionOrder.slice(0, 2)).toContain('task2');
+    });
+
+    it('should handle dependency chain (A -> B -> C)', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 10 });
+
+      const executionOrder: string[] = [];
+
+      // Start task A
+      const promiseA = p.execute('agent-1', async () => {
+        await new Promise((resolve) => setTimeout(resolve, 30));
+        executionOrder.push('taskA');
+        return 'taskA';
+      });
+
+      await waitFor(() => p.getActiveExecutions().length === 1);
+
+      // Task B depends on A
+      const promiseB = p.execute(
+        'agent-2',
+        async () => {
+          await new Promise((resolve) => setTimeout(resolve, 20));
+          executionOrder.push('taskB');
+          return 'taskB';
+        },
+        'medium',
+        ['exec-1']
+      );
+
+      // Task C depends on B
+      const promiseC = p.execute(
+        'agent-3',
+        async () => {
+          executionOrder.push('taskC');
+          return 'taskC';
+        },
+        'medium',
+        ['exec-2']
+      );
+
+      await Promise.all([promiseA, promiseB, promiseC]);
+
+      // Tasks should execute in order: A -> B -> C
+      expect(executionOrder).toEqual(['taskA', 'taskB', 'taskC']);
+    });
+
+    it('should respect priority with dependencies', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+
+      const executionOrder: string[] = [];
+
+      // Task A - runs first (fills pool)
+      const promiseA = p.execute('agent-1', async () => {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        executionOrder.push('taskA');
+        return 'taskA';
+      });
+
+      await waitFor(() => p.getActiveExecutions().length === 1);
+
+      // Task B - low priority, no dependencies
+      const promiseB = p.execute(
+        'agent-2',
+        async () => {
+          executionOrder.push('taskB-low');
+          return 'taskB';
+        },
+        'low'
+      );
+
+      // Task C - urgent priority, depends on A (satisfied when A completes)
+      const promiseC = p.execute(
+        'agent-3',
+        async () => {
+          executionOrder.push('taskC-urgent');
+          return 'taskC';
+        },
+        'urgent',
+        ['exec-1']
+      );
+
+      await waitFor(() => p.getQueueDepth() === 2);
+
+      await Promise.all([promiseA, promiseB, promiseC]);
+
+      // After A completes, C (urgent) should run before B (low)
+      expect(executionOrder).toEqual(['taskA', 'taskC-urgent', 'taskB-low']);
+    });
+
+    it('should track completed executions', async () => {
+      expect(pool.getCompletedExecutions()).toEqual([]);
+
+      await pool.execute('agent-1', async () => 'task1');
+      expect(pool.getCompletedExecutions()).toEqual(['exec-1']);
+
+      await pool.execute('agent-2', async () => 'task2');
+      expect(pool.getCompletedExecutions()).toEqual(['exec-1', 'exec-2']);
+
+      await pool.execute('agent-3', async () => 'task3');
+      expect(pool.getCompletedExecutions()).toEqual(['exec-1', 'exec-2', 'exec-3']);
+    });
+
+    it('should allow checking if dependencies are complete', async () => {
+      expect(pool.areDependenciesComplete(['exec-1'])).toBe(false);
+
+      await pool.execute('agent-1', async () => 'task1');
+
+      expect(pool.areDependenciesComplete(['exec-1'])).toBe(true);
+      expect(pool.areDependenciesComplete(['exec-1', 'exec-2'])).toBe(false);
+
+      await pool.execute('agent-2', async () => 'task2');
+
+      expect(pool.areDependenciesComplete(['exec-1', 'exec-2'])).toBe(true);
+    });
+
+    it('should not execute task if dependency never completes', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 10 });
+
+      const executionOrder: string[] = [];
+
+      // Task with non-existent dependency (exec-999) - intentionally not awaited
+      void p.execute(
+        'agent-1',
+        async () => {
+          executionOrder.push('should-not-run');
+          return 'task1';
+        },
+        'medium',
+        ['exec-999']
+      );
+
+      // Wait a bit
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Task should still be queued
+      expect(p.getQueueDepth()).toBe(1);
+      expect(executionOrder).toEqual([]);
+
+      // Task should never have executed
+      expect(executionOrder).not.toContain('should-not-run');
+    });
+
+    it('should handle empty dependencies array', async () => {
+      const result = await pool.execute('agent-1', async () => 'task1', 'medium', []);
+      expect(result).toBe('task1');
+    });
+
+    it('should handle undefined dependencies', async () => {
+      const result = await pool.execute('agent-1', async () => 'task1', 'medium', undefined);
+      expect(result).toBe('task1');
+    });
+  });
 });
