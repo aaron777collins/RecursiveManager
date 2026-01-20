@@ -1,0 +1,35 @@
+# Prometheus Configuration for RecursiveManager
+# This configuration scrapes metrics from the RecursiveManager metrics server
+
+global:
+  # How frequently to scrape targets
+  scrape_interval: 15s
+  # How long until a scrape request times out
+  scrape_timeout: 10s
+  # How frequently to evaluate rules
+  evaluation_interval: 15s
+
+# Scrape configuration
+scrape_configs:
+  # RecursiveManager metrics
+  - job_name: 'recursive-manager'
+    static_configs:
+      - targets: ['recursive-manager:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+# Alerting configuration (optional - uncomment and configure as needed)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Rule files (optional - uncomment and add rule files as needed)
+# rule_files:
+#   - '/etc/prometheus/rules/*.yml'

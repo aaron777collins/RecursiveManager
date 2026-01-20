@@ -96,6 +96,13 @@ export {
   resetMetrics,
 } from './execution/metrics';
 
+// Metrics HTTP Server (Phase 9.7)
+export {
+  MetricsServer,
+  startMetricsServer,
+  type MetricsServerConfig,
+} from './server/metrics-server';
+
 // Multi-Perspective Analysis (Phase 3.1)
 export { type MultiPerspectiveResult } from './ai-analysis/multi-perspective';
 

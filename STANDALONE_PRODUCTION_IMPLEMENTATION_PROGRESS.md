@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Tasks 9.3-9.6 COMPLETE - Completed metrics implementation phase. Task 9.3 (API request rate) skipped as RecursiveManager is CLI-only with no HTTP API server. Tasks 9.4 (error rate) and 9.5 (queue depth) already implemented via executionCounter and queueDepthGauge. Implemented task 9.6 by adding memory/CPU usage metrics: memoryUsageGauge (heapUsed, heapTotal, rss, external) and cpuUsageGauge with helper functions updateMemoryUsage(), updateCpuUsage(), updateSystemMetrics(). Added comprehensive test suite covering all new metrics. Exported all new metrics and functions from core package index. System metrics now ready for collection and monitoring.
+**Current Iteration Summary**: ✅ Task 9.7 COMPLETE - Configured Prometheus scraping endpoint. Created complete HTTP metrics server (MetricsServer class) with Express.js serving Prometheus metrics at GET /metrics endpoint. Implemented CLI command 'recursive-manager metrics' with port/host configuration. Added comprehensive test suite with 15 test cases using supertest. Updated Docker configuration with health checks using /health endpoint. Created Prometheus configuration file (monitoring/prometheus.yml) for scraping metrics. Fixed turbo.json for Turbo 2.x compatibility (pipeline → tasks). All metrics now accessible via HTTP for Prometheus scraping. Phase 9 now 7/12 tasks complete.
 
 ## Analysis
 
@@ -341,7 +341,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 9.4: Add error rate metrics (Already implemented - executionCounter with status=success/failure)
 - [x] 9.5: Add queue depth metrics (Already implemented - queueDepthGauge)
 - [x] 9.6: Add memory/CPU usage metrics (Implemented memoryUsageGauge and cpuUsageGauge)
-- [ ] 9.7: Configure Prometheus scraping endpoint
+- [x] 9.7: Configure Prometheus scraping endpoint
 - [ ] 9.8: Set up Grafana dashboards
 - [ ] 9.9: Add correlation IDs to all logs
 - [ ] 9.10: Configure log levels via environment
@@ -473,45 +473,111 @@ The plan has 12 phases, but dependencies are:
 - ✅ **Phase 6: COMPLETE** - Security hardening complete
 - ⚠️ **Phase 7: BLOCKED** - Jenkins CI/CD requires system-level access (no sudo in container)
 - ✅ **Phase 8: COMPLETE** - Docker production deployment fully working (12/12 tasks complete)
-- 🔄 **Phase 9: IN PROGRESS** - Monitoring and metrics implementation in progress (2/12 tasks complete)
+- 🔄 **Phase 9: IN PROGRESS** - Monitoring and metrics implementation in progress (7/12 tasks complete)
 - ⏸️ **Phase 10-12: NOT STARTED**
 
 ### Completed This Iteration
 
-**Tasks 9.3-9.6: Complete Metrics Implementation** ✅
+**Task 9.7: Configure Prometheus Scraping Endpoint** ✅
 
-**Task 9.3: API Request Rate Metrics** - SKIPPED ✅
-- Determined RecursiveManager has no HTTP API server (CLI-only system)
-- No API endpoints to meter or track request rates
-- Marked as N/A for this architecture
+Implemented a complete HTTP metrics server for Prometheus scraping:
 
-**Task 9.4: Error Rate Metrics** - ALREADY IMPLEMENTED ✅
-- Verified executionCounter already tracks errors via status label
-- Labels: mode (continuous|reactive), status (success|failure), agent_id
-- No additional implementation needed
+**1. MetricsServer Implementation** (`packages/core/src/server/metrics-server.ts`)
+- Created Express-based HTTP server with metrics endpoint
+- Endpoints implemented:
+  - `GET /` - Server information and available endpoints
+  - `GET /health` - Health check with uptime and timestamp
+  - `GET /metrics` - Prometheus metrics in text format (Content-Type: text/plain; version=0.0.4)
+- Features:
+  - Configurable host and port
+  - Request logging with duration tracking
+  - Graceful start/stop with error handling
+  - Security: Disabled X-Powered-By header
+  - 404 handler for unknown routes
+  - Global error handler
+  - Port conflict detection and error reporting
+- Exports: MetricsServer class, startMetricsServer helper, MetricsServerConfig type
 
-**Task 9.5: Queue Depth Metrics** - ALREADY IMPLEMENTED ✅
-- Verified queueDepthGauge already exists and tracks queue depth
-- Updates via updatePoolMetrics() helper function
-- No additional implementation needed
+**2. CLI Command** (`packages/cli/src/commands/metrics.ts`)
+- Implemented `recursive-manager metrics` command
+- Options:
+  - `-p, --port <port>` - Port to listen on (default: 3000)
+  - `-h, --host <host>` - Host to bind to (default: 0.0.0.0)
+- Features:
+  - Port validation (1-65535 range)
+  - Colored console output with endpoint URLs
+  - Graceful shutdown on SIGINT/SIGTERM
+  - Helpful error messages with suggestions for port conflicts
+- Registered in CLI entry point (`packages/cli/src/cli.ts`)
 
-**Task 9.6: Memory/CPU Usage Metrics** - IMPLEMENTED ✅
-- Added memoryUsageGauge with labels for memory types:
-  - heapUsed: Current heap memory usage
-  - heapTotal: Total heap size
-  - rss: Resident Set Size
-  - external: External memory (buffers, etc.)
-- Added cpuUsageGauge for CPU usage percentage (0-100)
-- Implemented helper functions:
-  - updateMemoryUsage(): Collects process.memoryUsage() and updates gauge
-  - updateCpuUsage(): Calculates CPU percentage from process.cpuUsage()
-  - updateSystemMetrics(): Convenience function to update both
-- Exported all new metrics and functions from @recursive-manager/core
-- Created comprehensive test suite covering:
-  - Memory metric collection and labels
-  - CPU metric calculation and percentage capping
-  - System metrics batch update
-  - Multiple consecutive calls handling
+**3. Docker Configuration Updates** (`docker-compose.yml`)
+- Updated port exposure comment to clarify metrics server usage
+- Changed healthcheck to use metrics server health endpoint: `GET /health`
+- Added `METRICS_PORT` environment variable support (default: 3000)
+- Updated Prometheus service configuration with dependency on recursive-manager
+- Added note about requiring `monitoring/prometheus.yml` configuration file
+
+**4. Prometheus Configuration** (`monitoring/prometheus.yml`)
+- Created Prometheus scrape configuration
+- Configured to scrape RecursiveManager at `recursive-manager:3000/metrics`
+- Scrape interval: 15s, timeout: 10s
+- Included Prometheus self-monitoring job
+- Added placeholders for alerting and rule files
+
+**5. Comprehensive Test Suite** (`packages/core/src/server/__tests__/metrics-server.test.ts`)
+- 15 test cases covering:
+  - Server construction with default and custom hosts
+  - Start/stop lifecycle
+  - Port conflict detection
+  - All endpoints (/, /health, /metrics)
+  - Error handling for metrics generation failures
+  - 404 handling for unknown routes
+  - Security (X-Powered-By header removal)
+  - Prometheus content-type header validation
+  - Helper function (startMetricsServer)
+  - Express app instance access
+- Uses supertest for HTTP endpoint testing
+- Mocks getMetrics function for isolation
+
+**6. Dependencies Added**
+- Installed `express` in @recursive-manager/core
+- Installed `@types/express` as dev dependency
+- Installed `supertest` and `@types/supertest` for testing
+
+**7. Core Package Exports** (`packages/core/src/index.ts`)
+- Exported MetricsServer, startMetricsServer, and MetricsServerConfig
+- All metrics server functionality available from @recursive-manager/core
+
+**8. Fixed Turbo Configuration** (`turbo.json`)
+- Updated `pipeline` to `tasks` for Turbo 2.x compatibility
+
+**Usage**:
+```bash
+# Start metrics server on default port 3000
+recursive-manager metrics
+
+# Start on custom port
+recursive-manager metrics --port 9090
+
+# Start on specific host
+recursive-manager metrics --host 127.0.0.1
+
+# Metrics available at: http://localhost:3000/metrics
+# Health check at: http://localhost:3000/health
+```
+
+**Docker Deployment**:
+- Metrics server runs inside container on port 3000
+- Exposed on host via `METRICS_PORT` environment variable
+- Prometheus can scrape from `recursive-manager:3000/metrics`
+- Health checks use `/health` endpoint
+
+**Next Steps for Full Monitoring**:
+- Task 9.8: Set up Grafana dashboards
+- Task 9.9: Add correlation IDs to logs
+- Task 9.10: Configure log levels via environment
+- Task 9.11: Create monitoring documentation
+- Task 9.12: Set up alerting rules
 
 ### Next Task for Build Mode
 
