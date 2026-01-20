@@ -8,6 +8,7 @@ import { MarketingAgent } from './agents/marketing.js';
 import { UXAgent } from './agents/ux.js';
 import { GrowthAgent } from './agents/growth.js';
 import { EmotionalAgent } from './agents/emotional.js';
+import { AnalysisCache, globalAnalysisCache } from './cache.js';
 
 /**
  * Result of multi-perspective analysis combining all 8 agent perspectives
@@ -41,6 +42,7 @@ export interface MultiPerspectiveResult {
  * - Variance-based confidence scoring (lower confidence if high disagreement)
  * - Executive summary synthesizing all perspectives
  * - Full metadata tracking (execution time, timestamps)
+ * - Intelligent caching (identical contexts return cached results)
  *
  * Example Usage:
  * ```typescript
@@ -57,13 +59,15 @@ export interface MultiPerspectiveResult {
  */
 export class MultiPerspectiveAnalysis {
   private agents: PerspectiveAgent[];
+  private cache: AnalysisCache;
 
   /**
    * Creates a new MultiPerspectiveAnalysis orchestrator
    *
    * @param provider - AI provider to use for all 8 agents
+   * @param cache - Optional cache instance (defaults to global cache)
    */
-  constructor(provider: AIProvider) {
+  constructor(provider: AIProvider, cache?: AnalysisCache) {
     // Initialize all 8 perspective agents with the same provider
     this.agents = [
       new SecurityAgent(provider),
@@ -75,10 +79,17 @@ export class MultiPerspectiveAnalysis {
       new GrowthAgent(provider),
       new EmotionalAgent(provider)
     ];
+
+    // Use provided cache or default to global singleton
+    this.cache = cache ?? globalAnalysisCache;
   }
 
   /**
    * Analyzes a question or decision from all 8 perspectives in parallel
+   *
+   * Uses intelligent caching to avoid redundant API calls for identical
+   * contexts. Cache hits return results immediately, cache misses perform
+   * full analysis and cache the result.
    *
    * @param context - The question, decision, or context to analyze
    * @returns MultiPerspectiveResult with all analyses and aggregated insights
@@ -89,6 +100,13 @@ export class MultiPerspectiveAnalysis {
    * ```
    */
   async analyze(context: string): Promise<MultiPerspectiveResult> {
+    // Check cache first
+    const cached = this.cache.get(context);
+    if (cached) {
+      return cached as MultiPerspectiveResult;
+    }
+
+    // Cache miss - perform full analysis
     const startTime = Date.now();
 
     // Run all 8 agents in parallel for speed
@@ -105,6 +123,9 @@ export class MultiPerspectiveAnalysis {
       executionTime: Date.now() - startTime,
       timestamp: new Date().toISOString()
     };
+
+    // Cache the result for future requests
+    this.cache.set(context, result);
 
     return result;
   }
@@ -177,5 +198,32 @@ export class MultiPerspectiveAnalysis {
    */
   getPerspectiveNames(): string[] {
     return this.agents.map(agent => agent.perspective);
+  }
+
+  /**
+   * Gets cache statistics for monitoring
+   *
+   * @returns Cache statistics including hits, misses, size, hit rate
+   */
+  getCacheStats() {
+    return this.cache.getStats();
+  }
+
+  /**
+   * Clears the analysis cache
+   *
+   * Useful for testing or when you want to force re-analysis
+   */
+  clearCache(): void {
+    this.cache.clear();
+  }
+
+  /**
+   * Manually removes expired cache entries (garbage collection)
+   *
+   * @returns Number of entries removed
+   */
+  cleanupCache(): number {
+    return this.cache.cleanup();
   }
 }
