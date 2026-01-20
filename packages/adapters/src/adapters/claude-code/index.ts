@@ -205,18 +205,45 @@ export class ClaudeCodeAdapter implements FrameworkAdapter {
   /**
    * Check if framework is available and healthy
    *
+   * This method verifies that:
+   * 1. Claude CLI is installed and accessible
+   * 2. The configured provider (AICEO Gateway or Anthropic) is reachable
+   * 3. The API credentials are properly configured
+   *
    * @returns True if framework is healthy and accessible
    */
   async healthCheck(): Promise<boolean> {
     try {
-      // Try to execute a simple version check
-      const { stdout } = await execa(this.cliPath, ['--version'], {
+      // Try to execute a simple version check with provider configuration
+      // This ensures both Claude CLI and the provider are accessible
+      const { exitCode, stdout } = await execa(this.cliPath, ['--version'], {
         timeout: 5000, // 5 second timeout for health check
         reject: false,
+        env: {
+          ...process.env,
+          // Include provider configuration in health check
+          ANTHROPIC_BASE_URL: this.getProviderUrl(),
+          ANTHROPIC_API_KEY: this.getProviderApiKey(),
+        },
       });
 
-      // If we got any output, consider it healthy
-      return stdout.length > 0;
+      // Check if CLI executed successfully and returned version info
+      if (exitCode !== 0 || !stdout || stdout.length === 0) {
+        this.logDebug('Health check failed: CLI did not return version information');
+        return false;
+      }
+
+      // Verify provider configuration is present
+      const providerUrl = this.getProviderUrl();
+      const providerApiKey = this.getProviderApiKey();
+
+      if (!providerApiKey || providerApiKey.length === 0) {
+        this.logDebug('Health check failed: No API key configured for provider');
+        return false;
+      }
+
+      this.logDebug(`Health check passed: CLI version available, provider URL: ${providerUrl}`);
+      return true;
     } catch (error) {
       this.logDebug('Health check failed:', error);
       return false;

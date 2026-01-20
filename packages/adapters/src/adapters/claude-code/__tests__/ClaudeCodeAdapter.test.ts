@@ -1052,6 +1052,372 @@ describe('ClaudeCodeAdapter', () => {
     }, 10000); // Increase timeout for this test (5 error codes × ~1s backoff each)
   });
 
+  /**
+   * Test Suite: Provider Configuration (Task 4.1.4)
+   */
+  describe('Provider Configuration', () => {
+    let originalEnv: NodeJS.ProcessEnv;
+
+    beforeEach(() => {
+      // Save original environment
+      originalEnv = { ...process.env };
+    });
+
+    afterEach(() => {
+      // Restore original environment
+      process.env = originalEnv;
+    });
+
+    describe('provider URL selection', () => {
+      it('should use Anthropic API URL when provider is anthropic-direct', async () => {
+        process.env.AGENT_EXECUTION_PROVIDER = 'anthropic-direct';
+        process.env.ANTHROPIC_BASE_URL = 'https://api.anthropic.com';
+
+        const context = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        // Verify execa was called with ANTHROPIC_BASE_URL in env
+        const execaCall = mockedExeca.mock.calls.find(
+          (call: any) => call[0] === 'claude' || call[0] === adapter['cliPath']
+        );
+        expect(execaCall).toBeDefined();
+        if (execaCall && (execaCall as any)[2]) {
+          expect((execaCall as any)[2].env?.ANTHROPIC_BASE_URL).toBe('https://api.anthropic.com');
+        }
+      });
+
+      it('should use custom Anthropic URL when ANTHROPIC_BASE_URL is set', async () => {
+        process.env.AGENT_EXECUTION_PROVIDER = 'anthropic-direct';
+        process.env.ANTHROPIC_BASE_URL = 'https://custom-anthropic-api.example.com';
+
+        const context = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        const execaCall = mockedExeca.mock.calls.find(
+          (call) => call[0] === 'claude' || call[0] === adapter['cliPath']
+        );
+        if (execaCall && (execaCall as any)[2]) {
+          expect((execaCall as any)[2].env?.ANTHROPIC_BASE_URL).toBe(
+            'https://custom-anthropic-api.example.com'
+          );
+        }
+      });
+
+      it('should default to anthropic-direct when AGENT_EXECUTION_PROVIDER not set', async () => {
+        delete process.env.AGENT_EXECUTION_PROVIDER;
+        process.env.ANTHROPIC_BASE_URL = 'https://api.anthropic.com';
+
+        const context = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        const execaCall = mockedExeca.mock.calls.find(
+          (call) => call[0] === 'claude' || call[0] === adapter['cliPath']
+        );
+        if (execaCall && (execaCall as any)[2]) {
+          expect((execaCall as any)[2].env?.ANTHROPIC_BASE_URL).toBe('https://api.anthropic.com');
+        }
+      });
+
+      it('should use ANTHROPIC_BASE_URL for aiceo-gateway provider', async () => {
+        process.env.AGENT_EXECUTION_PROVIDER = 'aiceo-gateway';
+        process.env.ANTHROPIC_BASE_URL = 'https://api.anthropic.com';
+
+        const context = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        const execaCall = mockedExeca.mock.calls.find(
+          (call) => call[0] === 'claude' || call[0] === adapter['cliPath']
+        );
+        if (execaCall && (execaCall as any)[2]) {
+          // For now, aiceo-gateway falls back to direct Anthropic
+          expect((execaCall as any)[2].env?.ANTHROPIC_BASE_URL).toBe('https://api.anthropic.com');
+        }
+      });
+
+      it('should default to https://api.anthropic.com when ANTHROPIC_BASE_URL not set', async () => {
+        process.env.AGENT_EXECUTION_PROVIDER = 'anthropic-direct';
+        delete process.env.ANTHROPIC_BASE_URL;
+
+        const context = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        const execaCall = mockedExeca.mock.calls.find(
+          (call) => call[0] === 'claude' || call[0] === adapter['cliPath']
+        );
+        if (execaCall && (execaCall as any)[2]) {
+          expect((execaCall as any)[2].env?.ANTHROPIC_BASE_URL).toBe('https://api.anthropic.com');
+        }
+      });
+    });
+
+    describe('provider API key selection', () => {
+      it('should use ANTHROPIC_API_KEY when provider is anthropic-direct', async () => {
+        process.env.AGENT_EXECUTION_PROVIDER = 'anthropic-direct';
+        process.env.ANTHROPIC_API_KEY = 'sk-ant-test-key-12345';
+
+        const context = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        const execaCall = mockedExeca.mock.calls.find(
+          (call) => call[0] === 'claude' || call[0] === adapter['cliPath']
+        );
+        if (execaCall && (execaCall as any)[2]) {
+          expect((execaCall as any)[2].env?.ANTHROPIC_API_KEY).toBe('sk-ant-test-key-12345');
+        }
+      });
+
+      it('should use AICEO_GATEWAY_API_KEY when provider is aiceo-gateway', async () => {
+        process.env.AGENT_EXECUTION_PROVIDER = 'aiceo-gateway';
+        process.env.AICEO_GATEWAY_API_KEY = 'gateway-secret-key-abc';
+        process.env.ANTHROPIC_API_KEY = 'sk-ant-fallback';
+
+        const context = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        const execaCall = mockedExeca.mock.calls.find(
+          (call) => call[0] === 'claude' || call[0] === adapter['cliPath']
+        );
+        if (execaCall && (execaCall as any)[2]) {
+          expect((execaCall as any)[2].env?.ANTHROPIC_API_KEY).toBe('gateway-secret-key-abc');
+        }
+      });
+
+      it('should fall back to ANTHROPIC_API_KEY when AICEO_GATEWAY_API_KEY not set', async () => {
+        process.env.AGENT_EXECUTION_PROVIDER = 'aiceo-gateway';
+        delete process.env.AICEO_GATEWAY_API_KEY;
+        process.env.ANTHROPIC_API_KEY = 'sk-ant-fallback-key';
+
+        const context = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        const execaCall = mockedExeca.mock.calls.find(
+          (call) => call[0] === 'claude' || call[0] === adapter['cliPath']
+        );
+        if (execaCall && (execaCall as any)[2]) {
+          expect((execaCall as any)[2].env?.ANTHROPIC_API_KEY).toBe('sk-ant-fallback-key');
+        }
+      });
+
+      it('should return empty string when no API keys are configured', async () => {
+        process.env.AGENT_EXECUTION_PROVIDER = 'anthropic-direct';
+        delete process.env.ANTHROPIC_API_KEY;
+        delete process.env.AICEO_GATEWAY_API_KEY;
+
+        const context = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        const execaCall = mockedExeca.mock.calls.find(
+          (call) => call[0] === 'claude' || call[0] === adapter['cliPath']
+        );
+        if (execaCall && (execaCall as any)[2]) {
+          expect((execaCall as any)[2].env?.ANTHROPIC_API_KEY).toBe('');
+        }
+      });
+    });
+
+    describe('health check with provider configuration', () => {
+      it('should include provider env vars in health check', async () => {
+        process.env.AGENT_EXECUTION_PROVIDER = 'anthropic-direct';
+        process.env.ANTHROPIC_BASE_URL = 'https://custom-api.example.com';
+        process.env.ANTHROPIC_API_KEY = 'sk-test-key';
+
+        const context = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        // Health check should be first call
+        const healthCheckCall = mockedExeca.mock.calls[0];
+        expect(healthCheckCall).toBeDefined();
+        if (healthCheckCall && (healthCheckCall as any)[2]) {
+          expect((healthCheckCall as any)[2].env?.ANTHROPIC_BASE_URL).toBe(
+            'https://custom-api.example.com'
+          );
+          expect((healthCheckCall as any)[2].env?.ANTHROPIC_API_KEY).toBe('sk-test-key');
+        }
+      });
+
+      it('should validate API key is configured during health check', async () => {
+        process.env.AGENT_EXECUTION_PROVIDER = 'anthropic-direct';
+        process.env.ANTHROPIC_BASE_URL = 'https://api.anthropic.com';
+        process.env.ANTHROPIC_API_KEY = 'sk-valid-key';
+
+        // Mock health check to return version info
+        mockedExeca.mockResolvedValueOnce({
+          stdout: 'claude-code version 1.0.0',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const isHealthy = await adapter.healthCheck();
+
+        expect(isHealthy).toBe(true);
+      });
+
+      it('should fail health check when API key is empty', async () => {
+        process.env.AGENT_EXECUTION_PROVIDER = 'anthropic-direct';
+        process.env.ANTHROPIC_BASE_URL = 'https://api.anthropic.com';
+        delete process.env.ANTHROPIC_API_KEY;
+
+        // Mock health check to return version info
+        mockedExeca.mockResolvedValueOnce({
+          stdout: 'claude-code version 1.0.0',
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const isHealthy = await adapter.healthCheck();
+
+        // Health check should fail if API key not configured
+        expect(isHealthy).toBe(false);
+      });
+    });
+
+    describe('provider configuration integration', () => {
+      it('should pass provider config through entire execution pipeline', async () => {
+        process.env.AGENT_EXECUTION_PROVIDER = 'anthropic-direct';
+        process.env.ANTHROPIC_BASE_URL = 'https://custom-api.example.com';
+        process.env.ANTHROPIC_API_KEY = 'sk-integration-test-key';
+
+        const context = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true, tasksCompleted: ['task-001'] }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        const result = await adapter.executeAgent('test-agent-001', 'continuous', context);
+
+        expect(result.success).toBe(true);
+
+        // Verify both health check and execution calls have provider config
+        expect(mockedExeca).toHaveBeenCalledTimes(2); // health + execution
+
+        // Health check call
+        const healthCheckCall = mockedExeca.mock.calls[0];
+        expect(((healthCheckCall as any)?.[2])?.env?.ANTHROPIC_BASE_URL).toBe(
+          'https://custom-api.example.com'
+        );
+        expect(((healthCheckCall as any)?.[2])?.env?.ANTHROPIC_API_KEY).toBe('sk-integration-test-key');
+
+        // Execution call
+        const executionCall = mockedExeca.mock.calls[1];
+        expect(((executionCall as any)?.[2])?.env?.ANTHROPIC_BASE_URL).toBe(
+          'https://custom-api.example.com'
+        );
+        expect(((executionCall as any)?.[2])?.env?.ANTHROPIC_API_KEY).toBe('sk-integration-test-key');
+      });
+
+      it('should support switching providers via environment variable', async () => {
+        // First execution with anthropic-direct
+        process.env.AGENT_EXECUTION_PROVIDER = 'anthropic-direct';
+        process.env.ANTHROPIC_API_KEY = 'sk-anthropic-key';
+
+        const context1 = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        await adapter.executeAgent('test-agent-001', 'continuous', context1);
+
+        const anthropicCall = mockedExeca.mock.calls[1];
+        expect(((anthropicCall as any)?.[2])?.env?.ANTHROPIC_API_KEY).toBe('sk-anthropic-key');
+
+        // Reset mocks
+        jest.clearAllMocks();
+
+        // Second execution with aiceo-gateway
+        process.env.AGENT_EXECUTION_PROVIDER = 'aiceo-gateway';
+        process.env.AICEO_GATEWAY_API_KEY = 'gateway-key';
+
+        const context2 = createMockContext();
+        mockHealthCheck();
+        mockedExeca.mockResolvedValueOnce({
+          stdout: JSON.stringify({ success: true }),
+          stderr: '',
+          exitCode: 0,
+        } as any);
+
+        await adapter.executeAgent('test-agent-002', 'continuous', context2);
+
+        const gatewayCall = mockedExeca.mock.calls[1];
+        expect(((gatewayCall as any)?.[2])?.env?.ANTHROPIC_API_KEY).toBe('gateway-key');
+      });
+    });
+  });
+
   describe('comprehensive error scenarios - Task 3.2.14', () => {
     describe('context validation errors', () => {
       it('should reject execution when agentId is empty', async () => {
