@@ -353,7 +353,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
 
       // First process acquires lock
       await acquirePidLock(processName);
-      expect(await isProcessRunningByPid(processName)).toBe(true);
+      expect(await isProcessRunningByPid(processName)).not.toBeNull();
 
       // Second process should be blocked
       await expect(acquirePidLock(processName)).rejects.toThrow(PidError);
@@ -368,15 +368,15 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
 
       // First process
       await acquirePidLock(processName);
-      expect(await isProcessRunningByPid(processName)).toBe(true);
+      expect(await isProcessRunningByPid(processName)).not.toBeNull();
 
       // Remove PID file (simulating process exit)
       await removePidFile(processName);
-      expect(await isProcessRunningByPid(processName)).toBe(false);
+      expect(await isProcessRunningByPid(processName)).toBeNull();
 
       // Second process can now acquire lock
       await acquirePidLock(processName);
-      expect(await isProcessRunningByPid(processName)).toBe(true);
+      expect(await isProcessRunningByPid(processName)).not.toBeNull();
 
       // Clean up
       await removePidFile(processName);
@@ -397,13 +397,13 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
         hostname: os.hostname(),
       });
 
-      // isProcessRunningByPid should detect it's stale and return false
+      // isProcessRunningByPid should detect it's stale and return null
       const isRunning = await isProcessRunningByPid(processName);
-      expect(isRunning).toBe(false);
+      expect(isRunning).toBeNull();
 
       // Should be able to acquire lock (stale file cleaned up)
       await acquirePidLock(processName);
-      expect(await isProcessRunningByPid(processName)).toBe(true);
+      expect(await isProcessRunningByPid(processName)).not.toBeNull();
 
       // Clean up
       await removePidFile(processName);

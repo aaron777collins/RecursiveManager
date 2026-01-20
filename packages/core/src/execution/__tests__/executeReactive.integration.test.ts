@@ -559,7 +559,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
 
-      const channels: Array<'email' | 'slack' | 'telegram'> = ['email', 'slack', 'telegram'];
+      const channels: Array<'email' | 'slack' | 'telegram' | 'internal'> = ['email', 'slack', 'telegram', 'internal'];
       channels.forEach((channel, idx) => {
         createMessage(db, {
           id: `msg-${idx}`,
@@ -624,7 +624,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
   describe('Adapter Fallback', () => {
     it('should use fallback adapter when primary is unhealthy', async () => {
       const fallbackAdapter: FrameworkAdapter = {
-        name: 'fallback-adapter',
+        name: 'fallback',
         async executeAgent(
           _agentId: string,
           _mode: 'continuous' | 'reactive',
@@ -656,7 +656,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
 
       const agentId = 'test-012';
       const config = createValidConfig(agentId, 'Support', 'mock-adapter');
-      config.framework.fallback = 'fallback-adapter';
+      config.framework.fallback = 'fallback';
 
       createAgent(db, {
         id: agentId,
@@ -684,7 +684,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       expect(executionLog).toBeDefined();
       const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.usedFallback).toBe(true);
-      expect(metadata.adapter).toBe('fallback-adapter');
+      expect(metadata.adapter).toBe('fallback');
     });
 
     it('should fail if no healthy adapter available', async () => {
@@ -730,9 +730,9 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
 
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support'));
 
-      // Make execution slow to test concurrency
+      // Make execution slow to test concurrency - reuse mock-adapter name
       const slowAdapter: FrameworkAdapter = {
-        name: 'slow-adapter',
+        name: 'mock-adapter',
         async executeAgent(
           _agentId: string,
           _mode: 'continuous' | 'reactive',
@@ -758,10 +758,11 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
         },
       };
 
+      // Replace the mock adapter with the slow one (same name, different implementation)
       adapterRegistry.register(slowAdapter);
 
-      // Update agent to use slow adapter
-      await saveAgentConfig(agentId, createValidConfig(agentId, 'Support', 'slow-adapter'));
+      // Config already uses mock-adapter, which now points to slowAdapter
+      // No need to update config again
 
       const trigger1 = { type: 'manual' as const, timestamp: new Date() };
       const trigger2 = { type: 'manual' as const, timestamp: new Date() };
@@ -987,7 +988,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       const executionLog = auditLogs.find((log) => log.action === 'execute_end');
       expect(executionLog).toBeDefined();
       expect(executionLog?.agent_id).toBe(agentId);
-      expect(executionLog?.action).toBe('execute');
+      expect(executionLog?.action).toBe('execute_end');
       expect(executionLog?.success).toBe(1); // SQLite stores booleans as 0/1
 
       const metadata = JSON.parse(executionLog?.details || '{}');

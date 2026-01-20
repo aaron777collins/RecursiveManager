@@ -625,14 +625,16 @@ describe('Agent Query API', () => {
       }
 
       // Query audit log for failed HIRE
+      // Note: Failed HIRE actions have targetAgentId=null since the agent doesn't exist yet
+      // The attempted agent ID is stored in the details field instead
       const auditEvents = queryAuditLog(db, {
         action: AuditAction.HIRE,
-        targetAgentId: 'ceo-001',
         success: false,
       });
 
       expect(auditEvents).toHaveLength(1);
       expect(auditEvents[0]!.success).toBe(0); // SQLite boolean as 0
+      expect(auditEvents[0]!.details).toContain('ceo-001'); // Attempted agent ID in details
       expect(auditEvents[0]!.details).toContain('error');
     });
   });

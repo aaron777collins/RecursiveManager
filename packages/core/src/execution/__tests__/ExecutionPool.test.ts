@@ -435,10 +435,10 @@ describe('ExecutionPool', () => {
         const promise1 = p.execute('agent-1', createDelayedTask('success', 50));
         const promise2 = p.execute('agent-2', createFailingTask(new Error('fail'), 30));
 
+        await expect(promise2).rejects.toThrow('fail');
+
         const result1 = await promise1;
         expect(result1).toBe('success');
-
-        await expect(promise2).rejects.toThrow('fail');
       });
 
       it('should decrement activeCount even on error', async () => {
@@ -603,10 +603,10 @@ describe('ExecutionPool', () => {
 
       expect(p.getQueueDepth()).toBe(0);
 
-      await promise1;
-
       await expect(promise2).rejects.toThrow('Task cancelled');
       await expect(promise3).rejects.toThrow('Task cancelled');
+
+      await promise1;
     });
 
     it('should not affect active tasks', async () => {
@@ -621,14 +621,14 @@ describe('ExecutionPool', () => {
 
       p.clearQueue();
 
+      // Queued task should be rejected
+      await expect(promise3).rejects.toThrow('Task cancelled');
+
       // Active tasks should complete successfully
       const result1 = await promise1;
       const result2 = await promise2;
       expect(result1).toBe('r1');
       expect(result2).toBe('r2');
-
-      // Queued task should be rejected
-      await expect(promise3).rejects.toThrow('Task cancelled');
     });
 
     it('should work on empty queue', () => {

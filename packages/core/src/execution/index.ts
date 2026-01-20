@@ -140,7 +140,7 @@ export class ExecutionOrchestrator {
         // Load agent record from database
         const agent = await getAgent(dbConnection.db, agentId);
         if (!agent) {
-          throw new ExecutionError(`Agent not found: ${agentId}`);
+          throw new ExecutionError(`Agent ${agentId} not found`);
         }
         agentExists = true;
 
@@ -279,7 +279,7 @@ export class ExecutionOrchestrator {
         // Load agent record from database
         const agent = await getAgent(dbConnection.db, agentId);
         if (!agent) {
-          throw new ExecutionError(`Agent not found: ${agentId}`);
+          throw new ExecutionError(`Agent ${agentId} not found`);
         }
         agentExists = true;
 

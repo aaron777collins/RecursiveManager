@@ -603,11 +603,13 @@ describe('Task Lifecycle Integration Tests', () => {
       });
 
       // Set up circular blocking relationships
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET status = ?, blocked_by = ? WHERE id = ?').run(
+        'blocked',
         JSON.stringify([taskB.id]),
         taskA.id
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET status = ?, blocked_by = ? WHERE id = ?').run(
+        'blocked',
         JSON.stringify([taskA.id]),
         taskB.id
       );
@@ -724,11 +726,13 @@ describe('Task Lifecycle Integration Tests', () => {
         priority: 'high',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET status = ?, blocked_by = ? WHERE id = ?').run(
+        'blocked',
         JSON.stringify([taskB.id]),
         taskA.id
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET status = ?, blocked_by = ? WHERE id = ?').run(
+        'blocked',
         JSON.stringify([taskA.id]),
         taskB.id
       );
@@ -750,11 +754,13 @@ describe('Task Lifecycle Integration Tests', () => {
         priority: 'high',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET status = ?, blocked_by = ? WHERE id = ?').run(
+        'blocked',
         JSON.stringify([taskD.id]),
         taskC.id
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET status = ?, blocked_by = ? WHERE id = ?').run(
+        'blocked',
         JSON.stringify([taskC.id]),
         taskD.id
       );
@@ -768,7 +774,8 @@ describe('Task Lifecycle Integration Tests', () => {
         priority: 'low',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET status = ?, blocked_by = ? WHERE id = ?').run(
+        'blocked',
         JSON.stringify(['non-existent-task']),
         taskE.id
       );
@@ -877,15 +884,18 @@ describe('Task Lifecycle Integration Tests', () => {
         priority: 'high',
       });
 
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET status = ?, blocked_by = ? WHERE id = ?').run(
+        'blocked',
         JSON.stringify([taskB.id]),
         taskA.id
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET status = ?, blocked_by = ? WHERE id = ?').run(
+        'blocked',
         JSON.stringify([taskC.id]),
         taskB.id
       );
-      db.prepare('UPDATE tasks SET blocked_by = ? WHERE id = ?').run(
+      db.prepare('UPDATE tasks SET status = ?, blocked_by = ? WHERE id = ?').run(
+        'blocked',
         JSON.stringify([taskA.id]),
         taskC.id
       );

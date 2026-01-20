@@ -618,8 +618,8 @@ describe('notifyDeadlock', () => {
       expect(messageContentA).toContain('Task B');
       expect(messageContentA).toContain(taskA.id);
       expect(messageContentA).toContain(taskB.id);
-      expect(messageContentA).toContain('Total Tasks in Cycle: 2');
-      expect(messageContentA).toContain('Priority: URGENT');
+      expect(messageContentA).toContain('**Total Tasks in Cycle:** 2');
+      expect(messageContentA).toContain('**Priority: URGENT**');
     });
 
     it('should use consistent thread ID for all notifications in same cycle', async () => {

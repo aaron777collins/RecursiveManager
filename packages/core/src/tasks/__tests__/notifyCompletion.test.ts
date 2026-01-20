@@ -466,11 +466,8 @@ describe('notifyTaskCompletion', () => {
       const completedTask = dbCompleteTask(db, task.id, task.version);
 
       // Delete the task first (to avoid FK constraint), then delete related records, then agent
-      // Note: Audit logs are immutable, so we disable triggers temporarily
+      // Note: Audit logs are immutable and cannot be deleted
       db.prepare('DELETE FROM tasks WHERE id = ?').run(task.id);
-      db.pragma('recursive_triggers = OFF'); // Disable triggers to allow deletion
-      db.prepare('DELETE FROM audit_log WHERE agent_id = ? OR target_agent_id = ?').run(subordinateAgentId, subordinateAgentId);
-      db.pragma('recursive_triggers = ON'); // Re-enable triggers
       db.prepare('DELETE FROM org_hierarchy WHERE agent_id = ?').run(subordinateAgentId);
       db.prepare('DELETE FROM agents WHERE id = ?').run(subordinateAgentId);
 
@@ -491,11 +488,8 @@ describe('notifyTaskCompletion', () => {
       const completedTask = dbCompleteTask(db, task.id, task.version);
 
       // Delete subordinate's tasks first (to avoid FK constraint), then delete related records, then manager
-      // Note: Audit logs are immutable, so we disable triggers temporarily
+      // Note: Audit logs are immutable and cannot be deleted
       db.prepare('DELETE FROM tasks WHERE agent_id = ?').run(subordinateAgentId);
-      db.pragma('recursive_triggers = OFF'); // Disable triggers to allow deletion
-      db.prepare('DELETE FROM audit_log WHERE agent_id = ? OR target_agent_id = ?').run(managerAgentId, managerAgentId);
-      db.pragma('recursive_triggers = ON'); // Re-enable triggers
       db.prepare('DELETE FROM org_hierarchy WHERE agent_id = ?').run(managerAgentId);
       db.prepare('DELETE FROM agents WHERE id = ?').run(managerAgentId);
 
