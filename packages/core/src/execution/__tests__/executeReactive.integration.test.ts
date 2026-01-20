@@ -225,7 +225,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
 
       const auditLogs = queryAuditLog(db, { agentId });
       expect(auditLogs.length).toBeGreaterThan(0);
-      const executionLog = auditLogs.find((log) => log.action === 'execute');
+      const executionLog = auditLogs.find((log) => log.action === 'execute_end');
       expect(executionLog).toBeDefined();
     });
 
@@ -337,7 +337,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       expect(result.success).toBe(true);
 
       const auditLogs = queryAuditLog(db, { agentId });
-      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
+      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute_end');
       expect(executionLog).toBeDefined();
       expect(executionLog?.details).toBeDefined();
       const metadata = JSON.parse(executionLog?.details || '{}');
@@ -370,7 +370,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       expect(result.success).toBe(true);
 
       const auditLogs = queryAuditLog(db, { agentId });
-      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
+      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute_end');
       expect(executionLog).toBeDefined();
       const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.trigger?.type).toBe('webhook');
@@ -400,7 +400,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       expect(result.success).toBe(true);
 
       const auditLogs = queryAuditLog(db, { agentId });
-      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
+      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute_end');
       expect(executionLog).toBeDefined();
       const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.trigger?.type).toBe('manual');
@@ -435,7 +435,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       expect(result.success).toBe(true);
 
       const auditLogs = queryAuditLog(db, { agentId });
-      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
+      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute_end');
       expect(executionLog).toBeDefined();
       const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.trigger?.context).toBeDefined();
@@ -679,7 +679,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       expect(result.success).toBe(true);
 
       const auditLogs = queryAuditLog(db, { agentId });
-      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
+      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute_end');
       expect(executionLog).toBeDefined();
       const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.usedFallback).toBe(true);
@@ -760,7 +760,6 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       adapterRegistry.register(slowAdapter);
 
       // Update agent to use slow adapter
-      db.prepare('UPDATE agents SET framework = ? WHERE id = ?').run('slow-adapter', agentId);
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support', 'slow-adapter'));
 
       const trigger1 = { type: 'manual' as const, timestamp: new Date() };
@@ -852,7 +851,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       );
 
       const auditLogs = queryAuditLog(db, { agentId });
-      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
+      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute_end');
       expect(executionLog).toBeDefined();
       const metadata = JSON.parse(executionLog?.details || '{}');
       expect(metadata.error).toBeDefined();
@@ -947,7 +946,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       await expect(orchestrator.executeReactive(agentId, trigger)).rejects.toThrow();
 
       const auditLogs = queryAuditLog(db, { agentId });
-      const executionLog = auditLogs.find((log) => log.action === 'execute');
+      const executionLog = auditLogs.find((log) => log.action === 'execute_end');
       expect(executionLog).toBeDefined();
       expect(executionLog?.success).toBe(0); // SQLite stores booleans as 0/1
       const metadata = JSON.parse(executionLog?.details || '{}');
@@ -984,7 +983,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       const auditLogs = queryAuditLog(db, { agentId });
       expect(auditLogs.length).toBeGreaterThan(0);
 
-      const executionLog = auditLogs.find((log) => log.action === 'execute');
+      const executionLog = auditLogs.find((log) => log.action === 'execute_end');
       expect(executionLog).toBeDefined();
       expect(executionLog?.agent_id).toBe(agentId);
       expect(executionLog?.action).toBe('execute');
@@ -1024,7 +1023,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       expect(result.success).toBe(true);
 
       const auditLogs = queryAuditLog(db, { agentId });
-      const executionLog = auditLogs.find((log) => log.action === 'execute');
+      const executionLog = auditLogs.find((log) => log.action === 'execute_end');
       expect(executionLog).toBeDefined();
 
       const metadata = JSON.parse(executionLog?.details || '{}');

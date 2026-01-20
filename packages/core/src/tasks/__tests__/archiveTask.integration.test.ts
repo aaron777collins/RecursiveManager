@@ -43,6 +43,9 @@ describe('Task Archival - Integration Tests', () => {
         db,
         {
           id: 'multi-day-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'Multi-Day Agent',
           role: 'Developer',
           reportingTo: null,
@@ -105,6 +108,9 @@ describe('Task Archival - Integration Tests', () => {
         db,
         {
           id: 'boundary-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'Boundary Agent',
           role: 'Developer',
           reportingTo: null,
@@ -169,6 +175,9 @@ describe('Task Archival - Integration Tests', () => {
         db,
         {
           id: 'consistency-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'Consistency Agent',
           role: 'Developer',
           reportingTo: null,
@@ -220,6 +229,9 @@ describe('Task Archival - Integration Tests', () => {
         db,
         {
           id: 'prevent-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'Prevent Agent',
           role: 'Developer',
           reportingTo: null,
@@ -392,6 +404,9 @@ describe('Task Archival - Integration Tests', () => {
         db,
         {
           id: 'e2e-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'E2E Agent',
           role: 'Developer',
           reportingTo: null,
@@ -508,6 +523,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'malformed-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'Malformed Agent',
           role: 'Developer',
           reportingTo: null,
@@ -562,6 +580,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'unreadable-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'Unreadable Agent',
           role: 'Developer',
           reportingTo: null,
@@ -607,6 +628,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'empty-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'Empty Agent',
           role: 'Developer',
           reportingTo: null,
@@ -654,6 +678,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'large-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'Large Agent',
           role: 'Developer',
           reportingTo: null,
@@ -710,6 +737,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'special-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'Special Agent',
           role: 'Developer',
           reportingTo: null,
@@ -778,6 +808,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'perm-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'Permission Agent',
           role: 'Developer',
           reportingTo: null,
@@ -844,6 +877,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'nested-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'Nested Agent',
           role: 'Developer',
           reportingTo: null,
@@ -918,6 +954,9 @@ describe('Task Archival - Edge Cases', () => {
         db,
         {
           id: 'perf-agent',
+          createdBy: 'system',
+          mainGoal: 'Test agent',
+          configPath: '/agents/test/config.json',
           displayName: 'Performance Agent',
           role: 'Developer',
           reportingTo: null,

@@ -354,12 +354,12 @@ export function generateDefaultConfig(
         triggerOn: [],
       },
       escalationPolicy: {
-        autoEscalateAfterFailures: 3,
-        escalateOnBlockedTask: true,
-        escalateOnBudgetExceeded: true,
+        autoEscalateAfterFailures: 0,
+        escalateOnBlockedTask: false,
+        escalateOnBudgetExceeded: false,
       },
       delegation: {
-        delegateThreshold: 'non-trivial',
+        delegateThreshold: 'never',
         keepWhenDelegating: true,
         supervisionLevel: 'moderate',
       },

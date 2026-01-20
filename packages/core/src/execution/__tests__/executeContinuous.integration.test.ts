@@ -140,7 +140,7 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
       name: 'mock-adapter',
       async executeAgent(
         _agentId: string,
-        mode: 'continuous' | 'reactive',
+        _mode: 'continuous' | 'reactive',
         context: any
       ): Promise<ExecutionResult> {
         return {
@@ -166,7 +166,7 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
     adapterRegistry.register(mockAdapter);
 
     orchestrator = new ExecutionOrchestrator({
-      adapterRegistry,
+      adapterRegistry: adapterRegistry as any,
       database: dbPool,
       maxExecutionTime: 5 * 60 * 1000,
     });
@@ -186,8 +186,9 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         role: 'Engineer',
         displayName: 'Test Engineer',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Build software',
+        createdBy: 'system',
+        mainGoal: 'Build software',
+        configPath: `/agents/${agentId}/config.json`,
         schedule: { mode: 'continuous' },
       });
 
@@ -197,7 +198,6 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         id: 'task-001',
         agentId,
         title: 'Test task',
-        description: 'Test',
         priority: 'high',
         status: 'in_progress',
         taskPath: 'Test task',
@@ -211,7 +211,7 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
 
       const auditLogs = queryAuditLog(db, { agentId });
       expect(auditLogs.length).toBeGreaterThan(0);
-      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute');
+      const executionLog = auditLogs.find((log: AuditEventRecord) => log.action === 'execute_end');
       expect(executionLog).toBeDefined();
     });
 
@@ -222,8 +222,9 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         role: 'Engineer',
         displayName: 'Test Engineer',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Build software',
+        createdBy: 'system',
+        mainGoal: 'Build software',
+        configPath: `/agents/${agentId}/config.json`,
         schedule: { mode: 'continuous' },
       });
 
@@ -250,8 +251,9 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         role: 'Engineer',
         displayName: 'Paused',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Build',
+        createdBy: 'system',
+        mainGoal: 'Build',
+        configPath: `/agents/${agentId}/config.json`,
         schedule: { mode: 'continuous' },
       });
 
@@ -280,7 +282,7 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
       let fallbackUsed = false;
       const fallbackAdapter: FrameworkAdapter = {
         name: 'fallback',
-        async executeAgent(agentId, mode): Promise<ExecutionResult> {
+        async executeAgent(_agentId, _mode): Promise<ExecutionResult> {
           fallbackUsed = true;
           return {
             success: true,
@@ -306,8 +308,9 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         role: 'Engineer',
         displayName: 'Test',
         reportingTo: null,
-        framework: 'unhealthy',
-        systemPrompt: 'Build',
+        createdBy: 'system',
+        mainGoal: 'Build',
+        configPath: `/agents/${agentId}/config.json`,
         schedule: { mode: 'continuous' },
       });
 
@@ -335,8 +338,9 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         role: 'Engineer',
         displayName: 'Test',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Build',
+        createdBy: 'system',
+        mainGoal: 'Build',
+        configPath: `/agents/${agentId}/config.json`,
         schedule: { mode: 'continuous' },
       });
 
@@ -371,8 +375,9 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         role: 'Engineer',
         displayName: 'Test',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Build',
+        createdBy: 'system',
+        mainGoal: 'Build',
+        configPath: `/agents/${agentId}/config.json`,
         schedule: { mode: 'continuous' },
       });
 
@@ -394,8 +399,9 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         role: 'Engineer',
         displayName: 'Test',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Build',
+        createdBy: 'system',
+        mainGoal: 'Build',
+        configPath: `/agents/${agentId}/config.json`,
         schedule: { mode: 'continuous' },
       });
 
@@ -409,7 +415,7 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
 
       const auditLogs = queryAuditLog(db, { agentId });
       const failureLog = auditLogs.find(
-        (log: AuditEventRecord) => log.action === 'execute' && log.success === 0
+        (log: AuditEventRecord) => log.action === 'execute_end' && log.success === 0
       );
       expect(failureLog).toBeDefined();
     });
@@ -421,8 +427,9 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
         role: 'Engineer',
         displayName: 'Test',
         reportingTo: null,
-        framework: 'mock-adapter',
-        systemPrompt: 'Build',
+        createdBy: 'system',
+        mainGoal: 'Build',
+        configPath: `/agents/${agentId}/config.json`,
         schedule: { mode: 'continuous' },
       });
 
@@ -434,7 +441,7 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
 
       await expect(orchestrator.executeContinuous(agentId)).rejects.toThrow();
 
-      mockAdapter.executeAgent = async (agentId, mode) => ({
+      mockAdapter.executeAgent = async (_agentId, _mode) => ({
         success: true,
         tasksCompleted: 0,
         messagesProcessed: 0,

@@ -151,14 +151,17 @@ export function createAgent(db: Database.Database, input: CreateAgentInput): Age
     return agent;
   } catch (error) {
     // Audit log failed agent creation
-    // Note: agent_id must be either null or a valid agent ID due to foreign key constraint
+    // Note: agent_id and target_agent_id must be either null or a valid agent ID due to foreign key constraint
+    // Since the agent creation failed, we cannot use the agent ID as targetAgentId (it doesn't exist)
+    // We store the attempted ID in the details instead
     const isSystemOrTest = input.createdBy === 'system' || input.createdBy === 'test';
     auditLog(db, {
       agentId: input.createdBy && !isSystemOrTest ? input.createdBy : null,
       action: AuditAction.HIRE,
-      targetAgentId: input.id,
+      targetAgentId: null,
       success: false,
       details: {
+        attemptedAgentId: input.id, // Store the attempted agent ID in details
         role: input.role,
         displayName: input.displayName,
         createdBy: input.createdBy, // Store the original createdBy in details for reference

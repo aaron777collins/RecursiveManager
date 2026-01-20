@@ -59,17 +59,8 @@ describe('validateHire', () => {
     });
 
     it('should detect direct circular reporting', () => {
-      // Create two agents: A reports to B
-      createAgent(db, {
-        id: 'agent-a',
-        role: 'Manager A',
-        displayName: 'Alice',
-        createdBy: null,
-        reportingTo: 'agent-b',
-        mainGoal: 'Manage',
-        configPath: '/test/agent-a/config.json',
-      });
-
+      // Create two agents: B first, then A reports to B
+      // (Order matters due to FOREIGN KEY constraints)
       createAgent(db, {
         id: 'agent-b',
         role: 'Manager B',
@@ -78,6 +69,16 @@ describe('validateHire', () => {
         reportingTo: null,
         mainGoal: 'Manage',
         configPath: '/test/agent-b/config.json',
+      });
+
+      createAgent(db, {
+        id: 'agent-a',
+        role: 'Manager A',
+        displayName: 'Alice',
+        createdBy: null,
+        reportingTo: 'agent-b',
+        mainGoal: 'Manage',
+        configPath: '/test/agent-a/config.json',
       });
 
       // Now try to make B report to A (would create cycle)
@@ -159,7 +160,7 @@ describe('validateHire', () => {
       });
 
       // Create config with budget
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 5;
       config.permissions.hiringBudget = 3;
@@ -182,7 +183,7 @@ describe('validateHire', () => {
       });
 
       // Create config with low limit
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 2;
       config.permissions.hiringBudget = 5;
@@ -228,7 +229,7 @@ describe('validateHire', () => {
       });
 
       // Create config with low budget
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 5;
       config.permissions.hiringBudget = 1;
@@ -285,9 +286,9 @@ describe('validateHire', () => {
         auditLog(db, {
           agentId: 'manager',
           action: AuditAction.HIRE,
-          targetAgentId: `sub-${i}`,
+          targetAgentId: null, // Agents don't exist yet, store ID in details
           success: true,
-          details: `Hired sub-${i}`,
+          details: JSON.stringify({ hiredAgentId: `sub-${i}` }),
         });
       }
 
@@ -312,9 +313,9 @@ describe('validateHire', () => {
         auditLog(db, {
           agentId: 'manager',
           action: AuditAction.HIRE,
-          targetAgentId: `sub-${i}`,
+          targetAgentId: null, // Agents don't exist yet, store ID in details
           success: true,
-          details: `Hired sub-${i}`,
+          details: JSON.stringify({ hiredAgentId: `sub-${i}` }),
         });
       }
 
@@ -341,9 +342,9 @@ describe('validateHire', () => {
         auditLog(db, {
           agentId: 'manager',
           action: AuditAction.HIRE,
-          targetAgentId: `sub-${i}`,
+          targetAgentId: null, // Agents don't exist yet, store ID in details
           success: true,
-          details: `Hired sub-${i}`,
+          details: JSON.stringify({ hiredAgentId: `sub-${i}` }),
         });
       }
 
@@ -351,9 +352,9 @@ describe('validateHire', () => {
         auditLog(db, {
           agentId: 'manager',
           action: AuditAction.HIRE,
-          targetAgentId: `sub-${i}`,
+          targetAgentId: null, // Failed hires, agent doesn't exist
           success: false,
-          details: `Failed to hire sub-${i}`,
+          details: JSON.stringify({ attemptedAgentId: `sub-${i}`, error: 'Failed to hire' }),
         });
       }
 
@@ -375,7 +376,7 @@ describe('validateHire', () => {
         configPath: path.join(testDir, 'manager', 'config.json'),
       });
 
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 5;
       config.permissions.hiringBudget = 3;
@@ -408,7 +409,7 @@ describe('validateHire', () => {
       const updateAgent = db.prepare('UPDATE agents SET status = ? WHERE id = ?');
       updateAgent.run('paused', 'manager');
 
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = true;
       await saveAgentConfig('manager', config);
 
@@ -429,7 +430,7 @@ describe('validateHire', () => {
         configPath: path.join(testDir, 'manager', 'config.json'),
       });
 
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = false;
       config.permissions.maxSubordinates = 0;
       config.permissions.hiringBudget = 0;
@@ -452,7 +453,7 @@ describe('validateHire', () => {
         configPath: path.join(testDir, 'manager', 'config.json'),
       });
 
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 5;
       config.permissions.hiringBudget = 3;
@@ -486,7 +487,7 @@ describe('validateHire', () => {
         configPath: path.join(testDir, 'manager', 'config.json'),
       });
 
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 5;
       config.permissions.hiringBudget = 3;
@@ -520,13 +521,13 @@ describe('validateHire', () => {
         configPath: path.join(testDir, 'sub', 'config.json'),
       });
 
-      const managerConfig = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const managerConfig = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       managerConfig.permissions.canHire = true;
       managerConfig.permissions.maxSubordinates = 5;
       managerConfig.permissions.hiringBudget = 3;
       await saveAgentConfig('manager', managerConfig);
 
-      const subConfig = generateDefaultConfig('Subordinate', 'Work', 'manager');
+      const subConfig = generateDefaultConfig('Subordinate', 'Work', 'manager', { id: 'sub' });
       subConfig.permissions.canHire = true;
       subConfig.permissions.maxSubordinates = 2;
       subConfig.permissions.hiringBudget = 1;
@@ -551,7 +552,7 @@ describe('validateHire', () => {
         configPath: path.join(testDir, 'manager', 'config.json'),
       });
 
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 1;
       config.permissions.hiringBudget = 1;
@@ -596,11 +597,15 @@ describe('validateHire', () => {
         configPath: path.join(testDir, 'manager', 'config.json'),
       });
 
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 0; // Inconsistent!
       config.permissions.hiringBudget = 0;
-      await saveAgentConfig('manager', config);
+
+      // Write config directly to bypass business validation
+      const configPath = path.join(testDir, 'manager', 'config.json');
+      fs.ensureDirSync(path.dirname(configPath));
+      fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
 
       const result = await validateHire(db, 'manager', 'new-hire');
       expect(result.valid).toBe(false); // Will fail because maxSubordinates = 0
@@ -610,7 +615,7 @@ describe('validateHire', () => {
   });
 
   describe('validateHireStrict', () => {
-    it('should throw HireValidationError on validation failure', () => {
+    it('should throw HireValidationError on validation failure', async () => {
       // Create manager without permission
       createAgent(db, {
         id: 'manager',
@@ -622,16 +627,14 @@ describe('validateHire', () => {
         configPath: path.join(testDir, 'manager', 'config.json'),
       });
 
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = false;
-      saveAgentConfig('manager', config);
+      await saveAgentConfig('manager', config);
 
-      expect(() => {
-        validateHireStrict(db, 'manager', 'new-hire');
-      }).toThrow(HireValidationError);
+      await expect(validateHireStrict(db, 'manager', 'new-hire')).rejects.toThrow(HireValidationError);
     });
 
-    it('should not throw on successful validation', () => {
+    it('should not throw on successful validation', async () => {
       // Create manager with proper config
       createAgent(db, {
         id: 'manager',
@@ -643,18 +646,16 @@ describe('validateHire', () => {
         configPath: path.join(testDir, 'manager', 'config.json'),
       });
 
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = true;
       config.permissions.maxSubordinates = 5;
       config.permissions.hiringBudget = 3;
-      saveAgentConfig('manager', config);
+      await saveAgentConfig('manager', config);
 
-      expect(() => {
-        validateHireStrict(db, 'manager', 'new-hire');
-      }).not.toThrow();
+      await expect(validateHireStrict(db, 'manager', 'new-hire')).resolves.not.toThrow();
     });
 
-    it('should include formatted error messages in exception', () => {
+    it('should include formatted error messages in exception', async () => {
       createAgent(db, {
         id: 'manager',
         role: 'Manager',
@@ -665,12 +666,12 @@ describe('validateHire', () => {
         configPath: path.join(testDir, 'manager', 'config.json'),
       });
 
-      const config = generateDefaultConfig('Manager', 'Manage team', 'system');
+      const config = generateDefaultConfig('Manager', 'Manage team', 'system', { id: 'manager' });
       config.permissions.canHire = false;
-      saveAgentConfig('manager', config);
+      await saveAgentConfig('manager', config);
 
       try {
-        validateHireStrict(db, 'manager', 'new-hire');
+        await validateHireStrict(db, 'manager', 'new-hire');
         fail('Should have thrown');
       } catch (error) {
         expect(error).toBeInstanceOf(HireValidationError);

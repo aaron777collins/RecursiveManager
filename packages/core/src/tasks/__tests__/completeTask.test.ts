@@ -80,6 +80,11 @@ describe('completeTaskWithFiles', () => {
       const pendingPath = getTaskPath('test-agent', task.id, 'pending');
       const completedPath = getTaskPath('test-agent', task.id, 'completed');
 
+      // Clean up completed path if it exists from previous test
+      if (fs.existsSync(completedPath)) {
+        fs.removeSync(completedPath);
+      }
+
       // Verify directory exists in pending/
       expect(fs.existsSync(pendingPath)).toBe(true);
       expect(fs.existsSync(completedPath)).toBe(false);
