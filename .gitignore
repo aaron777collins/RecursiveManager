@@ -60,7 +60,7 @@ pids/
 *.sqlite3
 
 # Agent workspace (for development)
-agents/
+/agents/
 backups/
 
 # Temporary files
