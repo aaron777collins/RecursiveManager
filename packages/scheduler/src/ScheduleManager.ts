@@ -10,6 +10,7 @@
 import type { Database } from 'better-sqlite3';
 import { parseExpression } from 'cron-parser';
 import { v4 as uuidv4 } from 'uuid';
+import type { ExecutionPool } from '@recursive-manager/core';
 
 /**
  * Schedule trigger types
@@ -31,6 +32,8 @@ export interface ScheduleRecord {
   only_when_tasks_pending: number;
   enabled: number;
   last_triggered_at: string | null;
+  dependencies: string; // JSON array of schedule IDs
+  execution_id: string | null; // Current execution ID in ExecutionPool
   created_at: string;
   updated_at: string;
 }
@@ -44,15 +47,20 @@ export interface CreateCronScheduleInput {
   cronExpression: string;
   timezone?: string;
   enabled?: boolean;
+  dependencies?: string[]; // Array of schedule IDs that must complete before this schedule
 }
 
 /**
  * ScheduleManager class
  *
  * Manages scheduled jobs using cron expressions and the schedules database table.
+ * Optionally integrates with ExecutionPool for dependency-aware scheduling.
  */
 export class ScheduleManager {
-  constructor(private db: Database) {}
+  constructor(
+    private db: Database,
+    private executionPool?: ExecutionPool
+  ) {}
 
   /**
    * Create a new cron-based schedule
@@ -88,6 +96,7 @@ export class ScheduleManager {
     const scheduleId = uuidv4();
     const timezone = input.timezone || 'UTC';
     const enabled = input.enabled !== false ? 1 : 0;
+    const dependencies = JSON.stringify(input.dependencies || []);
 
     // Calculate next execution time
     const nextExecution = this.calculateNextExecution(input.cronExpression, timezone);
@@ -102,9 +111,10 @@ export class ScheduleManager {
         timezone,
         next_execution_at,
         enabled,
+        dependencies,
         created_at,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `);
 
     stmt.run(
@@ -115,10 +125,157 @@ export class ScheduleManager {
       input.cronExpression,
       timezone,
       nextExecution,
-      enabled
+      enabled,
+      dependencies
     );
 
     return scheduleId;
+  }
+
+  /**
+   * Set the execution ID for a schedule
+   * This links a schedule to its current execution in the ExecutionPool
+   *
+   * @param scheduleId - The schedule ID
+   * @param executionId - The execution ID from ExecutionPool
+   */
+  setExecutionId(scheduleId: string, executionId: string | null): void {
+    const stmt = this.db.prepare(`
+      UPDATE schedules
+      SET execution_id = ?,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `);
+
+    stmt.run(executionId, scheduleId);
+  }
+
+  /**
+   * Get schedules that have completed (execution_id is null and last_triggered_at is set)
+   *
+   * @returns Array of completed schedule IDs
+   */
+  getCompletedScheduleIds(): string[] {
+    const stmt = this.db.prepare(`
+      SELECT id
+      FROM schedules
+      WHERE execution_id IS NULL
+        AND last_triggered_at IS NOT NULL
+    `);
+
+    return (stmt.all() as Array<{ id: string }>).map((row) => row.id);
+  }
+
+  /**
+   * Get schedule dependencies
+   *
+   * @param scheduleId - The schedule ID
+   * @returns Array of schedule IDs that this schedule depends on
+   */
+  getScheduleDependencies(scheduleId: string): string[] {
+    const schedule = this.getScheduleById(scheduleId);
+    if (!schedule) {
+      return [];
+    }
+
+    try {
+      const dependencies = JSON.parse(schedule.dependencies || '[]');
+      return Array.isArray(dependencies) ? dependencies : [];
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Submit a schedule to the ExecutionPool with dependency tracking
+   * Returns true if successful, false if ExecutionPool is not configured
+   *
+   * @param scheduleId - The schedule ID to submit
+   * @param executionFn - The function to execute for this schedule
+   * @param priority - Execution priority (default: 'medium')
+   * @returns True if submitted to pool, false otherwise
+   */
+  async submitScheduleToPool<T>(
+    scheduleId: string,
+    executionFn: () => Promise<T>,
+    priority: 'low' | 'medium' | 'high' = 'medium'
+  ): Promise<boolean> {
+    if (!this.executionPool) {
+      return false;
+    }
+
+    const schedule = this.getScheduleById(scheduleId);
+    if (!schedule) {
+      throw new Error(`Schedule ${scheduleId} not found`);
+    }
+
+    // Get dependencies and map schedule IDs to execution IDs
+    const scheduleDependencies = this.getScheduleDependencies(scheduleId);
+    const executionDependencies: string[] = [];
+
+    for (const depScheduleId of scheduleDependencies) {
+      const depSchedule = this.getScheduleById(depScheduleId);
+      if (depSchedule?.execution_id) {
+        executionDependencies.push(depSchedule.execution_id);
+      }
+    }
+
+    // Submit to execution pool (agentId is the agent_id from schedule)
+    // Note: execute returns Promise<T>, not executionId
+    // We'll track the execution in the background
+    const executionId = `schedule-${scheduleId}-${Date.now()}`;
+
+    // Store the execution ID in the schedule before executing
+    this.setExecutionId(scheduleId, executionId);
+
+    // Execute in background (don't await)
+    this.executionPool.execute(
+      schedule.agent_id,
+      executionFn,
+      priority,
+      executionDependencies
+    ).then(() => {
+      // Clear execution ID when complete
+      this.setExecutionId(scheduleId, null);
+    }).catch(() => {
+      // Clear execution ID on error
+      this.setExecutionId(scheduleId, null);
+    });
+
+    return true;
+  }
+
+  /**
+   * Get schedules ready to execute based on dependency resolution
+   * Only returns schedules where all dependencies have completed
+   *
+   * @returns Array of schedule records ready to execute
+   */
+  getSchedulesReadyWithDependencies(): ScheduleRecord[] {
+    const readySchedules = this.getSchedulesReadyToExecute();
+
+    // Filter schedules based on dependency satisfaction
+    // Always check dependencies regardless of whether execution pool exists
+    return readySchedules.filter((schedule) => {
+      const dependencies = this.getScheduleDependencies(schedule.id);
+
+      // If no dependencies, schedule is ready
+      if (dependencies.length === 0) {
+        return true;
+      }
+
+      // Check if all dependencies have completed
+      for (const depScheduleId of dependencies) {
+        const depSchedule = this.getScheduleById(depScheduleId);
+
+        // Dependency must exist, be triggered, and not have an active execution
+        if (!depSchedule || !depSchedule.last_triggered_at || depSchedule.execution_id) {
+          return false; // Dependency not complete
+        }
+      }
+
+      return true; // All dependencies satisfied
+    });
   }
 
   /**
@@ -159,6 +316,8 @@ export class ScheduleManager {
         only_when_tasks_pending,
         enabled,
         last_triggered_at,
+        dependencies,
+        execution_id,
         created_at,
         updated_at
       FROM schedules
@@ -241,6 +400,8 @@ export class ScheduleManager {
         only_when_tasks_pending,
         enabled,
         last_triggered_at,
+        dependencies,
+        execution_id,
         created_at,
         updated_at
       FROM schedules
@@ -270,6 +431,8 @@ export class ScheduleManager {
         only_when_tasks_pending,
         enabled,
         last_triggered_at,
+        dependencies,
+        execution_id,
         created_at,
         updated_at
       FROM schedules

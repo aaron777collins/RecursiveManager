@@ -10,7 +10,7 @@
  */
 
 import { getDatabase, acquirePidLock, removePidFileSync } from '@recursive-manager/common';
-import { archiveOldTasks, compressOldArchives, monitorDeadlocks } from '@recursive-manager/core';
+import { archiveOldTasks, compressOldArchives, monitorDeadlocks, ExecutionPool } from '@recursive-manager/core';
 import { ScheduleManager } from './ScheduleManager';
 import type { ScheduleRecord } from './ScheduleManager';
 import * as winston from 'winston';
@@ -145,15 +145,40 @@ async function executeScheduledJob(
   }
 
   try {
-    // Execute the job
-    await executor(schedule);
+    // Submit job to execution pool (if configured) or execute directly
+    const submittedToPool = await scheduleManager.submitScheduleToPool(
+      schedule.id,
+      async () => {
+        await executor(schedule);
+      },
+      'medium' // Default priority
+    );
 
-    // Update schedule after successful execution
+    if (submittedToPool) {
+      logger.info('Scheduled job submitted to execution pool', {
+        scheduleId: schedule.id,
+        description,
+      });
+
+      // Note: The execution pool will handle the actual execution
+      // We don't wait for completion here to avoid blocking the scheduler
+    } else {
+      // No execution pool configured, execute directly
+      await executor(schedule);
+
+      logger.info('Scheduled job completed successfully', {
+        scheduleId: schedule.id,
+        description,
+      });
+    }
+
+    // Update schedule after successful submission/execution
     scheduleManager.updateScheduleAfterExecution(schedule.id);
-    logger.info('Scheduled job completed successfully', {
-      scheduleId: schedule.id,
-      description,
-    });
+
+    // Clear execution ID since we've updated next_execution_at (only if not submitted to pool)
+    if (!submittedToPool) {
+      scheduleManager.setExecutionId(schedule.id, null);
+    }
   } catch (error) {
     logger.error('Scheduled job execution failed', {
       scheduleId: schedule.id,
@@ -165,6 +190,7 @@ async function executeScheduledJob(
     // Still update the schedule to avoid getting stuck
     // In production, you might want to implement retry logic here
     scheduleManager.updateScheduleAfterExecution(schedule.id);
+    scheduleManager.setExecutionId(schedule.id, null);
   }
 }
 
@@ -172,32 +198,55 @@ async function executeScheduledJob(
  * Main scheduler loop
  *
  * Polls the schedules table every 60 seconds and executes any jobs that are ready.
+ * Uses ExecutionPool for dependency-aware scheduling.
  */
 async function schedulerLoop(): Promise<void> {
   const dbConnection = getDatabase();
-  const scheduleManager = new ScheduleManager(dbConnection.db);
 
-  logger.info('Scheduler daemon started', {
+  // Create ExecutionPool for dependency-aware scheduling
+  const executionPool = new ExecutionPool({
+    maxConcurrent: 10,
+    enableDependencyGraph: true,
+  });
+
+  const scheduleManager = new ScheduleManager(dbConnection.db, executionPool);
+
+  logger.info('Scheduler daemon started with dependency-aware execution', {
     pollInterval: 60,
     unit: 'seconds',
+    maxConcurrent: 10,
+    dependencyGraphEnabled: true,
   });
 
   // Main loop
   // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
-      // Get schedules ready to execute
-      const schedules = scheduleManager.getSchedulesReadyToExecute();
+      // Get schedules ready to execute (with dependency resolution)
+      const schedules = scheduleManager.getSchedulesReadyWithDependencies();
 
       if (schedules.length > 0) {
         logger.info('Found schedules ready to execute', {
           count: schedules.length,
+          scheduleIds: schedules.map((s) => s.id),
         });
 
-        // Execute each schedule
+        // Execute each schedule (submitted to execution pool with dependencies)
         for (const schedule of schedules) {
           await executeScheduledJob(schedule, scheduleManager);
         }
+      }
+
+      // Log execution pool statistics
+      const stats = executionPool.getStatistics();
+      if (stats.queueDepth > 0 || stats.activeCount > 0) {
+        logger.info('Execution pool statistics', stats);
+      }
+
+      // Log dependency graph statistics if available
+      const depStats = executionPool.getDependencyGraphStatistics();
+      if (depStats && depStats.totalNodes > 0) {
+        logger.info('Dependency graph statistics', depStats);
       }
     } catch (error) {
       logger.error('Error in scheduler loop', {
@@ -225,7 +274,14 @@ async function main(): Promise<void> {
 
     // Ensure database is initialized
     const dbConnection = getDatabase();
-    const scheduleManager = new ScheduleManager(dbConnection.db);
+
+    // Create ExecutionPool for dependency-aware scheduling
+    const executionPool = new ExecutionPool({
+      maxConcurrent: 10,
+      enableDependencyGraph: true,
+    });
+
+    const scheduleManager = new ScheduleManager(dbConnection.db, executionPool);
 
     // Register the daily archival job if not already registered
     logger.info('Registering daily archival job...');

@@ -403,4 +403,335 @@ describe('ScheduleManager', () => {
       expect(schedule?.agent_id).toBe('system');
     });
   });
+
+  describe('Dependency Resolution', () => {
+    describe('createCronSchedule with dependencies', () => {
+      it('should create a schedule with dependencies', () => {
+        // Create two schedules where schedule2 depends on schedule1
+        const schedule1Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'First job',
+          cronExpression: '0 0 * * *',
+        });
+
+        const schedule2Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Second job',
+          cronExpression: '0 1 * * *',
+          dependencies: [schedule1Id],
+        });
+
+        const schedule2 = scheduleManager.getScheduleById(schedule2Id);
+        expect(schedule2).toBeDefined();
+        expect(schedule2?.dependencies).toBe(JSON.stringify([schedule1Id]));
+      });
+
+      it('should create a schedule with multiple dependencies', () => {
+        const schedule1Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'First job',
+          cronExpression: '0 0 * * *',
+        });
+
+        const schedule2Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Second job',
+          cronExpression: '0 1 * * *',
+        });
+
+        const schedule3Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Third job',
+          cronExpression: '0 2 * * *',
+          dependencies: [schedule1Id, schedule2Id],
+        });
+
+        const schedule3 = scheduleManager.getScheduleById(schedule3Id);
+        expect(schedule3).toBeDefined();
+        const dependencies = JSON.parse(schedule3?.dependencies || '[]');
+        expect(dependencies).toHaveLength(2);
+        expect(dependencies).toContain(schedule1Id);
+        expect(dependencies).toContain(schedule2Id);
+      });
+
+      it('should create a schedule with no dependencies by default', () => {
+        const scheduleId = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Test job',
+          cronExpression: '0 0 * * *',
+        });
+
+        const schedule = scheduleManager.getScheduleById(scheduleId);
+        expect(schedule?.dependencies).toBe('[]');
+      });
+    });
+
+    describe('getScheduleDependencies', () => {
+      it('should return dependencies for a schedule', () => {
+        const schedule1Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'First job',
+          cronExpression: '0 0 * * *',
+        });
+
+        const schedule2Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Second job',
+          cronExpression: '0 1 * * *',
+          dependencies: [schedule1Id],
+        });
+
+        const dependencies = scheduleManager.getScheduleDependencies(schedule2Id);
+        expect(dependencies).toHaveLength(1);
+        expect(dependencies[0]).toBe(schedule1Id);
+      });
+
+      it('should return empty array for schedule with no dependencies', () => {
+        const scheduleId = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Test job',
+          cronExpression: '0 0 * * *',
+        });
+
+        const dependencies = scheduleManager.getScheduleDependencies(scheduleId);
+        expect(dependencies).toHaveLength(0);
+      });
+
+      it('should return empty array for non-existent schedule', () => {
+        const dependencies = scheduleManager.getScheduleDependencies('non-existent-id');
+        expect(dependencies).toHaveLength(0);
+      });
+    });
+
+    describe('setExecutionId', () => {
+      it('should set execution ID for a schedule', () => {
+        const scheduleId = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Test job',
+          cronExpression: '0 0 * * *',
+        });
+
+        scheduleManager.setExecutionId(scheduleId, 'exec-123');
+
+        const schedule = scheduleManager.getScheduleById(scheduleId);
+        expect(schedule?.execution_id).toBe('exec-123');
+      });
+
+      it('should clear execution ID when set to null', () => {
+        const scheduleId = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Test job',
+          cronExpression: '0 0 * * *',
+        });
+
+        scheduleManager.setExecutionId(scheduleId, 'exec-123');
+        scheduleManager.setExecutionId(scheduleId, null);
+
+        const schedule = scheduleManager.getScheduleById(scheduleId);
+        expect(schedule?.execution_id).toBeNull();
+      });
+    });
+
+    describe('getSchedulesReadyWithDependencies', () => {
+      it('should return schedules with no dependencies when ready', () => {
+        // Create a schedule with next_execution_at in the past
+        const scheduleId = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Test job',
+          cronExpression: '0 0 * * *',
+        });
+
+        // Manually set next_execution_at to past
+        db.prepare('UPDATE schedules SET next_execution_at = ? WHERE id = ?').run(
+          new Date(Date.now() - 1000).toISOString(),
+          scheduleId
+        );
+
+        const ready = scheduleManager.getSchedulesReadyWithDependencies();
+        expect(ready).toHaveLength(1);
+        expect(ready[0]!.id).toBe(scheduleId);
+      });
+
+      it('should not return schedules with unfulfilled dependencies', () => {
+        // Create schedule1 (dependency)
+        const schedule1Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'First job',
+          cronExpression: '0 0 * * *',
+        });
+
+        // Create schedule2 that depends on schedule1
+        const schedule2Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Second job',
+          cronExpression: '0 1 * * *',
+          dependencies: [schedule1Id],
+        });
+
+        // Set both to be ready time-wise
+        const pastTime = new Date(Date.now() - 1000).toISOString();
+        db.prepare('UPDATE schedules SET next_execution_at = ? WHERE id = ?').run(
+          pastTime,
+          schedule1Id
+        );
+        db.prepare('UPDATE schedules SET next_execution_at = ? WHERE id = ?').run(
+          pastTime,
+          schedule2Id
+        );
+
+        const ready = scheduleManager.getSchedulesReadyWithDependencies();
+        // Only schedule1 should be ready (no dependencies)
+        expect(ready).toHaveLength(1);
+        expect(ready[0]!.id).toBe(schedule1Id);
+      });
+
+      it('should return schedules when dependencies are completed', () => {
+        // Create schedule1 (dependency)
+        const schedule1Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'First job',
+          cronExpression: '0 0 * * *',
+        });
+
+        // Create schedule2 that depends on schedule1
+        const schedule2Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Second job',
+          cronExpression: '0 1 * * *',
+          dependencies: [schedule1Id],
+        });
+
+        // Set both to be ready time-wise
+        const pastTime = new Date(Date.now() - 1000).toISOString();
+        db.prepare('UPDATE schedules SET next_execution_at = ? WHERE id = ?').run(
+          pastTime,
+          schedule1Id
+        );
+        db.prepare('UPDATE schedules SET next_execution_at = ? WHERE id = ?').run(
+          pastTime,
+          schedule2Id
+        );
+
+        // Mark schedule1 as triggered (completed)
+        db.prepare('UPDATE schedules SET last_triggered_at = CURRENT_TIMESTAMP WHERE id = ?').run(
+          schedule1Id
+        );
+
+        const ready = scheduleManager.getSchedulesReadyWithDependencies();
+        // Both schedules should be ready now
+        expect(ready).toHaveLength(2);
+        const readyIds = ready.map((s) => s.id);
+        expect(readyIds).toContain(schedule1Id);
+        expect(readyIds).toContain(schedule2Id);
+      });
+
+      it('should not return schedules when dependencies are still executing', () => {
+        // Create schedule1 (dependency)
+        const schedule1Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'First job',
+          cronExpression: '0 0 * * *',
+        });
+
+        // Create schedule2 that depends on schedule1
+        const schedule2Id = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Second job',
+          cronExpression: '0 1 * * *',
+          dependencies: [schedule1Id],
+        });
+
+        // Set both to be ready time-wise
+        const pastTime = new Date(Date.now() - 1000).toISOString();
+        db.prepare('UPDATE schedules SET next_execution_at = ? WHERE id = ?').run(
+          pastTime,
+          schedule1Id
+        );
+        db.prepare('UPDATE schedules SET next_execution_at = ? WHERE id = ?').run(
+          pastTime,
+          schedule2Id
+        );
+
+        // Mark schedule1 as triggered but still executing
+        db.prepare(
+          'UPDATE schedules SET last_triggered_at = CURRENT_TIMESTAMP, execution_id = ? WHERE id = ?'
+        ).run('exec-123', schedule1Id);
+
+        const ready = scheduleManager.getSchedulesReadyWithDependencies();
+        // Only schedule1 should be ready (it's already executing)
+        // schedule2 should NOT be ready because schedule1 is still executing
+        expect(ready).toHaveLength(1);
+        expect(ready[0]!.id).toBe(schedule1Id);
+      });
+
+      it('should handle diamond dependencies correctly', () => {
+        // Create diamond dependency structure:
+        //     A
+        //    / \
+        //   B   C
+        //    \ /
+        //     D
+        const scheduleAId = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Job A',
+          cronExpression: '0 0 * * *',
+        });
+
+        const scheduleBId = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Job B',
+          cronExpression: '0 1 * * *',
+          dependencies: [scheduleAId],
+        });
+
+        const scheduleCId = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Job C',
+          cronExpression: '0 1 * * *',
+          dependencies: [scheduleAId],
+        });
+
+        const scheduleDId = scheduleManager.createCronSchedule({
+          agentId: 'test-agent',
+          description: 'Job D',
+          cronExpression: '0 2 * * *',
+          dependencies: [scheduleBId, scheduleCId],
+        });
+
+        // Set all to be ready time-wise
+        const pastTime = new Date(Date.now() - 1000).toISOString();
+        db.prepare('UPDATE schedules SET next_execution_at = ?').run(pastTime);
+
+        // Initially, only A should be ready
+        let ready = scheduleManager.getSchedulesReadyWithDependencies();
+        expect(ready).toHaveLength(1);
+        expect(ready[0]!.id).toBe(scheduleAId);
+
+        // Mark A as completed
+        db.prepare('UPDATE schedules SET last_triggered_at = CURRENT_TIMESTAMP WHERE id = ?').run(
+          scheduleAId
+        );
+
+        // Now B and C should be ready
+        ready = scheduleManager.getSchedulesReadyWithDependencies();
+        expect(ready).toHaveLength(3); // A, B, C
+        const readyIds = ready.map((s) => s.id);
+        expect(readyIds).toContain(scheduleBId);
+        expect(readyIds).toContain(scheduleCId);
+
+        // Mark B and C as completed
+        db.prepare('UPDATE schedules SET last_triggered_at = CURRENT_TIMESTAMP WHERE id = ?').run(
+          scheduleBId
+        );
+        db.prepare('UPDATE schedules SET last_triggered_at = CURRENT_TIMESTAMP WHERE id = ?').run(
+          scheduleCId
+        );
+
+        // Now D should be ready
+        ready = scheduleManager.getSchedulesReadyWithDependencies();
+        expect(ready).toHaveLength(4); // A, B, C, D
+        expect(ready.map((s) => s.id)).toContain(scheduleDId);
+      });
+    });
+  });
 });

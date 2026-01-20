@@ -63,6 +63,8 @@ export {
   type ReactiveTrigger,
   type Decision,
   type ExecutionOrchestratorOptions,
+  ExecutionPool,
+  type PoolStatistics,
 } from './execution';
 
 // Multi-Perspective Analysis (Phase 3.1)
