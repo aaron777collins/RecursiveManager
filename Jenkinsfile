@@ -1,11 +1,8 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs 'Node 20'
-    }
-
     environment {
+        PATH = "/usr/local/bin:/usr/bin:/bin:${env.PATH}"
         NPM_CONFIG_REGISTRY = 'https://registry.npmjs.org/'
         GITHUB_REPO = 'RecursiveManager'
     }
