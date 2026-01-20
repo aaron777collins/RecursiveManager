@@ -213,13 +213,12 @@ The plan has 12 phases, but dependencies are:
 **Existing Commands**: init, status, update, config, debug, rollback, analyze ✅
 **Missing Commands**: hire, fire, message, run, logs (enhanced version)
 
-- [x] 3.1: Implement `hire` command - Create and assign new agents to hierarchy (IMPLEMENTED - has TS errors)
-- [x] 3.2: Implement `fire` command - Remove agents from hierarchy with subordinate handling (IMPLEMENTED - working)
-- [x] 3.3: Implement `message` command - Send messages to agents for reactive execution (IMPLEMENTED - has TS errors)
-- [x] 3.4: Implement `run` command - Manually trigger agent execution (continuous or reactive) (IMPLEMENTED - has TS errors)
-- [ ] 3.4a: Fix TypeScript compilation errors in hire.ts, message.ts, run.ts (24 errors)
-- [ ] 3.5: Implement enhanced `logs` command - View agent logs with filtering, search, streaming
-- [x] 3.6: Register all new commands in packages/cli/src/cli.ts (COMPLETE)
+- [ ] 3.1: Implement `hire` command - INCOMPLETE (stub exists in hire.ts.TODO with 9 TS errors)
+- [ ] 3.2: Implement `fire` command - INCOMPLETE (stub exists in fire.ts.TODO with 1 TS error)
+- [ ] 3.3: Implement `message` command - INCOMPLETE (stub exists in message.ts.TODO with 3 TS errors)
+- [ ] 3.4: Implement `run` command - INCOMPLETE (stub exists in run.ts.TODO with 8 TS errors)
+- [ ] 3.5: Implement enhanced `logs` command - NOT STARTED
+- [ ] 3.6: Register all new commands in packages/cli/src/cli.ts - BLOCKED (waiting for commands to be fixed)
 - [ ] 3.7: Add integration tests for new commands
 - [ ] 3.8: Update CLI help text and documentation
 
