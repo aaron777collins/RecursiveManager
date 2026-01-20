@@ -14,6 +14,7 @@ import DailyRotateFile from 'winston-daily-rotate-file';
 import { randomUUID } from 'crypto';
 import { AsyncLocalStorage } from 'async_hooks';
 import { getAgentLogPath } from './path-utils';
+import { loadConfig } from './config';
 
 /**
  * Request context storage for automatic trace ID propagation
@@ -339,8 +340,11 @@ export function createAgentLogger(agentId: string, options?: Partial<LoggerOptio
 
   const agentLogPath = getAgentLogPath(agentId);
 
+  // Load log level from config (respects LOG_LEVEL environment variable)
+  const config = loadConfig();
+
   return createLogger({
-    level: 'info',
+    level: config.logLevel,
     console: false, // Agent logs go to files by default
     file: true,
     filePath: agentLogPath,
@@ -349,7 +353,7 @@ export function createAgentLogger(agentId: string, options?: Partial<LoggerOptio
     defaultMetadata: {
       agentId,
     },
-    ...options, // Allow overriding defaults
+    ...options, // Allow overriding defaults (including level)
   });
 }
 
@@ -509,15 +513,18 @@ export function createHierarchicalAgentLogger(
 
   const agentLogPath = getAgentLogPath(agentId);
 
+  // Load log level from config (respects LOG_LEVEL environment variable)
+  const config = loadConfig();
+
   return createLogger({
-    level: 'info',
+    level: config.logLevel,
     console: false, // Agent logs go to files by default
     file: true,
     filePath: agentLogPath,
     rotation: true,
     json: true,
     defaultMetadata,
-    ...options, // Allow overriding defaults
+    ...options, // Allow overriding defaults (including level)
   });
 }
 
@@ -636,7 +643,7 @@ export function getRequestContext(key: string): unknown | undefined {
  * Default application logger instance
  *
  * Pre-configured with:
- * - Info level
+ * - Log level from LOG_LEVEL environment variable (defaults to 'info')
  * - JSON format
  * - Console output
  *
@@ -649,7 +656,7 @@ export function getRequestContext(key: string): unknown | undefined {
  * ```
  */
 export const logger = createLogger({
-  level: 'info',
+  level: loadConfig().logLevel,
   json: true,
   console: true,
 });

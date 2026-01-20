@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Task 9.9 COMPLETE - Add correlation IDs to all logs. Implemented AsyncLocalStorage-based request context for automatic trace ID propagation. Added withTraceId(), getCurrentTraceId(), setRequestContext(), and getRequestContext() utility functions. Wrapped execution entry points (executeContinuous, executeReactive, hireAgent) with trace context. Migrated scheduler daemon from raw Winston to common logger with trace ID support. Created comprehensive correlation ID test suite. Phase 9 now 9/12 tasks complete (75% complete).
+**Current Iteration Summary**: ✅ Task 9.10 COMPLETE - Configure log levels via environment. Enhanced all logger creation functions (default logger, createAgentLogger, createHierarchicalAgentLogger) to read LOG_LEVEL from environment via loadConfig(). Updated .env.example with detailed log level documentation (debug, info, warn, error). Created comprehensive logging configuration guide (docs/guides/logging.md). Created test suite for environment variable log level configuration. All loggers now respect LOG_LEVEL environment variable while allowing explicit level overrides. Phase 9 now 10/12 tasks complete (83% complete).
 
 ## Analysis
 
@@ -344,7 +344,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 9.7: Configure Prometheus scraping endpoint
 - [x] 9.8: Set up Grafana dashboards
 - [x] 9.9: Add correlation IDs to all logs
-- [ ] 9.10: Configure log levels via environment
+- [x] 9.10: Configure log levels via environment
 - [ ] 9.11: Create monitoring documentation
 - [ ] 9.12: Set up alerting rules
 
@@ -473,10 +473,68 @@ The plan has 12 phases, but dependencies are:
 - ✅ **Phase 6: COMPLETE** - Security hardening complete
 - ⚠️ **Phase 7: BLOCKED** - Jenkins CI/CD requires system-level access (no sudo in container)
 - ✅ **Phase 8: COMPLETE** - Docker production deployment fully working (12/12 tasks complete)
-- 🔄 **Phase 9: IN PROGRESS** - Monitoring and metrics implementation in progress (9/12 tasks complete - 75%)
+- 🔄 **Phase 9: IN PROGRESS** - Monitoring and metrics implementation in progress (10/12 tasks complete - 83%)
 - ⏸️ **Phase 10-12: NOT STARTED**
 
 ### Completed This Iteration
+
+**Task 9.10: Configure Log Levels via Environment** ✅
+
+Implemented comprehensive environment variable configuration for log levels across all logger types:
+
+**1. Logger Enhancement** (`packages/common/src/logger.ts`)
+- Added `loadConfig()` import from `./config` module
+- Modified default logger export to read `LOG_LEVEL` from environment via `loadConfig().logLevel`
+- Modified `createAgentLogger()` to read `LOG_LEVEL` when no explicit level provided
+- Modified `createHierarchicalAgentLogger()` to read `LOG_LEVEL` when no explicit level provided
+- All loggers now respect `LOG_LEVEL` environment variable while allowing explicit overrides
+
+**2. Environment Configuration** (`.env.example`)
+- Enhanced `LOG_LEVEL` documentation with detailed comments
+- Documented all valid log levels: `debug`, `info`, `warn`, `error`
+- Added use case descriptions for each level:
+  - `debug`: Maximum verbosity for development/troubleshooting
+  - `info`: Standard verbosity for production (default)
+  - `warn`: Only warnings and errors for quiet production mode
+  - `error`: Critical errors only
+
+**3. Comprehensive Logging Guide** (`docs/guides/logging.md`)
+- Complete logging configuration reference
+- Log level descriptions and use cases
+- Configuration examples for all logger types
+- Examples for development, production, and critical-only modes
+- Log output format documentation (console and file)
+- Log rotation behavior documentation
+- Correlation ID (trace ID) usage guide
+- Best practices for production logging
+- Troubleshooting guide
+- Integration examples for monitoring tools (Prometheus, Grafana, ELK, Datadog)
+
+**4. Test Suite** (`packages/common/src/__tests__/logger-env-config.test.ts`)
+- Tests for LOG_LEVEL environment variable with all levels (debug, info, warn, error)
+- Tests for default logger respecting LOG_LEVEL
+- Tests for createAgentLogger respecting LOG_LEVEL
+- Tests for explicit level override functionality
+- Tests for log level filtering behavior
+- Tests for default fallback to 'info' when LOG_LEVEL not set
+- Comprehensive coverage of environment configuration scenarios
+
+**Benefits Achieved:**
+- ✅ Centralized log level control via single environment variable
+- ✅ All logger types (default, agent, hierarchical) respect LOG_LEVEL
+- ✅ Explicit level overrides still work for special cases
+- ✅ Production-ready with clear documentation
+- ✅ Easy switching between verbose (debug) and quiet (warn/error) modes
+- ✅ Backward compatible - defaults to 'info' if not set
+- ✅ Consistent behavior across entire system
+
+**Files Modified:**
+- `packages/common/src/logger.ts` - Enhanced logger creation functions
+- `.env.example` - Enhanced LOG_LEVEL documentation
+- `docs/guides/logging.md` - NEW comprehensive logging guide
+- `packages/common/src/__tests__/logger-env-config.test.ts` - NEW test suite
+
+### Previous Iteration
 
 **Task 9.9: Add Correlation IDs to All Logs** ✅
 
