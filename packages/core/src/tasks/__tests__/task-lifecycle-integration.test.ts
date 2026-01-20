@@ -98,10 +98,11 @@ describe('Task Lifecycle Integration Tests', () => {
       await createTaskDirectory({
         agentId: 'manager-001',
         task: task,
+        options: { baseDir: testDir },
       });
 
       // Verify directory created
-      const pendingPath = getTaskPath('manager-001', task.id, 'pending');
+      const pendingPath = getTaskPath('manager-001', task.id, 'pending', { baseDir: testDir });
       expect(fs.existsSync(pendingPath)).toBe(true);
       expect(fs.existsSync(path.join(pendingPath, 'plan.md'))).toBe(true);
       expect(fs.existsSync(path.join(pendingPath, 'progress.md'))).toBe(true);
@@ -115,7 +116,7 @@ describe('Task Lifecycle Integration Tests', () => {
       expect(inProgressTask.started_at).toBeTruthy();
 
       // Move directory to reflect status change
-      const inProgressPath = getTaskPath('manager-001', task.id, 'in-progress');
+      const inProgressPath = getTaskPath('manager-001', task.id, 'in-progress', { baseDir: testDir });
       await fs.move(pendingPath, inProgressPath, { overwrite: true });
 
       // Verify directory moved
@@ -123,7 +124,7 @@ describe('Task Lifecycle Integration Tests', () => {
       expect(fs.existsSync(inProgressPath)).toBe(true);
 
       // STEP 3: COMPLETE - Mark task as completed
-      await completeTaskWithFiles(db, task.id, inProgressTask.version);
+      await completeTaskWithFiles(db, task.id, inProgressTask.version, { dataDir: testDir });
 
       // Verify task completed in database
       const completedTask = getTask(db, task.id);
@@ -132,7 +133,7 @@ describe('Task Lifecycle Integration Tests', () => {
       expect(completedTask?.version).toBe(3); // Version incremented again
 
       // Verify directory moved to completed/
-      const completedPath = getTaskPath('manager-001', task.id, 'completed');
+      const completedPath = getTaskPath('manager-001', task.id, 'completed', { baseDir: testDir });
       expect(fs.existsSync(inProgressPath)).toBe(false);
       expect(fs.existsSync(completedPath)).toBe(true);
       expect(fs.existsSync(path.join(completedPath, 'plan.md'))).toBe(true);
@@ -147,7 +148,7 @@ describe('Task Lifecycle Integration Tests', () => {
       );
 
       // Run archival process
-      const archivedCount = await archiveOldTasks(db, 7);
+      const archivedCount = await archiveOldTasks(db, 7, { baseDir: testDir });
 
       // Verify task was archived
       expect(archivedCount).toBe(1);

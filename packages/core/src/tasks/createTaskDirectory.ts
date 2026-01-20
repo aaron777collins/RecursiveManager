@@ -42,6 +42,11 @@ export interface CreateTaskDirectoryInput {
    * Optional initial subtasks
    */
   subtasks?: string[];
+
+  /**
+   * Optional path options for directory resolution
+   */
+  options?: import('@recursive-manager/common').PathOptions;
 }
 
 /**
@@ -272,10 +277,10 @@ function generateContextJson(task: TaskRecord, description?: string): TaskContex
  * ```
  */
 export async function createTaskDirectory(input: CreateTaskDirectoryInput): Promise<void> {
-  const { agentId, task, description, subtasks } = input;
+  const { agentId, task, description, subtasks, options } = input;
 
   // Get the task directory path based on status
-  const taskDir = getTaskPath(agentId, task.id, task.status);
+  const taskDir = getTaskPath(agentId, task.id, task.status, options);
 
   // Generate file contents
   const planMd = generatePlanMd(task, description);
