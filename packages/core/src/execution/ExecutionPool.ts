@@ -365,6 +365,70 @@ export class ExecutionPool {
   }
 
   /**
+   * Cancel all queued tasks for a specific agent
+   *
+   * Removes tasks from queue and rejects their promises.
+   * Active executions cannot be cancelled (they will continue to completion).
+   *
+   * @param agentId - Agent ID whose tasks should be cancelled
+   * @returns Number of tasks cancelled
+   */
+  cancelQueuedTasksForAgent(agentId: string): number {
+    let cancelledCount = 0;
+
+    // Filter queue to remove tasks for this agent
+    const remainingTasks: QueuedTask[] = [];
+
+    while (this.queue.length > 0) {
+      const task = this.queue.shift();
+      if (task) {
+        if (task.agentId === agentId) {
+          // Cancel this task
+          task.reject(new Error(`Task cancelled: agent ${agentId} was paused`));
+          cancelledCount++;
+        } else {
+          // Keep this task in queue
+          remainingTasks.push(task);
+        }
+      }
+    }
+
+    // Restore remaining tasks to queue
+    this.queue.push(...remainingTasks);
+
+    return cancelledCount;
+  }
+
+  /**
+   * Get execution IDs for a specific agent
+   *
+   * Returns both active and queued execution IDs for the agent.
+   *
+   * @param agentId - Agent ID to query
+   * @returns Object with active and queued execution IDs
+   */
+  getExecutionIdsForAgent(agentId: string): { active: string[]; queued: string[] } {
+    const active: string[] = [];
+    const queued: string[] = [];
+
+    // Find active executions
+    for (const [executionId, activeAgentId] of this.executionToAgent.entries()) {
+      if (activeAgentId === agentId) {
+        active.push(executionId);
+      }
+    }
+
+    // Find queued executions
+    for (const task of this.queue) {
+      if (task.agentId === agentId) {
+        queued.push(task.executionId);
+      }
+    }
+
+    return { active, queued };
+  }
+
+  /**
    * Get maximum concurrent executions limit
    *
    * @returns Max concurrent limit

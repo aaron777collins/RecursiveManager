@@ -27,6 +27,7 @@ import {
 } from '@recursive-manager/common';
 import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 import { blockTasksForPausedAgent, BlockTasksResult } from './taskBlocking';
+import { ExecutionPool } from '../execution/ExecutionPool.js';
 
 /**
  * Custom error for pause operation failures
@@ -52,6 +53,16 @@ export interface PauseAgentResult {
   previousStatus: string;
   notificationsSent: number;
   tasksBlocked: BlockTasksResult;
+  /**
+   * Number of queued executions cancelled
+   * Only populated if executionPool is provided
+   */
+  executionsCancelled?: number;
+  /**
+   * Active executions that could not be cancelled (will continue to completion)
+   * Only populated if executionPool is provided
+   */
+  activeExecutions?: string[];
 }
 
 /**
@@ -252,6 +263,11 @@ export interface PauseAgentOptions extends PathOptions {
    * Defaults to the target agent's manager (reporting_to) or 'system' if no manager
    */
   performedBy?: string;
+  /**
+   * Execution pool to cancel queued executions for this agent
+   * If not provided, execution cancellation will be skipped
+   */
+  executionPool?: ExecutionPool;
 }
 
 /**
@@ -415,12 +431,43 @@ export async function pauseAgent(
       // Don't throw - notification failure is non-critical
     }
 
-    // STEP 5: STOP EXECUTIONS (Future implementation)
-    // TODO: When scheduler is implemented (Phase 3+), add logic to:
-    // - Cancel any running executions for this agent
-    // - Clear any pending scheduled executions
-    // - Update scheduler state to skip this agent
-    logger.debug('Execution stop phase skipped (scheduler not yet implemented)', { agentId });
+    // STEP 5: STOP EXECUTIONS
+    let executionsCancelled = 0;
+    let activeExecutions: string[] = [];
+
+    if (options.executionPool) {
+      logger.info('Cancelling queued executions for agent', { agentId });
+
+      try {
+        // Get execution IDs for this agent before cancelling
+        const executionIds = options.executionPool.getExecutionIdsForAgent(agentId);
+        activeExecutions = executionIds.active;
+
+        // Cancel queued tasks (active tasks cannot be cancelled and will continue to completion)
+        executionsCancelled = options.executionPool.cancelQueuedTasksForAgent(agentId);
+
+        logger.info('Executions cancelled', {
+          agentId,
+          queuedCancelled: executionsCancelled,
+          activeRunning: activeExecutions.length,
+        });
+
+        if (activeExecutions.length > 0) {
+          logger.warn('Active executions cannot be cancelled and will continue to completion', {
+            agentId,
+            activeExecutions,
+          });
+        }
+      } catch (err) {
+        logger.error('Failed to cancel executions', {
+          agentId,
+          error: (err as Error).message,
+        });
+        // Don't throw - execution cancellation failure is non-critical for pause operation
+      }
+    } else {
+      logger.debug('Execution stop phase skipped (no executionPool provided)', { agentId });
+    }
 
     // SUCCESS
     const result: PauseAgentResult = {
@@ -429,6 +476,10 @@ export async function pauseAgent(
       previousStatus,
       notificationsSent,
       tasksBlocked,
+      ...(options.executionPool && {
+        executionsCancelled,
+        activeExecutions,
+      }),
     };
 
     logger.info('Agent pause completed successfully', {

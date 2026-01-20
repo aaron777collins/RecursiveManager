@@ -1287,4 +1287,194 @@ describe('ExecutionPool', () => {
       expect(result).toBe('task1');
     });
   });
+
+  describe('cancelQueuedTasksForAgent()', () => {
+    it('should cancel queued tasks for specific agent', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+
+      // Execute a long-running task to fill the pool
+      const task1 = p.execute('agent-1', createDelayedTask('task1', 100));
+
+      // Queue tasks for agent-2 and agent-3
+      const task2Promise = p.execute('agent-2', createDelayedTask('task2', 10));
+      const task3Promise = p.execute('agent-3', createDelayedTask('task3', 10));
+      const task4Promise = p.execute('agent-2', createDelayedTask('task4', 10));
+
+      // Verify tasks are queued
+      await waitFor(() => p.getQueueDepth() === 3);
+
+      // Cancel tasks for agent-2
+      const cancelled = p.cancelQueuedTasksForAgent('agent-2');
+
+      expect(cancelled).toBe(2);
+      expect(p.getQueueDepth()).toBe(1);
+
+      // Verify agent-2 tasks were rejected
+      await expect(task2Promise).rejects.toThrow('Task cancelled: agent agent-2 was paused');
+      await expect(task4Promise).rejects.toThrow('Task cancelled: agent agent-2 was paused');
+
+      // Verify agent-3 task still completes
+      await task1; // Wait for first task to complete
+      const result3 = await task3Promise;
+      expect(result3).toBe('task3');
+    });
+
+    it('should return 0 when no tasks queued for agent', () => {
+      const cancelled = pool.cancelQueuedTasksForAgent('agent-1');
+      expect(cancelled).toBe(0);
+    });
+
+    it('should not cancel active executions', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 2 });
+
+      // Start active executions for agent-1
+      const task1Promise = p.execute('agent-1', createDelayedTask('task1', 100));
+      const task2Promise = p.execute('agent-1', createDelayedTask('task2', 100));
+
+      // Wait for tasks to become active
+      await waitFor(() => p.getStatistics().activeCount === 2);
+
+      // Try to cancel - should return 0 since tasks are active, not queued
+      const cancelled = p.cancelQueuedTasksForAgent('agent-1');
+      expect(cancelled).toBe(0);
+
+      // Active tasks should still complete
+      const [result1, result2] = await Promise.all([task1Promise, task2Promise]);
+      expect(result1).toBe('task1');
+      expect(result2).toBe('task2');
+    });
+
+    it('should preserve queue order for other agents', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+
+      // Fill pool with long-running task
+      const task1 = p.execute('agent-1', createDelayedTask('task1', 100));
+
+      // Queue tasks in specific order
+      const task2Promise = p.execute('agent-2', createDelayedTask('task2', 10));
+      const task3Promise = p.execute('agent-3', createDelayedTask('task3', 10));
+      const task4Promise = p.execute('agent-2', createDelayedTask('task4', 10));
+      const task5Promise = p.execute('agent-4', createDelayedTask('task5', 10));
+
+      await waitFor(() => p.getQueueDepth() === 4);
+
+      // Cancel agent-2 tasks - these will be rejected immediately
+      // Catch them to avoid unhandled promise rejections
+      const task2Rejection = task2Promise.catch((err) => err);
+      const task4Rejection = task4Promise.catch((err) => err);
+
+      p.cancelQueuedTasksForAgent('agent-2');
+
+      // Wait for first task to complete
+      await task1;
+
+      // Remaining tasks should execute in FIFO order (agent-3, then agent-4)
+      const result3 = await task3Promise;
+      const result5 = await task5Promise;
+
+      expect(result3).toBe('task3');
+      expect(result5).toBe('task5');
+
+      // Agent-2 tasks should be rejected
+      const error2 = await task2Rejection;
+      const error4 = await task4Rejection;
+      expect(error2).toBeInstanceOf(Error);
+      expect(error2.message).toBe('Task cancelled: agent agent-2 was paused');
+      expect(error4).toBeInstanceOf(Error);
+      expect(error4.message).toBe('Task cancelled: agent agent-2 was paused');
+    });
+  });
+
+  describe('getExecutionIdsForAgent()', () => {
+    it('should return empty arrays when agent has no executions', () => {
+      const result = pool.getExecutionIdsForAgent('agent-1');
+      expect(result.active).toEqual([]);
+      expect(result.queued).toEqual([]);
+    });
+
+    it('should track active executions for agent', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 2 });
+
+      // Start active executions
+      const task1Promise = p.execute('agent-1', createDelayedTask('task1', 100));
+      const task2Promise = p.execute('agent-1', createDelayedTask('task2', 100));
+
+      await waitFor(() => p.getStatistics().activeCount === 2);
+
+      const result = p.getExecutionIdsForAgent('agent-1');
+      expect(result.active).toHaveLength(2);
+      expect(result.queued).toHaveLength(0);
+
+      // Verify execution IDs format
+      expect(result.active[0]).toMatch(/^exec-\d+$/);
+      expect(result.active[1]).toMatch(/^exec-\d+$/);
+
+      // Wait for completion
+      await Promise.all([task1Promise, task2Promise]);
+    });
+
+    it('should track queued executions for agent', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+
+      // Fill pool
+      const task1 = p.execute('agent-1', createDelayedTask('task1', 100));
+
+      // Queue more tasks
+      void p.execute('agent-2', createDelayedTask('task2', 10));
+      void p.execute('agent-2', createDelayedTask('task3', 10));
+      void p.execute('agent-2', createDelayedTask('task4', 10));
+
+      await waitFor(() => p.getQueueDepth() === 3);
+
+      const result = p.getExecutionIdsForAgent('agent-2');
+      expect(result.active).toHaveLength(0);
+      expect(result.queued).toHaveLength(3);
+
+      // Verify execution IDs format
+      expect(result.queued[0]).toMatch(/^exec-\d+$/);
+      expect(result.queued[1]).toMatch(/^exec-\d+$/);
+      expect(result.queued[2]).toMatch(/^exec-\d+$/);
+
+      await task1;
+    });
+
+    it('should track both active and queued executions', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 2 });
+
+      // Start active executions
+      void p.execute('agent-1', createDelayedTask('task1', 100));
+      void p.execute('agent-1', createDelayedTask('task2', 100));
+
+      // Queue more tasks
+      void p.execute('agent-1', createDelayedTask('task3', 10));
+      void p.execute('agent-1', createDelayedTask('task4', 10));
+
+      await waitFor(() => p.getStatistics().activeCount === 2);
+      await waitFor(() => p.getQueueDepth() === 2);
+
+      const result = p.getExecutionIdsForAgent('agent-1');
+      expect(result.active).toHaveLength(2);
+      expect(result.queued).toHaveLength(2);
+    });
+
+    it('should only return executions for specified agent', async () => {
+      const p = new ExecutionPool({ maxConcurrent: 1 });
+
+      // Fill pool with agent-1
+      const task1 = p.execute('agent-1', createDelayedTask('task1', 100));
+
+      // Queue tasks for different agents
+      void p.execute('agent-2', createDelayedTask('task2', 10));
+      void p.execute('agent-3', createDelayedTask('task3', 10));
+      void p.execute('agent-2', createDelayedTask('task4', 10));
+
+      await waitFor(() => p.getQueueDepth() === 3);
+
+      const result = p.getExecutionIdsForAgent('agent-2');
+      expect(result.active).toHaveLength(0);
+      expect(result.queued).toHaveLength(2);
+
+      await task1;
+    });
+  });
 });

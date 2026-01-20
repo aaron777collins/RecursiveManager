@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Task 4.5 COMPLETE - Wired dependency resolution to scheduler. Created migration 009 adding dependencies (JSON array) and execution_id columns to schedules table. Updated ScheduleRecord interface and all SQL queries to include new fields. Modified ScheduleManager: added submitScheduleToPool() method for ExecutionPool integration with dependency mapping (schedule IDs → execution IDs), added getSchedulesReadyWithDependencies() for dependency-aware scheduling (filters schedules where all dependencies completed - checks last_triggered_at IS NOT NULL and execution_id IS NULL), added getScheduleDependencies() and setExecutionId() helper methods. Updated scheduler daemon: creates ExecutionPool with dependency graph enabled (maxConcurrent: 10), uses getSchedulesReadyWithDependencies() instead of getSchedulesReadyToExecute(), submits jobs to ExecutionPool with dependencies, logs pool statistics (activeCount, queueDepth, totalProcessed) and dependency graph statistics. Exported ExecutionPool from core package index. Added 13 comprehensive tests covering: creating schedules with dependencies (single/multiple), dependency satisfaction checking, execution ID tracking, unfulfilled dependencies blocking execution, completed dependencies allowing execution, executing dependencies blocking execution, and diamond dependency graphs (all 38 tests passing, build successful). Phase 4 Task 4.5 complete. Next iteration: Task 4.6 - Implement execution stop on agent pause.
+**Current Iteration Summary**: ✅ Task 4.6 COMPLETE - Implemented execution stop on agent pause. Added two new methods to ExecutionPool: cancelQueuedTasksForAgent(agentId) which removes and rejects all queued tasks for a specific agent, and getExecutionIdsForAgent(agentId) which returns both active and queued execution IDs for tracking purposes. Updated pauseAgent lifecycle in packages/core/src/lifecycle/pauseAgent.ts: added executionPool parameter to PauseAgentOptions interface, updated PauseAgentResult to include executionsCancelled (number) and activeExecutions (string[]) fields, implemented STEP 5 (execution stop) which calls cancelQueuedTasksForAgent() when executionPool is provided, logs cancellation details including queued tasks cancelled and active tasks that will continue to completion (cannot be interrupted mid-execution). Added 11 comprehensive tests to ExecutionPool.test.ts covering: cancelling queued tasks for specific agent, returning 0 when no tasks queued, not cancelling active executions, preserving queue order for other agents, and tracking execution IDs (active, queued, both, agent-specific filtering). All 71 ExecutionPool tests passing. Phase 4 Task 4.6 complete. Next iteration: Task 4.7 - Implement execution restart on agent resume.
 
 ## Analysis
 
@@ -231,7 +231,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 4.3: Implement inter-task dependency specification
 - [x] 4.4: Add dependency graph management
 - [x] 4.5: Wire dependency resolution to scheduler
-- [ ] 4.6: Implement execution stop on agent pause (currently deferred)
+- [x] 4.6: Implement execution stop on agent pause
 - [ ] 4.7: Implement execution restart on agent resume (currently deferred)
 - [ ] 4.8: Add resource quotas (CPU/memory limits per feature)
 - [ ] 4.9: Add comprehensive scheduler integration tests
@@ -573,6 +573,75 @@ This ensures:
 - Collaboration-friendly workflow
 
 ## Completed This Iteration
+
+- **Task 4.6: Implement execution stop on agent pause** (COMPLETE ✅):
+
+  **Summary**: Implemented the ability to cancel queued executions when an agent is paused. When pauseAgent() is called with an executionPool option, all queued tasks for that agent are removed from the queue and rejected. Active executions cannot be cancelled and will continue to completion.
+
+  **Implementation Details**:
+
+  1. **ExecutionPool Enhancements** (`packages/core/src/execution/ExecutionPool.ts`):
+     - **Added cancelQueuedTasksForAgent(agentId: string): number**:
+       - Filters through the queue and removes all tasks for the specified agent
+       - Rejects removed tasks with error message indicating agent was paused
+       - Preserves queue order for tasks from other agents
+       - Returns the count of cancelled tasks
+     - **Added getExecutionIdsForAgent(agentId: string): { active: string[]; queued: string[] }**:
+       - Returns both active and queued execution IDs for a specific agent
+       - Used for tracking and logging purposes
+       - Iterates through executionToAgent map for active executions
+       - Iterates through queue array for queued executions
+
+  2. **PauseAgent Lifecycle Integration** (`packages/core/src/lifecycle/pauseAgent.ts`):
+     - **Updated PauseAgentOptions interface**:
+       - Added optional `executionPool?: ExecutionPool` parameter
+       - Allows passing ExecutionPool instance to enable execution cancellation
+     - **Updated PauseAgentResult interface**:
+       - Added optional `executionsCancelled?: number` field (queued tasks cancelled count)
+       - Added optional `activeExecutions?: string[]` field (list of active execution IDs that cannot be cancelled)
+     - **Implemented STEP 5: STOP EXECUTIONS**:
+       - Replaced TODO comment with actual implementation
+       - Calls `getExecutionIdsForAgent()` to track active executions
+       - Calls `cancelQueuedTasksForAgent()` to cancel queued tasks
+       - Logs cancellation details (queued cancelled count, active running count)
+       - Logs warning if active executions exist (will continue to completion)
+       - Gracefully handles errors (non-critical, won't throw)
+       - Returns execution cancellation details in result if executionPool provided
+
+  3. **Comprehensive Test Coverage** (`packages/core/src/execution/__tests__/ExecutionPool.test.ts`):
+     - **Added 11 new tests** for cancelQueuedTasksForAgent():
+       - Cancel queued tasks for specific agent
+       - Return 0 when no tasks queued for agent
+       - Do not cancel active executions (they continue normally)
+       - Preserve queue order for other agents after cancellation
+     - **Added tests** for getExecutionIdsForAgent():
+       - Return empty arrays when agent has no executions
+       - Track active executions for agent
+       - Track queued executions for agent
+       - Track both active and queued executions
+       - Only return executions for specified agent (filter by agentId)
+     - **All 71 ExecutionPool tests passing** (including 11 new tests)
+
+  4. **Import Updates**:
+     - Added `import { ExecutionPool } from '../execution/ExecutionPool.js'` to pauseAgent.ts
+     - ExecutionPool was already exported from core package index
+
+  **Behavior**:
+  - When an agent is paused WITHOUT executionPool option: behaves as before (no execution cancellation)
+  - When an agent is paused WITH executionPool option:
+    - Queued tasks for the agent are cancelled and rejected immediately
+    - Active tasks for the agent continue to completion (cannot be interrupted)
+    - Other agents' tasks are unaffected
+    - Result includes executionsCancelled count and activeExecutions list
+
+  **Testing**:
+  - All ExecutionPool tests passing (71/71)
+  - Tests verify correct cancellation behavior, queue preservation, and execution tracking
+  - Tests verify active executions are NOT cancelled (important safety guarantee)
+
+  **Next Steps**: Task 4.7 - Implement execution restart on agent resume
+
+---
 
 - **Task 4.5: Wire dependency resolution to scheduler** (COMPLETE ✅):
 
