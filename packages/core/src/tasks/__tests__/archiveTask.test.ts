@@ -52,7 +52,7 @@ describe('archiveOldTasks', () => {
 
   it('should archive completed tasks older than 7 days', async () => {
     // Create a test agent
-    const agent = await createAgent(
+    const agent = createAgent(
       db,
       {
         id: 'test-agent',
@@ -61,8 +61,7 @@ describe('archiveOldTasks', () => {
         goal: 'Test archival',
         reportingTo: null,
         frameworkPreference: 'claude-code',
-      },
-      { baseDir: tempDir }
+      }
     );
 
     // Create a task and complete it (simulating 10 days ago)

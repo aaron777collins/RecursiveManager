@@ -574,9 +574,9 @@ describe('Task Lifecycle Integration Tests', () => {
           notifyOnDeadlock: true,
         },
         behavior: {
-          executionMode: 'continuous',
-          autonomy: 'low',
-          escalationThreshold: 3,
+          continuousMode: true,
+          autoEscalateBlockedTasks: true,
+          escalationTimeoutMinutes: 30,
         },
         metadata: {
           version: 1,
@@ -701,9 +701,9 @@ describe('Task Lifecycle Integration Tests', () => {
           notifyOnDeadlock: true,
         },
         behavior: {
-          executionMode: 'continuous',
-          autonomy: 'low',
-          escalationThreshold: 3,
+          continuousMode: true,
+          autoEscalateBlockedTasks: true,
+          escalationTimeoutMinutes: 30,
         },
         metadata: {
           version: 1,
@@ -853,9 +853,9 @@ describe('Task Lifecycle Integration Tests', () => {
           notifyOnDeadlock: true,
         },
         behavior: {
-          executionMode: 'continuous',
-          autonomy: 'low',
-          escalationThreshold: 3,
+          continuousMode: true,
+          autoEscalateBlockedTasks: true,
+          escalationTimeoutMinutes: 30,
         },
         metadata: {
           version: 1,

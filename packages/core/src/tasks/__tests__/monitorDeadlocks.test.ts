@@ -72,7 +72,7 @@ describe('monitorDeadlocks', () => {
       },
       framework: {
         primary: 'claude-code',
-        fallbacks: [],
+        fallback: undefined,
       },
       communication: {
         notifyOnCompletion: true,
@@ -663,7 +663,7 @@ describe('monitorDeadlocks', () => {
           },
           framework: {
             primary: 'claude-code',
-            fallbacks: [],
+            fallback: undefined,
           },
           communication: {
             notifyOnCompletion: true,
@@ -746,7 +746,7 @@ describe('monitorDeadlocks', () => {
         },
         framework: {
           primary: 'claude-code',
-          fallbacks: [],
+          fallback: undefined,
         },
         communication: {
           notifyOnCompletion: true,

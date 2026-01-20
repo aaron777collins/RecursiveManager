@@ -48,8 +48,7 @@ describe('Task Archival - Integration Tests', () => {
           goal: 'Test multi-day archival',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       // Create tasks completed on different dates
@@ -113,8 +112,7 @@ describe('Task Archival - Integration Tests', () => {
           goal: 'Test month boundaries',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       // Create tasks completed on last day of month and first day of next month
@@ -180,8 +178,7 @@ describe('Task Archival - Integration Tests', () => {
           goal: 'Test database consistency',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       // Create multiple completed tasks
@@ -234,8 +231,7 @@ describe('Task Archival - Integration Tests', () => {
           goal: 'Test prevention',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       const task = createTask(db, {
@@ -287,8 +283,7 @@ describe('Task Archival - Integration Tests', () => {
           goal: 'Test agent 1',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       const agent2 = await createAgent(
@@ -300,8 +295,7 @@ describe('Task Archival - Integration Tests', () => {
           goal: 'Test agent 2',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       // Create old tasks for both agents
@@ -415,8 +409,7 @@ describe('Task Archival - Integration Tests', () => {
           goal: 'Test end-to-end',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       // Create a task completed 100 days ago
@@ -534,8 +527,7 @@ describe('Task Archival - Edge Cases', () => {
           goal: 'Test malformed',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       // Create two tasks
@@ -591,8 +583,7 @@ describe('Task Archival - Edge Cases', () => {
           goal: 'Test unreadable',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       const task = createTask(db, {
@@ -639,8 +630,7 @@ describe('Task Archival - Edge Cases', () => {
           goal: 'Test empty',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       const task = createTask(db, {
@@ -689,8 +679,7 @@ describe('Task Archival - Edge Cases', () => {
           goal: 'Test large files',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       const task = createTask(db, {
@@ -748,8 +737,7 @@ describe('Task Archival - Edge Cases', () => {
           goal: 'Test special chars',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       const task = createTask(db, {
@@ -819,8 +807,7 @@ describe('Task Archival - Edge Cases', () => {
           goal: 'Test permissions',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       const task = createTask(db, {
@@ -888,8 +875,7 @@ describe('Task Archival - Edge Cases', () => {
           goal: 'Test nested dirs',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       const task = createTask(db, {
@@ -965,8 +951,7 @@ describe('Task Archival - Edge Cases', () => {
           goal: 'Test performance',
           reportingTo: null,
           frameworkPreference: 'claude-code',
-        },
-        { baseDir: tempDir }
+        }
       );
 
       // Create 100 completed tasks

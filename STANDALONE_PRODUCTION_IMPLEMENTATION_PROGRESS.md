@@ -161,7 +161,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 1.5: Fix any remaining test failures in adapters package
 - [x] 1.6: Fix any remaining test failures in scheduler package
 - [x] 1.7: Run ESLint and fix all errors (plan says 6 errors)
-- [ ] 1.8: Verify 100% test pass rate
+- [ ] 1.8: Verify 100% test pass rate (IN PROGRESS - fixed 10+ compilation errors, 20/32 suites still failing)
 - [ ] 1.9: Build all packages (npm run build)
 - [ ] 1.10: Verify type-check passes (npm run type-check)
 
@@ -467,7 +467,19 @@ When build mode begins, it should:
 
 ## Completed This Iteration
 
-- Task 1.7: Fixed all ESLint errors - 0 errors remaining (98 warnings for technical debt)
+- Task 1.8 (PARTIAL): Fixed 10+ TypeScript compilation errors in core package tests
+  - Fixed SQLite boolean type mismatches (resumeAgent.test.ts, pauseAgent.test.ts)
+  - Fixed missing required config properties (notifyCompletion.test.ts)
+  - Fixed foreign key constraint violations (notifyCompletion.test.ts)
+  - Fixed display_name → displayName (taskBlocking.test.ts)
+  - Fixed missing async keyword (validateHire.test.ts)
+  - Fixed removed invalid description field (notifyDeadlock.test.ts, completeTask.test.ts)
+  - Fixed fallbacks → fallback (monitorDeadlocks.test.ts)
+  - Fixed executionMode property (task-lifecycle-integration.test.ts)
+  - Fixed unused imports (edge-cases-integration.test.ts, multiPerspectiveAnalysis.test.ts, etc.)
+  - Fixed archiveTask createAgent signature (archiveTask.test.ts, archiveTask.integration.test.ts)
+  - Progress: 12/32 suites passing (+1), 363/401 tests passing (+20 tests)
+  - Status: 20 test suites still failing, needs continued work
 
 ## Notes
 

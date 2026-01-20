@@ -318,6 +318,7 @@ describe('notifyTaskCompletion', () => {
         },
         permissions: {
           canHire: true,
+          canFire: true,
           maxSubordinates: 10,
           hiringBudget: 1000,
         },
@@ -326,6 +327,7 @@ describe('notifyTaskCompletion', () => {
         },
         communication: {
           notifyOnCompletion: false,
+          notifyOnDelegation: true,
         },
       };
 
@@ -368,6 +370,7 @@ describe('notifyTaskCompletion', () => {
         },
         permissions: {
           canHire: true,
+          canFire: true,
           maxSubordinates: 10,
           hiringBudget: 1000,
         },
@@ -376,6 +379,7 @@ describe('notifyTaskCompletion', () => {
         },
         communication: {
           notifyOnCompletion: false,
+          notifyOnDelegation: true,
         },
       };
 
@@ -421,13 +425,17 @@ describe('notifyTaskCompletion', () => {
         },
         permissions: {
           canHire: true,
+          canFire: true,
           maxSubordinates: 10,
           hiringBudget: 1000,
         },
         framework: {
           primary: 'claude-code',
         },
-        // No communication field
+        communication: {
+          notifyOnDelegation: true,
+        },
+        // No notifyOnCompletion field (testing default behavior)
       };
 
       await saveAgentConfig(managerAgentId, config, { baseDir: testDir });
@@ -460,7 +468,8 @@ describe('notifyTaskCompletion', () => {
 
       const completedTask = dbCompleteTask(db, task.id, task.version);
 
-      // Delete the agent
+      // Delete the task first (to avoid FK constraint), then delete the agent
+      db.prepare('DELETE FROM tasks WHERE id = ?').run(task.id);
       db.prepare('DELETE FROM agents WHERE id = ?').run(subordinateAgentId);
 
       // Attempt to send notification
@@ -479,7 +488,8 @@ describe('notifyTaskCompletion', () => {
 
       const completedTask = dbCompleteTask(db, task.id, task.version);
 
-      // Delete the manager agent
+      // Delete subordinate's tasks first (to avoid FK constraint), then delete manager
+      db.prepare('DELETE FROM tasks WHERE agent_id = ?').run(subordinateAgentId);
       db.prepare('DELETE FROM agents WHERE id = ?').run(managerAgentId);
 
       // Attempt to send notification

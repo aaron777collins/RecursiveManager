@@ -130,7 +130,6 @@ describe('notifyDeadlock', () => {
       const taskA = createTask(db, {
         agentId: agentA,
         title: 'Task A',
-        description: 'Task A description',
         priority: 'high',
         status: 'blocked',
       });
@@ -138,7 +137,6 @@ describe('notifyDeadlock', () => {
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
-        description: 'Task B description',
         priority: 'high',
         status: 'blocked',
       });
@@ -194,7 +192,6 @@ describe('notifyDeadlock', () => {
       const taskA = createTask(db, {
         agentId: agentA,
         title: 'Task A',
-        description: 'Task A description',
         priority: 'high',
         status: 'blocked',
       });
@@ -202,7 +199,6 @@ describe('notifyDeadlock', () => {
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
-        description: 'Task B description',
         priority: 'high',
         status: 'blocked',
       });
@@ -256,7 +252,6 @@ describe('notifyDeadlock', () => {
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
-        description: 'Task B description',
         priority: 'high',
         status: 'blocked',
       });
@@ -352,7 +347,6 @@ describe('notifyDeadlock', () => {
       const taskA = createTask(db, {
         agentId: agentA,
         title: 'Task A',
-        description: 'Task A description',
         priority: 'high',
         status: 'blocked',
       });
@@ -360,7 +354,6 @@ describe('notifyDeadlock', () => {
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
-        description: 'Task B description',
         priority: 'high',
         status: 'blocked',
       });
@@ -433,7 +426,6 @@ describe('notifyDeadlock', () => {
       const taskA = createTask(db, {
         agentId: agentA,
         title: 'Task A',
-        description: 'Task A description',
         priority: 'high',
         status: 'blocked',
       });
@@ -441,7 +433,6 @@ describe('notifyDeadlock', () => {
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
-        description: 'Task B description',
         priority: 'high',
         status: 'blocked',
       });
@@ -475,7 +466,6 @@ describe('notifyDeadlock', () => {
       const taskA = createTask(db, {
         agentId: agentA,
         title: 'Task A',
-        description: 'Task A description',
         priority: 'high',
         status: 'active',
       });
@@ -500,7 +490,6 @@ describe('notifyDeadlock', () => {
       const taskA = createTask(db, {
         agentId: agentA,
         title: 'Task A',
-        description: 'Task A description',
         priority: 'high',
         status: 'blocked',
       });
@@ -508,7 +497,6 @@ describe('notifyDeadlock', () => {
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
-        description: 'Task B description',
         priority: 'high',
         status: 'blocked',
       });
@@ -543,7 +531,6 @@ describe('notifyDeadlock', () => {
       const taskA = createTask(db, {
         agentId: agentA,
         title: 'Task A',
-        description: 'Task A description',
         priority: 'high',
         status: 'blocked',
       });
@@ -551,7 +538,6 @@ describe('notifyDeadlock', () => {
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
-        description: 'Task B description',
         priority: 'high',
         status: 'blocked',
       });
@@ -588,7 +574,6 @@ describe('notifyDeadlock', () => {
       const taskA = createTask(db, {
         agentId: agentA,
         title: 'Task A',
-        description: 'Task A description',
         priority: 'high',
         status: 'blocked',
       });
@@ -596,7 +581,6 @@ describe('notifyDeadlock', () => {
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
-        description: 'Task B description',
         priority: 'high',
         status: 'blocked',
       });
@@ -638,7 +622,6 @@ describe('notifyDeadlock', () => {
       const taskA = createTask(db, {
         agentId: agentA,
         title: 'Task A',
-        description: 'Task A description',
         priority: 'high',
         status: 'blocked',
       });
@@ -646,7 +629,6 @@ describe('notifyDeadlock', () => {
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
-        description: 'Task B description',
         priority: 'high',
         status: 'blocked',
       });
@@ -678,7 +660,6 @@ describe('notifyDeadlock', () => {
       const taskA = createTask(db, {
         agentId: agentA,
         title: 'Task A',
-        description: 'Task A description',
         priority: 'high',
         status: 'blocked',
       });
@@ -686,7 +667,6 @@ describe('notifyDeadlock', () => {
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
-        description: 'Task B description',
         priority: 'high',
         status: 'blocked',
       });
@@ -732,7 +712,6 @@ describe('notifyDeadlock', () => {
       const taskA = createTask(db, {
         agentId: agentA,
         title: 'Task A',
-        description: 'Task A description',
         priority: 'high',
         status: 'blocked',
       });
@@ -740,7 +719,6 @@ describe('notifyDeadlock', () => {
       const taskB = createTask(db, {
         agentId: agentB,
         title: 'Task B',
-        description: 'Task B description',
         priority: 'high',
         status: 'blocked',
       });

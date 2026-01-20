@@ -363,7 +363,7 @@ describe('validateHire', () => {
   });
 
   describe('validateHire', () => {
-    it('should pass for valid hire scenario', () => {
+    it('should pass for valid hire scenario', async () => {
       // Create manager with proper config
       createAgent(db, {
         id: 'manager',

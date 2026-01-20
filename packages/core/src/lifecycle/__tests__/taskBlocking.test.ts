@@ -37,7 +37,7 @@ describe('Task Blocking for Paused Agents', () => {
       const agent = createAgent(db, {
         id: 'test-agent-001',
         role: 'Developer',
-        display_name: 'Test Dev',
+        displayName: 'Test Dev',
         goal: 'Test development',
         framework: 'claude-code',
         status: 'active',
@@ -91,7 +91,7 @@ describe('Task Blocking for Paused Agents', () => {
       const agent = createAgent(db, {
         id: 'test-agent-002',
         role: 'Developer',
-        display_name: 'Test Dev 2',
+        displayName: 'Test Dev 2',
         goal: 'Test development',
         framework: 'claude-code',
         status: 'active',
@@ -113,7 +113,7 @@ describe('Task Blocking for Paused Agents', () => {
       const agent = createAgent(db, {
         id: 'test-agent-003',
         role: 'Developer',
-        display_name: 'Test Dev 3',
+        displayName: 'Test Dev 3',
         goal: 'Test development',
         framework: 'claude-code',
         status: 'active',
@@ -162,7 +162,7 @@ describe('Task Blocking for Paused Agents', () => {
       const agent = createAgent(db, {
         id: 'test-agent-004',
         role: 'Developer',
-        display_name: 'Test Dev 4',
+        displayName: 'Test Dev 4',
         goal: 'Test development',
         framework: 'claude-code',
         status: 'active',
@@ -201,7 +201,7 @@ describe('Task Blocking for Paused Agents', () => {
       const agent = createAgent(db, {
         id: 'test-agent-005',
         role: 'Developer',
-        display_name: 'Test Dev 5',
+        displayName: 'Test Dev 5',
         goal: 'Test development',
         framework: 'claude-code',
         status: 'active',
@@ -253,7 +253,7 @@ describe('Task Blocking for Paused Agents', () => {
       const agent = createAgent(db, {
         id: 'test-agent-006',
         role: 'Developer',
-        display_name: 'Test Dev 6',
+        displayName: 'Test Dev 6',
         goal: 'Test development',
         framework: 'claude-code',
         status: 'active',

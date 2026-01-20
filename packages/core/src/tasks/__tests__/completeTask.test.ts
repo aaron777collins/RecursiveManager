@@ -67,7 +67,6 @@ describe('completeTaskWithFiles', () => {
         id: 'task-001',
         agentId: 'test-agent',
         title: 'Test Task',
-        description: 'Test task description',
         priority: 'medium',
       });
 
@@ -179,7 +178,6 @@ describe('completeTaskWithFiles', () => {
         id: 'task-002',
         agentId: 'test-agent',
         title: 'Test Task',
-        description: 'Test task description',
         priority: 'medium',
       });
 
@@ -214,7 +212,6 @@ describe('completeTaskWithFiles', () => {
         id: 'task-003',
         agentId: 'test-agent',
         title: 'Test Task',
-        description: 'Test task description',
         priority: 'medium',
       });
 

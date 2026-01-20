@@ -139,7 +139,7 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
     mockAdapter = {
       name: 'mock-adapter',
       async executeAgent(
-        agentId: string,
+        _agentId: string,
         mode: 'continuous' | 'reactive',
         context: any
       ): Promise<ExecutionResult> {

@@ -16,7 +16,7 @@ import {
   DatabasePool,
   type AgentConfig,
 } from '@recursive-manager/common';
-import { ExecutionOrchestrator, type Decision } from '../index';
+import { ExecutionOrchestrator } from '../index';
 
 // Mock types for adapters (avoiding import issues)
 type ExecutionResult = {

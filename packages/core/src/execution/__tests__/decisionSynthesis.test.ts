@@ -88,47 +88,7 @@ class AdapterRegistry {
   }
 }
 
-// Helper to create valid AgentConfig
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function createValidConfig(agentId: string, role: string): AgentConfig {
-  return {
-    version: '1.0.0',
-    identity: {
-      id: agentId,
-      role,
-      displayName: role,
-      createdAt: new Date().toISOString(),
-      createdBy: 'test',
-      reportingTo: null,
-    },
-    goal: {
-      mainGoal: 'Test goal',
-    },
-    permissions: {
-      canHire: false,
-      canFire: false,
-      maxSubordinates: 0,
-      hiringBudget: 0,
-    },
-    framework: {
-      primary: 'mock-adapter',
-      fallback: undefined,
-    },
-    communication: {
-      preferredChannels: [],
-    },
-    execution: {
-      mode: 'continuous',
-      schedule: null,
-      maxConcurrentTasks: 5,
-      multiPerspectiveAnalysis: {
-        enabled: true,
-        perspectives: ['Technical', 'Security', 'User Experience'],
-        timeout: 120000,
-      },
-    },
-  };
-}
+// Removed unused helper function createValidConfig
 
 // Helper to create mock adapter
 function createMockAdapter(name: string, healthy = true): FrameworkAdapter {

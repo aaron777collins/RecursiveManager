@@ -265,7 +265,7 @@ describe('pauseAgent', () => {
       expect(logs.length).toBeGreaterThan(0);
       const pauseLog = logs[0]!;
       expect(pauseLog).toBeDefined();
-      expect(pauseLog.success).toBe(true);
+      expect(Boolean(pauseLog.success)).toBe(true);
       expect(pauseLog.agent_id).toBe('manager-001');
       expect(pauseLog.target_agent_id).toBe('dev-001');
       expect(pauseLog.details).toBeDefined();
@@ -295,7 +295,7 @@ describe('pauseAgent', () => {
       expect(logs.length).toBeGreaterThan(0);
       const pauseLog = logs[0]!;
       expect(pauseLog).toBeDefined();
-      expect(pauseLog.success).toBe(true);
+      expect(Boolean(pauseLog.success)).toBe(true);
       expect(pauseLog.agent_id).toBeNull();
       expect(pauseLog.target_agent_id).toBe('ceo-001');
     });
