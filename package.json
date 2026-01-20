@@ -36,7 +36,9 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
     "version": "echo $npm_package_version",
     "test:ci": "turbo run test --no-cache",
-    "build:binaries": "node scripts/build-binaries.js"
+    "build:binaries": "node scripts/build-binaries.js",
+    "security:audit": "npm audit && ./scripts/security-audit.sh",
+    "security:fix": "npm audit fix"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.3.1",
