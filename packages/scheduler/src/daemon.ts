@@ -9,33 +9,28 @@
  * Implements Task 3.4.7: Add process tracking (PID files) - EC-7.1 prevention
  */
 
-import { getDatabase, acquirePidLock, removePidFileSync } from '@recursive-manager/common';
+import {
+  getDatabase,
+  acquirePidLock,
+  removePidFileSync,
+  createLogger,
+  withTraceId,
+  type Logger,
+} from '@recursive-manager/common';
 import { archiveOldTasks, compressOldArchives, monitorDeadlocks, ExecutionPool } from '@recursive-manager/core';
 import { ScheduleManager } from './ScheduleManager';
 import type { ScheduleRecord } from './ScheduleManager';
-import * as winston from 'winston';
 
 /**
- * Configure Winston logger
+ * Configure logger using common logger (with trace ID support)
  */
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
-    winston.format.json()
-  ),
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.printf(({ level, message, timestamp, ...meta }) => {
-          const metaStr: string = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
-          return `${String(timestamp)} ${String(level)}: ${String(message)} ${metaStr}`;
-        })
-      ),
-    }),
-  ],
+const logger: Logger = createLogger({
+  level: (process.env.LOG_LEVEL as 'error' | 'warn' | 'info' | 'debug') || 'info',
+  json: true,
+  console: true,
+  defaultMetadata: {
+    component: 'scheduler-daemon',
+  },
 });
 
 /**
@@ -51,8 +46,9 @@ type JobExecutor = (schedule: ScheduleRecord) => Promise<void>;
  */
 const JOB_EXECUTORS: Record<string, JobExecutor> = {
   'Archive tasks older than 7 days': async (schedule) => {
-    const dbConnection = getDatabase();
-    logger.info('Starting task archival job', { scheduleId: schedule.id });
+    return withTraceId(async () => {
+      const dbConnection = getDatabase();
+      logger.info('Starting task archival job', { scheduleId: schedule.id });
 
     try {
       // Archive tasks completed more than 7 days ago
@@ -76,11 +72,13 @@ const JOB_EXECUTORS: Record<string, JobExecutor> = {
       });
       throw error;
     }
+    }); // End withTraceId
   },
 
   'Monitor for task deadlocks and send alerts': async (schedule) => {
-    const dbConnection = getDatabase();
-    logger.info('Starting deadlock monitoring job', { scheduleId: schedule.id });
+    return withTraceId(async () => {
+      const dbConnection = getDatabase();
+      logger.info('Starting deadlock monitoring job', { scheduleId: schedule.id });
 
     try {
       // Check all blocked tasks for deadlocks
@@ -108,6 +106,7 @@ const JOB_EXECUTORS: Record<string, JobExecutor> = {
       });
       throw error;
     }
+    }); // End withTraceId
   },
 };
 

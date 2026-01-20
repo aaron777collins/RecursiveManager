@@ -26,6 +26,7 @@ import {
   atomicWrite,
   createAgentLogger,
   safeLoad,
+  withTraceId,
 } from '@recursive-manager/common';
 import { createAgent, AgentRecord, createSnapshot } from '@recursive-manager/common';
 import { saveAgentConfig } from '../config';
@@ -381,15 +382,17 @@ export async function hireAgent(
   config: AgentConfig,
   options: PathOptions = {}
 ): Promise<AgentRecord> {
-  const agentId = config.identity.id;
-  const logger = createAgentLogger(agentId);
+  // Wrap in trace context for automatic correlation ID propagation
+  return withTraceId(async () => {
+    const agentId = config.identity.id;
+    const logger = createAgentLogger(agentId);
 
-  logger.info('Starting agent hire process', {
-    agentId,
-    managerId: managerId ?? undefined,
-    role: config.identity.role,
-    goal: config.goal.mainGoal,
-  });
+    logger.info('Starting agent hire process', {
+      agentId,
+      managerId: managerId ?? undefined,
+      role: config.identity.role,
+      goal: config.goal.mainGoal,
+    });
 
   try {
     // STEP 1: VALIDATION (if managerId exists)
@@ -624,4 +627,5 @@ export async function hireAgent(
       error
     );
   }
+  }); // End withTraceId
 }

@@ -246,6 +246,11 @@ export {
   type LogMetadata,
   type LoggerOptions,
   type AgentHierarchyContext,
+  // Request context management (Phase 9.9)
+  withTraceId,
+  getCurrentTraceId,
+  setRequestContext,
+  getRequestContext,
 } from './logger';
 
 // Types (Phase 2.1)

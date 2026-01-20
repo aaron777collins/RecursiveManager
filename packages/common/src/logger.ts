@@ -12,7 +12,18 @@
 import winston from 'winston';
 import DailyRotateFile from 'winston-daily-rotate-file';
 import { randomUUID } from 'crypto';
+import { AsyncLocalStorage } from 'async_hooks';
 import { getAgentLogPath } from './path-utils';
+
+/**
+ * Request context storage for automatic trace ID propagation
+ */
+interface RequestContext {
+  traceId: string;
+  [key: string]: unknown;
+}
+
+const requestContext = new AsyncLocalStorage<RequestContext>();
 
 /**
  * Log level type definition
@@ -175,11 +186,16 @@ class WinstonLogger implements Logger {
   }
 
   /**
-   * Merge metadata with defaults
+   * Merge metadata with defaults and automatic context
    */
   private mergeMetadata(metadata?: LogMetadata): LogMetadata {
+    const context = requestContext.getStore();
     return {
+      // Inject trace ID from async context if available
+      ...(context?.traceId && { traceId: context.traceId }),
+      // Add default metadata (may override context)
       ...this.defaultMetadata,
+      // Add explicit metadata (highest priority)
       ...metadata,
     };
   }
@@ -503,6 +519,117 @@ export function createHierarchicalAgentLogger(
     defaultMetadata,
     ...options, // Allow overriding defaults
   });
+}
+
+/**
+ * Run a function with a trace ID context
+ *
+ * Creates an async context with a trace ID that will be automatically
+ * injected into all log messages within the execution scope.
+ *
+ * @param traceId - Trace ID to use for correlation (generated if not provided)
+ * @param fn - Async function to execute within the trace context
+ * @returns Promise that resolves with the function's return value
+ *
+ * @example
+ * ```typescript
+ * // Automatic trace ID generation
+ * await withTraceId(async () => {
+ *   logger.info('Starting execution'); // Automatically includes traceId
+ *   await doWork();
+ *   logger.info('Execution complete'); // Same traceId as above
+ * });
+ *
+ * // Explicit trace ID
+ * const traceId = generateTraceId();
+ * await withTraceId(traceId, async () => {
+ *   logger.info('Processing request'); // Includes specified traceId
+ * });
+ * ```
+ */
+export async function withTraceId<T>(
+  traceIdOrFn: string | (() => Promise<T>),
+  fn?: () => Promise<T>
+): Promise<T> {
+  let traceId: string;
+  let executionFn: () => Promise<T>;
+
+  // Handle overloaded signatures
+  if (typeof traceIdOrFn === 'function') {
+    traceId = generateTraceId();
+    executionFn = traceIdOrFn;
+  } else {
+    traceId = traceIdOrFn;
+    executionFn = fn!;
+  }
+
+  return requestContext.run({ traceId }, executionFn);
+}
+
+/**
+ * Get the current trace ID from async context
+ *
+ * @returns Current trace ID or undefined if not in a trace context
+ *
+ * @example
+ * ```typescript
+ * await withTraceId(async () => {
+ *   const traceId = getCurrentTraceId();
+ *   console.log('Current trace:', traceId); // Shows current trace ID
+ * });
+ *
+ * const traceId = getCurrentTraceId();
+ * console.log(traceId); // undefined (not in trace context)
+ * ```
+ */
+export function getCurrentTraceId(): string | undefined {
+  return requestContext.getStore()?.traceId;
+}
+
+/**
+ * Set additional context data for the current request
+ *
+ * Allows adding custom context data that can be accessed throughout
+ * the execution scope. This does not affect log metadata directly
+ * but can be used for custom request tracking.
+ *
+ * @param key - Context key
+ * @param value - Context value
+ *
+ * @example
+ * ```typescript
+ * await withTraceId(async () => {
+ *   setRequestContext('userId', 'user-123');
+ *   setRequestContext('operation', 'hire-agent');
+ *
+ *   const userId = getRequestContext('userId'); // 'user-123'
+ * });
+ * ```
+ */
+export function setRequestContext(key: string, value: unknown): void {
+  const context = requestContext.getStore();
+  if (context) {
+    context[key] = value;
+  }
+}
+
+/**
+ * Get context data from the current request
+ *
+ * @param key - Context key to retrieve
+ * @returns Context value or undefined if not set or not in context
+ *
+ * @example
+ * ```typescript
+ * await withTraceId(async () => {
+ *   setRequestContext('agentId', 'agent-123');
+ *   const agentId = getRequestContext('agentId'); // 'agent-123'
+ * });
+ * ```
+ */
+export function getRequestContext(key: string): unknown | undefined {
+  const context = requestContext.getStore();
+  return context?.[key];
 }
 
 /**

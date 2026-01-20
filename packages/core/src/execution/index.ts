@@ -17,6 +17,8 @@ import {
   auditLog,
   AuditAction,
   DatabasePool,
+  withTraceId,
+  generateTraceId,
 } from '@recursive-manager/common';
 import { AgentLock, AgentLockError } from './AgentLock';
 import { ExecutionPool, type PoolStatistics } from './ExecutionPool';
@@ -120,8 +122,10 @@ export class ExecutionOrchestrator {
   async executeContinuous(agentId: string): Promise<ExecutionResult> {
     // Execute through the pool to enforce max concurrent limit
     return this.executionPool.execute(agentId, async () => {
-      const logger = createAgentLogger(agentId);
-      logger.info('Starting continuous execution', { agentId });
+      // Wrap execution in trace context for automatic correlation ID propagation
+      return withTraceId(async () => {
+        const logger = createAgentLogger(agentId);
+        logger.info('Starting continuous execution', { agentId });
 
       // Try to acquire lock without waiting (fail fast for concurrent executions of same agent)
       const release = await this.agentLock.tryAcquire(agentId);
@@ -259,6 +263,7 @@ export class ExecutionOrchestrator {
         // Always release lock, even on error
         release();
       }
+      }); // End withTraceId
     });
   }
 
@@ -276,12 +281,14 @@ export class ExecutionOrchestrator {
   async executeReactive(agentId: string, trigger: ReactiveTrigger): Promise<ExecutionResult> {
     // Execute through the pool to enforce max concurrent limit
     return this.executionPool.execute(agentId, async () => {
-      const logger = createAgentLogger(agentId);
-      logger.info('Starting reactive execution', {
-        agentId,
-        triggerType: trigger.type,
-        messageId: trigger.messageId,
-      });
+      // Wrap execution in trace context for automatic correlation ID propagation
+      return withTraceId(async () => {
+        const logger = createAgentLogger(agentId);
+        logger.info('Starting reactive execution', {
+          agentId,
+          triggerType: trigger.type,
+          messageId: trigger.messageId,
+        });
 
       // Try to acquire lock without waiting (fail fast for concurrent executions of same agent)
       const release = await this.agentLock.tryAcquire(agentId);
@@ -424,6 +431,7 @@ export class ExecutionOrchestrator {
         // Always release lock, even on error
         release();
       }
+      }); // End withTraceId
     });
   }
 
