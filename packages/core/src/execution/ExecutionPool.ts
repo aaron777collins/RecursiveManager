@@ -5,6 +5,8 @@
  * Provides queue management and enforces max concurrent executions limit.
  */
 
+import { DependencyGraph, CycleDetectionResult } from './DependencyGraph.js';
+
 /**
  * Task priority levels
  */
@@ -58,6 +60,8 @@ export interface PoolStatistics {
 export interface ExecutionPoolOptions {
   /** Maximum number of concurrent executions (default: 10) */
   maxConcurrent?: number;
+  /** Enable dependency graph management with cycle detection (default: true) */
+  enableDependencyGraph?: boolean;
 }
 
 /**
@@ -83,9 +87,15 @@ export class ExecutionPool {
   private executionIdCounter = 0;
   /** Set of completed execution IDs (for dependency tracking) */
   private readonly completed: Set<string> = new Set();
+  /** Dependency graph for advanced dependency management */
+  private readonly dependencyGraph: DependencyGraph;
+  /** Whether dependency graph management is enabled */
+  private readonly enableDependencyGraph: boolean;
 
   constructor(options: ExecutionPoolOptions = {}) {
     this.maxConcurrent = options.maxConcurrent ?? 10;
+    this.enableDependencyGraph = options.enableDependencyGraph ?? true;
+    this.dependencyGraph = new DependencyGraph();
   }
 
   /**
@@ -108,6 +118,22 @@ export class ExecutionPool {
   ): Promise<T> {
     // Generate unique execution ID
     const executionId = `exec-${++this.executionIdCounter}`;
+
+    // If dependency graph is enabled, add node and check for cycles
+    if (this.enableDependencyGraph && dependencies && dependencies.length > 0) {
+      const added = this.dependencyGraph.addNode(executionId, dependencies);
+      if (!added) {
+        // Cycle detected - reject immediately
+        return Promise.reject(
+          new Error(
+            `Dependency cycle detected: Adding execution ${executionId} with dependencies [${dependencies.join(', ')}] would create a circular dependency`,
+          ),
+        );
+      }
+    } else if (this.enableDependencyGraph) {
+      // Add node with no dependencies
+      this.dependencyGraph.addNode(executionId, []);
+    }
 
     // Check if dependencies are satisfied
     const hasDependencies = dependencies && dependencies.length > 0;
@@ -150,6 +176,10 @@ export class ExecutionPool {
       this.totalProcessed++;
       // Mark task as completed for dependency tracking
       this.completed.add(executionId);
+      // Mark task as completed in dependency graph
+      if (this.enableDependencyGraph) {
+        this.dependencyGraph.markCompleted(executionId);
+      }
       return result;
     } catch (error) {
       this.totalFailed++;
@@ -364,5 +394,82 @@ export class ExecutionPool {
    */
   areDependenciesComplete(dependencies: string[]): boolean {
     return this.areDependenciesSatisfied(dependencies);
+  }
+
+  /**
+   * Detect cycles in the dependency graph
+   *
+   * Only available if dependency graph is enabled.
+   *
+   * @returns Cycle detection result with cycle path if found
+   */
+  detectDependencyCycle(): CycleDetectionResult | null {
+    if (!this.enableDependencyGraph) {
+      return null;
+    }
+    return this.dependencyGraph.detectCycle();
+  }
+
+  /**
+   * Get dependency graph statistics
+   *
+   * Only available if dependency graph is enabled.
+   *
+   * @returns Graph statistics or null if disabled
+   */
+  getDependencyGraphStatistics(): {
+    totalNodes: number;
+    completedNodes: number;
+    readyNodes: number;
+    blockedNodes: number;
+  } | null {
+    if (!this.enableDependencyGraph) {
+      return null;
+    }
+    return this.dependencyGraph.getStatistics();
+  }
+
+  /**
+   * Get dependencies for a specific execution
+   *
+   * Only available if dependency graph is enabled.
+   *
+   * @param executionId - Execution ID
+   * @returns Array of dependency execution IDs, or null if graph disabled
+   */
+  getExecutionDependencies(executionId: string): string[] | null {
+    if (!this.enableDependencyGraph) {
+      return null;
+    }
+    return this.dependencyGraph.getDependencies(executionId);
+  }
+
+  /**
+   * Get dependents for a specific execution (executions that depend on this one)
+   *
+   * Only available if dependency graph is enabled.
+   *
+   * @param executionId - Execution ID
+   * @returns Array of dependent execution IDs, or null if graph disabled
+   */
+  getExecutionDependents(executionId: string): string[] | null {
+    if (!this.enableDependencyGraph) {
+      return null;
+    }
+    return this.dependencyGraph.getDependents(executionId);
+  }
+
+  /**
+   * Get all execution IDs ready to execute (dependencies satisfied)
+   *
+   * Only available if dependency graph is enabled.
+   *
+   * @returns Array of ready execution IDs, or null if graph disabled
+   */
+  getReadyExecutions(): string[] | null {
+    if (!this.enableDependencyGraph) {
+      return null;
+    }
+    return this.dependencyGraph.getReadyExecutions();
   }
 }

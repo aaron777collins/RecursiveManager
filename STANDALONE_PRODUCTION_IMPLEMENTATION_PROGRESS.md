@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Task 4.3 COMPLETE - Implemented inter-task dependency specification in ExecutionPool. Added `dependencies` field to QueuedTask interface, `completed` Set to track finished executions, enhanced execute() method with optional dependencies parameter, implemented areDependenciesSatisfied() method, updated selectHighestPriorityTask() to check dependency satisfaction, added getCompletedExecutions() and areDependenciesComplete() public methods. Tasks now wait in queue until all dependencies complete, maintaining priority ordering. Added 11 comprehensive dependency tests (all passing, 62/62 total tests pass). Phase 4 Task 4.3 complete. Next iteration: Task 4.4 - Add dependency graph management.
+**Current Iteration Summary**: ✅ Task 4.4 COMPLETE - Implemented DependencyGraph class for advanced dependency management with cycle detection. Created comprehensive DependencyGraph class (333 lines) with adjacency list representation, DFS-based cycle detection before node addition (prevents circular dependencies), topological analysis (getReadyExecutions), and complete dependency/dependent tracking. Integrated DependencyGraph into ExecutionPool with optional enableDependencyGraph flag (default: true), automatic cycle detection in execute() method (rejects with error if cycle detected), completed execution tracking in both systems, and 6 new public API methods (detectDependencyCycle, getDependencyGraphStatistics, getExecutionDependencies, getExecutionDependents, getReadyExecutions, getDependencyGraphStatistics). Added 43 comprehensive tests covering: cycle prevention (direct and indirect cycles), diamond dependencies, parallel executions, complex dependency chains, graph statistics, and all edge cases (all 43 tests passing, 915/932 total tests pass - 100% of non-skipped tests). Phase 4 Task 4.4 complete. Next iteration: Task 4.5 - Wire dependency resolution to scheduler.
 
 ## Analysis
 
@@ -229,7 +229,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 4.1: Implement priority queue (replace FIFO with priority-based)
 - [x] 4.2: Add task priority field to execution pool
 - [x] 4.3: Implement inter-task dependency specification
-- [ ] 4.4: Add dependency graph management
+- [x] 4.4: Add dependency graph management
 - [ ] 4.5: Wire dependency resolution to scheduler
 - [ ] 4.6: Implement execution stop on agent pause (currently deferred)
 - [ ] 4.7: Implement execution restart on agent resume (currently deferred)
@@ -574,26 +574,111 @@ This ensures:
 
 ## Completed This Iteration
 
-- **Task 4.3: Implement inter-task dependency specification** (COMPLETE ✅):
+- **Task 4.4: Add dependency graph management** (COMPLETE ✅):
 
-  **Summary**: Enhanced ExecutionPool with full dependency tracking and resolution. Tasks can now specify execution IDs they depend on, and the pool ensures dependencies are satisfied before execution.
+  **Summary**: Implemented comprehensive DependencyGraph class with cycle detection and topological analysis. Integrated with ExecutionPool to provide advanced dependency management with automatic cycle prevention.
 
   **Implementation Details**:
-  1. **Added dependencies field to QueuedTask**: Optional `dependencies?: string[]` field to specify required execution IDs
-  2. **Added completed Set**: Tracks all completed execution IDs for dependency checking
-  3. **Enhanced execute() method**: Added 4th parameter `dependencies?: string[]` (optional)
-  4. **Implemented areDependenciesSatisfied()**: Private helper to check if all dependency IDs are in completed set
-  5. **Updated selectHighestPriorityTask()**: Now skips tasks with unsatisfied dependencies, only selects tasks ready to run
-  6. **Mark executions complete**: Added `this.completed.add(executionId)` after successful task execution
-  7. **Added public API methods**:
-     - `getCompletedExecutions()`: Returns array of completed execution IDs
-     - `areDependenciesComplete(dependencies: string[])`: Public method to check if dependencies are satisfied
+
+  1. **Created DependencyGraph class** (`packages/core/src/execution/DependencyGraph.ts` - 333 lines):
+     - **Data structures**:
+       - `dependencies: Map<string, string[]>` - Adjacency list for dependencies
+       - `dependents: Map<string, string[]>` - Reverse adjacency list for dependent tracking
+       - `completed: Set<string>` - Tracks completed executions
+     - **Core methods**:
+       - `addNode(executionId, dependencies)` - Adds node with cycle detection (returns false if would create cycle)
+       - `removeNode(executionId)` - Removes node and updates all edges
+       - `markCompleted(executionId)` - Marks execution complete
+       - `areDependenciesSatisfied(executionId)` - Checks if all dependencies are complete
+     - **Cycle detection**:
+       - `wouldCreateCycle()` - Pre-check before adding node using DFS
+       - `hasPathThroughDependencies()` - DFS traversal through dependency graph
+       - `detectCycle()` - Full graph cycle detection with path reconstruction (3-color DFS algorithm)
+     - **Topological analysis**:
+       - `getReadyExecutions()` - Returns executions with satisfied dependencies
+       - `getDependencies(executionId)` - Returns direct dependencies
+       - `getDependents(executionId)` - Returns direct dependents
+     - **Utilities**:
+       - `getStatistics()` - Returns totalNodes, completedNodes, readyNodes, blockedNodes
+       - `clear()` - Clears all data
+       - `getAllExecutions()`, `getCompletedExecutions()`
+
+  2. **Integrated DependencyGraph into ExecutionPool** (`packages/core/src/execution/ExecutionPool.ts`):
+     - **Added fields**:
+       - `dependencyGraph: DependencyGraph` - Dependency graph instance
+       - `enableDependencyGraph: boolean` - Feature flag (default: true)
+     - **Updated execute() method**:
+       - Calls `dependencyGraph.addNode()` before queueing
+       - Rejects with error if cycle detected
+       - Adds all new executions to graph (with or without dependencies)
+     - **Updated executeTask() method**:
+       - Marks executions complete in both `completed` Set and `dependencyGraph`
+     - **Added 6 public API methods**:
+       - `detectDependencyCycle()` - Returns CycleDetectionResult or null
+       - `getDependencyGraphStatistics()` - Returns graph stats or null
+       - `getExecutionDependencies(executionId)` - Returns dependencies array or null
+       - `getExecutionDependents(executionId)` - Returns dependents array or null
+       - `getReadyExecutions()` - Returns ready executions array or null
+     - **Added options**:
+       - `ExecutionPoolOptions.enableDependencyGraph` - Toggle feature (default: true)
+
+  3. **Exported types** (`packages/core/src/execution/index.ts`):
+     - Exported `DependencyGraph` class
+     - Exported `CycleDetectionResult` interface
+
+  4. **Added comprehensive test suite** (`packages/core/src/execution/__tests__/DependencyGraph.test.ts` - 43 tests):
+     - **addNode tests** (7 tests):
+       - Adding nodes with/without dependencies
+       - Preventing direct cycles (A → B, B → A)
+       - Preventing indirect cycles (A → B → C → A)
+       - Allowing diamond dependencies (A → B/C, B/C → D)
+       - Updating dependents correctly
+     - **removeNode tests** (2 tests):
+       - Removing node and dependencies
+       - Removing node and updating dependents
+     - **markCompleted tests** (2 tests):
+       - Marking executions complete
+       - Allowing non-existent executions
+     - **areDependenciesSatisfied tests** (5 tests):
+       - No dependencies (always satisfied)
+       - Unsatisfied dependencies
+       - All dependencies satisfied
+       - Partial dependencies satisfied
+       - Non-existent nodes
+     - **detectCycle tests** (3 tests):
+       - No cycle in empty/acyclic graphs
+       - Cycle detection (tested via prevention)
+       - Ignoring completed nodes
+     - **getReadyExecutions tests** (6 tests):
+       - Empty graph
+       - Nodes with/without dependencies
+       - Dependencies satisfied/unsatisfied
+       - Excluding completed nodes
+       - Multiple ready nodes
+     - **getDependencies/getDependents tests** (6 tests):
+       - Nodes with/without dependencies/dependents
+       - Multiple dependents
+       - Non-existent nodes
+     - **Utility tests** (8 tests):
+       - getAllExecutions, getCompletedExecutions
+       - clear() method
+       - getStatistics() with various graph states
+     - **Complex scenarios** (4 tests):
+       - Linear dependency chains
+       - Parallel executions with shared dependency
+       - Diamond patterns
+       - Multiple independent chains
 
   **Behavior**:
-  - Tasks with satisfied dependencies execute immediately (if pool capacity available)
-  - Tasks with unsatisfied dependencies queue until dependencies complete
-  - Priority ordering maintained: higher priority tasks with satisfied dependencies execute first
-  - FIFO ordering preserved for same-priority tasks with satisfied dependencies
+  - Cycle detection happens BEFORE node addition (fail-fast)
+  - ExecutionPool automatically rejects tasks that would create cycles
+  - Dependency graph tracks all relationships for analysis and debugging
+  - Graph statistics provide visibility into execution state
+  - Feature can be disabled via `enableDependencyGraph: false` option
+
+  **Test Results**:
+  - All 43 DependencyGraph tests passing ✅
+  - All 915/932 non-skipped tests passing ✅ (17 skipped, 100% pass rate)
 
   **Test Coverage Added** (11 new tests, all passing):
   - Execute task with satisfied dependencies immediately

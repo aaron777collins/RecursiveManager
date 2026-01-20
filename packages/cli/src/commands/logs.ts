@@ -5,7 +5,7 @@
 import { Command } from 'commander';
 import { existsSync, readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { header, error, info, code, subheader, warning, success } from '../utils/colors';
+import { header, error, info, code, warning, success } from '../utils/colors';
 import { createSpinner } from '../utils/spinner';
 import { loadConfig } from '../utils/config';
 import {

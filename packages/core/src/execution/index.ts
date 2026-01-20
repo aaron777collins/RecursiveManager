@@ -25,6 +25,7 @@ import type { MultiPerspectiveResult } from '../ai-analysis/multi-perspective.js
 // Re-export for external use
 export { AgentLock, AgentLockError };
 export { ExecutionPool, type PoolStatistics };
+export { DependencyGraph, type CycleDetectionResult } from './DependencyGraph.js';
 
 /**
  * Reactive trigger that initiates reactive execution mode
