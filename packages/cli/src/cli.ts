@@ -18,8 +18,7 @@ import { registerAnalyzeCommand } from './commands/analyze';
 import { registerHireCommand } from './commands/hire';
 import { registerFireCommand } from './commands/fire';
 import { registerMessageCommand } from './commands/message';
-// TODO: Fix remaining command
-// import { registerRunCommand } from './commands/run';
+import { registerRunCommand } from './commands/run';
 
 const program = new Command();
 
@@ -39,8 +38,7 @@ registerAnalyzeCommand(program);
 registerHireCommand(program);
 registerFireCommand(program);
 registerMessageCommand(program);
-// TODO: Fix remaining command
-// registerRunCommand(program);
+registerRunCommand(program);
 
 // Parse command line arguments
 program.parse(process.argv);

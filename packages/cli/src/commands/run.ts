@@ -116,8 +116,9 @@ export function registerRunCommand(program: Command): void {
 
           const spinner = createSpinner(`Executing agent in ${mode} mode...`);
 
-          // Create database pool
-          const dbPool = new DatabasePool(() => initializeDatabase({ path: dbPath }));
+          // Get database pool singleton
+          const dbPool = DatabasePool.getInstance();
+          dbPool.initialize({ path: dbPath });
 
           // Create adapter registry
           const adapterRegistry = new AdapterRegistry();
@@ -176,7 +177,7 @@ export function registerRunCommand(program: Command): void {
             }
           } finally {
             // Cleanup database pool
-            dbPool.closeAll();
+            dbPool.close();
           }
         } finally {
           dbConnection.close();
