@@ -456,44 +456,80 @@ describe('notifyTaskCompletion', () => {
 
   describe('error handling', () => {
     it('should throw error when task owner does not exist', async () => {
-      // Create task
-      const task = createTask(db, {
-        agentId: subordinateAgentId,
-        title: 'Test Task',
-        taskPath: `/${subordinateAgentId}/test-task`,
-      });
+      // Create a completed task object with a non-existent agent ID
+      // This simulates the scenario where the task exists but the agent doesn't
+      const completedTask: any = {
+        id: 'orphan-task-001',
+        agent_id: 'non-existent-subordinate',
+        title: 'Orphaned Task',
+        status: 'completed',
+        priority: 'medium',
+        created_at: new Date().toISOString(),
+        started_at: new Date().toISOString(),
+        completed_at: new Date().toISOString(),
+        parent_task_id: null,
+        depth: 0,
+        percent_complete: 100,
+        subtasks_completed: 0,
+        subtasks_total: 0,
+        delegated_to: null,
+        delegated_at: null,
+        blocked_by: '[]',
+        blocked_since: null,
+        task_path: '/non-existent-subordinate/orphan-task',
+        version: 2,
+        last_updated: new Date().toISOString(),
+        last_executed: null,
+        execution_count: 0,
+      };
 
-      const completedTask = dbCompleteTask(db, task.id, task.version);
-
-      // Delete the task first (to avoid FK constraint), then delete related records, then agent
-      // Note: Audit logs are immutable and cannot be deleted
-      db.prepare('DELETE FROM tasks WHERE id = ?').run(task.id);
-      db.prepare('DELETE FROM org_hierarchy WHERE agent_id = ?').run(subordinateAgentId);
-      db.prepare('DELETE FROM agents WHERE id = ?').run(subordinateAgentId);
-
-      // Attempt to send notification
+      // Attempt to send notification - should fail because agent doesn't exist
       await expect(notifyTaskCompletion(db, completedTask, { dataDir: testDir })).rejects.toThrow(
         'Cannot notify completion: task owner'
       );
     });
 
     it('should throw error when manager does not exist', async () => {
-      // Create task
+      // Create a temporary manager first (to satisfy FK constraints)
+      const tempManagerId = 'temp-manager-for-test';
+      createAgent(db, {
+        id: tempManagerId,
+        displayName: 'Temp Manager',
+        role: 'Manager',
+        reportingTo: null,
+        createdBy: 'test',
+        mainGoal: 'Manage temporarily',
+        configPath: path.join(testDir, 'temp-manager.json'),
+      });
+
+      // Create an agent that reports to this manager
+      const orphanSubordinateId = 'orphan-subordinate-002';
+      createAgent(db, {
+        id: orphanSubordinateId,
+        displayName: 'Orphan Subordinate',
+        role: 'Worker',
+        reportingTo: tempManagerId,
+        createdBy: 'test',
+        mainGoal: 'Complete tasks',
+        configPath: path.join(testDir, 'orphan-subordinate.json'),
+      });
+
+      // Create and complete a task for this agent
       const task = createTask(db, {
-        agentId: subordinateAgentId,
+        agentId: orphanSubordinateId,
         title: 'Test Task',
-        taskPath: `/${subordinateAgentId}/test-task`,
+        taskPath: `/${orphanSubordinateId}/test-task`,
       });
 
       const completedTask = dbCompleteTask(db, task.id, task.version);
 
-      // Delete subordinate's tasks first (to avoid FK constraint), then delete related records, then manager
-      // Note: Audit logs are immutable and cannot be deleted
-      db.prepare('DELETE FROM tasks WHERE agent_id = ?').run(subordinateAgentId);
-      db.prepare('DELETE FROM org_hierarchy WHERE agent_id = ?').run(managerAgentId);
-      db.prepare('DELETE FROM agents WHERE id = ?').run(managerAgentId);
+      // Now delete the manager (after task is created, to simulate manager disappearing)
+      // Temporarily disable FK constraints to allow deletion despite audit log references
+      db.pragma('foreign_keys = OFF');
+      db.prepare('DELETE FROM agents WHERE id = ?').run(tempManagerId);
+      db.pragma('foreign_keys = ON');
 
-      // Attempt to send notification
+      // Attempt to send notification - should fail because manager doesn't exist
       await expect(notifyTaskCompletion(db, completedTask, { dataDir: testDir })).rejects.toThrow(
         'Cannot notify completion: manager agent'
       );

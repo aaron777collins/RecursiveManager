@@ -186,8 +186,8 @@ ${agentTasksInCycle.map((task) => `- \`agents/${agentId}/tasks/active/${task.id}
     };
 
     try {
-      // Write message to inbox
-      const messagePath = await writeMessageToInbox(agentId, messageData, { dataDir });
+      // Write message to inbox (require agent dir to exist to detect fired agents)
+      const messagePath = await writeMessageToInbox(agentId, messageData, { dataDir, requireAgentDir: true });
 
       // Create database record
       createMessage(db, {

@@ -147,7 +147,7 @@ describe('Task Lifecycle Integration Tests', () => {
       );
 
       // Run archival process
-      const archivedCount = await archiveOldTasks(db, 7);
+      const archivedCount = await archiveOldTasks(db, 7, { baseDir: testDir });
 
       // Verify task was archived
       expect(archivedCount).toBe(1);
@@ -162,7 +162,7 @@ describe('Task Lifecycle Integration Tests', () => {
       const archivePath = path.join(
         testDir,
         'agents',
-        'ma',
+        'd0-df',
         'manager-001',
         'tasks',
         'archive',

@@ -182,11 +182,12 @@ async function archiveAgentFiles(agentId: string, options: PathOptions = {}): Pr
     try {
       await fs.access(agentDirectory);
     } catch {
-      logger.warn('Agent directory does not exist, skipping archive', {
+      logger.warn('Agent directory does not exist, archival is a no-op', {
         agentId,
         agentDirectory,
       });
-      return false;
+      // Return true since there's nothing to archive (successful no-op)
+      return true;
     }
 
     // Move directory to backups

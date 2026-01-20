@@ -93,22 +93,34 @@ ${message.content}
  *
  * @param agentId - Recipient agent ID
  * @param message - Message data
- * @param options - Write options
+ * @param options - Write options (dataDir, requireAgentDir)
  * @returns Path to the written message file
  */
 export async function writeMessageToInbox(
   agentId: string,
   message: MessageData,
-  options: { dataDir?: string } = {}
+  options: { dataDir?: string; requireAgentDir?: boolean } = {}
 ): Promise<string> {
   // Get inbox path (map dataDir to baseDir for PathOptions)
   const inboxDir = getInboxPath(agentId, { baseDir: options.dataDir });
+
+  // Optionally check if agent directory exists before writing
+  // This is useful for notifications to ensure agent hasn't been fired/deleted
+  if (options.requireAgentDir) {
+    const agentDir = path.dirname(inboxDir);
+    const { access } = await import('fs/promises');
+    try {
+      await access(agentDir);
+    } catch (error) {
+      throw new Error(`Agent directory does not exist for agent ${agentId}. Agent may have been deleted or not properly initialized.`);
+    }
+  }
 
   // Determine subdirectory based on read status
   const subDir = message.read ? 'read' : 'unread';
   const targetDir = path.join(inboxDir, subDir);
 
-  // Ensure directory exists
+  // Ensure directory exists (create recursively if needed)
   await mkdir(targetDir, { recursive: true, mode: 0o755 });
 
   // Generate file path

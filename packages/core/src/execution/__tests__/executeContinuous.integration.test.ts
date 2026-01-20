@@ -129,7 +129,7 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
     runMigrations(db, allMigrations);
 
     dbPool = {
-      getConnection: () => ({ db, close: () => db.close(), healthCheck: () => true }),
+      getConnection: () => ({ db, close: () => {/* no-op */}, healthCheck: () => true }),
       close: () => db.close(),
       isInitialized: () => true,
     } as any as DatabasePool;
@@ -355,7 +355,7 @@ describe('ExecutionOrchestrator - Continuous Execution Integration Tests', () =>
       };
 
       const execution1Promise = orchestrator.executeContinuous(agentId);
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 50));
       expect(execution1Started).toBe(true);
 
       await expect(orchestrator.executeContinuous(agentId)).rejects.toThrow('is already executing');

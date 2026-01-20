@@ -9,6 +9,8 @@
  * Task in the execution queue
  */
 export interface QueuedTask<T = unknown> {
+  /** Unique execution ID */
+  executionId: string;
   /** Unique agent ID */
   agentId: string;
   /** Task execution function */
@@ -58,14 +60,18 @@ export interface ExecutionPoolOptions {
 export class ExecutionPool {
   /** Maximum concurrent executions allowed */
   private readonly maxConcurrent: number;
-  /** Set of currently active agent IDs */
+  /** Set of currently active execution IDs */
   private readonly active: Set<string> = new Set();
+  /** Map of execution ID to agent ID for tracking active agents */
+  private readonly executionToAgent: Map<string, string> = new Map();
   /** Queue of pending tasks */
   private readonly queue: QueuedTask[] = [];
   /** Statistics tracking */
   private totalProcessed = 0;
   private totalFailed = 0;
   private totalQueueWaitTime = 0;
+  /** Execution ID counter */
+  private executionIdCounter = 0;
 
   constructor(options: ExecutionPoolOptions = {}) {
     this.maxConcurrent = options.maxConcurrent ?? 10;
@@ -82,14 +88,18 @@ export class ExecutionPool {
    * @returns Promise that resolves with execution result
    */
   async execute<T>(agentId: string, execute: () => Promise<T>): Promise<T> {
+    // Generate unique execution ID
+    const executionId = `exec-${++this.executionIdCounter}`;
+
     // If pool is not at capacity, execute immediately
     if (this.active.size < this.maxConcurrent) {
-      return this.executeTask(agentId, execute);
+      return this.executeTask(executionId, agentId, execute);
     }
 
     // Queue the task and wait for a slot
     return new Promise<T>((resolve, reject) => {
       this.queue.push({
+        executionId,
         agentId,
         execute,
         resolve: resolve as (value: unknown) => void,
@@ -102,12 +112,14 @@ export class ExecutionPool {
   /**
    * Execute a task immediately
    *
+   * @param executionId - Unique execution ID
    * @param agentId - Agent ID
    * @param execute - Function to execute
    * @returns Promise with execution result
    */
-  private async executeTask<T>(agentId: string, execute: () => Promise<T>): Promise<T> {
-    this.active.add(agentId);
+  private async executeTask<T>(executionId: string, agentId: string, execute: () => Promise<T>): Promise<T> {
+    this.active.add(executionId);
+    this.executionToAgent.set(executionId, agentId);
 
     try {
       const result = await execute();
@@ -117,7 +129,8 @@ export class ExecutionPool {
       this.totalFailed++;
       throw error;
     } finally {
-      this.active.delete(agentId);
+      this.active.delete(executionId);
+      this.executionToAgent.delete(executionId);
       // Process next task in queue if available
       this.processNextTask();
     }
@@ -145,16 +158,16 @@ export class ExecutionPool {
     this.totalQueueWaitTime += queueWaitTime;
 
     // Execute the queued task
-    this.executeTask(task.agentId, task.execute).then(task.resolve).catch(task.reject);
+    this.executeTask(task.executionId, task.agentId, task.execute).then(task.resolve).catch(task.reject);
   }
 
   /**
    * Get list of currently executing agent IDs
    *
-   * @returns Array of active agent IDs
+   * @returns Array of active agent IDs (may contain duplicates if same agent is executing multiple times)
    */
   getActiveExecutions(): string[] {
-    return Array.from(this.active);
+    return Array.from(this.executionToAgent.values());
   }
 
   /**
@@ -173,7 +186,12 @@ export class ExecutionPool {
    * @returns True if agent is executing
    */
   isExecuting(agentId: string): boolean {
-    return this.active.has(agentId);
+    for (const activeAgentId of this.executionToAgent.values()) {
+      if (activeAgentId === agentId) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -199,7 +217,7 @@ export class ExecutionPool {
       totalProcessed: this.totalProcessed,
       totalFailed: this.totalFailed,
       avgQueueWaitTime: this.totalProcessed > 0 ? this.totalQueueWaitTime / this.totalProcessed : 0,
-      activeAgents: Array.from(this.active),
+      activeAgents: Array.from(this.executionToAgent.values()),
     };
   }
 

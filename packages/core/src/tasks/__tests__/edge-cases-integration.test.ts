@@ -54,7 +54,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
   describe('Depth Limit Edge Cases (EC-2.2)', () => {
     let rootAgent: string;
 
-    beforeEach(() => {
+    beforeEach(async () => {
       rootAgent = createAgent(db, {
         id: 'root-agent',
         displayName: 'Root Agent',
@@ -82,21 +82,23 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
         permissions: {
           canHire: true,
           maxSubordinates: 10,
-          hiringBudget: 1000,
+          hiringBudget: 10,
           workspaceQuotaMB: 500,
         },
         framework: {
           primary: 'claude-code',
-          fallback: 'none',
         },
         communication: {
           notifyOnCompletion: true,
           notifyOnDelegation: true,
           notifyOnDeadlock: true,
         },
-                      };
+        behavior: {
+          continuousMode: false,
+        },
+      };
 
-      saveAgentConfig(rootAgent, config, { baseDir: testDir });
+      await saveAgentConfig(rootAgent, config, { baseDir: testDir });
     });
 
     it('should allow creating task at exactly max depth', () => {
@@ -174,7 +176,10 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
       expect(child.depth).toBe(1);
 
       // Delete parent task from database (simulating corruption/edge case)
+      // Temporarily disable foreign key constraints to allow orphaning
+      db.pragma('foreign_keys = OFF');
       db.prepare('DELETE FROM tasks WHERE id = ?').run(parent.id);
+      db.pragma('foreign_keys = ON');
 
       // Child task should still have correct depth recorded
       const childAfter = getTask(db, child.id);
@@ -339,14 +344,16 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
         },
         framework: {
           primary: 'claude-code',
-          fallback: 'none',
         },
         communication: {
           notifyOnCompletion: true,
           notifyOnDelegation: true,
           notifyOnDeadlock: true,
         },
-                      });
+        behavior: {
+          continuousMode: false,
+        },
+      });
 
       await saveAgentConfig(agentA, createConfig(agentA, 'Agent A'), { baseDir: testDir });
       await saveAgentConfig(agentB, createConfig(agentB, 'Agent B'), { baseDir: testDir });
@@ -369,7 +376,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
 
       // Update task A to be blocked by task B (creating cycle)
       db.prepare('UPDATE tasks SET blocked_by = ?, status = ? WHERE id = ?').run(
-        taskB.id,
+        JSON.stringify([taskB.id]),
         'blocked',
         taskA.id
       );
@@ -433,7 +440,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
         permissions: {
           canHire: name === 'Parent',
           maxSubordinates: 5,
-          hiringBudget: 1000,
+          hiringBudget: 5,
           workspaceQuotaMB: 500,
         },
         framework: {
@@ -445,7 +452,7 @@ describe('Edge Case Integration Tests (Task 2.3.35)', () => {
           notifyOnDelegation: true,
           notifyOnDeadlock: true,
         },
-                      });
+      });
 
       await saveAgentConfig(parent, createConfig(parent, 'Parent'), { baseDir: testDir });
       await saveAgentConfig(child, createConfig(child, 'Child'), { baseDir: testDir });

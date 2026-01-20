@@ -370,8 +370,9 @@ export async function moveTaskDirectory(
       }
     }
 
-    // Create the parent directory for new status if it doesn't exist
-    await fs.mkdir(path.dirname(newPath), { recursive: true });
+    // Ensure parent directory of new path exists
+    const newParentPath = path.dirname(newPath);
+    await fs.mkdir(newParentPath, { recursive: true });
 
     // Check if target directory already exists
     const targetExists = await fs

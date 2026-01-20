@@ -67,7 +67,7 @@ class AdapterRegistry {
   async getHealthyAdapter(
     primary: string,
     fallback?: string
-  ): Promise<{ adapter: FrameworkAdapter; usedFallback: boolean } | null> {
+  ): Promise<{ adapter: FrameworkAdapter; usedFallback: boolean } | undefined> {
     const primaryAdapter = this.adapters.get(primary);
     if (primaryAdapter && (await primaryAdapter.checkHealth())) {
       return { adapter: primaryAdapter, usedFallback: false };
@@ -80,7 +80,7 @@ class AdapterRegistry {
       }
     }
 
-    return null;
+    return undefined;
   }
 }
 
@@ -452,7 +452,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       };
 
       await expect(orchestrator.executeReactive('non-existent', trigger)).rejects.toThrow(
-        'Agent non-existent not found'
+        'Agent not found: non-existent'
       );
     });
 
@@ -900,8 +900,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
       await expect(orchestrator.executeReactive(agentId, trigger)).rejects.toThrow();
 
       // Second execution should not be blocked by unreleased lock
-      // Change adapter to working one
-      db.prepare('UPDATE agents SET framework = ? WHERE id = ?').run('mock-adapter', agentId);
+      // Change adapter to working one by updating the config
       await saveAgentConfig(agentId, createValidConfig(agentId, 'Support', 'mock-adapter'));
 
       const result = await orchestrator.executeReactive(agentId, trigger);
