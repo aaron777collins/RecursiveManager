@@ -14,18 +14,21 @@
       "type": "string",
       "description": "Unique message identifier (format: msg-{timestamp}-{random})",
       "minLength": 1,
+      "maxLength": 256,
       "pattern": "^msg-[0-9]+-[a-zA-Z0-9]+$"
     },
     "from": {
       "type": "string",
       "description": "Sender agent ID",
       "minLength": 1,
+      "maxLength": 128,
       "pattern": "^[a-zA-Z0-9-_]+$"
     },
     "to": {
       "type": "string",
       "description": "Recipient agent ID",
       "minLength": 1,
+      "maxLength": 128,
       "pattern": "^[a-zA-Z0-9-_]+$"
     },
     "timestamp": {
@@ -57,24 +60,28 @@
     "subject": {
       "type": "string",
       "description": "Message subject line (optional)",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 1024
     },
     "threadId": {
       "type": "string",
       "description": "Thread identifier for grouped messages",
       "minLength": 1,
+      "maxLength": 256,
       "pattern": "^thread-[a-zA-Z0-9-]+$"
     },
     "inReplyTo": {
       "type": "string",
       "description": "Message ID this is replying to",
       "minLength": 1,
+      "maxLength": 256,
       "pattern": "^msg-[0-9]+-[a-zA-Z0-9]+$"
     },
     "externalId": {
       "type": "string",
       "description": "External message ID (for Slack, Telegram, etc.)",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 512
     },
     "externalMetadata": {
       "type": "object",
@@ -82,27 +89,33 @@
       "properties": {
         "slackChannel": {
           "type": "string",
-          "description": "Slack channel name or ID"
+          "description": "Slack channel name or ID",
+          "maxLength": 256
         },
         "slackTs": {
           "type": "string",
-          "description": "Slack message timestamp"
+          "description": "Slack message timestamp",
+          "maxLength": 128
         },
         "telegramChatId": {
           "type": "string",
-          "description": "Telegram chat ID"
+          "description": "Telegram chat ID",
+          "maxLength": 128
         },
         "telegramMessageId": {
           "type": "string",
-          "description": "Telegram message ID"
+          "description": "Telegram message ID",
+          "maxLength": 128
         },
         "emailMessageId": {
           "type": "string",
-          "description": "Email Message-ID header"
+          "description": "Email Message-ID header",
+          "maxLength": 512
         },
         "emailThread": {
           "type": "string",
-          "description": "Email thread/conversation ID"
+          "description": "Email thread/conversation ID",
+          "maxLength": 512
         }
       },
       "additionalProperties": true
@@ -122,9 +135,11 @@
       "description": "Tags for message categorization",
       "items": {
         "type": "string",
-        "minLength": 1
+        "minLength": 1,
+        "maxLength": 128
       },
-      "default": []
+      "default": [],
+      "maxItems": 100
     },
     "attachments": {
       "type": "array",
@@ -136,27 +151,32 @@
           "filename": {
             "type": "string",
             "description": "Original filename",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 1024
           },
           "path": {
             "type": "string",
             "description": "Path to attachment file",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 4096
           },
           "size": {
             "type": "integer",
             "description": "File size in bytes",
-            "minimum": 0
+            "minimum": 0,
+            "maximum": 1073741824
           },
           "mimeType": {
             "type": "string",
             "description": "MIME type of attachment",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 256
           }
         },
         "additionalProperties": false
       },
-      "default": []
+      "default": [],
+      "maxItems": 1000
     }
   },
   "additionalProperties": false

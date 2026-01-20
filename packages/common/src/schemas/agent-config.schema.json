@@ -25,17 +25,20 @@
           "type": "string",
           "description": "Unique agent identifier",
           "minLength": 1,
+          "maxLength": 128,
           "pattern": "^[a-zA-Z0-9-_]+$"
         },
         "role": {
           "type": "string",
           "description": "Agent's role in the organization",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 256
         },
         "displayName": {
           "type": "string",
           "description": "Human-readable display name",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 256
         },
         "createdAt": {
           "type": "string",
@@ -45,12 +48,14 @@
         "createdBy": {
           "type": "string",
           "description": "ID of agent that created this agent",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 128
         },
         "reportingTo": {
           "type": ["string", "null"],
           "description": "ID of manager agent (null for root)",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 128
         }
       },
       "additionalProperties": false
@@ -63,25 +68,30 @@
         "mainGoal": {
           "type": "string",
           "description": "Primary goal of the agent",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 10240
         },
         "subGoals": {
           "type": "array",
           "description": "List of sub-goals",
           "items": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 5120
           },
-          "default": []
+          "default": [],
+          "maxItems": 100
         },
         "successCriteria": {
           "type": "array",
           "description": "Criteria for determining success",
           "items": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 5120
           },
-          "default": []
+          "default": [],
+          "maxItems": 100
         }
       },
       "additionalProperties": false
@@ -128,14 +138,17 @@
           "description": "List of allowed external domains",
           "items": {
             "type": "string",
-            "format": "hostname"
+            "format": "hostname",
+            "maxLength": 256
           },
-          "default": []
+          "default": [],
+          "maxItems": 1000
         },
         "maxDelegationDepth": {
           "type": "integer",
           "description": "Maximum allowed task delegation depth",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 1000
         },
         "canSelfModify": {
           "type": "boolean",
@@ -146,12 +159,14 @@
           "type": "integer",
           "description": "Workspace storage quota in megabytes",
           "minimum": 0,
+          "maximum": 1048576,
           "default": 1024
         },
         "maxExecutionMinutes": {
           "type": "integer",
           "description": "Maximum execution time per run in minutes",
           "minimum": 1,
+          "maximum": 43200,
           "default": 60
         }
       },
@@ -185,7 +200,8 @@
               "multi-perspective-analysis"
             ]
           },
-          "default": ["code-generation", "file-operations"]
+          "default": ["code-generation", "file-operations"],
+          "maxItems": 10
         }
       },
       "additionalProperties": false
@@ -201,20 +217,24 @@
             "type": "string",
             "enum": ["internal", "slack", "telegram", "email"]
           },
-          "default": ["internal"]
+          "default": ["internal"],
+          "maxItems": 10
         },
         "slackChannel": {
           "type": "string",
-          "description": "Slack channel for notifications"
+          "description": "Slack channel for notifications",
+          "maxLength": 256
         },
         "telegramChatId": {
           "type": "string",
-          "description": "Telegram chat ID"
+          "description": "Telegram chat ID",
+          "maxLength": 128
         },
         "emailAddress": {
           "type": "string",
           "description": "Email address for notifications",
-          "format": "email"
+          "format": "email",
+          "maxLength": 320
         },
         "notifyManager": {
           "type": "object",
@@ -317,7 +337,8 @@
         },
         "customInstructions": {
           "type": "string",
-          "description": "Custom prompt instructions or personality"
+          "description": "Custom prompt instructions or personality",
+          "maxLength": 102400
         },
         "multiPerspectiveAnalysis": {
           "type": "object",
@@ -344,7 +365,8 @@
                   "simplicity"
                 ]
               },
-              "default": []
+              "default": [],
+              "maxItems": 20
             },
             "triggerOn": {
               "type": "array",
@@ -360,7 +382,8 @@
                   "budget-decision"
                 ]
               },
-              "default": []
+              "default": [],
+              "maxItems": 20
             }
           },
           "default": {
@@ -440,9 +463,11 @@
           "description": "Tags for categorization",
           "items": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 128
           },
-          "default": []
+          "default": [],
+          "maxItems": 100
         },
         "priority": {
           "type": "string",
@@ -462,11 +487,13 @@
         },
         "notes": {
           "type": "string",
-          "description": "Additional notes about this agent"
+          "description": "Additional notes about this agent",
+          "maxLength": 102400
         },
         "description": {
           "type": "string",
-          "description": "Agent description or purpose"
+          "description": "Agent description or purpose",
+          "maxLength": 10240
         },
         "customData": {
           "type": "object",

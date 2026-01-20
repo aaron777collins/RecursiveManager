@@ -6,7 +6,7 @@ Started: Mon Jan 19 06:09:35 PM EST 2026
 
 IN_PROGRESS
 
-**Current Iteration Summary**: ✅ Task 4.10 COMPLETE - Verified priority queue testing is comprehensive and complete. Found 9 dedicated priority queue test cases in ExecutionPool.test.ts (lines 736-1041) covering all 4 priority levels (urgent, high, medium, low), FIFO within same priority, complex interleaving scenarios, priority with concurrent execution, priority with dependencies, and integration with scheduler. Additional priority tests in scheduler-integration.test.ts. All tests passing. Phase 4 (Scheduler Enhancements) now COMPLETE. Next iteration: Task 6.1 - Add rate limiting per-endpoint (if API added).
+**Current Iteration Summary**: ✅ Task 6.3 COMPLETE - Added comprehensive request size limits for CLI inputs via JSON schema maxLength and maxItems constraints. Updated agent-config.schema.json (128-102400 char limits, array max items 10-1000), task.schema.json (256-1MB limits, array max items 100-10000), and message.schema.json (128-1024 char limits, 1GB attachment size limit, max 1000 attachments). Created 12 comprehensive tests (all passing, 1087/1087 total tests). Skipped tasks 6.1, 6.2, 6.7 (no API server exists - RecursiveManager is CLI-only). Next iteration: Task 6.4 - Implement encryption at rest for database.
 
 ## Analysis
 
@@ -253,13 +253,13 @@ The plan has 12 phases, but dependencies are:
 
 **Note**: Core security implemented. Need hardening:
 
-- [ ] 6.1: Add rate limiting per-endpoint (if API added)
-- [ ] 6.2: Add rate limiting per-IP (if API added)
-- [ ] 6.3: Add request size limits for CLI inputs
+- [x] 6.1: SKIPPED - Add rate limiting per-endpoint (No API server exists - CLI only)
+- [x] 6.2: SKIPPED - Add rate limiting per-IP (No API server exists - CLI only)
+- [x] 6.3: Add request size limits for CLI inputs - COMPLETE
 - [ ] 6.4: Implement encryption at rest for database (SQLite encryption)
 - [ ] 6.5: Add secret management system for API keys
 - [ ] 6.6: Implement .env file support for sensitive config
-- [ ] 6.7: Add security headers (if web API added)
+- [x] 6.7: SKIPPED - Add security headers (No API server exists - CLI only)
 - [ ] 6.8: Run security audit with npm audit
 - [ ] 6.9: Add dependency vulnerability scanning to CI/CD
 - [ ] 6.10: Add security-specific tests (OWASP top 10)
@@ -573,6 +573,39 @@ This ensures:
 - Collaboration-friendly workflow
 
 ## Completed This Iteration
+
+- **Task 6.3: Add request size limits for CLI inputs** (COMPLETE ✅):
+
+  **Summary**: Added comprehensive maxLength and maxItems constraints to all JSON schemas to prevent excessively large inputs that could cause memory or performance issues.
+
+  **Schema Updates**:
+
+  1. **agent-config.schema.json**:
+     - String limits: Agent ID (128), role/displayName (256), mainGoal (10KB), customInstructions (100KB), notes (100KB), description (10KB)
+     - Array limits: subGoals (100 items, 5KB each), successCriteria (100 items, 5KB each), allowedDomains (1000 items, 256 each), tags (100 items, 128 each)
+     - Numeric limits: maxDelegationDepth (1000), workspaceQuotaMB (1TB), maxExecutionMinutes (30 days)
+
+  2. **task.schema.json**:
+     - String limits: Task ID (256), title (1KB), description (100KB), notes (1MB), blockReason (10KB), lastFailureReason (10KB)
+     - Array limits: childTasks (10K items), blockedBy (1K items), relatedFiles (10K items), externalDependencies (1K items), tags (100 items)
+
+  3. **message.schema.json**:
+     - String limits: message ID (256), from/to (128), subject (1KB), various metadata fields (128-512)
+     - Array limits: tags (100 items), attachments (1K items)
+     - Attachment limits: filename (1KB), path (4KB), size (1GB), mimeType (256)
+
+  **Testing**:
+  - Created comprehensive test suite: packages/common/src/__tests__/input-size-limits.test.ts
+  - 12 tests covering all major size constraints
+  - Tests for string length, array item counts, and numeric maximums
+  - All tests passing (1087/1087 total tests across all packages)
+
+  **Verification**:
+  - Confirmed RecursiveManager is CLI-only (no HTTP API server)
+  - Skipped tasks 6.1, 6.2, 6.7 (rate limiting and security headers only apply to API servers)
+  - Build succeeds with no TypeScript errors
+
+Previous Completions:
 
 - **Task 4.10: Test priority queue with various priority levels** (COMPLETE ✅):
 

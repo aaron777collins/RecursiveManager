@@ -25,16 +25,19 @@
           "type": "string",
           "description": "Unique task identifier (format: task-{number}-{slug})",
           "minLength": 1,
+          "maxLength": 256,
           "pattern": "^task-[0-9]+-[a-zA-Z0-9-]+$"
         },
         "title": {
           "type": "string",
           "description": "Task title/name",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 1024
         },
         "description": {
           "type": "string",
-          "description": "Detailed task description"
+          "description": "Detailed task description",
+          "maxLength": 102400
         },
         "status": {
           "type": "string",
@@ -79,16 +82,19 @@
         "parentTask": {
           "type": ["string", "null"],
           "description": "ID of parent task (null if root-level)",
-          "pattern": "^task-[0-9]+-[a-zA-Z0-9-]+$"
+          "pattern": "^task-[0-9]+-[a-zA-Z0-9-]+$",
+          "maxLength": 256
         },
         "childTasks": {
           "type": "array",
           "description": "Array of child task IDs",
           "items": {
             "type": "string",
-            "pattern": "^task-[0-9]+-[a-zA-Z0-9-]+$"
+            "pattern": "^task-[0-9]+-[a-zA-Z0-9-]+$",
+            "maxLength": 256
           },
-          "default": []
+          "default": [],
+          "maxItems": 10000
         },
         "depth": {
           "type": "integer",
@@ -113,7 +119,8 @@
         "delegatedTo": {
           "type": ["string", "null"],
           "description": "Agent ID task is delegated to (null if not delegated)",
-          "pattern": "^[a-zA-Z0-9-_]+$"
+          "pattern": "^[a-zA-Z0-9-_]+$",
+          "maxLength": 128
         },
         "delegatedAt": {
           "type": ["string", "null"],
@@ -123,7 +130,8 @@
         "delegatedBy": {
           "type": ["string", "null"],
           "description": "Agent ID who delegated this task",
-          "pattern": "^[a-zA-Z0-9-_]+$"
+          "pattern": "^[a-zA-Z0-9-_]+$",
+          "maxLength": 128
         },
         "supervisionLevel": {
           "type": "string",
@@ -181,9 +189,11 @@
           "description": "Array of task IDs that are blocking this task",
           "items": {
             "type": "string",
-            "pattern": "^task-[0-9]+-[a-zA-Z0-9-]+$"
+            "pattern": "^task-[0-9]+-[a-zA-Z0-9-]+$",
+            "maxLength": 256
           },
-          "default": []
+          "default": [],
+          "maxItems": 1000
         },
         "blockedSince": {
           "type": ["string", "null"],
@@ -192,7 +202,8 @@
         },
         "blockReason": {
           "type": ["string", "null"],
-          "description": "Reason why task is blocked"
+          "description": "Reason why task is blocked",
+          "maxLength": 10240
         }
       },
       "additionalProperties": false
@@ -207,32 +218,39 @@
           "description": "Array of file paths related to this task",
           "items": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 4096
           },
-          "default": []
+          "default": [],
+          "maxItems": 10000
         },
         "externalDependencies": {
           "type": "array",
           "description": "Array of external dependencies blocking progress",
           "items": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 1024
           },
-          "default": []
+          "default": [],
+          "maxItems": 1000
         },
         "notes": {
           "type": "string",
           "description": "Free-form notes and context about the task",
-          "default": ""
+          "default": "",
+          "maxLength": 1048576
         },
         "tags": {
           "type": "array",
           "description": "Tags for task categorization",
           "items": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 128
           },
-          "default": []
+          "default": [],
+          "maxItems": 100
         }
       },
       "additionalProperties": false
@@ -251,7 +269,8 @@
         "lastExecutionId": {
           "type": ["string", "null"],
           "description": "ID of most recent execution attempt",
-          "pattern": "^exec-[a-zA-Z0-9]+$"
+          "pattern": "^exec-[a-zA-Z0-9]+$",
+          "maxLength": 256
         },
         "executionCount": {
           "type": "integer",
@@ -273,7 +292,8 @@
         },
         "lastFailureReason": {
           "type": ["string", "null"],
-          "description": "Description of last failure (null if no failures)"
+          "description": "Description of last failure (null if no failures)",
+          "maxLength": 10240
         },
         "lastSuccessAt": {
           "type": ["string", "null"],
