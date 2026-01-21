@@ -5,7 +5,7 @@
  * This package provides the user-facing CLI tool for all agent operations.
  */
 
-export const VERSION = '1.1.10';
+export const VERSION = '1.1.11';
 
 // Org chart visualization utilities (Phase 2.2.20)
 export {

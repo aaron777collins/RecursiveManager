@@ -1,6 +1,6 @@
 {
   "name": "recursivemanager",
-  "version": "1.1.10",
+  "version": "1.1.11",
   "private": true,
   "description": "Hierarchical AI agent system with recursive delegation and autonomous task management",
   "keywords": [
