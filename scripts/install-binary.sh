@@ -147,43 +147,43 @@ download_binary() {
 
     # Resolve 'latest' to actual version number
     if [ "$version" = "latest" ]; then
-        log_step "Resolving latest version..."
+        log_step "Resolving latest version..." >&2
         actual_version=$(curl -fsSL "$GITHUB_API/releases/latest" | grep -oP '"tag_name":\s*"\Kv?[0-9]+\.[0-9]+\.[0-9]+"' | tr -d '"v')
         if [ -z "$actual_version" ]; then
-            log_error "Could not determine latest version"
+            log_error "Could not determine latest version" >&2
             exit 1
         fi
-        log_info "Latest version: v$actual_version"
+        log_info "Latest version: v$actual_version" >&2
     fi
 
     local tarball="recursive-manager-v${actual_version}-${platform}.tar.gz"
     local download_url="https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/v${actual_version}/$tarball"
 
-    log_step "Downloading v$actual_version for $platform..."
+    log_step "Downloading v$actual_version for $platform..." >&2
 
     local temp_dir=$(mktemp -d)
     cd "$temp_dir"
 
     if ! curl -fsSL -o "$tarball" "$download_url"; then
-        log_error "Download failed: $download_url"
+        log_error "Download failed: $download_url" >&2
         rm -rf "$temp_dir"
         exit 1
     fi
 
-    log_info "Downloaded $tarball"
+    log_info "Downloaded $tarball" >&2
 
     # Download and verify checksums
     if [ -n "$SHA_CMD" ]; then
-        log_step "Verifying checksum..."
+        log_step "Verifying checksum..." >&2
         local checksum_url="https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/v${actual_version}/checksums.txt"
 
         if curl -fsSL -o "checksums.txt" "$checksum_url" 2>/dev/null; then
             if grep -q "$tarball" checksums.txt; then
                 if grep "$tarball" checksums.txt | $SHA_CMD --check --status 2>/dev/null; then
-                    log_info "Checksum verified ✓"
+                    log_info "Checksum verified ✓" >&2
                 else
-                    log_error "Checksum verification FAILED!"
-                    log_warn "File may be corrupted or tampered with."
+                    log_error "Checksum verification FAILED!" >&2
+                    log_warn "File may be corrupted or tampered with." >&2
                     read -p "Continue anyway? [y/N]: " continue
                     if [ "$continue" != "y" ] && [ "$continue" != "Y" ]; then
                         rm -rf "$temp_dir"
@@ -191,10 +191,10 @@ download_binary() {
                     fi
                 fi
             else
-                log_warn "Checksum not found for $tarball. Skipping verification."
+                log_warn "Checksum not found for $tarball. Skipping verification." >&2
             fi
         else
-            log_warn "Checksums file not available. Skipping verification."
+            log_warn "Checksums file not available. Skipping verification." >&2
         fi
     fi
 
