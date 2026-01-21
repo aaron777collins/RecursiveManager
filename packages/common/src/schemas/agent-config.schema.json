@@ -202,6 +202,14 @@
           },
           "default": ["code-generation", "file-operations"],
           "maxItems": 10
+        },
+        "cliPath": {
+          "type": "string",
+          "description": "Path to CLI executable (e.g., 'claude', 'opencode', 'recursivemanager-claude')"
+        },
+        "defaultModel": {
+          "type": "string",
+          "description": "Default model to use"
         }
       },
       "additionalProperties": false
