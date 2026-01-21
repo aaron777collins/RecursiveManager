@@ -118,13 +118,17 @@ export function registerInitCommand(program: Command): void {
             capabilities: ['code-generation', 'file-operations', 'bash-execution'],
           },
           communication: {
-            channels: ['file-system'],
-            responseTimeMinutes: 5,
+            preferredChannels: ['internal'],
+            updateFrequency: 'daily',
+            notifyOnDelegation: true,
+            notifyOnEscalation: true,
+            notifyOnCompletion: true,
           },
           behavior: {
-            autonomyLevel: 'high',
-            escalationThreshold: 'critical',
-            loggingLevel: 'info',
+            verbosity: 3,
+            continuousMode: true,
+            autoEscalateBlockedTasks: true,
+            escalationTimeoutMinutes: 60,
           },
         };
         fs.writeFileSync(ceo.config_path, JSON.stringify(ceoConfig, null, 2), { mode: 0o644 });
