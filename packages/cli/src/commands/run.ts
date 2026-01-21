@@ -21,6 +21,8 @@ interface RunOptions {
   mode?: 'continuous' | 'reactive';
   json?: boolean;
   yes?: boolean;
+  daemon?: boolean;
+  timeout?: number;
 }
 
 export function registerRunCommand(program: Command): void {
@@ -31,6 +33,8 @@ export function registerRunCommand(program: Command): void {
     .option('-m, --mode <mode>', 'Execution mode (continuous, reactive)', 'continuous')
     .option('--json', 'Output result as JSON')
     .option('-y, --yes', 'Skip confirmation prompt')
+    .option('--daemon', 'Run agent as background daemon process')
+    .option('-t, --timeout <ms>', 'Maximum execution time in ms (default: 300000 for 5 min)', '300000')
     .action(async (agentId: string, options: RunOptions) => {
       try {
         console.log(header('\n▶️  Run Agent'));
@@ -99,6 +103,7 @@ export function registerRunCommand(program: Command): void {
 
           console.log(info('Execution Configuration:'));
           console.log(code(`  Mode: ${mode}`));
+          console.log(code(`  Daemon: ${options.daemon ? 'Yes' : 'No'}`));
           console.log();
 
           // Confirm action unless --yes flag is set
@@ -114,6 +119,84 @@ export function registerRunCommand(program: Command): void {
             }
           }
 
+          // Daemon mode - spawn background process
+          if (options.daemon) {
+            console.log(info('Starting agent in daemon mode...'));
+
+            // Create pids directory
+            const pidsDir = path.join(dataDir, 'pids');
+            if (!fs.existsSync(pidsDir)) {
+              fs.mkdirSync(pidsDir, { recursive: true });
+            }
+
+            const pidFile = path.join(pidsDir, `${agentId}.pid`);
+
+            // Check if already running
+            if (fs.existsSync(pidFile)) {
+              const existingPid = parseInt(fs.readFileSync(pidFile, 'utf-8'), 10);
+              try {
+                process.kill(existingPid, 0);
+                console.log(warning(`⚠ Agent ${agentId} is already running as PID ${existingPid}`));
+                console.log(info('To stop it, run: recursivemanager stop ' + agentId));
+                process.exit(1);
+              } catch {
+                // Process doesn't exist, clean up stale PID file
+                fs.unlinkSync(pidFile);
+              }
+            }
+
+            // Spawn the daemon process
+            const { spawn } = require('child_process');
+
+            // Log file location
+            const logsDir = path.join(dataDir, 'logs');
+            if (!fs.existsSync(logsDir)) {
+              fs.mkdirSync(logsDir, { recursive: true });
+            }
+            const logFile = path.join(logsDir, `${agentId}.log`);
+
+            // Spawn process
+            const child = spawn(process.argv[0], [
+              process.argv[1],
+              'run',
+              agentId,
+              '--mode', mode,
+              '--yes',
+              '--data-dir', dataDir
+            ], {
+              detached: true,
+              stdio: 'ignore',
+              env: {
+                ...process.env,
+                RECURSIVEMANAGER_DAEMON: 'true'
+              }
+            });
+
+            // Redirect output to log file
+            const logStream = fs.createWriteStream(logFile, { flags: 'a' });
+            child.stdout.pipe(logStream);
+            child.stderr.pipe(logStream);
+
+            // Unref to let parent exit
+            child.unref();
+
+            // Save PID
+            fs.writeFileSync(pidFile, child.pid.toString());
+
+            console.log(success(`✅ Agent started in daemon mode`));
+            console.log(code(`  PID: ${child.pid}`));
+            console.log(code(`  Log: ${logFile}`));
+            console.log();
+            console.log(info('To stop the agent:'));
+            console.log(code(`  recursivemanager stop ${agentId}`));
+            console.log();
+            console.log(info('To view logs:'));
+            console.log(code(`  tail -f ${logFile}`));
+
+            dbConnection.close();
+            return;
+          }
+
           const spinner = createSpinner(`Executing agent in ${mode} mode...`);
 
           // Get database pool singleton
@@ -127,9 +210,9 @@ export function registerRunCommand(program: Command): void {
           const orchestrator = new ExecutionOrchestrator({
             adapterRegistry,
             database: dbPool,
-            maxExecutionTime: 5 * 60 * 1000, // 5 minutes
-            maxConcurrent: 1, // Single execution for manual trigger
-            baseDir: dataDir, // Use project directory for agent paths
+            maxExecutionTime: parseInt(options.timeout as any, 10) || 5 * 60 * 1000,
+            maxConcurrent: 1,
+            baseDir: dataDir,
           });
 
           try {
@@ -175,6 +258,7 @@ export function registerRunCommand(program: Command): void {
               console.log(code(`  - View agent: recursivemanager status --agent-id ${agentId}`));
               console.log(code(`  - Debug agent: recursivemanager debug ${agentId} --all`));
               console.log(code(`  - View logs: recursivemanager debug ${agentId} --logs`));
+              console.log(code(`  - Run as daemon: recursivemanager run ${agentId} --daemon`));
             }
           } finally {
             // Cleanup database pool
