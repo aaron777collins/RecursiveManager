@@ -11,7 +11,6 @@ VERSION=$(node -p "require('$ROOT_DIR/package.json').version")
 
 # Use temp directory to avoid conflicts
 BUILD_DIR=$(mktemp -d)
-trap "rm -rf $BUILD_DIR" EXIT
 
 # Colors
 RED='\033[0;31m'
@@ -111,4 +110,8 @@ log_info ""
 log_info "Files created:"
 ls -lh "$RELEASE_DIR"
 log_info ""
-log_info "Build directory will be cleaned up automatically."
+
+# Clean up temp directory
+log_info "Cleaning up build directory..."
+rm -rf "$BUILD_DIR"
+log_info "Done!"
