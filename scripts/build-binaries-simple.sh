@@ -52,7 +52,11 @@ chmod +x "$BUILD_DIR/scripts/update.sh"
 # Install ONLY production dependencies (no devDependencies)
 log_info "Installing production dependencies..."
 cd "$BUILD_DIR"
-npm install --omit=dev --ignore-scripts --loglevel=error
+npm install --omit=dev --loglevel=error
+
+# Rebuild native modules (critical for better-sqlite3)
+log_info "Rebuilding native modules..."
+npm rebuild better-sqlite3 --loglevel=error
 
 # Verify node_modules was created
 if [ ! -d "node_modules" ]; then
