@@ -95,6 +95,33 @@ export function registerInitCommand(program: Command): void {
         const configPath = path.resolve(dataDir, 'config.json');
         fs.writeFileSync(configPath, JSON.stringify(config, null, 2), { mode: 0o644 });
 
+        // Create .gitignore
+        const gitignorePath = path.resolve(process.cwd(), '.gitignore');
+        const gitignoreContent = `
+# RecursiveManager - Security: Exclude sensitive files
+.recursivemanager/logs/
+.recursivemanager/.env
+.recursivemanager/database.sqlite
+.recursivemanager/database.sqlite-shm
+.recursivemanager/database.sqlite-wal
+
+# Keep project structure
+!.recursivemanager/config.json
+!.recursivemanager/agents/
+!.recursivemanager/snapshots/
+`;
+
+        if (fs.existsSync(gitignorePath)) {
+          // Append to existing .gitignore
+          const existing = fs.readFileSync(gitignorePath, 'utf8');
+          if (!existing.includes('.recursivemanager/logs/')) {
+            fs.appendFileSync(gitignorePath, gitignoreContent);
+          }
+        } else {
+          // Create new .gitignore
+          fs.writeFileSync(gitignorePath, gitignoreContent.trim() + '\n', { mode: 0o644 });
+        }
+
         // Close database connection
         dbConnection.close();
 
@@ -103,6 +130,13 @@ export function registerInitCommand(program: Command): void {
         console.log(success('Goal set: ') + code(goal));
         console.log(info('Data directory: ') + code(dataDir));
         console.log(info('Root agent: ') + code(`${ceo.display_name} (${ceo.id})`));
+        console.log(info('.gitignore: ') + code('Created/Updated'));
+
+        console.log();
+        console.log(info('🔒 SECURITY NOTICE:'));
+        console.log('  • Logs and database are excluded from git');
+        console.log('  • API keys stored in ~/.recursivemanager/.env');
+        console.log('  • Review .gitignore before committing');
 
         console.log();
         console.log(info('Next steps:'));

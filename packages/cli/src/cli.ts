@@ -23,6 +23,7 @@ import { registerLogsCommand } from './commands/logs';
 import { createMetricsCommand } from './commands/metrics';
 import { registerHowToUseCommand } from './commands/how-to-use-command';
 import { registerHowToUseExtendedCommand } from './commands/how-to-use-extended-command';
+import { registerSchedulesCommand } from './commands/schedules';
 
 const program = new Command();
 
@@ -46,6 +47,7 @@ registerRunCommand(program);
 registerLogsCommand(program);
 registerHowToUseCommand(program);
 registerHowToUseExtendedCommand(program);
+registerSchedulesCommand(program);
 program.addCommand(createMetricsCommand());
 
 // Parse command line arguments
