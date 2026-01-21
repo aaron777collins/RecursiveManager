@@ -21,7 +21,7 @@ import { registerMessageCommand } from './commands/message';
 import { registerRunCommand } from './commands/run';
 import { registerStopCommand } from './commands/stop';
 import { registerLogsCommand } from './commands/logs';
-import { createMetricsCommand } from './commands/metrics';
+// import { createMetricsCommand } from './commands/metrics'; // Temporarily disabled - compilation issues
 import { registerHowToUseCommand } from './commands/how-to-use-command';
 import { registerHowToUseExtendedCommand } from './commands/how-to-use-extended-command';
 import { registerSchedulesCommand } from './commands/schedules';
@@ -50,7 +50,7 @@ registerLogsCommand(program);
 registerHowToUseCommand(program);
 registerHowToUseExtendedCommand(program);
 registerSchedulesCommand(program);
-program.addCommand(createMetricsCommand());
+// program.addCommand(createMetricsCommand()); // Temporarily disabled - compilation issues
 
 // Parse command line arguments
 program.parse(process.argv);

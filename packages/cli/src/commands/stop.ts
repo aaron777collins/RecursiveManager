@@ -3,7 +3,7 @@
  */
 
 import { Command } from 'commander';
-import { header, success, error, info, code, warning } from '../utils/colors';
+import { header, success, error, info, warning } from '../utils/colors';
 import * as fs from 'fs';
 import * as path from 'path';
 

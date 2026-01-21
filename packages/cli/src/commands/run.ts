@@ -3,7 +3,7 @@
  */
 
 import { Command } from 'commander';
-import { header, success, error, info, code } from '../utils/colors';
+import { header, success, error, info, code, warning } from '../utils/colors';
 import { createSpinner } from '../utils/spinner';
 import { select, confirm } from '../utils/prompts';
 import * as fs from 'fs';
@@ -248,7 +248,7 @@ export function registerRunCommand(program: Command): void {
               }
               if (result.errors && result.errors.length > 0) {
                 console.log(code(`  Errors: ${result.errors.length}`));
-                result.errors.forEach((err, idx) => {
+                result.errors.forEach((err: any, idx: number) => {
                   console.log(code(`    ${idx + 1}. ${err.message}`));
                 });
               }
