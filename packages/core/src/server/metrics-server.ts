@@ -31,11 +31,11 @@ export class MetricsServer {
 
   private setupMiddleware(): void {
     // Basic request logging
-    this.app.use((req: Request, res: Response, next: NextFunction) => {
+    this.app.use((_req: Request, res: Response, next: NextFunction) => {
       const start = Date.now();
       res.on('finish', () => {
         const duration = Date.now() - start;
-        console.log(`[MetricsServer] ${req.method} ${req.path} ${res.statusCode} - ${duration}ms`);
+        console.log(`[MetricsServer] ${_req.method} ${_req.path} ${res.statusCode} - ${duration}ms`);
       });
       next();
     });
@@ -46,7 +46,7 @@ export class MetricsServer {
 
   private setupRoutes(): void {
     // Health check endpoint
-    this.app.get('/health', (req: Request, res: Response) => {
+    this.app.get('/health', (_req: Request, res: Response) => {
       res.status(200).json({
         status: 'healthy',
         timestamp: new Date().toISOString(),
@@ -55,7 +55,7 @@ export class MetricsServer {
     });
 
     // Prometheus metrics endpoint
-    this.app.get('/metrics', async (req: Request, res: Response) => {
+    this.app.get('/metrics', async (_req: Request, res: Response) => {
       try {
         const metrics = await getMetrics();
         res.set('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
@@ -70,7 +70,7 @@ export class MetricsServer {
     });
 
     // Root endpoint
-    this.app.get('/', (req: Request, res: Response) => {
+    this.app.get('/', (_req: Request, res: Response) => {
       res.status(200).json({
         name: 'RecursiveManager Metrics Server',
         version: '1.0.0',
@@ -90,7 +90,7 @@ export class MetricsServer {
     });
 
     // Error handler
-    this.app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    this.app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
       console.error('[MetricsServer] Unhandled error:', err);
       res.status(500).json({
         error: 'Internal Server Error',

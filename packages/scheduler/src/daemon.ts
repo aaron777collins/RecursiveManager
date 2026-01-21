@@ -239,13 +239,13 @@ async function schedulerLoop(): Promise<void> {
       // Log execution pool statistics
       const stats = executionPool.getStatistics();
       if (stats.queueDepth > 0 || stats.activeCount > 0) {
-        logger.info('Execution pool statistics', stats);
+        logger.info('Execution pool statistics', stats as any);
       }
 
       // Log dependency graph statistics if available
       const depStats = executionPool.getDependencyGraphStatistics();
       if (depStats && depStats.totalNodes > 0) {
-        logger.info('Dependency graph statistics', depStats);
+        logger.info('Dependency graph statistics', depStats as any);
       }
     } catch (error) {
       logger.error('Error in scheduler loop', {

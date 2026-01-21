@@ -18,12 +18,11 @@ import {
   AuditAction,
   DatabasePool,
   withTraceId,
-  generateTraceId,
 } from '@recursivemanager/common';
 import { AgentLock, AgentLockError } from './AgentLock';
 import { ExecutionPool, type PoolStatistics } from './ExecutionPool';
 import type { MultiPerspectiveResult } from '../ai-analysis/multi-perspective.js';
-import { recordExecution, recordAnalysis } from './metrics.js';
+import { recordExecution } from './metrics.js';
 
 // Re-export for external use
 export { AgentLock, AgentLockError };

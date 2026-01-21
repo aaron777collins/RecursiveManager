@@ -155,7 +155,10 @@ export function registerRunCommand(program: Command): void {
             }
             const logFile = path.join(logsDir, `${agentId}.log`);
 
-            // Spawn process
+            // Open log file for child process output
+            const logStream = fs.createWriteStream(logFile, { flags: 'a' });
+
+            // Spawn process with piped stdio
             const child = spawn(process.argv[0], [
               process.argv[1],
               'run',
@@ -165,7 +168,7 @@ export function registerRunCommand(program: Command): void {
               '--data-dir', dataDir
             ], {
               detached: true,
-              stdio: 'ignore',
+              stdio: ['ignore', 'pipe', 'pipe'], // stdin=ignore, stdout=pipe, stderr=pipe
               env: {
                 ...process.env,
                 RECURSIVEMANAGER_DAEMON: 'true'
@@ -173,9 +176,12 @@ export function registerRunCommand(program: Command): void {
             });
 
             // Redirect output to log file
-            const logStream = fs.createWriteStream(logFile, { flags: 'a' });
-            child.stdout.pipe(logStream);
-            child.stderr.pipe(logStream);
+            if (child.stdout) {
+              child.stdout.pipe(logStream);
+            }
+            if (child.stderr) {
+              child.stderr.pipe(logStream);
+            }
 
             // Unref to let parent exit
             child.unref();
