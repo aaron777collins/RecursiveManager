@@ -89,17 +89,17 @@ log_info "Creating platform-specific tarballs..."
 # Linux tarball
 tar czf "$RELEASE_DIR/recursivemanager-v${VERSION}-linux.tar.gz" \
     -C "$BUILD_DIR" \
-    packages node_modules package.json recursivemanager SHA256SUMS
+    packages node_modules scripts package.json recursivemanager SHA256SUMS
 
 # macOS tarball (same as Linux)
 tar czf "$RELEASE_DIR/recursivemanager-v${VERSION}-macos.tar.gz" \
     -C "$BUILD_DIR" \
-    packages node_modules package.json recursivemanager SHA256SUMS
+    packages node_modules scripts package.json recursivemanager SHA256SUMS
 
 # Windows tarball
 tar czf "$RELEASE_DIR/recursivemanager-v${VERSION}-windows.tar.gz" \
     -C "$BUILD_DIR" \
-    packages node_modules package.json recursivemanager.cmd SHA256SUMS
+    packages node_modules scripts package.json recursivemanager.cmd SHA256SUMS
 
 # Create checksums for release tarballs
 log_info "Generating release checksums..."
