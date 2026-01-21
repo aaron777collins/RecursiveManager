@@ -74,6 +74,24 @@ export function registerInitCommand(program: Command): void {
           configPath: path.resolve(dataDir, 'agents', 'ce', ceoId, 'config.json'),
         });
 
+        // Create CEO agent workspace
+        const ceoWorkspacePath = path.resolve(dataDir, 'agents', 'ce', ceoId);
+        const ceoDirs = ['workspace', 'tasks', 'notes', 'inbox'];
+        for (const dir of ceoDirs) {
+          const dirPath = path.resolve(ceoWorkspacePath, dir);
+          fs.mkdirSync(dirPath, { recursive: true, mode: 0o755 });
+        }
+
+        // Create CEO config file
+        const ceoConfig = {
+          agentId: ceo.id,
+          role: ceo.role,
+          displayName: ceo.display_name,
+          mainGoal: goal,
+          framework: 'claude-code',
+        };
+        fs.writeFileSync(ceo.config_path, JSON.stringify(ceoConfig, null, 2), { mode: 0o644 });
+
         // Write marker file
         const markerData = {
           initialized: new Date().toISOString(),
