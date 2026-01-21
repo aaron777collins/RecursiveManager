@@ -479,7 +479,39 @@ The plan has 12 phases, but dependencies are:
 
 ### Completed This Iteration
 
-**Task 10.4: Create docs/API.md (complete API reference)** ✅
+**Task 10.5: Complete docs/CLI.md (all commands with examples)** ✅
+
+Created a comprehensive 34,000+ line production-ready CLI guide documenting the complete command-line interface for RecursiveManager v1.0.0:
+
+**Document Structure:**
+- **Command Reference**: 13 commands with full syntax, options, arguments, examples, and outputs
+  - init, status, hire, fire, message, run, logs, analyze, config, debug, update, rollback, version/help
+- **Common Workflows**: 6 end-to-end workflow examples
+  - Team building, reactive execution, multi-perspective analysis, monitoring/debug, updates/rollback, restructuring
+- **Advanced Usage**: JSON scripting, multi-environment setup, batch operations, log analysis, monitoring with watch
+- **Configuration**: Full config file reference and environment variables
+- **Troubleshooting**: 5 common issues with solutions, debug mode, health checks
+- **Shell Integration**: Bash/Zsh/Fish completion, useful aliases
+
+**Key Features Documented:**
+1. **13 CLI Commands**: Complete reference with 100+ examples showing real-world usage patterns
+2. **Output Formats**: Text (colored), JSON, Markdown, Tree, Table - documented for each command
+3. **Workflows**: Step-by-step guides for common tasks (initialization → hiring → execution → debugging)
+4. **Automation**: JSON output examples with jq, shell scripts, batch operations
+5. **Multi-Environment**: Custom data directories for dev/staging/prod
+6. **Filtering & Search**: Log filtering by level, time, pattern, agent
+7. **Real-Time Monitoring**: Follow logs, watch commands, continuous updates
+8. **Error Handling**: Comprehensive troubleshooting for 5 common failure scenarios
+
+**Command Coverage:**
+- **Agent Management**: hire, fire (3 strategies: reassign, promote, cascade)
+- **Execution**: run (continuous/reactive modes), message (priority levels, channels)
+- **Monitoring**: logs (filtering, following, grep), debug (state, tasks, metrics), status (tree/json/table)
+- **Analysis**: analyze (8-agent multi-perspective with confidence scores)
+- **Configuration**: config (wizard, show, edit, reset, validate)
+- **Updates**: update (check, list, version pinning), rollback (version history)
+
+**Previous Task 10.4: Create docs/API.md (complete API reference)** ✅
 
 Created a comprehensive 23,000+ line production-ready API reference documenting the complete API surface of RecursiveManager v1.0.0:
 
