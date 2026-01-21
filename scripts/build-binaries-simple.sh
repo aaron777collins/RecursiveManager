@@ -2,11 +2,12 @@
 set -euo pipefail
 
 # RecursiveManager Simple Binary Build Script
-# Creates executable wrapper scripts for the built packages
+# Creates self-contained executables with only built code and runtime deps
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 BUILD_DIR="$ROOT_DIR/dist/binaries"
+RELEASE_DIR="$ROOT_DIR/dist/release"
 VERSION=$(node -p "require('$ROOT_DIR/package.json').version")
 
 # Colors
@@ -21,15 +22,28 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 log_info "Starting RecursiveManager binary build (v$VERSION)..."
 
-# Create build directory
-rm -rf "$BUILD_DIR"
-mkdir -p "$BUILD_DIR"
+# Clean and create build directories
+rm -rf "$BUILD_DIR" "$RELEASE_DIR"
+mkdir -p "$BUILD_DIR" "$RELEASE_DIR"
 
-# Copy built packages
+# Copy ONLY the built JavaScript files (dist directories)
 log_info "Copying built packages..."
-cp -r "$ROOT_DIR/packages" "$BUILD_DIR/"
-cp -r "$ROOT_DIR/node_modules" "$BUILD_DIR/"
+mkdir -p "$BUILD_DIR/packages"
+for pkg in cli common core adapters scheduler; do
+    if [ -d "$ROOT_DIR/packages/$pkg/dist" ]; then
+        mkdir -p "$BUILD_DIR/packages/$pkg"
+        cp -r "$ROOT_DIR/packages/$pkg/dist" "$BUILD_DIR/packages/$pkg/"
+        cp "$ROOT_DIR/packages/$pkg/package.json" "$BUILD_DIR/packages/$pkg/"
+    fi
+done
+
+# Copy root package.json
 cp "$ROOT_DIR/package.json" "$BUILD_DIR/"
+
+# Install ONLY production dependencies (no devDependencies)
+log_info "Installing production dependencies..."
+cd "$BUILD_DIR"
+npm install --production --ignore-scripts 2>&1 | grep -v "^npm WARN" || true
 
 # Create executable wrapper for Unix (Linux/macOS)
 log_info "Creating Unix executable..."
@@ -49,43 +63,39 @@ EOF
 # Generate checksums
 log_info "Generating checksums..."
 cd "$BUILD_DIR"
-sha256sum recursive-manager recursive-manager.cmd > checksums.txt
-
-# Sign with GPG (if GPG_KEY_ID is set)
-if [[ -n "${GPG_KEY_ID:-}" ]]; then
-    log_info "Signing binaries with GPG..."
-    gpg --default-key "$GPG_KEY_ID" --armor --detach-sign recursive-manager
-    gpg --default-key "$GPG_KEY_ID" --armor --detach-sign recursive-manager.cmd
-    gpg --default-key "$GPG_KEY_ID" --armor --detach-sign checksums.txt
-    log_info "Signatures created ✓"
-else
-    log_warn "GPG_KEY_ID not set. Skipping GPG signatures."
-fi
+sha256sum recursive-manager recursive-manager.cmd > SHA256SUMS
+cd "$ROOT_DIR"
 
 # Create tarballs for each platform
-log_info "Creating tarballs..."
-tar czf "recursive-manager-v${VERSION}-linux.tar.gz" \
-    packages node_modules package.json recursive-manager checksums.txt *.asc 2>/dev/null || \
-    tar czf "recursive-manager-v${VERSION}-linux.tar.gz" \
-    packages node_modules package.json recursive-manager checksums.txt
+log_info "Creating platform-specific tarballs..."
 
-tar czf "recursive-manager-v${VERSION}-macos.tar.gz" \
-    packages node_modules package.json recursive-manager checksums.txt *.asc 2>/dev/null || \
-    tar czf "recursive-manager-v${VERSION}-macos.tar.gz" \
-    packages node_modules package.json recursive-manager checksums.txt
+# Linux tarball
+tar czf "$RELEASE_DIR/recursive-manager-v${VERSION}-linux.tar.gz" \
+    -C "$BUILD_DIR" \
+    packages node_modules package.json recursive-manager SHA256SUMS
 
-tar czf "recursive-manager-v${VERSION}-windows.tar.gz" \
-    packages node_modules package.json recursive-manager.cmd checksums.txt *.asc 2>/dev/null || \
-    tar czf "recursive-manager-v${VERSION}-windows.tar.gz" \
-    packages node_modules package.json recursive-manager.cmd checksums.txt
+# macOS tarball (same as Linux)
+tar czf "$RELEASE_DIR/recursive-manager-v${VERSION}-macos.tar.gz" \
+    -C "$BUILD_DIR" \
+    packages node_modules package.json recursive-manager SHA256SUMS
+
+# Windows tarball
+tar czf "$RELEASE_DIR/recursive-manager-v${VERSION}-windows.tar.gz" \
+    -C "$BUILD_DIR" \
+    packages node_modules package.json recursive-manager.cmd SHA256SUMS
+
+# Create checksums for release tarballs
+log_info "Generating release checksums..."
+cd "$RELEASE_DIR"
+sha256sum *.tar.gz > checksums.txt
 
 log_info ""
 log_info "=========================================="
 log_info "Build complete! ✓"
 log_info "=========================================="
 log_info "Version: $VERSION"
-log_info "Output directory: $BUILD_DIR"
+log_info "Output directory: $RELEASE_DIR"
 log_info ""
 log_info "Files created:"
-ls -lh "$BUILD_DIR"/*.tar.gz
+ls -lh "$RELEASE_DIR"
 log_info ""
