@@ -149,10 +149,20 @@ export async function loadAgentConfig(
       err instanceof ConfigLoadError ||
       (err instanceof Error && err.name === 'SchemaValidationError')
     ) {
-      logger.error('Failed to load agent configuration', {
-        agentId,
-        error: err.message,
-      });
+      // Log detailed validation errors if available
+      if (err.name === 'SchemaValidationError' && 'getFormattedErrors' in err) {
+        const formattedErrors = (err as any).getFormattedErrors();
+        logger.error('Failed to load agent configuration', {
+          agentId,
+          error: err.message,
+        });
+        console.error('\n' + formattedErrors + '\n');
+      } else {
+        logger.error('Failed to load agent configuration', {
+          agentId,
+          error: err.message,
+        });
+      }
       throw err;
     }
 
