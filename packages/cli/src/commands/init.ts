@@ -85,13 +85,47 @@ export function registerInitCommand(program: Command): void {
           fs.mkdirSync(dirPath, { recursive: true, mode: 0o755 });
         }
 
-        // Create CEO config file
+        // Create CEO config file with complete schema-compliant structure
         const ceoConfig = {
-          agentId: ceo.id,
-          role: ceo.role,
-          displayName: ceo.display_name,
-          mainGoal: goal,
-          framework: 'claude-code',
+          version: '0.2.0',
+          identity: {
+            id: ceo.id,
+            role: ceo.role,
+            displayName: ceo.display_name,
+            createdAt: new Date().toISOString(),
+            createdBy: 'system',
+            reportingTo: null,
+          },
+          goal: {
+            mainGoal: goal,
+            subGoals: [],
+            successCriteria: [],
+          },
+          permissions: {
+            canHire: true,
+            maxSubordinates: 10,
+            hiringBudget: 100000,
+            canFire: true,
+            canEscalate: false,
+            canAccessExternalAPIs: true,
+            maxDelegationDepth: 5,
+            canSelfModify: false,
+            workspaceQuotaMB: 1024,
+            maxExecutionMinutes: 60,
+          },
+          framework: {
+            primary: 'claude-code',
+            capabilities: ['code-generation', 'file-operations', 'bash-execution'],
+          },
+          communication: {
+            channels: ['file-system'],
+            responseTimeMinutes: 5,
+          },
+          behavior: {
+            autonomyLevel: 'high',
+            escalationThreshold: 'critical',
+            loggingLevel: 'info',
+          },
         };
         fs.writeFileSync(ceo.config_path, JSON.stringify(ceoConfig, null, 2), { mode: 0o644 });
 
