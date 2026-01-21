@@ -8,7 +8,7 @@ import { createSpinner } from '../utils/spinner';
 import { confirm } from '../utils/prompts';
 import * as fs from 'fs';
 import * as path from 'path';
-import { initializeDatabase, runMigrations, allMigrations, createAgent } from '@recursivemanager/common';
+import { initializeDatabase, runMigrations, allMigrations, createAgent, getAgentShard } from '@recursivemanager/common';
 
 export function registerInitCommand(program: Command): void {
   program
@@ -64,6 +64,9 @@ export function registerInitCommand(program: Command): void {
 
         // Create root CEO agent
         const ceoId = 'ceo-001';
+        // Compute correct shard for CEO agent
+        const ceoShard = getAgentShard(ceoId);
+
         const ceo = createAgent(db, {
           id: ceoId,
           role: 'CEO',
@@ -71,11 +74,11 @@ export function registerInitCommand(program: Command): void {
           createdBy: null,
           reportingTo: null,
           mainGoal: goal,
-          configPath: path.resolve(dataDir, 'agents', 'ce', ceoId, 'config.json'),
+          configPath: path.resolve(dataDir, 'agents', ceoShard, ceoId, 'config.json'),
         });
 
         // Create CEO agent workspace
-        const ceoWorkspacePath = path.resolve(dataDir, 'agents', 'ce', ceoId);
+        const ceoWorkspacePath = path.resolve(dataDir, 'agents', ceoShard, ceoId);
         const ceoDirs = ['workspace', 'tasks', 'notes', 'inbox'];
         for (const dir of ceoDirs) {
           const dirPath = path.resolve(ceoWorkspacePath, dir);
