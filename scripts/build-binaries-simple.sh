@@ -6,9 +6,12 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-BUILD_DIR="$ROOT_DIR/dist/binaries"
 RELEASE_DIR="$ROOT_DIR/dist/release"
 VERSION=$(node -p "require('$ROOT_DIR/package.json').version")
+
+# Use temp directory to avoid conflicts
+BUILD_DIR=$(mktemp -d)
+trap "rm -rf $BUILD_DIR" EXIT
 
 # Colors
 RED='\033[0;31m'
@@ -21,10 +24,11 @@ log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 log_info "Starting RecursiveManager binary build (v$VERSION)..."
+log_info "Using temp build directory: $BUILD_DIR"
 
-# Clean and create build directories
-rm -rf "$BUILD_DIR" "$RELEASE_DIR"
-mkdir -p "$BUILD_DIR" "$RELEASE_DIR"
+# Create release directory
+rm -rf "$RELEASE_DIR"
+mkdir -p "$RELEASE_DIR"
 
 # Copy ONLY the built JavaScript files (dist directories)
 log_info "Copying built packages..."
@@ -43,7 +47,15 @@ cp "$ROOT_DIR/package.json" "$BUILD_DIR/"
 # Install ONLY production dependencies (no devDependencies)
 log_info "Installing production dependencies..."
 cd "$BUILD_DIR"
-npm install --production --ignore-scripts 2>&1 | grep -v "^npm WARN" || true
+npm install --omit=dev --ignore-scripts --loglevel=error
+
+# Verify node_modules was created
+if [ ! -d "node_modules" ]; then
+    log_error "npm install failed - node_modules not found"
+    exit 1
+fi
+
+log_info "Installed $(ls -d node_modules/* | wc -l) packages"
 
 # Create executable wrapper for Unix (Linux/macOS)
 log_info "Creating Unix executable..."
@@ -99,3 +111,4 @@ log_info ""
 log_info "Files created:"
 ls -lh "$RELEASE_DIR"
 log_info ""
+log_info "Build directory will be cleaned up automatically."
