@@ -82,6 +82,8 @@ export interface ExecutionOrchestratorOptions {
   maxAnalysisTime?: number;
   /** Maximum concurrent executions across all agents (default: 10) */
   maxConcurrent?: number;
+  /** Base directory for resolving agent paths (default: global ~/.recursivemanager) */
+  baseDir?: string;
 }
 
 /**
@@ -94,6 +96,7 @@ export class ExecutionOrchestrator {
   private readonly database: DatabasePool;
   private readonly maxExecutionTime: number;
   private readonly maxAnalysisTime: number;
+  private readonly baseDir?: string;
   /** Agent lock manager for preventing concurrent executions */
   private readonly agentLock: AgentLock = new AgentLock();
   /** Execution pool for managing concurrent executions with worker pool pattern */
@@ -104,6 +107,7 @@ export class ExecutionOrchestrator {
     this.database = options.database;
     this.maxExecutionTime = options.maxExecutionTime ?? 5 * 60 * 1000; // 5 minutes
     this.maxAnalysisTime = options.maxAnalysisTime ?? 2 * 60 * 1000; // 2 minutes
+    this.baseDir = options.baseDir;
     this.executionPool = new ExecutionPool({
       maxConcurrent: options.maxConcurrent ?? 10,
     });
@@ -157,7 +161,7 @@ export class ExecutionOrchestrator {
         }
 
         // Load execution context (config, tasks, messages, workspace)
-        const context = await loadExecutionContext(dbConnection.db, agentId, 'continuous', {});
+        const context = await loadExecutionContext(dbConnection.db, agentId, 'continuous', { baseDir: this.baseDir });
 
         logger.info('Execution context loaded', {
           activeTasks: context.activeTasks.length,
@@ -320,7 +324,7 @@ export class ExecutionOrchestrator {
         }
 
         // Load execution context (config, tasks, messages, workspace)
-        const context = await loadExecutionContext(dbConnection.db, agentId, 'reactive', {});
+        const context = await loadExecutionContext(dbConnection.db, agentId, 'reactive', { baseDir: this.baseDir });
 
         logger.info('Execution context loaded', {
           activeTasks: context.activeTasks.length,

@@ -129,6 +129,7 @@ export function registerRunCommand(program: Command): void {
             database: dbPool,
             maxExecutionTime: 5 * 60 * 1000, // 5 minutes
             maxConcurrent: 1, // Single execution for manual trigger
+            baseDir: dataDir, // Use project directory for agent paths
           });
 
           try {
