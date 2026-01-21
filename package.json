@@ -35,8 +35,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
     "version": "echo $npm_package_version",
-    "test:ci": "turbo run test --no-cache",
-    "build:binaries": "node scripts/build-binaries.js",
+    "test:ci": "npm test",
+    "build:binaries": "bash scripts/build-binaries-simple.sh",
     "security:audit": "npm audit && ./scripts/security-audit.sh",
     "security:fix": "npm audit fix"
   },
