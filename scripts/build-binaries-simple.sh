@@ -46,7 +46,7 @@ cp "$ROOT_DIR/package.json" "$BUILD_DIR/"
 # Copy upgrade script for the update command
 log_info "Copying upgrade script..."
 mkdir -p "$BUILD_DIR/scripts"
-cp "$ROOT_DIR/scripts/upgrade.sh" "$BUILD_DIR/scripts/update.sh"
+cp "$ROOT_DIR/scripts/update.sh" "$BUILD_DIR/scripts/update.sh"
 chmod +x "$BUILD_DIR/scripts/update.sh"
 
 # Install ONLY production dependencies (no devDependencies)
