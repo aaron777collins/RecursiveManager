@@ -122,10 +122,10 @@ Monitor execution in real-time:
 
 ```bash
 # View active agents
-recursive-manager status --filter working
+recursivemanager status --filter working
 
 # View execution metrics
-recursive-manager debug --metrics
+recursivemanager debug --metrics
 ```
 
 ## Error Handling

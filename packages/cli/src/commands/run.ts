@@ -12,9 +12,9 @@ import {
   initializeDatabase,
   getAgent,
   DatabasePool,
-} from '@recursive-manager/common';
-import { ExecutionOrchestrator } from '@recursive-manager/core';
-import { AdapterRegistry } from '@recursive-manager/adapters';
+} from '@recursivemanager/common';
+import { ExecutionOrchestrator } from '@recursivemanager/core';
+import { AdapterRegistry } from '@recursivemanager/adapters';
 
 interface RunOptions {
   dataDir?: string;
@@ -39,15 +39,15 @@ export function registerRunCommand(program: Command): void {
         // Determine data directory
         const dataDir =
           options.dataDir ||
-          process.env.RECURSIVE_MANAGER_DATA_DIR ||
-          path.resolve(process.cwd(), '.recursive-manager');
+          process.env.RECURSIVEMANAGER_DATA_DIR ||
+          path.resolve(process.cwd(), '.recursivemanager');
 
-        const markerFile = path.resolve(dataDir, '.recursive-manager');
+        const markerFile = path.resolve(dataDir, '.recursivemanager');
 
         // Check if initialized
         if (!fs.existsSync(markerFile)) {
           console.log(error('❌ RecursiveManager is not initialized'));
-          console.log(info('Run: recursive-manager init "<your goal>"'));
+          console.log(info('Run: recursivemanager init "<your goal>"'));
           process.exit(1);
         }
 
@@ -171,9 +171,9 @@ export function registerRunCommand(program: Command): void {
               console.log();
 
               console.log(info('Next Steps:'));
-              console.log(code(`  - View agent: recursive-manager status --agent-id ${agentId}`));
-              console.log(code(`  - Debug agent: recursive-manager debug ${agentId} --all`));
-              console.log(code(`  - View logs: recursive-manager debug ${agentId} --logs`));
+              console.log(code(`  - View agent: recursivemanager status --agent-id ${agentId}`));
+              console.log(code(`  - Debug agent: recursivemanager debug ${agentId} --all`));
+              console.log(code(`  - View logs: recursivemanager debug ${agentId} --logs`));
             }
           } finally {
             // Cleanup database pool

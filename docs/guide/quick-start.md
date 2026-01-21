@@ -59,7 +59,7 @@ npm run build
 npm link
 
 # Verify installation
-recursive-manager --version
+recursivemanager --version
 ```
 
 ## Step 2: Initialize Your First Project
@@ -67,11 +67,11 @@ recursive-manager --version
 Create a new RecursiveManager project with a high-level goal:
 
 ```bash
-recursive-manager init "Build a task management application"
+recursivemanager init "Build a task management application"
 ```
 
 This command will:
-1. Create a data directory (`.recursive-manager/` by default)
+1. Create a data directory (`.recursivemanager/` by default)
 2. Initialize a SQLite database
 3. Set up directory structure:
    - `agents/` - Agent workspaces
@@ -86,14 +86,14 @@ This command will:
 To use a different location:
 
 ```bash
-recursive-manager init "Your goal" --data-dir ~/my-agents
+recursivemanager init "Your goal" --data-dir ~/my-agents
 ```
 
 Or set the environment variable:
 
 ```bash
-export RECURSIVE_MANAGER_DATA_DIR=~/my-agents
-recursive-manager init "Your goal"
+export RECURSIVEMANAGER_DATA_DIR=~/my-agents
+recursivemanager init "Your goal"
 ```
 
 ### Force Reinitialization
@@ -101,7 +101,7 @@ recursive-manager init "Your goal"
 If you need to start over:
 
 ```bash
-recursive-manager init "New goal" --force
+recursivemanager init "New goal" --force
 ```
 
 ::: warning Data Loss
@@ -113,7 +113,7 @@ The `--force` flag will overwrite existing data. Make sure to back up important 
 View your agent hierarchy:
 
 ```bash
-recursive-manager status
+recursivemanager status
 ```
 
 Expected output:
@@ -140,7 +140,7 @@ Expected output:
 Show information about a specific agent:
 
 ```bash
-recursive-manager status --agent-id root-agent-1
+recursivemanager status --agent-id root-agent-1
 ```
 
 ### Different Output Formats
@@ -149,13 +149,13 @@ RecursiveManager supports multiple output formats:
 
 ```bash
 # Tree format (default)
-recursive-manager status --format tree
+recursivemanager status --format tree
 
 # Table format
-recursive-manager status --format table
+recursivemanager status --format table
 
 # JSON format (for scripts/automation)
-recursive-manager status --format json
+recursivemanager status --format json
 ```
 
 ## Step 4: Manage Configuration
@@ -164,24 +164,24 @@ View and modify system settings:
 
 ```bash
 # List all configuration
-recursive-manager config --list
+recursivemanager config --list
 
 # Get a specific value
-recursive-manager config --get execution.workerPoolSize
+recursivemanager config --get execution.workerPoolSize
 
 # Set a value
-recursive-manager config --set execution.workerPoolSize=10
+recursivemanager config --set execution.workerPoolSize=10
 
 # Set nested values (dot notation)
-recursive-manager config --set execution.maxConcurrentTasks=20
+recursivemanager config --set execution.maxConcurrentTasks=20
 ```
 
 ### Common Configuration Options
 
 ```json
 {
-  "dataDir": "./.recursive-manager",
-  "dbPath": "./.recursive-manager/recursive-manager.db",
+  "dataDir": "./.recursivemanager",
+  "dbPath": "./.recursivemanager/recursivemanager.db",
   "rootAgentId": "root-agent-1",
   "execution": {
     "workerPoolSize": 5,
@@ -195,7 +195,7 @@ recursive-manager config --set execution.maxConcurrentTasks=20
 Get detailed information about an agent:
 
 ```bash
-recursive-manager debug root-agent-1
+recursivemanager debug root-agent-1
 ```
 
 This shows:
@@ -208,19 +208,19 @@ This shows:
 
 ```bash
 # Show only agent state
-recursive-manager debug root-agent-1 --state
+recursivemanager debug root-agent-1 --state
 
 # Show only tasks
-recursive-manager debug root-agent-1 --tasks
+recursivemanager debug root-agent-1 --tasks
 
 # Show all information
-recursive-manager debug root-agent-1 --all
+recursivemanager debug root-agent-1 --all
 
 # Show last 100 lines of logs
-recursive-manager debug root-agent-1 --logs 100
+recursivemanager debug root-agent-1 --logs 100
 
 # JSON output
-recursive-manager debug root-agent-1 --json
+recursivemanager debug root-agent-1 --json
 ```
 
 ## Step 6: Create Database Snapshots
@@ -229,29 +229,29 @@ RecursiveManager automatically creates snapshots during major operations (hiring
 
 ```bash
 # List available snapshots
-recursive-manager rollback --history
+recursivemanager rollback --history
 
 # Restore from a specific snapshot
-recursive-manager rollback snapshot-2026-01-19-14-30-00
+recursivemanager rollback snapshot-2026-01-19-14-30-00
 
 # Interactive selection (choose from list)
-recursive-manager rollback
+recursivemanager rollback
 ```
 
 ### Rollback Options
 
 ```bash
 # Skip validation (faster but risky)
-recursive-manager rollback snapshot-id --no-validate
+recursivemanager rollback snapshot-id --no-validate
 
 # Skip pre-rollback backup
-recursive-manager rollback snapshot-id --no-backup
+recursivemanager rollback snapshot-id --no-backup
 
 # Filter snapshots by agent
-recursive-manager rollback --history --agent-id root-agent-1
+recursivemanager rollback --history --agent-id root-agent-1
 
 # Limit number of snapshots shown
-recursive-manager rollback --history --limit 5
+recursivemanager rollback --history --limit 5
 ```
 
 ::: tip Automatic Backups
@@ -338,39 +338,39 @@ mkdir my-agent-project
 cd my-agent-project
 
 # Initialize
-recursive-manager init "Project goal"
+recursivemanager init "Project goal"
 
 # Verify setup
-recursive-manager status
+recursivemanager status
 ```
 
 ### Monitoring Progress
 
 ```bash
 # Check overall status
-recursive-manager status
+recursivemanager status
 
 # View specific agent
-recursive-manager status --agent-id agent-2
+recursivemanager status --agent-id agent-2
 
 # Check agent logs
-recursive-manager debug agent-2 --logs 50
+recursivemanager debug agent-2 --logs 50
 ```
 
 ### Troubleshooting
 
 ```bash
 # View configuration
-recursive-manager config --list
+recursivemanager config --list
 
 # Check agent state
-recursive-manager debug agent-id --state
+recursivemanager debug agent-id --state
 
 # View recent logs
-recursive-manager debug agent-id --logs 100
+recursivemanager debug agent-id --logs 100
 
 # Rollback to previous state
-recursive-manager rollback --history
+recursivemanager rollback --history
 ```
 
 ## Tips and Best Practices
@@ -381,10 +381,10 @@ Start with specific, actionable goals:
 
 ```bash
 # ✅ Good
-recursive-manager init "Build REST API for user authentication"
+recursivemanager init "Build REST API for user authentication"
 
 # ❌ Too vague
-recursive-manager init "Make something cool"
+recursivemanager init "Make something cool"
 ```
 
 ### 2. Monitor Regularly
@@ -393,7 +393,7 @@ Check status frequently to track progress:
 
 ```bash
 # Set up an alias for quick access
-alias rms="recursive-manager status"
+alias rms="recursivemanager status"
 rms  # Quick status check
 ```
 
@@ -403,10 +403,10 @@ Integrate with scripts and CI/CD:
 
 ```bash
 # Get status as JSON
-recursive-manager status --format json > status.json
+recursivemanager status --format json > status.json
 
 # Process with jq
-recursive-manager status --format json | jq '.agents | length'
+recursivemanager status --format json | jq '.agents | length'
 ```
 
 ### 4. Regular Snapshots
@@ -415,10 +415,10 @@ While automatic snapshots are created during hiring/firing, consider creating ma
 
 ```bash
 # View current snapshots
-recursive-manager rollback --history
+recursivemanager rollback --history
 
 # After manual database operations, check you can rollback
-recursive-manager rollback --history --limit 5
+recursivemanager rollback --history --limit 5
 ```
 
 ### 5. Custom Data Directories
@@ -427,12 +427,12 @@ For multiple projects, use separate data directories:
 
 ```bash
 # Project 1
-export RECURSIVE_MANAGER_DATA_DIR=~/project1
-recursive-manager init "Project 1 goal"
+export RECURSIVEMANAGER_DATA_DIR=~/project1
+recursivemanager init "Project 1 goal"
 
 # Project 2
-export RECURSIVE_MANAGER_DATA_DIR=~/project2
-recursive-manager init "Project 2 goal"
+export RECURSIVEMANAGER_DATA_DIR=~/project2
+recursivemanager init "Project 2 goal"
 ```
 
 ## Troubleshooting
@@ -440,13 +440,13 @@ recursive-manager init "Project 2 goal"
 ### Command Not Found
 
 ```bash
-# Error: recursive-manager: command not found
+# Error: recursivemanager: command not found
 
 # Solution 1: Reload shell configuration
 source ~/.bashrc  # or ~/.zshrc
 
 # Solution 2: Use full path
-~/.recursive-manager/dist/cli.js
+~/.recursivemanager/dist/cli.js
 
 # Solution 3: Reinstall
 npm link
@@ -458,11 +458,11 @@ npm link
 # Error: database is locked
 
 # Solution: Close other RecursiveManager processes
-pkill -f recursive-manager
+pkill -f recursivemanager
 
 # Remove lock files if needed
-rm .recursive-manager/recursive-manager.db-shm
-rm .recursive-manager/recursive-manager.db-wal
+rm .recursivemanager/recursivemanager.db-shm
+rm .recursivemanager/recursivemanager.db-wal
 ```
 
 ### Permission Errors
@@ -471,7 +471,7 @@ rm .recursive-manager/recursive-manager.db-wal
 # Error: EACCES: permission denied
 
 # Solution: Fix directory permissions
-chmod -R 755 .recursive-manager
+chmod -R 755 .recursivemanager
 ```
 
 ### Out of Disk Space
@@ -481,8 +481,8 @@ chmod -R 755 .recursive-manager
 df -h
 
 # Clean up old snapshots
-recursive-manager rollback --history
-# Manually delete old snapshots from .recursive-manager/snapshots/
+recursivemanager rollback --history
+# Manually delete old snapshots from .recursivemanager/snapshots/
 ```
 
 ## Getting Help
@@ -492,17 +492,17 @@ Need assistance? Here are your options:
 - **Documentation**: [https://aaron777collins.github.io/RecursiveManager/](https://aaron777collins.github.io/RecursiveManager/)
 - **GitHub Issues**: [Report bugs](https://github.com/aaron777collins/RecursiveManager/issues)
 - **GitHub Discussions**: [Ask questions](https://github.com/aaron777collins/RecursiveManager/discussions)
-- **Command Help**: `recursive-manager --help`
+- **Command Help**: `recursivemanager --help`
 
 ### Command-Specific Help
 
 ```bash
 # Get help for a specific command
-recursive-manager init --help
-recursive-manager status --help
-recursive-manager config --help
-recursive-manager debug --help
-recursive-manager rollback --help
+recursivemanager init --help
+recursivemanager status --help
+recursivemanager config --help
+recursivemanager debug --help
+recursivemanager rollback --help
 ```
 
 ## What's Next?

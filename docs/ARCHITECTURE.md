@@ -1982,13 +1982,13 @@ Via CLI:
 
 ```bash
 # Create snapshot
-recursive-manager snapshot create --reason "before_refactor"
+recursivemanager snapshot create --reason "before_refactor"
 
 # List snapshots
-recursive-manager snapshot list
+recursivemanager snapshot list
 
 # Restore from snapshot
-recursive-manager snapshot restore <snapshot_id>
+recursivemanager snapshot restore <snapshot_id>
 ```
 
 ### Rollback System
@@ -2000,7 +2000,7 @@ Restore system to previous state.
 #### Interactive Rollback
 
 ```bash
-recursive-manager rollback
+recursivemanager rollback
 ```
 
 Displays interactive menu:
@@ -2014,7 +2014,7 @@ Displays interactive menu:
 #### Direct Rollback
 
 ```bash
-recursive-manager rollback <snapshot_id>
+recursivemanager rollback <snapshot_id>
 ```
 
 #### Rollback Flow

@@ -12,8 +12,8 @@ import {
   initializeDatabase,
   getAgent,
   getSubordinates,
-} from '@recursive-manager/common';
-import { fireAgent, FireStrategy } from '@recursive-manager/core';
+} from '@recursivemanager/common';
+import { fireAgent, FireStrategy } from '@recursivemanager/core';
 
 interface FireOptions {
   dataDir?: string;
@@ -42,15 +42,15 @@ export function registerFireCommand(program: Command): void {
         // Determine data directory
         const dataDir =
           options.dataDir ||
-          process.env.RECURSIVE_MANAGER_DATA_DIR ||
-          path.resolve(process.cwd(), '.recursive-manager');
+          process.env.RECURSIVEMANAGER_DATA_DIR ||
+          path.resolve(process.cwd(), '.recursivemanager');
 
-        const markerFile = path.resolve(dataDir, '.recursive-manager');
+        const markerFile = path.resolve(dataDir, '.recursivemanager');
 
         // Check if initialized
         if (!fs.existsSync(markerFile)) {
           console.log(error('❌ RecursiveManager is not initialized'));
-          console.log(info('Run: recursive-manager init "<your goal>"'));
+          console.log(info('Run: recursivemanager init "<your goal>"'));
           process.exit(1);
         }
 
@@ -183,9 +183,9 @@ export function registerFireCommand(program: Command): void {
             }
 
             console.log(info('Next Steps:'));
-            console.log(code('  - View organization: recursive-manager status'));
+            console.log(code('  - View organization: recursivemanager status'));
             if (agent.reporting_to) {
-              console.log(code(`  - View manager: recursive-manager status --agent-id ${agent.reporting_to}`));
+              console.log(code(`  - View manager: recursivemanager status --agent-id ${agent.reporting_to}`));
             }
           }
         } finally {

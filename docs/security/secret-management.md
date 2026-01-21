@@ -30,7 +30,7 @@ Audit logger that tracks all secret operations for compliance and security monit
 ### Basic Usage
 
 ```typescript
-import { APIKeyManager, DatabaseEncryption } from '@recursive-manager/common';
+import { APIKeyManager, DatabaseEncryption } from '@recursivemanager/common';
 
 // Generate a secure encryption key
 const encryptionKey = DatabaseEncryption.generateKey();
@@ -51,7 +51,7 @@ console.log(apiKey); // 'sk-ant-123456'
 ### Using Password-Based Encryption (KDF)
 
 ```typescript
-import { APIKeyManager } from '@recursive-manager/common';
+import { APIKeyManager } from '@recursivemanager/common';
 
 // Use password with PBKDF2 key derivation
 const manager = new APIKeyManager('my-secure-password', {
@@ -266,7 +266,7 @@ await fs.writeFile('audit-log.json', auditExport);
 Always use cryptographically secure key generation:
 
 ```typescript
-import { DatabaseEncryption } from '@recursive-manager/common';
+import { DatabaseEncryption } from '@recursivemanager/common';
 
 // Generate secure random key
 const key = DatabaseEncryption.generateKey();
@@ -355,7 +355,7 @@ manager.clearAllCache();
 ### Using with AI Providers
 
 ```typescript
-import { APIKeyManager } from '@recursive-manager/common';
+import { APIKeyManager } from '@recursivemanager/common';
 
 // Initialize manager
 const secretManager = new APIKeyManager(process.env.SECRET_ENCRYPTION_KEY!);

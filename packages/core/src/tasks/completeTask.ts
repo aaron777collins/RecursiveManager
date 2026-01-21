@@ -9,7 +9,7 @@
  */
 
 import type { Database } from 'better-sqlite3';
-import { completeTask as dbCompleteTask, getTask } from '@recursive-manager/common';
+import { completeTask as dbCompleteTask, getTask } from '@recursivemanager/common';
 import { moveTaskDirectory } from './createTaskDirectory';
 import { notifyTaskCompletion, NotifyCompletionOptions } from './notifyCompletion';
 

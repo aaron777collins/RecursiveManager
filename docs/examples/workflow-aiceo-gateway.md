@@ -72,7 +72,7 @@ Run a manual analysis from the CLI:
 
 ```bash
 cd /home/ubuntu/repos/RecursiveManager
-npx recursive-manager analyze "Should we migrate from REST to GraphQL for our API?"
+npx recursivemanager analyze "Should we migrate from REST to GraphQL for our API?"
 ```
 
 **Expected Output**:
@@ -96,7 +96,7 @@ npx recursive-manager analyze "Should we migrate from REST to GraphQL for our AP
 │ Emotional       │ 0.62       │ Learning curve steep for team...     │
 └─────────────────┴────────────┴──────────────────────────────────────┘
 
-Full analysis saved to: ~/.recursive-manager/agents/cli-analyze/analyses/2026-01-20T15-34-22.json
+Full analysis saved to: ~/.recursivemanager/agents/cli-analyze/analyses/2026-01-20T15-34-22.json
 ```
 
 ### Scenario 2: Programmatic Analysis
@@ -104,8 +104,8 @@ Full analysis saved to: ~/.recursive-manager/agents/cli-analyze/analyses/2026-01
 Use RecursiveManager's API to trigger analysis:
 
 ```typescript
-import { ExecutionOrchestrator } from '@recursive-manager/core';
-import { loadConfig } from '@recursive-manager/common';
+import { ExecutionOrchestrator } from '@recursivemanager/core';
+import { loadConfig } from '@recursivemanager/common';
 
 const config = loadConfig();
 const orchestrator = new ExecutionOrchestrator(config);
@@ -131,8 +131,8 @@ console.log('Security Confidence:', securityPerspective.confidence);
 Trigger analysis automatically before hiring an agent:
 
 ```typescript
-import { ExecutionOrchestrator } from '@recursive-manager/core';
-import { loadConfig } from '@recursive-manager/common';
+import { ExecutionOrchestrator } from '@recursivemanager/core';
+import { loadConfig } from '@recursivemanager/common';
 
 const config = loadConfig();
 const orchestrator = new ExecutionOrchestrator(config);
@@ -184,7 +184,7 @@ curl http://localhost:4000/api/glm/usage
     "low": 1
   },
   "requestsBySource": {
-    "recursive-manager": 24
+    "recursivemanager": 24
   }
 }
 ```
@@ -195,17 +195,17 @@ curl http://localhost:4000/api/glm/usage
 
 ```bash
 # List all past analyses
-ls ~/.recursive-manager/agents/cli-analyze/analyses/
+ls ~/.recursivemanager/agents/cli-analyze/analyses/
 
 # View specific analysis
-cat ~/.recursive-manager/agents/cli-analyze/analyses/2026-01-20T15-34-22.json
+cat ~/.recursivemanager/agents/cli-analyze/analyses/2026-01-20T15-34-22.json
 ```
 
 ### Check Cache Performance
 
 ```typescript
-import { MultiPerspectiveAnalysis } from '@recursive-manager/core';
-import { ProviderFactory } from '@recursive-manager/core';
+import { MultiPerspectiveAnalysis } from '@recursivemanager/core';
+import { ProviderFactory } from '@recursivemanager/core';
 
 const provider = await ProviderFactory.createWithHealthCheck();
 const analysis = new MultiPerspectiveAnalysis(provider);
@@ -277,7 +277,7 @@ curl http://localhost:4000/api/glm/usage
 
 # Use fallback provider temporarily
 export AI_PROVIDER=glm-direct
-npx recursive-manager analyze "Your question here"
+npx recursivemanager analyze "Your question here"
 ```
 
 ### Error: "Invalid API key"

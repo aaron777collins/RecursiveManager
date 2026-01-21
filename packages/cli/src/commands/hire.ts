@@ -12,8 +12,8 @@ import {
   initializeDatabase,
   getAgent,
   AgentConfig,
-} from '@recursive-manager/common';
-import { hireAgent } from '@recursive-manager/core';
+} from '@recursivemanager/common';
+import { hireAgent } from '@recursivemanager/core';
 import * as crypto from 'crypto';
 
 interface HireOptions {
@@ -55,15 +55,15 @@ export function registerHireCommand(program: Command): void {
         // Determine data directory
         const dataDir =
           options.dataDir ||
-          process.env.RECURSIVE_MANAGER_DATA_DIR ||
-          path.resolve(process.cwd(), '.recursive-manager');
+          process.env.RECURSIVEMANAGER_DATA_DIR ||
+          path.resolve(process.cwd(), '.recursivemanager');
 
-        const markerFile = path.resolve(dataDir, '.recursive-manager');
+        const markerFile = path.resolve(dataDir, '.recursivemanager');
 
         // Check if initialized
         if (!fs.existsSync(markerFile)) {
           console.log(error('❌ RecursiveManager is not initialized'));
-          console.log(info('Run: recursive-manager init "<your goal>"'));
+          console.log(info('Run: recursivemanager init "<your goal>"'));
           process.exit(1);
         }
 
@@ -241,11 +241,11 @@ export function registerHireCommand(program: Command): void {
             console.log(code(`  Created: ${agent.created_at}`));
             console.log();
             console.log(info('Next Steps:'));
-            console.log(code(`  - View agent: recursive-manager status --agent-id ${agent.id}`));
+            console.log(code(`  - View agent: recursivemanager status --agent-id ${agent.id}`));
             console.log(
-              code(`  - Debug agent: recursive-manager debug ${agent.id} --all`)
+              code(`  - Debug agent: recursivemanager debug ${agent.id} --all`)
             );
-            console.log(code(`  - Trigger execution: recursive-manager run ${agent.id}`));
+            console.log(code(`  - Trigger execution: recursivemanager run ${agent.id}`));
           }
         } finally {
           dbConnection.close();

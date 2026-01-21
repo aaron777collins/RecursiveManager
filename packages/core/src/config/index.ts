@@ -4,7 +4,7 @@
  * This module handles loading, saving, and validating agent configuration files.
  * Implements atomic writes, backup recovery, and schema validation.
  *
- * Note: loadAgentConfig and ConfigLoadError have been moved to @recursive-manager/common
+ * Note: loadAgentConfig and ConfigLoadError have been moved to @recursivemanager/common
  * to resolve circular dependency between core and adapters packages. They are re-exported
  * here for backward compatibility.
  */
@@ -20,7 +20,7 @@ import {
   // Re-export from common for backward compatibility
   loadAgentConfig as loadAgentConfigFromCommon,
   ConfigLoadError as ConfigLoadErrorFromCommon,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { validateAgentConfigBusinessLogicStrict } from '../validation/business-validation';
 
 /**
@@ -53,11 +53,11 @@ export class ConfigSaveError extends Error {
 /**
  * Load agent configuration with business logic validation
  *
- * This is a wrapper around loadAgentConfig from @recursive-manager/common that
+ * This is a wrapper around loadAgentConfig from @recursivemanager/common that
  * additionally performs business logic validation (which requires core package).
  *
  * For basic config loading without business validation, use the loadAgentConfig
- * from @recursive-manager/common directly.
+ * from @recursivemanager/common directly.
  *
  * @param agentId - The unique identifier of the agent
  * @param options - Optional path resolution options

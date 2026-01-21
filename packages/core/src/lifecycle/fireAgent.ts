@@ -24,7 +24,7 @@ import {
   createAgentLogger,
   safeLoad,
   atomicWrite,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import {
   getAgent,
   updateAgent,
@@ -35,8 +35,8 @@ import {
   getActiveTasks,
   updateTaskStatus,
   createSnapshot,
-} from '@recursive-manager/common';
-import { auditLog, AuditAction } from '@recursive-manager/common';
+} from '@recursivemanager/common';
+import { auditLog, AuditAction } from '@recursivemanager/common';
 import { loadAgentConfig } from '../config';
 import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 
@@ -170,7 +170,7 @@ async function archiveAgentFiles(agentId: string, options: PathOptions = {}): Pr
 
   try {
     const agentDirectory = getAgentDirectory(agentId, options);
-    const baseDir = options.baseDir || process.env.RECURSIVE_MANAGER_DATA_DIR || '/data';
+    const baseDir = options.baseDir || process.env.RECURSIVEMANAGER_DATA_DIR || '/data';
     const backupsDir = path.join(baseDir, 'backups', 'fired-agents');
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const archivePath = path.join(backupsDir, `${agentId}-${timestamp}`);
@@ -1141,7 +1141,7 @@ export async function fireAgent(
 
     // STEP 8: CREATE SNAPSHOT (for rollback capability)
     try {
-      const baseDir = options.baseDir || path.join(require('os').homedir(), '.recursive-manager');
+      const baseDir = options.baseDir || path.join(require('os').homedir(), '.recursivemanager');
       const snapshotsDir = path.join(baseDir, 'snapshots');
 
       logger.info('Creating database snapshot after firing agent', {

@@ -8,7 +8,7 @@
 import { ScheduleManager } from '../ScheduleManager';
 import type { Database } from 'better-sqlite3';
 import SqliteDatabase from 'better-sqlite3';
-import { runMigrations, allMigrations } from '@recursive-manager/common';
+import { runMigrations, allMigrations } from '@recursivemanager/common';
 import * as fs from 'fs';
 import * as path from 'path';
 

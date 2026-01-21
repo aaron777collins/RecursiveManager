@@ -26,7 +26,7 @@ import {
   runMigrations,
   allMigrations,
   getConfigPath,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { saveAgentConfig, generateDefaultConfig } from '../config';
 import path from 'path';
 import fs from 'fs-extra';

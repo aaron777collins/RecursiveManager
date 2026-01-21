@@ -1,5 +1,5 @@
 /**
- * Jest configuration for @recursive-manager/cli package
+ * Jest configuration for @recursivemanager/cli package
  */
 
 module.exports = {
@@ -22,8 +22,8 @@ module.exports = {
 
   // Module path aliases for internal package references
   moduleNameMapper: {
-    '^@recursive-manager/common$': '<rootDir>/../common/src',
-    '^@recursive-manager/core$': '<rootDir>/../core/src'
+    '^@recursivemanager/common$': '<rootDir>/../common/src',
+    '^@recursivemanager/core$': '<rootDir>/../core/src'
   },
 
   collectCoverageFrom: [

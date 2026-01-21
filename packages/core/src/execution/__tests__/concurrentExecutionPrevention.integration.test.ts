@@ -24,13 +24,13 @@ import {
   allMigrations,
   DatabasePool,
   type AgentConfig,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import {
   acquirePidLock,
   removePidFile,
   isProcessRunningByPid,
   PidError,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { AgentLock } from '../AgentLock';
 import { ExecutionPool } from '../ExecutionPool';
 import { ExecutionOrchestrator } from '../index';
@@ -169,13 +169,13 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
     } as unknown as DatabasePool;
 
     testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'concurrent-exec-test-'));
-    process.env.RECURSIVE_MANAGER_DATA_DIR = testDir;
+    process.env.RECURSIVEMANAGER_DATA_DIR = testDir;
   });
 
   afterEach(async () => {
     db.close();
     fs.removeSync(testDir);
-    delete process.env.RECURSIVE_MANAGER_DATA_DIR;
+    delete process.env.RECURSIVEMANAGER_DATA_DIR;
   });
 
   describe('AgentLock + ExecutionPool Integration', () => {
@@ -384,7 +384,7 @@ describe('Concurrent Execution Prevention - Integration Tests', () => {
 
     it('should detect and clean up stale PID files', async () => {
       const processName = 'test-stale-daemon';
-      const { getPidFilePath } = await import('@recursive-manager/common');
+      const { getPidFilePath } = await import('@recursivemanager/common');
 
       // Manually create a stale PID file with non-existent PID
       const stalePid = 999999; // Very unlikely to exist

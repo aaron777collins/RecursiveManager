@@ -1,5 +1,5 @@
 /**
- * @recursive-manager/core
+ * @recursivemanager/core
  *
  * Core orchestrator and execution engine for RecursiveManager.
  * This package handles agent lifecycle, task management, and execution coordination.

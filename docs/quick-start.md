@@ -15,7 +15,7 @@ curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/ma
 Initialize a new RecursiveManager project with a goal:
 
 ```bash
-recursive-manager init "Build a web scraper for product prices"
+recursivemanager init "Build a web scraper for product prices"
 ```
 
 This will:
@@ -29,13 +29,13 @@ This will:
 View your agent organization chart:
 
 ```bash
-recursive-manager status
+recursivemanager status
 ```
 
 View detailed information about a specific agent:
 
 ```bash
-recursive-manager status --agent-id <agent-id>
+recursivemanager status --agent-id <agent-id>
 ```
 
 ## Configuration
@@ -43,17 +43,17 @@ recursive-manager status --agent-id <agent-id>
 Run the interactive configuration wizard:
 
 ```bash
-recursive-manager config
+recursivemanager config
 ```
 
-Or manually edit the configuration file at `~/.recursive-manager/.env`
+Or manually edit the configuration file at `~/.recursivemanager/.env`
 
 ## Debugging
 
 View detailed debugging information for an agent:
 
 ```bash
-recursive-manager debug <agent-id>
+recursivemanager debug <agent-id>
 ```
 
 ## Updating
@@ -61,13 +61,13 @@ recursive-manager debug <agent-id>
 Keep RecursiveManager up to date:
 
 ```bash
-recursive-manager update
+recursivemanager update
 ```
 
 Check for available updates:
 
 ```bash
-recursive-manager update --check
+recursivemanager update --check
 ```
 
 ## Next Steps

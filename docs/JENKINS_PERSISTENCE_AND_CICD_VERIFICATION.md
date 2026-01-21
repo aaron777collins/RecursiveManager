@@ -120,9 +120,9 @@ All Jenkins components tested and verified as production-ready. Complete CI/CD p
 - **Runs**: `npm run build:binaries`
 - **Script**: `scripts/build-binaries-simple.sh`
 - **Outputs**:
-  - `release/recursive-manager-v1.0.1-linux.tar.gz`
-  - `release/recursive-manager-v1.0.1-macos.tar.gz`
-  - `release/recursive-manager-v1.0.1-windows.tar.gz`
+  - `release/recursivemanager-v1.0.1-linux.tar.gz`
+  - `release/recursivemanager-v1.0.1-macos.tar.gz`
+  - `release/recursivemanager-v1.0.1-windows.tar.gz`
   - `release/SHA256SUMS` (checksums)
 
 **Stage 7: Create GitHub Release** ✅
@@ -276,7 +276,7 @@ curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/ma
 - ✅ Downloaded latest release (v1.0.1)
 - ✅ Verified SHA256 checksum
 - ✅ Extracted tarball successfully
-- ✅ Installed to ~/.recursive-manager
+- ✅ Installed to ~/.recursivemanager
 - ✅ Added to PATH
 - ✅ Binary executable
 

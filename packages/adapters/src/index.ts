@@ -1,5 +1,5 @@
 /**
- * @recursive-manager/adapters
+ * @recursivemanager/adapters
  *
  * Framework adapters for RecursiveManager (Claude Code, OpenCode, etc.).
  * This package provides interfaces to different AI coding frameworks.

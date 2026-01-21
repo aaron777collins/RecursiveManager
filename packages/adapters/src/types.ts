@@ -5,7 +5,7 @@
  * execution contexts/results.
  */
 
-import type { AgentConfig } from '@recursive-manager/common';
+import type { AgentConfig } from '@recursivemanager/common';
 
 /**
  * Execution mode for agent execution

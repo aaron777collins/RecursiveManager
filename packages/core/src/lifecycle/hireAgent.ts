@@ -27,8 +27,8 @@ import {
   createAgentLogger,
   safeLoad,
   withTraceId,
-} from '@recursive-manager/common';
-import { createAgent, AgentRecord, createSnapshot } from '@recursive-manager/common';
+} from '@recursivemanager/common';
+import { createAgent, AgentRecord, createSnapshot } from '@recursivemanager/common';
 import { saveAgentConfig } from '../config';
 import { validateHireStrict } from './validateHire';
 
@@ -565,7 +565,7 @@ export async function hireAgent(
 
     // STEP 5: CREATE SNAPSHOT (for rollback capability)
     try {
-      const baseDir = options.baseDir || path.join(require('os').homedir(), '.recursive-manager');
+      const baseDir = options.baseDir || path.join(require('os').homedir(), '.recursivemanager');
       const snapshotsDir = path.join(baseDir, 'snapshots');
 
       logger.info('Creating database snapshot after hiring agent', {

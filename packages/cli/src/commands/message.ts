@@ -8,12 +8,12 @@ import { createSpinner } from '../utils/spinner';
 import { input, confirm, editor } from '../utils/prompts';
 import * as fs from 'fs';
 import * as path from 'path';
-import { initializeDatabase, getAgent } from '@recursive-manager/common';
+import { initializeDatabase, getAgent } from '@recursivemanager/common';
 import {
   writeMessageToInbox,
   generateMessageId,
   MessageData,
-} from '@recursive-manager/core';
+} from '@recursivemanager/core';
 
 interface MessageOptions {
   dataDir?: string;
@@ -52,15 +52,15 @@ export function registerMessageCommand(program: Command): void {
         // Determine data directory
         const dataDir =
           options.dataDir ||
-          process.env.RECURSIVE_MANAGER_DATA_DIR ||
-          path.resolve(process.cwd(), '.recursive-manager');
+          process.env.RECURSIVEMANAGER_DATA_DIR ||
+          path.resolve(process.cwd(), '.recursivemanager');
 
-        const markerFile = path.resolve(dataDir, '.recursive-manager');
+        const markerFile = path.resolve(dataDir, '.recursivemanager');
 
         // Check if initialized
         if (!fs.existsSync(markerFile)) {
           console.log(error('❌ RecursiveManager is not initialized'));
-          console.log(info('Run: recursive-manager init "<your goal>"'));
+          console.log(info('Run: recursivemanager init "<your goal>"'));
           process.exit(1);
         }
 
@@ -192,9 +192,9 @@ export function registerMessageCommand(program: Command): void {
             console.log(code(`  File: ${messagePath}`));
             console.log();
             console.log(info('Next Steps:'));
-            console.log(code(`  - Trigger agent: recursive-manager run ${agentId} --reactive`));
-            console.log(code(`  - View agent: recursive-manager status --agent-id ${agentId}`));
-            console.log(code(`  - Debug agent: recursive-manager debug ${agentId} --all`));
+            console.log(code(`  - Trigger agent: recursivemanager run ${agentId} --reactive`));
+            console.log(code(`  - View agent: recursivemanager status --agent-id ${agentId}`));
+            console.log(code(`  - Debug agent: recursivemanager debug ${agentId} --all`));
           }
         } finally {
           dbConnection.close();

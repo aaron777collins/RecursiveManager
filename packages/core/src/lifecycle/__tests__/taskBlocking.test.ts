@@ -11,7 +11,7 @@ import {
   unblockTasksForResumedAgent,
   PAUSE_BLOCKER,
 } from '../taskBlocking';
-import { createAgent, createTask, getTask, runMigrations, allMigrations } from '@recursive-manager/common';
+import { createAgent, createTask, getTask, runMigrations, allMigrations } from '@recursivemanager/common';
 
 describe('Task Blocking for Paused Agents', () => {
   let db: Database.Database;

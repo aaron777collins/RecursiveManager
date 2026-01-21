@@ -1,5 +1,5 @@
 /**
- * Jest configuration for @recursive-manager/adapters package
+ * Jest configuration for @recursivemanager/adapters package
  */
 
 module.exports = {
@@ -22,8 +22,8 @@ module.exports = {
 
   // Module path aliases for internal package references
   moduleNameMapper: {
-    '^@recursive-manager/common$': '<rootDir>/../common/src',
-    '^@recursive-manager/core$': '<rootDir>/../core/src'
+    '^@recursivemanager/common$': '<rootDir>/../common/src',
+    '^@recursivemanager/core$': '<rootDir>/../core/src'
   },
 
   // Transform ESM modules

@@ -42,7 +42,7 @@ describe('Config Command Integration Tests', () => {
 
   beforeEach(async () => {
     // Create a temporary directory for each test
-    testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'recursive-manager-test-'));
+    testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'recursivemanager-test-'));
 
     // Mock console.log and console.error to suppress output during tests
     consoleLogs = jest.spyOn(console, 'log').mockImplementation();
@@ -135,7 +135,7 @@ describe('Config Command Integration Tests', () => {
       ]);
 
       // Load config and verify the value was changed
-      process.env.RECURSIVE_MANAGER_DATA_DIR = testDataDir;
+      process.env.RECURSIVEMANAGER_DATA_DIR = testDataDir;
       const config = loadConfig(testDataDir);
       expect(config.execution.workerPoolSize).toBe(10);
     });

@@ -16,7 +16,7 @@ RecursiveManager is a hierarchical AI agent orchestration system with **extensiv
 ## 1. Test Failures ❌ CRITICAL
 
 ### 1.1 Integration Test Failures (18 failures)
-**Package:** `@recursive-manager/adapters`
+**Package:** `@recursivemanager/adapters`
 **File:** `packages/adapters/src/adapters/claude-code/__tests__/ClaudeCodeAdapter.integration.test.ts`
 
 **Root Cause:** All 18 failures are timeout errors in `beforeAll` hook
@@ -44,12 +44,12 @@ This command hangs because:
 
 ### 1.2 Test Summary
 ```
-✅ @recursive-manager/common: 1075 tests passed (34 suites)
-✅ @recursive-manager/adapters: 235 tests passed
-❌ @recursive-manager/adapters: 18 tests failed (all integration tests)
-✅ @recursive-manager/core: All tests passing
-✅ @recursive-manager/scheduler: All tests passing
-✅ @recursive-manager/cli: All tests passing
+✅ @recursivemanager/common: 1075 tests passed (34 suites)
+✅ @recursivemanager/adapters: 235 tests passed
+❌ @recursivemanager/adapters: 18 tests failed (all integration tests)
+✅ @recursivemanager/core: All tests passing
+✅ @recursivemanager/scheduler: All tests passing
+✅ @recursivemanager/cli: All tests passing
 
 Total: 1,310 passing, 18 failing
 ```
@@ -101,7 +101,7 @@ Line 26:5   error  Unexpected `await` of a non-Promise value              @types
 ❌ **pause** - Not implemented (agent lifecycle)
 ❌ **resume** - Not implemented (agent lifecycle)
 
-**Note:** The underlying functions exist in `@recursive-manager/core`:
+**Note:** The underlying functions exist in `@recursivemanager/core`:
 - `hireAgent()` - ✅ Implemented in `/packages/core/src/lifecycle/hireAgent.ts`
 - `fireAgent()` - ✅ Implemented in `/packages/core/src/lifecycle/fireAgent.ts`
 - `pauseAgent()` - ✅ Implemented in `/packages/core/src/lifecycle/pauseAgent.ts`
@@ -276,11 +276,11 @@ Estimated effort: 2-4 hours (straightforward wiring, all core logic exists)
 
 ### 7.3 Test Coverage
 ```
-@recursive-manager/common:  1,075 tests (34 suites) - ✅ 100% passing
-@recursive-manager/adapters:  253 tests (7 suites) - ⚠️ 93% passing (18 integration test timeouts)
-@recursive-manager/core:     ~200 tests estimated - ✅ Passing
-@recursive-manager/scheduler: ~50 tests estimated - ✅ Passing
-@recursive-manager/cli:      ~100 tests estimated - ✅ Passing
+@recursivemanager/common:  1,075 tests (34 suites) - ✅ 100% passing
+@recursivemanager/adapters:  253 tests (7 suites) - ⚠️ 93% passing (18 integration test timeouts)
+@recursivemanager/core:     ~200 tests estimated - ✅ Passing
+@recursivemanager/scheduler: ~50 tests estimated - ✅ Passing
+@recursivemanager/cli:      ~100 tests estimated - ✅ Passing
 ```
 
 **Total Test Count:** 1,600+ tests
@@ -350,7 +350,7 @@ DISCORD_WEBHOOK_URL=<not set>
 
 ### 9.2 Database Configuration
 ✅ **SQLite Default** - Works out of box
-✅ **File-based Storage** - `~/.recursive-manager/database.sqlite`
+✅ **File-based Storage** - `~/.recursivemanager/database.sqlite`
 ✅ **Migration System** - Automatic on init
 ✅ **Backup/Snapshot Support** - Implemented
 
@@ -558,11 +558,11 @@ Source Files (non-test): 137 files (33,566 lines)
 Test Files: 83 files (42,162 lines)
 
 Package Breakdown:
-- @recursive-manager/common: ~15,000 lines
-- @recursive-manager/core: ~8,000 lines
-- @recursive-manager/adapters: ~6,000 lines
-- @recursive-manager/cli: ~4,000 lines
-- @recursive-manager/scheduler: ~2,000 lines
+- @recursivemanager/common: ~15,000 lines
+- @recursivemanager/core: ~8,000 lines
+- @recursivemanager/adapters: ~6,000 lines
+- @recursivemanager/cli: ~4,000 lines
+- @recursivemanager/scheduler: ~2,000 lines
 - Tests: ~42,000 lines
 ```
 

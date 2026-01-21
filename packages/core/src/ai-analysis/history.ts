@@ -3,7 +3,7 @@
  *
  * Saves all multi-perspective analyses to disk for audit trail and later review.
  * Analysis files are stored in the agent's workspace:
- * ~/.recursive-manager/agents/{agentId}/analyses/{timestamp}.json
+ * ~/.recursivemanager/agents/{agentId}/analyses/{timestamp}.json
  *
  * Features:
  * - Automatic directory creation
@@ -58,11 +58,11 @@ export interface HistoryStats {
 
 /**
  * Gets the base directory for analysis history
- * Default: ~/.recursive-manager/agents/{agentId}/analyses/
+ * Default: ~/.recursivemanager/agents/{agentId}/analyses/
  */
 export function getAnalysesDirectory(agentId: string): string {
   const homeDir = os.homedir();
-  return path.join(homeDir, '.recursive-manager', 'agents', agentId, 'analyses');
+  return path.join(homeDir, '.recursivemanager', 'agents', agentId, 'analyses');
 }
 
 /**

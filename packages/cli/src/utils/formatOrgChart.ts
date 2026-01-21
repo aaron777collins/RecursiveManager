@@ -1,11 +1,11 @@
 /**
- * @recursive-manager/cli - Org Chart Visualization
+ * @recursivemanager/cli - Org Chart Visualization
  *
  * Provides formatting utilities for displaying organizational charts
  * in various formats (ASCII tree, table, JSON).
  */
 
-import type { AgentRecord } from '@recursive-manager/common';
+import type { AgentRecord } from '@recursivemanager/common';
 
 /**
  * Represents an org chart entry with hierarchy information

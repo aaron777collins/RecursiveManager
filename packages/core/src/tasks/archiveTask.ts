@@ -9,9 +9,9 @@
  */
 
 import type { Database } from 'better-sqlite3';
-import { getAgentDirectory, type PathOptions } from '@recursive-manager/common';
+import { getAgentDirectory, type PathOptions } from '@recursivemanager/common';
 import { moveTaskDirectory } from './createTaskDirectory';
-import type { TaskRecord, TaskStatus } from '@recursive-manager/common';
+import type { TaskRecord, TaskStatus } from '@recursivemanager/common';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as tar from 'tar';

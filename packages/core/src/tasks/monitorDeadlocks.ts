@@ -6,14 +6,14 @@
  */
 
 import type { Database } from 'better-sqlite3';
-import { detectTaskDeadlock } from '@recursive-manager/common';
+import { detectTaskDeadlock } from '@recursivemanager/common';
 import { notifyDeadlock } from './notifyDeadlock';
 
 /**
  * Options for deadlock monitoring
  */
 export interface MonitorDeadlocksOptions {
-  /** Custom data directory (defaults to ~/.recursive-manager) */
+  /** Custom data directory (defaults to ~/.recursivemanager) */
   dataDir?: string;
   /** Force notifications even if agents have disabled deadlock notifications */
   force?: boolean;

@@ -196,7 +196,7 @@ create_github_release() {
     gh release create "v$version" \
         --title "v$version" \
         --notes-file "$changelog" \
-        "$BUILD_DIR"/recursive-manager-v${version}-*.tar.gz \
+        "$BUILD_DIR"/recursivemanager-v${version}-*.tar.gz \
         "$BUILD_DIR"/checksums.txt
 
     log_info "GitHub release created: v$version"
@@ -218,9 +218,9 @@ update_version_manifest() {
       "version": "'$version'",
       "released": "'$(date -u +%Y-%m-%dT%H:%M:%SZ)'",
       "assets": {
-        "linux": "recursive-manager-v'$version'-linux.tar.gz",
-        "macos": "recursive-manager-v'$version'-macos.tar.gz",
-        "windows": "recursive-manager-v'$version'-windows.tar.gz"
+        "linux": "recursivemanager-v'$version'-linux.tar.gz",
+        "macos": "recursivemanager-v'$version'-macos.tar.gz",
+        "windows": "recursivemanager-v'$version'-windows.tar.gz"
       }
     }
   ]

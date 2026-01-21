@@ -185,7 +185,7 @@ The adapter performs health checks before executing agents to ensure the provide
 You can manually verify adapter health:
 
 ```typescript
-import { ClaudeCodeAdapter } from '@recursive-manager/adapters';
+import { ClaudeCodeAdapter } from '@recursivemanager/adapters';
 
 const adapter = new ClaudeCodeAdapter({
   executable: 'claude',
@@ -279,14 +279,14 @@ curl -v https://api.anthropic.com
 **Solution**:
 ```bash
 # Ensure .env file is in correct location
-ls -la ~/.recursive-manager/.env
+ls -la ~/.recursivemanager/.env
 
 # Restart RecursiveManager to reload environment
-recursive-manager stop
-recursive-manager start
+recursivemanager stop
+recursivemanager start
 
 # Or reload environment in current shell
-source ~/.recursive-manager/.env
+source ~/.recursivemanager/.env
 ```
 
 ### Debug Mode
@@ -299,10 +299,10 @@ export DEBUG=true
 export LOG_LEVEL=debug
 
 # Run RecursiveManager
-recursive-manager start
+recursivemanager start
 
 # Check logs
-tail -f ~/.recursive-manager/logs/recursive-manager.log
+tail -f ~/.recursivemanager/logs/recursivemanager.log
 ```
 
 Debug logs will show:

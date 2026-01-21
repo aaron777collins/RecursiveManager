@@ -18,7 +18,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import Database from 'better-sqlite3';
-import { createSnapshot } from '@recursive-manager/common';
+import { createSnapshot } from '@recursivemanager/common';
 
 // Mock the interactive prompts and spinners to avoid CLI interaction during tests
 const mockConfirm = jest.fn();
@@ -57,7 +57,7 @@ describe('Rollback Command Integration Tests', () => {
     mockSelect.mockReset();
 
     // Create a temporary directory for each test
-    testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'recursive-manager-test-'));
+    testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'recursivemanager-test-'));
     dbPath = path.join(testDataDir, 'database.sqlite'); // Use .sqlite extension like init command does
     snapshotsDir = path.join(testDataDir, 'snapshots');
 

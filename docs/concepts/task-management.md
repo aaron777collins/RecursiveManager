@@ -129,16 +129,16 @@ Monitor tasks in real-time:
 
 ```bash
 # View all tasks
-recursive-manager tasks
+recursivemanager tasks
 
 # View tasks for specific agent
-recursive-manager tasks --agent-id agent-123
+recursivemanager tasks --agent-id agent-123
 
 # View tasks by status
-recursive-manager tasks --status in-progress
+recursivemanager tasks --status in-progress
 
 # View high-priority tasks
-recursive-manager tasks --priority 1-3
+recursivemanager tasks --priority 1-3
 ```
 
 ## Task Metrics
@@ -156,10 +156,10 @@ Cancel tasks that are no longer needed:
 
 ```bash
 # Cancel specific task
-recursive-manager cancel-task task-123
+recursivemanager cancel-task task-123
 
 # Cancel all tasks for agent
-recursive-manager cancel-task --agent-id agent-123
+recursivemanager cancel-task --agent-id agent-123
 ```
 
 ## Task Results

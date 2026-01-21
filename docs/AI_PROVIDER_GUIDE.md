@@ -57,7 +57,7 @@ Get up and running with AICEO Gateway in 5 minutes.
 
 ### Step 1: Configure Environment Variables
 
-Create or edit `~/.recursive-manager/.env`:
+Create or edit `~/.recursivemanager/.env`:
 
 ```bash
 # AI Provider Configuration
@@ -82,7 +82,7 @@ ANTHROPIC_MODEL=claude-sonnet-4-5
 Run a quick analysis to verify everything works:
 
 ```bash
-recursive-manager analyze "Should we add Redis caching to our API?"
+recursivemanager analyze "Should we add Redis caching to our API?"
 ```
 
 You should see output like:
@@ -113,7 +113,7 @@ You should see output like:
 The ExecutionOrchestrator now has multi-perspective analysis built in:
 
 ```typescript
-import { ExecutionOrchestrator } from '@recursive-manager/core';
+import { ExecutionOrchestrator } from '@recursivemanager/core';
 
 const orchestrator = new ExecutionOrchestrator(config);
 
@@ -322,7 +322,7 @@ ANALYSIS_CACHE_TTL_MS=3600000  # 1 hour in milliseconds
 ### Environment Variable Precedence
 
 1. Explicit environment variables (highest priority)
-2. `~/.recursive-manager/.env` file
+2. `~/.recursivemanager/.env` file
 3. Default values (lowest priority)
 
 ---
@@ -394,22 +394,22 @@ interface PerspectiveAnalysis {
 
 ```bash
 # Analyze a question from all 8 perspectives
-recursive-manager analyze "Should we migrate to microservices?"
+recursivemanager analyze "Should we migrate to microservices?"
 
 # JSON output for programmatic use
-recursive-manager analyze "Should we add Redis caching?" --format json
+recursivemanager analyze "Should we add Redis caching?" --format json
 
 # Markdown output for documentation
-recursive-manager analyze "Which database should we use?" --format markdown > analysis.md
+recursivemanager analyze "Which database should we use?" --format markdown > analysis.md
 
 # Custom timeout (default: 120 seconds)
-recursive-manager analyze "Complex question..." --timeout 180
+recursivemanager analyze "Complex question..." --timeout 180
 ```
 
 #### Programmatic API
 
 ```typescript
-import { ExecutionOrchestrator } from '@recursive-manager/core';
+import { ExecutionOrchestrator } from '@recursivemanager/core';
 
 const orchestrator = new ExecutionOrchestrator(config);
 
@@ -474,7 +474,7 @@ Identical analysis contexts are cached to avoid redundant API calls:
 - **Statistics**: Hit rate, miss count, cache size tracking
 
 ```typescript
-import { MultiPerspectiveAnalysis } from '@recursive-manager/core';
+import { MultiPerspectiveAnalysis } from '@recursivemanager/core';
 
 const analysis = new MultiPerspectiveAnalysis(provider);
 
@@ -493,7 +493,7 @@ console.log('Hit rate:', stats.hitRate);
 
 All analyses are automatically saved to disk for audit trail:
 
-- **Location**: `~/.recursive-manager/agents/{agentId}/analyses/{timestamp}.json`
+- **Location**: `~/.recursivemanager/agents/{agentId}/analyses/{timestamp}.json`
 - **Format**: JSON with full MultiPerspectiveResult
 - **Searchable**: Filter by confidence, date range, or other criteria
 
@@ -600,7 +600,7 @@ ERROR: AICEO_GATEWAY_URL not configured
 ```
 
 **Solution**:
-Create or update `~/.recursive-manager/.env`:
+Create or update `~/.recursivemanager/.env`:
 ```bash
 AICEO_GATEWAY_URL=http://localhost:4000/api/glm/submit
 AICEO_GATEWAY_API_KEY=your-shared-secret
@@ -622,7 +622,7 @@ Then restart RecursiveManager to reload environment.
    - Direct providers: Check network latency to API endpoints
 2. Increase timeout:
    ```bash
-   recursive-manager analyze "question" --timeout 180
+   recursivemanager analyze "question" --timeout 180
    ```
 3. Check cache hit rate:
    ```typescript
@@ -832,7 +832,7 @@ AWS Bedrock provides access to multiple LLM providers:
 For maximum flexibility, you can create a custom provider in code:
 
 ```typescript
-import { AIProvider, AIAnalysisRequest, AIAnalysisResponse } from '@recursive-manager/core';
+import { AIProvider, AIAnalysisRequest, AIAnalysisResponse } from '@recursivemanager/core';
 
 export class MyCustomProvider implements AIProvider {
   name = 'my-custom-provider';
@@ -878,7 +878,7 @@ export class MyCustomProvider implements AIProvider {
 Then register it with the ProviderFactory:
 
 ```typescript
-import { ProviderFactory } from '@recursive-manager/core';
+import { ProviderFactory } from '@recursivemanager/core';
 import { MyCustomProvider } from './my-custom-provider';
 
 // Add to factory.ts
@@ -928,10 +928,10 @@ Periodically review saved analyses for insights:
 
 ```bash
 # Export all analyses
-recursive-manager analyze --export /backup/analyses-$(date +%Y%m%d).json
+recursivemanager analyze --export /backup/analyses-$(date +%Y%m%d).json
 
 # Analyze analysis statistics
-recursive-manager analyze --stats
+recursivemanager analyze --stats
 ```
 
 ### 6. Set Appropriate Cache TTL

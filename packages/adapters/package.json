@@ -1,6 +1,6 @@
 {
-  "name": "@recursive-manager/adapters",
-  "version": "1.0.4",
+  "name": "@recursivemanager/adapters",
+  "version": "1.0.5",
   "description": "Framework adapters for RecursiveManager (Claude Code, OpenCode, etc.)",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,7 +20,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@recursive-manager/common": "*",
+    "@recursivemanager/common": "*",
     "execa": "^8.0.1"
   },
   "devDependencies": {

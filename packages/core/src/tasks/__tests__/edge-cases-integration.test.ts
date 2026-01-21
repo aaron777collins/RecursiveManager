@@ -22,10 +22,10 @@ import {
   allMigrations,
   getTask,
   TASK_MAX_DEPTH,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { fireAgent } from '../../lifecycle/fireAgent';
 import { saveAgentConfig } from '../../config';
-import { AgentConfig } from '@recursive-manager/common';
+import { AgentConfig } from '@recursivemanager/common';
 // Removed unused import: archiveOldTasks
 import { monitorDeadlocks } from '../monitorDeadlocks';
 

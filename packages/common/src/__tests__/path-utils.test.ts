@@ -27,8 +27,8 @@ import {
 
 describe('path-utils', () => {
   describe('DEFAULT_BASE_DIR', () => {
-    it('should be set to ~/.recursive-manager', () => {
-      const expected = path.join(os.homedir(), '.recursive-manager');
+    it('should be set to ~/.recursivemanager', () => {
+      const expected = path.join(os.homedir(), '.recursivemanager');
       expect(DEFAULT_BASE_DIR).toBe(expected);
     });
   });
@@ -328,13 +328,13 @@ describe('path-utils', () => {
   describe('getDatabasePath', () => {
     it('should return path to database file', () => {
       const result = getDatabasePath();
-      const expected = path.resolve(DEFAULT_BASE_DIR, 'recursive-manager.db');
+      const expected = path.resolve(DEFAULT_BASE_DIR, 'recursivemanager.db');
       expect(result).toBe(expected);
     });
 
     it('should handle custom base directory', () => {
       const result = getDatabasePath({ baseDir: '/opt/rm' });
-      const expected = path.resolve('/opt/rm', 'recursive-manager.db');
+      const expected = path.resolve('/opt/rm', 'recursivemanager.db');
       expect(result).toBe(expected);
     });
   });
@@ -355,7 +355,7 @@ describe('path-utils', () => {
 
   describe('Integration: Complete agent path structure', () => {
     const agentId = 'backend-dev-001';
-    const baseDir = '/opt/recursive-manager';
+    const baseDir = '/opt/recursivemanager';
 
     it('should provide consistent base path across all functions', () => {
       const agentDir = getAgentDirectory(agentId, { baseDir });

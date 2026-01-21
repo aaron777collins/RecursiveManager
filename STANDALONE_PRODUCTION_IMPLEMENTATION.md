@@ -390,7 +390,7 @@ Create the following documentation pages:
 1. **Update package.json** (`package.json`):
    - Set `version` to `1.0.0`
    - Set `private: true` (NO public npm publishing)
-   - Add `bin` field: `{"recursive-manager": "./packages/cli/dist/cli.js"}`
+   - Add `bin` field: `{"recursivemanager": "./packages/cli/dist/cli.js"}`
    - Complete metadata (keywords, description, author)
    - Add `files` field for binary packaging
 
@@ -400,7 +400,7 @@ Create the following documentation pages:
 
 3. **Add Version Management** (`packages/cli/src/version.ts`):
    - Read version from package.json
-   - CLI command: `recursive-manager --version`
+   - CLI command: `recursivemanager --version`
    - Embed version in all builds
 
 ### 11.2: Private Binary Build System
@@ -412,10 +412,10 @@ Create the following documentation pages:
    - Unit test: verify binary executes
 
 5. **Create Binary Storage** (`binaries/` directory structure):
-   - `/binaries/v1.0.0/linux-x64/recursive-manager`
-   - `/binaries/v1.0.0/macos-arm64/recursive-manager`
-   - `/binaries/v1.0.0/macos-x64/recursive-manager`
-   - `/binaries/v1.0.0/win-x64/recursive-manager.exe`
+   - `/binaries/v1.0.0/linux-x64/recursivemanager`
+   - `/binaries/v1.0.0/macos-arm64/recursivemanager`
+   - `/binaries/v1.0.0/macos-x64/recursivemanager`
+   - `/binaries/v1.0.0/win-x64/recursivemanager.exe`
    - `/binaries/v1.0.0/checksums.txt` (SHA256 checksums)
    - `/binaries/v1.0.0/signatures.txt` (GPG signatures)
 
@@ -453,11 +453,11 @@ Create the following documentation pages:
     - Auto-detect shell (bash, zsh, fish)
     - Add PATH modification to shell config
     - Add completion scripts (bash-completion, zsh-completion)
-    - Test: verify `recursive-manager` command works after install
+    - Test: verify `recursivemanager` command works after install
 
 12. **Add Post-Install Verification**:
-    - Run `recursive-manager --version`
-    - Run `recursive-manager health`
+    - Run `recursivemanager --version`
+    - Run `recursivemanager health`
     - Verify all core packages installed
     - Report installation summary
 
@@ -473,26 +473,26 @@ Create the following documentation pages:
     - Rollback on failure
 
 14. **Add Downgrade Support**:
-    - Command: `recursive-manager downgrade X.Y.Z`
+    - Command: `recursivemanager downgrade X.Y.Z`
     - Download specific older version
     - Verify version compatibility
     - Atomic swap with rollback
 
 15. **Add Backup Before Upgrade**:
-    - Backup current binary to `~/.recursive-manager/backups/vX.Y.Z/`
+    - Backup current binary to `~/.recursivemanager/backups/vX.Y.Z/`
     - Backup config files (.env, data/)
     - Keep last 5 versions (auto-cleanup old backups)
 
 16. **Add Rollback Command**:
-    - Command: `recursive-manager rollback`
+    - Command: `recursivemanager rollback`
     - Restore previous version from backup
     - Restore config files
     - Verify rollback success
 
 17. **Add Version History Tracking**:
-    - File: `~/.recursive-manager/.version-history`
+    - File: `~/.recursivemanager/.version-history`
     - Log: timestamp, version, install method (upgrade/downgrade/rollback)
-    - Command: `recursive-manager version --history`
+    - Command: `recursivemanager version --history`
 
 ### 11.5: Release Automation
 18. **Create Release Script** (`scripts/release.sh`):

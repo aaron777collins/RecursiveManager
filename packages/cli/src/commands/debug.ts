@@ -12,7 +12,7 @@ import {
   getAgent,
   getActiveTasks,
   getAgentLogPath,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 
 export function registerDebugCommand(program: Command): void {
   program

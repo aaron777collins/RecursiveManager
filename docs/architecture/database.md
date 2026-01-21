@@ -9,7 +9,7 @@ RecursiveManager uses a file-based persistence system with optional SQLite suppo
 The default storage uses JSON files for simplicity and portability:
 
 ```
-~/.recursive-manager/data/
+~/.recursivemanager/data/
 ├── agents/
 │   ├── agent-001.json
 │   ├── agent-002.json
@@ -39,7 +39,7 @@ For better performance and query capabilities:
 
 ```bash
 DATABASE_TYPE=sqlite
-DATABASE_PATH=~/.recursive-manager/data/recursive-manager.db
+DATABASE_PATH=~/.recursivemanager/data/recursivemanager.db
 ```
 
 ## Data Models
@@ -226,7 +226,7 @@ File-based storage uses atomic writes with temp files.
 RecursiveManager creates backups before updates:
 
 ```
-~/.recursive-manager/backups/
+~/.recursivemanager/backups/
 ├── 2026-01-19_10-30-00/
 │   └── data/
 │       ├── agents/
@@ -241,10 +241,10 @@ RecursiveManager creates backups before updates:
 
 ```bash
 # Create backup
-recursive-manager backup
+recursivemanager backup
 
 # Restore from backup
-recursive-manager restore --backup 2026-01-19_10-30-00
+recursivemanager restore --backup 2026-01-19_10-30-00
 ```
 
 ## Data Migration
@@ -401,7 +401,7 @@ When encryption is enabled, the following sensitive fields are encrypted:
 #### Generating Secure Keys
 
 ```typescript
-import { DatabaseEncryption } from '@recursive-manager/common';
+import { DatabaseEncryption } from '@recursivemanager/common';
 
 // Generate a secure random key (for raw key mode)
 const key = DatabaseEncryption.generateKey();
@@ -426,8 +426,8 @@ Encryption is transparent:
 File permissions are set restrictively:
 
 ```bash
-chmod 700 ~/.recursive-manager/data/
-chmod 600 ~/.recursive-manager/data/*
+chmod 700 ~/.recursivemanager/data/
+chmod 600 ~/.recursivemanager/data/*
 ```
 
 ## Monitoring
@@ -441,5 +441,5 @@ Track database metrics:
 - Lock contention
 
 ```bash
-recursive-manager db-stats
+recursivemanager db-stats
 ```

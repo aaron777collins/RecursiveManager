@@ -17,26 +17,26 @@ import * as fs from 'fs';
  * Search strategy:
  * 1. Start from current file location (__dirname)
  * 2. Walk up directory tree looking for marker files:
- *    - package.json with name "recursive-manager" (monorepo root)
+ *    - package.json with name "recursivemanager" (monorepo root)
  *    - scripts/install.sh and scripts/update.sh (installation root)
- * 3. Fall back to default installation directory (~/.recursive-manager)
+ * 3. Fall back to default installation directory (~/.recursivemanager)
  *
  * @returns Absolute path to installation root directory
  */
 export function getInstallRoot(): string {
   // Start from the compiled CLI dist directory
   // In development: /path/to/RecursiveManager/packages/cli/dist/utils/paths.js
-  // After npm install: /path/to/node_modules/@recursive-manager/cli/dist/utils/paths.js
+  // After npm install: /path/to/node_modules/@recursivemanager/cli/dist/utils/paths.js
   let currentDir = __dirname;
 
   // Walk up the directory tree looking for the installation root
   for (let i = 0; i < 10; i++) {
-    // Check for monorepo root (package.json with name "recursive-manager")
+    // Check for monorepo root (package.json with name "recursivemanager")
     const packageJsonPath = path.join(currentDir, 'package.json');
     if (fs.existsSync(packageJsonPath)) {
       try {
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-        if (packageJson.name === 'recursive-manager') {
+        if (packageJson.name === 'recursivemanager') {
           return currentDir;
         }
       } catch (err) {
@@ -63,7 +63,7 @@ export function getInstallRoot(): string {
 
   // Fall back to default installation directory
   const homeDir = process.env.HOME || process.env.USERPROFILE || '';
-  return path.join(homeDir, '.recursive-manager');
+  return path.join(homeDir, '.recursivemanager');
 }
 
 /**

@@ -24,7 +24,7 @@ describe('History - Directory Management', () => {
   it('should generate correct analyses directory path', () => {
     const dir = History.getAnalysesDirectory(testAgentId);
     const homeDir = os.homedir();
-    const expected = path.join(homeDir, '.recursive-manager', 'agents', testAgentId, 'analyses');
+    const expected = path.join(homeDir, '.recursivemanager', 'agents', testAgentId, 'analyses');
     expect(dir).toBe(expected);
   });
 

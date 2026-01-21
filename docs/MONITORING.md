@@ -97,10 +97,10 @@ Generate some metrics data:
 
 ```bash
 # Hire an agent to generate execution metrics
-recursive-manager hire cto "Build a new feature"
+recursivemanager hire cto "Build a new feature"
 
 # Run multi-perspective analysis to generate analysis metrics
-recursive-manager analyze "Should we implement feature X?"
+recursivemanager analyze "Should we implement feature X?"
 
 # Check metrics are flowing
 curl http://localhost:3000/metrics | grep recursive_manager
@@ -324,9 +324,9 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: 'recursive-manager'
+  - job_name: 'recursivemanager'
     static_configs:
-      - targets: ['recursive-manager:3000']
+      - targets: ['recursivemanager:3000']
 ```
 
 ### Customizing Scrape Interval
@@ -470,16 +470,16 @@ Example panel modification:
 
 ```bash
 # Default (port 3000)
-recursive-manager metrics
+recursivemanager metrics
 
 # Custom port
-recursive-manager metrics --port 9090
+recursivemanager metrics --port 9090
 
 # Custom host (bind to specific interface)
-recursive-manager metrics --host 127.0.0.1
+recursivemanager metrics --host 127.0.0.1
 
 # Bind to all interfaces (default)
-recursive-manager metrics --host 0.0.0.0
+recursivemanager metrics --host 0.0.0.0
 ```
 
 ### Available Endpoints
@@ -597,20 +597,20 @@ withTraceId(async () => {
 Logs are automatically rotated:
 - **Max file size**: 10MB
 - **Max files**: 10 files
-- **Location**: `~/.recursive-manager/logs/`
+- **Location**: `~/.recursivemanager/logs/`
 - **Compression**: Old logs are gzipped
 
 ### Searching Logs
 
 ```bash
 # Search logs by trace ID
-grep "abc-123-def" ~/.recursive-manager/logs/combined.log
+grep "abc-123-def" ~/.recursivemanager/logs/combined.log
 
 # Search error logs only
-grep '"level":"error"' ~/.recursive-manager/logs/error.log
+grep '"level":"error"' ~/.recursivemanager/logs/error.log
 
 # Follow live logs
-tail -f ~/.recursive-manager/logs/combined.log
+tail -f ~/.recursivemanager/logs/combined.log
 ```
 
 ### Integration with Monitoring Tools
@@ -785,7 +785,7 @@ For: 5m
 **Checks**:
 1. Verify RecursiveManager is running:
    ```bash
-   docker ps | grep recursive-manager
+   docker ps | grep recursivemanager
    ```
 
 2. Test metrics endpoint directly:
@@ -800,7 +800,7 @@ For: 5m
 
 4. Review Prometheus logs:
    ```bash
-   docker logs recursive-manager-prometheus
+   docker logs recursivemanager-prometheus
    ```
 
 **Solutions**:
@@ -820,12 +820,12 @@ For: 5m
 
 2. Check Docker volume mounts:
    ```bash
-   docker inspect recursive-manager-grafana | grep Mounts -A 20
+   docker inspect recursivemanager-grafana | grep Mounts -A 20
    ```
 
 3. Review Grafana logs:
    ```bash
-   docker logs recursive-manager-grafana
+   docker logs recursivemanager-grafana
    ```
 
 **Solutions**:
@@ -850,7 +850,7 @@ For: 5m
 
 4. Ensure RecursiveManager has processed executions:
    ```bash
-   recursive-manager hire cto "Test task"
+   recursivemanager hire cto "Test task"
    ```
 
 **Solutions**:
@@ -864,8 +864,8 @@ For: 5m
 
 **Checks**:
 ```bash
-docker stats recursive-manager-prometheus
-docker stats recursive-manager-grafana
+docker stats recursivemanager-prometheus
+docker stats recursivemanager-grafana
 ```
 
 **Solutions**:
@@ -884,7 +884,7 @@ docker stats recursive-manager-grafana
 lsof -i :3000
 
 # Use different port
-recursive-manager metrics --port 9090
+recursivemanager metrics --port 9090
 
 # Or stop conflicting process
 kill <PID>
@@ -901,7 +901,7 @@ kill <PID>
 **Solutions**:
 ```javascript
 // Wrap execution with trace context
-import { withTraceId } from '@recursive-manager/common';
+import { withTraceId } from '@recursivemanager/common';
 
 await withTraceId(async () => {
   // All logs here will have trace ID

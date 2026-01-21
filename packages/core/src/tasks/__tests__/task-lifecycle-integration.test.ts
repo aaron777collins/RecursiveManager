@@ -31,7 +31,7 @@ import {
   getTaskPath,
   detectTaskDeadlock,
   getMessages,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import {
   createTaskDirectory,
   completeTaskWithFiles,
@@ -40,7 +40,7 @@ import {
   monitorDeadlocks,
 } from '../index';
 import { saveAgentConfig } from '../../config';
-import { AgentConfig } from '@recursive-manager/common';
+import { AgentConfig } from '@recursivemanager/common';
 
 describe('Task Lifecycle Integration Tests', () => {
   let db: Database.Database;
@@ -58,13 +58,13 @@ describe('Task Lifecycle Integration Tests', () => {
     testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'task-lifecycle-test-'));
 
     // Override path-utils to use test directory
-    process.env.RECURSIVE_MANAGER_DATA_DIR = testDir;
+    process.env.RECURSIVEMANAGER_DATA_DIR = testDir;
   });
 
   afterEach(() => {
     db.close();
     fs.removeSync(testDir);
-    delete process.env.RECURSIVE_MANAGER_DATA_DIR;
+    delete process.env.RECURSIVEMANAGER_DATA_DIR;
   });
 
   describe('Complete Task Lifecycle', () => {

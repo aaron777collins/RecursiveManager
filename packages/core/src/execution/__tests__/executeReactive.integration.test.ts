@@ -19,7 +19,7 @@ import {
   queryAuditLog,
   type AuditEventRecord,
   type AgentConfig,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { ExecutionOrchestrator } from '../index';
 import { saveAgentConfig } from '../../config';
 
@@ -143,7 +143,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
     } as unknown as DatabasePool;
 
     testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'exec-reactive-test-'));
-    process.env.RECURSIVE_MANAGER_DATA_DIR = testDir;
+    process.env.RECURSIVEMANAGER_DATA_DIR = testDir;
 
     mockAdapter = {
       name: 'mock-adapter',
@@ -184,7 +184,7 @@ describe('ExecutionOrchestrator - Reactive Execution Integration Tests', () => {
   afterEach(() => {
     db.close();
     fs.removeSync(testDir);
-    delete process.env.RECURSIVE_MANAGER_DATA_DIR;
+    delete process.env.RECURSIVEMANAGER_DATA_DIR;
   });
 
   describe('Successful Execution', () => {

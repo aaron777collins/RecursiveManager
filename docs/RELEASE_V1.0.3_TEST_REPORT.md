@@ -32,9 +32,9 @@
 ```
 Version: 1.0.3
 Files created:
-- recursive-manager-v1.0.3-linux.tar.gz (13MB)
-- recursive-manager-v1.0.3-macos.tar.gz (13MB)
-- recursive-manager-v1.0.3-windows.tar.gz (13MB)
+- recursivemanager-v1.0.3-linux.tar.gz (13MB)
+- recursivemanager-v1.0.3-macos.tar.gz (13MB)
+- recursivemanager-v1.0.3-windows.tar.gz (13MB)
 - checksums.txt (SHA256 hashes)
 ```
 
@@ -65,7 +65,7 @@ Files created:
 ✓ Version: v1.0.3
 ✓ Checksum verified ✓
 ✓ Installation Complete! ✓
-✓ Command 'recursive-manager' is in your PATH
+✓ Command 'recursivemanager' is in your PATH
 ```
 
 ---
@@ -73,7 +73,7 @@ Files created:
 ### 3. CLI Functionality ✅
 
 **Test**: Verify CLI commands  
-**Command**: `recursive-manager --help`  
+**Command**: `recursivemanager --help`  
 **Result**: ✅ SUCCESS
 
 **Available Commands**:
@@ -92,7 +92,7 @@ Files created:
 
 **Version Test**:
 ```bash
-$ recursive-manager --version
+$ recursivemanager --version
 0.1.0
 ```
 
@@ -101,7 +101,7 @@ $ recursive-manager --version
 ### 4. AICEO GLM Gateway Integration ✅
 
 **Test**: Verify RecursiveManager is configured to use AICEO Gateway  
-**Config File**: `~/.recursive-manager/.env`  
+**Config File**: `~/.recursivemanager/.env`  
 **Result**: ✅ SUCCESS
 
 **Configuration**:
@@ -167,9 +167,9 @@ GLM_API_KEY=a6bd63cab66c494f8c5354381c98f29e.uXIZaD5Qrt4cISck ✅
 **Result**: ✅ SUCCESS
 
 **Assets Published**:
-- ✅ recursive-manager-v1.0.3-linux.tar.gz (13MB)
-- ✅ recursive-manager-v1.0.3-macos.tar.gz (13MB)
-- ✅ recursive-manager-v1.0.3-windows.tar.gz (13MB)
+- ✅ recursivemanager-v1.0.3-linux.tar.gz (13MB)
+- ✅ recursivemanager-v1.0.3-macos.tar.gz (13MB)
+- ✅ recursivemanager-v1.0.3-windows.tar.gz (13MB)
 - ✅ checksums.txt (SHA256 hashes)
 
 **Release Notes**: Complete with installation instructions, upgrade commands, and documentation links.

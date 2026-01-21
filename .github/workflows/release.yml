@@ -71,7 +71,7 @@ jobs:
             ## Updating
 
             ```bash
-            recursive-manager update
+            recursivemanager update
             ```
           draft: false
           prerelease: false

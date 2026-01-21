@@ -2,12 +2,12 @@ version: '3.8'
 
 services:
   # RecursiveManager Main Application
-  recursive-manager:
+  recursivemanager:
     build:
       context: .
       dockerfile: Dockerfile
       target: production
-    container_name: recursive-manager
+    container_name: recursivemanager
     restart: unless-stopped
 
     # Environment variables (see .env.example for all options)
@@ -19,7 +19,7 @@ services:
 
       # Logging
       LOG_LEVEL: ${LOG_LEVEL:-info}
-      LOG_FILE: /app/logs/recursive-manager.log
+      LOG_FILE: /app/logs/recursivemanager.log
 
       # Agent Configuration
       MAX_AGENT_DEPTH: ${MAX_AGENT_DEPTH:-5}
@@ -35,7 +35,7 @@ services:
 
       # Database Configuration
       DATABASE_TYPE: ${DATABASE_TYPE:-file}
-      DATABASE_PATH: /app/data/recursive-manager.db
+      DATABASE_PATH: /app/data/recursivemanager.db
 
       # Database Encryption (optional)
       DATABASE_ENCRYPTION_KEY: ${DATABASE_ENCRYPTION_KEY:-}
@@ -95,9 +95,9 @@ services:
     # Volume mounts for persistence
     volumes:
       # Data directory (databases, snapshots, state)
-      - recursive-manager-data:/app/data
+      - recursivemanager-data:/app/data
       # Log directory
-      - recursive-manager-logs:/app/logs
+      - recursivemanager-logs:/app/logs
       # Optional: Mount local .env file for configuration
       # - ./.env:/app/.env:ro
 
@@ -125,7 +125,7 @@ services:
 
     # Network configuration
     networks:
-      - recursive-manager-network
+      - recursivemanager-network
 
   # Optional: AICEO Gateway Service (if running locally)
   # Uncomment this section if you want to run the AICEO Gateway in the same stack
@@ -141,7 +141,7 @@ services:
   #   ports:
   #     - "4000:4000"
   #   networks:
-  #     - recursive-manager-network
+  #     - recursivemanager-network
   #   healthcheck:
   #     test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
   #     interval: 30s
@@ -151,7 +151,7 @@ services:
   # Monitoring Stack (Prometheus + Grafana)
   prometheus:
     image: prom/prometheus:latest
-    container_name: recursive-manager-prometheus
+    container_name: recursivemanager-prometheus
     restart: unless-stopped
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -163,13 +163,13 @@ services:
     ports:
       - "9090:9090"
     networks:
-      - recursive-manager-network
+      - recursivemanager-network
     depends_on:
-      - recursive-manager
+      - recursivemanager
 
   grafana:
     image: grafana/grafana:latest
-    container_name: recursive-manager-grafana
+    container_name: recursivemanager-grafana
     restart: unless-stopped
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
@@ -182,18 +182,18 @@ services:
     depends_on:
       - prometheus
     networks:
-      - recursive-manager-network
+      - recursivemanager-network
 
 # Named volumes for data persistence
 volumes:
-  recursive-manager-data:
+  recursivemanager-data:
     driver: local
     driver_opts:
       type: none
       o: bind
       device: ${DATA_VOLUME_PATH:-./data}
 
-  recursive-manager-logs:
+  recursivemanager-logs:
     driver: local
     driver_opts:
       type: none
@@ -207,7 +207,7 @@ volumes:
 
 # Network configuration
 networks:
-  recursive-manager-network:
+  recursivemanager-network:
     driver: bridge
     ipam:
       config:

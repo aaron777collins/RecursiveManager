@@ -1,5 +1,5 @@
 /**
- * Example test for @recursive-manager/scheduler package
+ * Example test for @recursivemanager/scheduler package
  * This test verifies that the Jest configuration is working correctly.
  */
 

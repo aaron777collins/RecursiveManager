@@ -685,7 +685,7 @@
   "schemaVersion": 36,
   "style": "dark",
   "tags": [
-    "recursive-manager",
+    "recursivemanager",
     "system"
   ],
   "templating": {
@@ -698,6 +698,6 @@
   "timepicker": {},
   "timezone": "",
   "title": "RecursiveManager System Metrics",
-  "uid": "recursive-manager-system",
+  "uid": "recursivemanager-system",
   "version": 1
 }

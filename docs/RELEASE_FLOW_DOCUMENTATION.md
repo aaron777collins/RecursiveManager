@@ -63,7 +63,7 @@ curl -X POST http://localhost:4000/api/glm/submit \
 
 **RecursiveManager Configuration** ✅:
 ```bash
-# ~/.recursive-manager/.env
+# ~/.recursivemanager/.env
 AI_PROVIDER=aiceo-gateway
 AICEO_GATEWAY_URL=http://localhost:4000/api/glm/submit
 AICEO_GATEWAY_API_KEY=<configured>
@@ -132,9 +132,9 @@ AI_FALLBACK_PROVIDER=glm-direct
 **Build Output**:
 ```bash
 dist/
-  recursive-manager-v1.0.0-linux.tar.gz (13MB)
-  recursive-manager-v1.0.0-macos.tar.gz (13MB)
-  recursive-manager-v1.0.0-windows.tar.gz (13MB)
+  recursivemanager-v1.0.0-linux.tar.gz (13MB)
+  recursivemanager-v1.0.0-macos.tar.gz (13MB)
+  recursivemanager-v1.0.0-windows.tar.gz (13MB)
   checksums.txt (SHA256 hashes)
 ```
 
@@ -147,15 +147,15 @@ dist/
 **Release**: https://github.com/aaron777collins/RecursiveManager/releases/tag/v1.0.0
 
 **Assets Uploaded**:
-- ✅ `recursive-manager-v1.0.0-linux.tar.gz` (13MB)
-- ✅ `recursive-manager-v1.0.0-macos.tar.gz` (13MB)
-- ✅ `recursive-manager-v1.0.0-windows.tar.gz` (13MB)
+- ✅ `recursivemanager-v1.0.0-linux.tar.gz` (13MB)
+- ✅ `recursivemanager-v1.0.0-macos.tar.gz` (13MB)
+- ✅ `recursivemanager-v1.0.0-windows.tar.gz` (13MB)
 - ✅ `checksums.txt` (SHA256 hashes)
 
 **Download Test**: ✅ **Successfully downloaded 13MB Linux tarball**
 
 ```bash
-curl -fsSL "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursive-manager-v1.0.0-linux.tar.gz" -o test-download.tar.gz
+curl -fsSL "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursivemanager-v1.0.0-linux.tar.gz" -o test-download.tar.gz
 
 # Result: 13MB file downloaded successfully
 # Tarball contains complete source code
@@ -196,20 +196,20 @@ tar (child): \033[0;34m➜\033[0m Resolving latest version...\n\033[0;32m✓\033
 **Workaround**: Manual installation works:
 ```bash
 # Download tarball manually
-curl -fsSL "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursive-manager-v1.0.0-linux.tar.gz" -o rm.tar.gz
+curl -fsSL "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursivemanager-v1.0.0-linux.tar.gz" -o rm.tar.gz
 
-# Extract to ~/.recursive-manager
-mkdir -p ~/.recursive-manager
-tar xzf rm.tar.gz -C ~/.recursive-manager
+# Extract to ~/.recursivemanager
+mkdir -p ~/.recursivemanager
+tar xzf rm.tar.gz -C ~/.recursivemanager
 
 # Install dependencies and build
-cd ~/.recursive-manager
+cd ~/.recursivemanager
 npm install
 npm run build
 
 # Create symlink
-ln -s ~/.recursive-manager/packages/cli/dist/cli.js ~/bin/recursive-manager
-chmod +x ~/bin/recursive-manager
+ln -s ~/.recursivemanager/packages/cli/dist/cli.js ~/bin/recursivemanager
+chmod +x ~/bin/recursivemanager
 ```
 
 ---

@@ -138,7 +138,7 @@ describe('validateTaskId', () => {
 });
 
 describe('validatePathContainment', () => {
-  const testBaseDir = path.join(os.tmpdir(), 'recursive-manager-test');
+  const testBaseDir = path.join(os.tmpdir(), 'recursivemanager-test');
 
   describe('valid paths', () => {
     it('should accept paths within base directory', () => {
@@ -204,7 +204,7 @@ describe('validatePathContainment', () => {
 });
 
 describe('validateAgentPath', () => {
-  const testBaseDir = path.join(os.tmpdir(), 'recursive-manager-test');
+  const testBaseDir = path.join(os.tmpdir(), 'recursivemanager-test');
 
   it('should accept valid agent paths', () => {
     const result = validateAgentPath('CEO', { baseDir: testBaseDir });
@@ -233,7 +233,7 @@ describe('validateAgentPath', () => {
 });
 
 describe('validateTaskPath', () => {
-  const testBaseDir = path.join(os.tmpdir(), 'recursive-manager-test');
+  const testBaseDir = path.join(os.tmpdir(), 'recursivemanager-test');
 
   it('should accept valid task paths', () => {
     const result = validateTaskPath('CEO', 'task-1-implement-feature', 'active', {

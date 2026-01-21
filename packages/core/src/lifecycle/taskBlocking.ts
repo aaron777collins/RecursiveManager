@@ -26,7 +26,7 @@ import {
   getActiveTasks,
   getBlockedTasks,
   type TaskRecord,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 
 /**
  * Special blocker identifier for agent pause

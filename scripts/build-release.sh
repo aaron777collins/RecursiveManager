@@ -23,13 +23,13 @@ cp package.json "$BUILD_DIR/"
 
 # Create executables
 echo "Creating executables..."
-cat > "$BUILD_DIR/recursive-manager" << 'EOF'
+cat > "$BUILD_DIR/recursivemanager" << 'EOF'
 #!/usr/bin/env node
 require('./packages/cli/dist/cli.js');
 EOF
-chmod +x "$BUILD_DIR/recursive-manager"
+chmod +x "$BUILD_DIR/recursivemanager"
 
-cat > "$BUILD_DIR/recursive-manager.cmd" << 'EOF'
+cat > "$BUILD_DIR/recursivemanager.cmd" << 'EOF'
 @echo off
 node "%~dp0packages\cli\dist\cli.js" %*
 EOF
@@ -37,12 +37,12 @@ EOF
 # Create checksums
 echo "Generating checksums..."
 cd "$BUILD_DIR"
-sha256sum recursive-manager recursive-manager.cmd > checksums.txt
+sha256sum recursivemanager recursivemanager.cmd > checksums.txt
 
 # Create tarballs
 echo "Creating tarballs..."
 for platform in linux macos windows; do
-  tar czf "$ROOT_DIR/$RELEASE_DIR/recursive-manager-v${VERSION}-$platform.tar.gz" \
+  tar czf "$ROOT_DIR/$RELEASE_DIR/recursivemanager-v${VERSION}-$platform.tar.gz" \
     -C "$BUILD_DIR" . 2>/dev/null || true
 done
 

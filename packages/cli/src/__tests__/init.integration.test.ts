@@ -5,7 +5,7 @@
  * 1. Creates proper directory structure (agents/, tasks/, logs/, snapshots/)
  * 2. Initializes database with all migrations
  * 3. Creates root CEO agent with provided goal
- * 4. Writes .recursive-manager marker file
+ * 4. Writes .recursivemanager marker file
  * 5. Writes config.json with proper configuration
  * 6. Handles force flag to overwrite existing initialization
  * 7. Handles custom data directory option
@@ -16,7 +16,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import Database from 'better-sqlite3';
-import { getAgent } from '@recursive-manager/common';
+import { getAgent } from '@recursivemanager/common';
 
 // Mock the interactive prompts and spinners to avoid CLI interaction during tests
 jest.mock('../utils/prompts', () => ({
@@ -42,7 +42,7 @@ describe('Init Command Integration Tests', () => {
 
   beforeEach(() => {
     // Create a temporary directory for each test
-    testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'recursive-manager-test-'));
+    testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'recursivemanager-test-'));
 
     // Mock console.log to suppress output during tests
     consoleLogs = jest.spyOn(console, 'log').mockImplementation();
@@ -127,10 +127,10 @@ describe('Init Command Integration Tests', () => {
       db.close();
     });
 
-    it('should write .recursive-manager marker file with metadata', async () => {
+    it('should write .recursivemanager marker file with metadata', async () => {
       await program.parseAsync(['node', 'test', 'init', 'Test goal', '--data-dir', testDataDir]);
 
-      const markerPath = path.join(testDataDir, '.recursive-manager');
+      const markerPath = path.join(testDataDir, '.recursivemanager');
       expect(fs.existsSync(markerPath)).toBe(true);
 
       const markerData = JSON.parse(fs.readFileSync(markerPath, 'utf-8'));
@@ -202,11 +202,11 @@ describe('Init Command Integration Tests', () => {
       confirm.mockClear();
 
       // Second initialization with force flag in a different directory to avoid database conflicts
-      const testDataDir2 = fs.mkdtempSync(path.join(os.tmpdir(), 'recursive-manager-test-force-'));
+      const testDataDir2 = fs.mkdtempSync(path.join(os.tmpdir(), 'recursivemanager-test-force-'));
 
       // Create marker file to simulate existing init
       fs.mkdirSync(testDataDir2, { recursive: true });
-      fs.writeFileSync(path.join(testDataDir2, '.recursive-manager'), JSON.stringify({ initialized: new Date().toISOString() }));
+      fs.writeFileSync(path.join(testDataDir2, '.recursivemanager'), JSON.stringify({ initialized: new Date().toISOString() }));
 
       try {
         const program2 = new Command();
@@ -261,9 +261,9 @@ describe('Init Command Integration Tests', () => {
       expect(config.dataDir).toBe(customDir);
     });
 
-    it('should use RECURSIVE_MANAGER_DATA_DIR env var if --data-dir not provided', async () => {
+    it('should use RECURSIVEMANAGER_DATA_DIR env var if --data-dir not provided', async () => {
       const envDir = path.join(testDataDir, 'env-location');
-      process.env.RECURSIVE_MANAGER_DATA_DIR = envDir;
+      process.env.RECURSIVEMANAGER_DATA_DIR = envDir;
 
       try {
         await program.parseAsync(['node', 'test', 'init', 'Test goal']);
@@ -274,7 +274,7 @@ describe('Init Command Integration Tests', () => {
         const config = JSON.parse(fs.readFileSync(path.join(envDir, 'config.json'), 'utf-8'));
         expect(config.dataDir).toBe(envDir);
       } finally {
-        delete process.env.RECURSIVE_MANAGER_DATA_DIR;
+        delete process.env.RECURSIVEMANAGER_DATA_DIR;
       }
     });
   });

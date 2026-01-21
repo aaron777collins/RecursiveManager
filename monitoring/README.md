@@ -40,7 +40,7 @@ Grafana will automatically load three pre-configured dashboards:
 
 `prometheus.yml` - Prometheus scrape configuration:
 - Scrapes RecursiveManager metrics every 15 seconds
-- Target: `recursive-manager:3000/metrics`
+- Target: `recursivemanager:3000/metrics`
 
 ### Grafana Configuration
 
@@ -160,16 +160,16 @@ Alert rules are configured in `prometheus-alerts.yml` and automatically loaded b
 
 ### Prometheus Not Scraping Metrics
 
-1. Check RecursiveManager is running: `docker ps | grep recursive-manager`
+1. Check RecursiveManager is running: `docker ps | grep recursivemanager`
 2. Verify metrics endpoint: `curl http://localhost:3000/metrics`
 3. Check Prometheus targets: http://localhost:9090/targets
-4. Review Prometheus logs: `docker logs recursive-manager-prometheus`
+4. Review Prometheus logs: `docker logs recursivemanager-prometheus`
 
 ### Grafana Dashboards Not Loading
 
 1. Check dashboard files exist: `ls -la monitoring/grafana/provisioning/dashboards/`
-2. Verify volume mount: `docker inspect recursive-manager-grafana | grep Mounts -A 20`
-3. Check Grafana logs: `docker logs recursive-manager-grafana`
+2. Verify volume mount: `docker inspect recursivemanager-grafana | grep Mounts -A 20`
+3. Check Grafana logs: `docker logs recursivemanager-grafana`
 4. Manually import dashboards via Grafana UI
 
 ### No Data in Dashboards
@@ -196,10 +196,10 @@ Both Prometheus and Grafana use Docker volumes for data persistence:
 To backup:
 ```bash
 # Backup Prometheus data
-docker run --rm -v recursive-manager_prometheus-data:/data -v $(pwd):/backup alpine tar czf /backup/prometheus-backup.tar.gz -C /data .
+docker run --rm -v recursivemanager_prometheus-data:/data -v $(pwd):/backup alpine tar czf /backup/prometheus-backup.tar.gz -C /data .
 
 # Backup Grafana data
-docker run --rm -v recursive-manager_grafana-data:/data -v $(pwd):/backup alpine tar czf /backup/grafana-backup.tar.gz -C /data .
+docker run --rm -v recursivemanager_grafana-data:/data -v $(pwd):/backup alpine tar czf /backup/grafana-backup.tar.gz -C /data .
 ```
 
 ## Metrics Server CLI
@@ -207,13 +207,13 @@ docker run --rm -v recursive-manager_grafana-data:/data -v $(pwd):/backup alpine
 Start the metrics server manually:
 ```bash
 # Default (port 3000)
-recursive-manager metrics
+recursivemanager metrics
 
 # Custom port
-recursive-manager metrics --port 9090
+recursivemanager metrics --port 9090
 
 # Custom host
-recursive-manager metrics --host 127.0.0.1
+recursivemanager metrics --host 127.0.0.1
 ```
 
 ## References

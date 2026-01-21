@@ -3,7 +3,7 @@
  *
  * This module handles loading global configuration from environment variables
  * for the RecursiveManager system. It loads from multiple sources:
- * 1. ~/.recursive-manager/.env (if exists)
+ * 1. ~/.recursivemanager/.env (if exists)
  * 2. Current directory .env file
  * 3. Environment variables
  *
@@ -116,7 +116,7 @@ export interface RecursiveManagerConfig {
  *
  * Loading priority (later sources override earlier ones):
  * 1. Default values
- * 2. ~/.recursive-manager/.env
+ * 2. ~/.recursivemanager/.env
  * 3. Current directory .env
  * 4. Process environment variables
  *
@@ -125,13 +125,13 @@ export interface RecursiveManagerConfig {
  * @example
  * ```typescript
  * const config = loadConfig();
- * console.log(config.home); // ~/.recursive-manager
+ * console.log(config.home); // ~/.recursivemanager
  * console.log(config.maxAgentDepth); // 5
  * ```
  */
 export function loadConfig(): RecursiveManagerConfig {
   // Load .env from home directory if exists
-  const envPath = path.join(os.homedir(), '.recursive-manager', '.env');
+  const envPath = path.join(os.homedir(), '.recursivemanager', '.env');
   if (fs.existsSync(envPath)) {
     dotenv.config({ path: envPath });
   }
@@ -140,14 +140,14 @@ export function loadConfig(): RecursiveManagerConfig {
   dotenv.config();
 
   // Resolve home directory with default
-  const home = process.env.RECURSIVE_MANAGER_HOME || path.join(os.homedir(), '.recursive-manager');
+  const home = process.env.RECURSIVEMANAGER_HOME || path.join(os.homedir(), '.recursivemanager');
 
   // Build configuration object with defaults
   return {
     home,
-    dataDir: process.env.RECURSIVE_MANAGER_DATA_DIR || path.join(home, 'data'),
+    dataDir: process.env.RECURSIVEMANAGER_DATA_DIR || path.join(home, 'data'),
     logLevel: (process.env.LOG_LEVEL as RecursiveManagerConfig['logLevel']) || 'info',
-    logFile: process.env.LOG_FILE || path.join(home, 'logs', 'recursive-manager.log'),
+    logFile: process.env.LOG_FILE || path.join(home, 'logs', 'recursivemanager.log'),
     maxAgentDepth: parseInt(process.env.MAX_AGENT_DEPTH || '5', 10),
     maxAgentsPerManager: parseInt(process.env.MAX_AGENTS_PER_MANAGER || '10', 10),
     agentTimeoutMs: parseInt(process.env.AGENT_TIMEOUT_MS || '300000', 10),
@@ -198,7 +198,7 @@ export function loadConfig(): RecursiveManagerConfig {
  *
  * @example
  * ```typescript
- * import { config } from '@recursive-manager/common';
+ * import { config } from '@recursivemanager/common';
  *
  * console.log(`RecursiveManager home: ${config.home}`);
  * console.log(`Max agent depth: ${config.maxAgentDepth}`);

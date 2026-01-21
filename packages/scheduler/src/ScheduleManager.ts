@@ -10,7 +10,7 @@
 import type { Database } from 'better-sqlite3';
 import { parseExpression } from 'cron-parser';
 import { v4 as uuidv4 } from 'uuid';
-import type { ExecutionPool } from '@recursive-manager/core';
+import type { ExecutionPool } from '@recursivemanager/core';
 
 /**
  * Schedule trigger types

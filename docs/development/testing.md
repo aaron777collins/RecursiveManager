@@ -34,10 +34,10 @@ npm test -- --watch
 
 ```bash
 # Test specific package
-npm test -- --filter=@recursive-manager/core
+npm test -- --filter=@recursivemanager/core
 
 # Test common package
-npm test -- --filter=@recursive-manager/common
+npm test -- --filter=@recursivemanager/common
 ```
 
 ### Individual Test Files
@@ -96,7 +96,7 @@ Test interactions between components.
 
 ```typescript
 import { RecursiveManager } from '../RecursiveManager';
-import { getDatabase } from '@recursive-manager/common';
+import { getDatabase } from '@recursivemanager/common';
 
 describe('RecursiveManager Integration', () => {
   let manager: RecursiveManager;
@@ -153,15 +153,15 @@ const execAsync = promisify(exec);
 describe('CLI E2E', () => {
   it('should initialize and show status', async () => {
     // Initialize
-    await execAsync('recursive-manager init "test goal"');
+    await execAsync('recursivemanager init "test goal"');
 
     // Check status
-    const { stdout } = await execAsync('recursive-manager status');
+    const { stdout } = await execAsync('recursivemanager status');
     expect(stdout).toContain('test goal');
   });
 
   it('should update to latest version', async () => {
-    const { stdout } = await execAsync('recursive-manager update --check');
+    const { stdout } = await execAsync('recursivemanager update --check');
     expect(stdout).toMatch(/up to date|update available/i);
   });
 });
@@ -172,9 +172,9 @@ describe('CLI E2E', () => {
 ### Mocking Dependencies
 
 ```typescript
-import { ClaudeCodeAdapter } from '@recursive-manager/adapters';
+import { ClaudeCodeAdapter } from '@recursivemanager/adapters';
 
-jest.mock('@recursive-manager/adapters');
+jest.mock('@recursivemanager/adapters');
 
 describe('Agent with mocked adapter', () => {
   let mockAdapter: jest.Mocked<ClaudeCodeAdapter>;
@@ -199,7 +199,7 @@ describe('Agent with mocked adapter', () => {
 ### Mocking Database
 
 ```typescript
-import { DatabaseConnection } from '@recursive-manager/common';
+import { DatabaseConnection } from '@recursivemanager/common';
 
 const mockDb: jest.Mocked<DatabaseConnection> = {
   getAgent: jest.fn(),

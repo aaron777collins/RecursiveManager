@@ -33,12 +33,12 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t recursive-manager:scan .
+          docker build -t recursivemanager:scan .
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'recursive-manager:scan'
+          image-ref: 'recursivemanager:scan'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'HIGH,CRITICAL'
@@ -52,7 +52,7 @@ jobs:
       - name: Run Trivy vulnerability scanner (table output)
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'recursive-manager:scan'
+          image-ref: 'recursivemanager:scan'
           format: 'table'
           severity: 'HIGH,CRITICAL'
           exit-code: '0'  # Don't fail on vulnerabilities, just report
@@ -61,7 +61,7 @@ jobs:
         if: always()
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'recursive-manager:scan'
+          image-ref: 'recursivemanager:scan'
           format: 'json'
           output: 'trivy-report.json'
           severity: 'LOW,MEDIUM,HIGH,CRITICAL'

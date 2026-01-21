@@ -48,7 +48,7 @@ Foundation → Configuration → CLI Implementation → Installation → Documen
 
 ### Existing Package Structure
 
-#### @recursive-manager/core (v0.1.0)
+#### @recursivemanager/core (v0.1.0)
 **Location**: `/home/ubuntu/repos/RecursiveManager/packages/core/`
 **Status**: ✅ Complete
 **Key Components**:
@@ -58,13 +58,13 @@ Foundation → Configuration → CLI Implementation → Installation → Documen
 - DecisionSynthesis.ts - Multi-perspective decision framework
 
 **Dependencies**:
-- @recursive-manager/adapters
-- @recursive-manager/common
+- @recursivemanager/adapters
+- @recursivemanager/common
 - async-mutex, better-sqlite3, winston
 
 **Testing**: Comprehensive unit and integration tests
 
-#### @recursive-manager/cli (v0.1.0)
+#### @recursivemanager/cli (v0.1.0)
 **Location**: `/home/ubuntu/repos/RecursiveManager/packages/cli/`
 **Status**: ⚠️ Partial
 **Existing**:
@@ -80,7 +80,7 @@ Foundation → Configuration → CLI Implementation → Installation → Documen
 - VERSION constant (inline, should import from version.ts)
 - Org chart utilities (formatOrgChart, formatAsTree, etc.)
 
-#### @recursive-manager/common (v0.1.0)
+#### @recursivemanager/common (v0.1.0)
 **Location**: `/home/ubuntu/repos/RecursiveManager/packages/common/`
 **Status**: ✅ Complete
 **Key Components**:
@@ -100,14 +100,14 @@ Foundation → Configuration → CLI Implementation → Installation → Documen
 - version.ts (create new) - ✅ NOW COMPLETE (Task 1.3)
 - config.ts (check if exists, may need dotenv integration)
 
-#### @recursive-manager/scheduler (v0.1.0)
+#### @recursivemanager/scheduler (v0.1.0)
 **Location**: `/home/ubuntu/repos/RecursiveManager/packages/scheduler/`
 **Status**: ✅ Complete
 **Key Components**:
 - Cron-based scheduling system
 - Task queue management
 
-#### @recursive-manager/adapters (v0.1.0)
+#### @recursivemanager/adapters (v0.1.0)
 **Location**: `/home/ubuntu/repos/RecursiveManager/packages/adapters/`
 **Status**: ✅ Complete
 **Key Components**:
@@ -236,7 +236,7 @@ Foundation → Configuration → CLI Implementation → Installation → Documen
 **Decision**: Complete CLI before installation scripts
 
 **Rationale**:
-- install.sh depends on working `recursive-manager` command
+- install.sh depends on working `recursivemanager` command
 - update.sh invokes CLI for version checks
 - All user interactions require CLI commands
 - Testing requires functional CLI
@@ -244,7 +244,7 @@ Foundation → Configuration → CLI Implementation → Installation → Documen
 **Required Components**:
 1. cli.ts entry point with shebang
 2. Command handlers: init, status, config, debug, version, help, update
-3. Integration with Orchestrator from @recursive-manager/core
+3. Integration with Orchestrator from @recursivemanager/core
 4. Error handling and user-friendly messages
 5. Build and link for local testing
 
@@ -287,7 +287,7 @@ export function getVersionInfo() { ... }
 **Strategy**:
 1. Check if config.ts exists separately
 2. If not, enhance config-loader.ts with:
-   - dotenv loading from multiple locations (~/.recursive-manager/.env, ./.env)
+   - dotenv loading from multiple locations (~/.recursivemanager/.env, ./.env)
    - RecursiveManagerConfig interface
    - loadConfig() function
    - Singleton config export
@@ -304,7 +304,7 @@ export function getVersionInfo() { ... }
 - Full control over installation process
 - Supports headless mode for CI/CD
 
-**Install Location**: Default ~/.recursive-manager, customizable via --install-dir
+**Install Location**: Default ~/.recursivemanager, customizable via --install-dir
 
 **Package Manager Detection**: Try npm → yarn → pnpm, fail with clear message
 
@@ -327,11 +327,11 @@ export function getVersionInfo() { ... }
 - Version history: ~/.recursive_manager_version_history
 
 **Commands**:
-- `recursive-manager update` - Update to latest
-- `recursive-manager update --check` - Check for updates
-- `recursive-manager update --list` - List available versions
-- `recursive-manager update 0.2.0` - Install specific version
-- `recursive-manager rollback` - Revert to previous
+- `recursivemanager update` - Update to latest
+- `recursivemanager update --check` - Check for updates
+- `recursivemanager update --list` - List available versions
+- `recursivemanager update 0.2.0` - Install specific version
+- `recursivemanager rollback` - Revert to previous
 
 **Contingencies**:
 - GitHub API rate limits (60/hour unauthenticated): Cache for 1 hour, provide manual instructions

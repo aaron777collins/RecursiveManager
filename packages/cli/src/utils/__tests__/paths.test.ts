@@ -17,7 +17,7 @@ describe('paths utilities', () => {
 
     it('should find monorepo root in development mode', () => {
       // In development, the test is running from within the monorepo
-      // and should find the root package.json with name "recursive-manager"
+      // and should find the root package.json with name "recursivemanager"
       const installRoot = getInstallRoot();
 
       // Check if we can find the monorepo marker files
@@ -26,8 +26,8 @@ describe('paths utilities', () => {
       if (fs.existsSync(packageJsonPath)) {
         const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
         // In dev mode, should find the monorepo root
-        if (packageJson.name === 'recursive-manager') {
-          expect(packageJson.name).toBe('recursive-manager');
+        if (packageJson.name === 'recursivemanager') {
+          expect(packageJson.name).toBe('recursivemanager');
         }
       }
     });
@@ -45,7 +45,7 @@ describe('paths utilities', () => {
     it('should fall back to home directory if markers not found', () => {
       const installRoot = getInstallRoot();
       const homeDir = process.env.HOME || process.env.USERPROFILE || '';
-      const defaultInstallDir = path.join(homeDir, '.recursive-manager');
+      const defaultInstallDir = path.join(homeDir, '.recursivemanager');
 
       // Should either find the monorepo root or fall back to default
       expect(

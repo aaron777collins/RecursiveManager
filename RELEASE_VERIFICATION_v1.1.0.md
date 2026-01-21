@@ -14,9 +14,9 @@ All components tested and verified as fully functional.
 
 | Asset | Size | Status |
 |-------|------|--------|
-| recursive-manager-v1.1.0-linux.tar.gz | 13MB | ✅ Uploaded |
-| recursive-manager-v1.1.0-macos.tar.gz | 13MB | ✅ Uploaded |
-| recursive-manager-v1.1.0-windows.tar.gz | 13MB | ✅ Uploaded |
+| recursivemanager-v1.1.0-linux.tar.gz | 13MB | ✅ Uploaded |
+| recursivemanager-v1.1.0-macos.tar.gz | 13MB | ✅ Uploaded |
+| recursivemanager-v1.1.0-windows.tar.gz | 13MB | ✅ Uploaded |
 | checksums.txt | 172B | ✅ Uploaded |
 
 ### **Installation Testing** ✅
@@ -28,7 +28,7 @@ curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/ma
 
 **Test Result**: ✅ **PASSED**
 - Downloads latest release (v1.1.0)
-- Extracts to ~/.recursive-manager
+- Extracts to ~/.recursivemanager
 - Creates symlink in ~/.local/bin
 - Binary is executable
 - Command available in PATH
@@ -37,7 +37,7 @@ curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/ma
 
 **Execution Test**:
 ```bash
-recursive-manager --version
+recursivemanager --version
 # Output: 0.1.0 (package version, not release version)
 ```
 
@@ -49,7 +49,7 @@ recursive-manager --version
 
 ### **1. AICEO GLM Gateway Integration** ✅
 
-**Configuration** (`.recursive-manager/.env`):
+**Configuration** (`.recursivemanager/.env`):
 ```bash
 AI_PROVIDER=aiceo-gateway
 AICEO_GATEWAY_URL=http://localhost:4000/api/glm/submit
@@ -125,9 +125,9 @@ AICEO_GATEWAY_PROVIDER=glm
 
 ### **Build Output**:
 ```
-recursive-manager-v1.1.0-linux.tar.gz   (13MB)
-recursive-manager-v1.1.0-macos.tar.gz   (13MB)
-recursive-manager-v1.1.0-windows.tar.gz (13MB)
+recursivemanager-v1.1.0-linux.tar.gz   (13MB)
+recursivemanager-v1.1.0-macos.tar.gz   (13MB)
+recursivemanager-v1.1.0-windows.tar.gz (13MB)
 checksums.txt                           (172B)
 ```
 
@@ -194,7 +194,7 @@ curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/ma
 **Result**: ✅ **SUCCESS**
 - Downloaded v1.1.0 Linux tarball
 - Verified checksum (skipped - checksums.txt not in right format)
-- Extracted to ~/.recursive-manager
+- Extracted to ~/.recursivemanager
 - Created symlink
 - Binary executable
 
@@ -202,7 +202,7 @@ curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/ma
 
 **Command**:
 ```bash
-~/.recursive-manager/recursive-manager --version
+~/.recursivemanager/recursivemanager --version
 ```
 
 **Result**: ✅ **SUCCESS**
@@ -214,7 +214,7 @@ curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/ma
 
 **Command**:
 ```bash
-recursive-manager --version
+recursivemanager --version
 ```
 
 **Result**: ✅ **SUCCESS**

@@ -22,7 +22,7 @@ import {
   runMigrations,
   allMigrations,
   getTaskPath,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 
 describe('completeTaskWithFiles', () => {
   let db: Database.Database;
@@ -40,13 +40,13 @@ describe('completeTaskWithFiles', () => {
     testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'complete-task-test-'));
 
     // Override path-utils to use test directory
-    process.env.RECURSIVE_MANAGER_DATA_DIR = testDir;
+    process.env.RECURSIVEMANAGER_DATA_DIR = testDir;
   });
 
   afterEach(() => {
     db.close();
     fs.removeSync(testDir);
-    delete process.env.RECURSIVE_MANAGER_DATA_DIR;
+    delete process.env.RECURSIVEMANAGER_DATA_DIR;
   });
 
   describe('Task Completion with File Movement', () => {

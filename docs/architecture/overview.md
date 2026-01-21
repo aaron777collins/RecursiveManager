@@ -68,13 +68,13 @@ RecursiveManager is a hierarchical AI agent system that mimics organizational st
 **Purpose**: User-facing interface for all agent operations
 
 **Commands**:
-- `recursive-manager init` - Initialize system
-- `recursive-manager hire` - Create new agent
-- `recursive-manager fire` - Delete agent
-- `recursive-manager message` - Send message to agent
-- `recursive-manager run` - Manually trigger agent
-- `recursive-manager status` - View org chart
-- `recursive-manager logs` - View agent logs
+- `recursivemanager init` - Initialize system
+- `recursivemanager hire` - Create new agent
+- `recursivemanager fire` - Delete agent
+- `recursivemanager message` - Send message to agent
+- `recursivemanager run` - Manually trigger agent
+- `recursivemanager status` - View org chart
+- `recursivemanager logs` - View agent logs
 
 ### 2. Scheduler Daemon (`scheduler/`)
 

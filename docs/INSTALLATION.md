@@ -101,7 +101,7 @@ This script will:
 1. ✅ Detect your platform (Linux, macOS, Windows)
 2. ✅ Download the appropriate pre-built binary
 3. ✅ Verify checksums for security
-4. ✅ Install to `~/.recursive-manager`
+4. ✅ Install to `~/.recursivemanager`
 5. ✅ Add to your PATH automatically
 6. ✅ Run post-install verification
 
@@ -112,7 +112,7 @@ This script will:
 
 **Verify Installation:**
 ```bash
-recursive-manager --version
+recursivemanager --version
 # Output: RecursiveManager v1.0.0
 ```
 
@@ -126,10 +126,10 @@ Download and install pre-built binaries manually.
 
 Visit the [Releases Page](https://github.com/aaron777collins/RecursiveManager/releases) and download the appropriate binary for your platform:
 
-- **Linux (x64)**: `recursive-manager-v1.0.0-linux-x64.tar.gz`
-- **macOS (ARM64)**: `recursive-manager-v1.0.0-macos-arm64.tar.gz`
-- **macOS (x64)**: `recursive-manager-v1.0.0-macos-x64.tar.gz`
-- **Windows (x64)**: `recursive-manager-v1.0.0-win-x64.zip`
+- **Linux (x64)**: `recursivemanager-v1.0.0-linux-x64.tar.gz`
+- **macOS (ARM64)**: `recursivemanager-v1.0.0-macos-arm64.tar.gz`
+- **macOS (x64)**: `recursivemanager-v1.0.0-macos-x64.tar.gz`
+- **Windows (x64)**: `recursivemanager-v1.0.0-win-x64.zip`
 
 #### Step 2: Verify Checksum (Recommended)
 
@@ -149,37 +149,37 @@ shasum -a 256 -c checksums.txt
 **Linux/macOS:**
 ```bash
 # Create installation directory
-mkdir -p ~/.recursive-manager
+mkdir -p ~/.recursivemanager
 
 # Extract binary
-tar xzf recursive-manager-v1.0.0-*.tar.gz -C ~/.recursive-manager
+tar xzf recursivemanager-v1.0.0-*.tar.gz -C ~/.recursivemanager
 
 # Make executable
-chmod +x ~/.recursive-manager/bin/recursive-manager
+chmod +x ~/.recursivemanager/bin/recursivemanager
 
 # Add to PATH
-echo 'export PATH="$HOME/.recursive-manager/bin:$PATH"' >> ~/.bashrc
+echo 'export PATH="$HOME/.recursivemanager/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 
 # Or for zsh
-echo 'export PATH="$HOME/.recursive-manager/bin:$PATH"' >> ~/.zshrc
+echo 'export PATH="$HOME/.recursivemanager/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 **Windows (WSL2):**
 ```bash
 # Use same commands as Linux
-mkdir -p ~/.recursive-manager
-tar xzf recursive-manager-v1.0.0-win-x64.zip -C ~/.recursive-manager
-chmod +x ~/.recursive-manager/bin/recursive-manager.exe
-echo 'export PATH="$HOME/.recursive-manager/bin:$PATH"' >> ~/.bashrc
+mkdir -p ~/.recursivemanager
+tar xzf recursivemanager-v1.0.0-win-x64.zip -C ~/.recursivemanager
+chmod +x ~/.recursivemanager/bin/recursivemanager.exe
+echo 'export PATH="$HOME/.recursivemanager/bin:$PATH"' >> ~/.bashrc
 ```
 
 #### Step 4: Verify Installation
 
 ```bash
-recursive-manager --version
-recursive-manager --help
+recursivemanager --version
+recursivemanager --help
 ```
 
 ---
@@ -220,11 +220,11 @@ npm run build -- --verbose
 ```
 
 This builds:
-- `@recursive-manager/common` - Shared utilities and types
-- `@recursive-manager/core` - Core orchestration engine
-- `@recursive-manager/cli` - Command-line interface
-- `@recursive-manager/adapters` - Framework adapters (Claude Code, etc.)
-- `@recursive-manager/scheduler` - Task scheduling system
+- `@recursivemanager/common` - Shared utilities and types
+- `@recursivemanager/core` - Core orchestration engine
+- `@recursivemanager/cli` - Command-line interface
+- `@recursivemanager/adapters` - Framework adapters (Claude Code, etc.)
+- `@recursivemanager/scheduler` - Task scheduling system
 
 #### Step 4: Link Globally (Optional)
 
@@ -233,14 +233,14 @@ This builds:
 npm link
 
 # Or create symlink manually
-ln -s $(pwd)/packages/cli/dist/cli.js /usr/local/bin/recursive-manager
-chmod +x /usr/local/bin/recursive-manager
+ln -s $(pwd)/packages/cli/dist/cli.js /usr/local/bin/recursivemanager
+chmod +x /usr/local/bin/recursivemanager
 ```
 
 #### Step 5: Verify Installation
 
 ```bash
-recursive-manager --version
+recursivemanager --version
 npm test  # Run all tests to verify build
 ```
 
@@ -270,29 +270,29 @@ docker-compose up -d
 docker-compose ps
 
 # View logs
-docker-compose logs -f recursive-manager
+docker-compose logs -f recursivemanager
 ```
 
 #### Manual Docker Build
 
 ```bash
 # Build the Docker image
-docker build -t recursive-manager:1.0.0 .
+docker build -t recursivemanager:1.0.0 .
 
 # Run the container
 docker run -d \
-  --name recursive-manager \
-  -v ~/.recursive-manager:/app/data \
+  --name recursivemanager \
+  -v ~/.recursivemanager:/app/data \
   -e AI_PROVIDER=aiceo-gateway \
   -e AICEO_GATEWAY_URL=http://gateway:4000/api/glm/submit \
   -p 3000:3000 \
-  recursive-manager:1.0.0
+  recursivemanager:1.0.0
 
 # Execute commands inside the container
-docker exec -it recursive-manager recursive-manager status
+docker exec -it recursivemanager recursivemanager status
 
 # View logs
-docker logs -f recursive-manager
+docker logs -f recursivemanager
 ```
 
 #### Docker Compose Stack
@@ -320,7 +320,7 @@ Headless installation for automated deployments.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/master/scripts/install-binary.sh | \
-  VERSION=1.0.0 INSTALL_DIR=/opt/recursive-manager bash
+  VERSION=1.0.0 INSTALL_DIR=/opt/recursivemanager bash
 ```
 
 #### Advanced Headless Options
@@ -328,7 +328,7 @@ curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/ma
 ```bash
 # Install specific version to custom directory
 VERSION=1.0.0 \
-INSTALL_DIR=/opt/recursive-manager \
+INSTALL_DIR=/opt/recursivemanager \
 SKIP_SHELL_CONFIG=true \
   curl -fsSL https://install.recursivemanager.com | bash
 
@@ -336,7 +336,7 @@ SKIP_SHELL_CONFIG=true \
 - name: Install RecursiveManager
   run: |
     curl -fsSL https://install.recursivemanager.com | bash
-    echo "$HOME/.recursive-manager/bin" >> $GITHUB_PATH
+    echo "$HOME/.recursivemanager/bin" >> $GITHUB_PATH
 
 # Jenkins pipeline example
 pipeline {
@@ -361,7 +361,7 @@ Customize installation with these variables:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `VERSION` | Version to install | `latest` |
-| `INSTALL_DIR` | Installation directory | `~/.recursive-manager` |
+| `INSTALL_DIR` | Installation directory | `~/.recursivemanager` |
 | `SKIP_SHELL_CONFIG` | Don't modify shell configs | `false` |
 | `SKIP_VERIFICATION` | Skip post-install checks | `false` |
 | `PACKAGE_MANAGER` | Force npm/yarn/pnpm | auto-detect |
@@ -376,32 +376,32 @@ After installation, initialize the system:
 
 ```bash
 # Interactive initialization
-recursive-manager init
+recursivemanager init
 
 # Headless initialization
-recursive-manager init --headless --data-dir ~/.recursive-manager/data
+recursivemanager init --headless --data-dir ~/.recursivemanager/data
 ```
 
 This creates:
-- **Data directory**: `~/.recursive-manager/data/`
-- **Database**: `recursive-manager.db` (SQLite)
-- **Logs directory**: `~/.recursive-manager/logs/`
-- **Agent workspaces**: `~/.recursive-manager/data/agents/`
-- **Configuration**: `~/.recursive-manager/config.json`
+- **Data directory**: `~/.recursivemanager/data/`
+- **Database**: `recursivemanager.db` (SQLite)
+- **Logs directory**: `~/.recursivemanager/logs/`
+- **Agent workspaces**: `~/.recursivemanager/data/agents/`
+- **Configuration**: `~/.recursivemanager/config.json`
 
 ### Configuration File
 
-RecursiveManager stores configuration in `~/.recursive-manager/config.json`:
+RecursiveManager stores configuration in `~/.recursivemanager/config.json`:
 
 ```json
 {
   "version": "1.0.0",
-  "dataDirectory": "~/.recursive-manager/data",
-  "logDirectory": "~/.recursive-manager/logs",
+  "dataDirectory": "~/.recursivemanager/data",
+  "logDirectory": "~/.recursivemanager/logs",
   "logLevel": "info",
   "database": {
     "type": "sqlite",
-    "path": "~/.recursive-manager/data/recursive-manager.db",
+    "path": "~/.recursivemanager/data/recursivemanager.db",
     "encryption": {
       "enabled": true,
       "useKDF": true
@@ -425,16 +425,16 @@ RecursiveManager stores configuration in `~/.recursive-manager/config.json`:
 
 ```bash
 # View all configuration
-recursive-manager config list
+recursivemanager config list
 
 # Get specific value
-recursive-manager config get database.path
+recursivemanager config get database.path
 
 # Set value
-recursive-manager config set execution.workerPoolSize 10
+recursivemanager config set execution.workerPoolSize 10
 
 # Reset to defaults
-recursive-manager config reset
+recursivemanager config reset
 ```
 
 ---
@@ -456,7 +456,7 @@ RecursiveManager requires an AI provider for agent execution and multi-perspecti
 **Step 1: Create `.env` file**
 
 ```bash
-cd ~/.recursive-manager
+cd ~/.recursivemanager
 cp .env.example .env
 ```
 
@@ -483,7 +483,7 @@ GLM_MODEL=glm-4.7
 
 ```bash
 # Test AI provider connection
-recursive-manager debug providers
+recursivemanager debug providers
 
 # Should show:
 # ✓ Primary Provider: aiceo-gateway (healthy)
@@ -532,13 +532,13 @@ All agents route through your configured AI provider.
 
 RecursiveManager uses SQLite by default for simplicity and portability.
 
-**Location:** `~/.recursive-manager/data/recursive-manager.db`
+**Location:** `~/.recursivemanager/data/recursivemanager.db`
 
 **Configuration:**
 ```bash
 # .env
 DATABASE_TYPE=sqlite
-DATABASE_PATH=~/.recursive-manager/data/recursive-manager.db
+DATABASE_PATH=~/.recursivemanager/data/recursivemanager.db
 ```
 
 ### Database Encryption
@@ -595,7 +595,7 @@ SECRET_CACHE_EXPIRY_MS=300000  # 5 minutes
 Run the health check:
 
 ```bash
-recursive-manager debug health
+recursivemanager debug health
 
 # Expected output:
 # ✓ RecursiveManager v1.0.0
@@ -624,7 +624,7 @@ npm test
 
 ```bash
 # Initialize with a high-level goal
-recursive-manager init "Build a task management SaaS"
+recursivemanager init "Build a task management SaaS"
 
 # The CEO agent will:
 # 1. Analyze the goal from 8 perspectives
@@ -636,7 +636,7 @@ recursive-manager init "Build a task management SaaS"
 ### Check System Status
 
 ```bash
-recursive-manager status
+recursivemanager status
 
 # Output:
 # RecursiveManager Status
@@ -661,7 +661,7 @@ Start the Prometheus metrics server:
 
 ```bash
 # Start metrics endpoint
-recursive-manager metrics --port 3000
+recursivemanager metrics --port 3000
 
 # Access metrics
 curl http://localhost:3000/metrics
@@ -702,10 +702,10 @@ node --version
 # Error: EACCES: permission denied
 
 # Solution 1: Use user directory (recommended)
-INSTALL_DIR=$HOME/.recursive-manager curl -fsSL https://install.recursivemanager.com | bash
+INSTALL_DIR=$HOME/.recursivemanager curl -fsSL https://install.recursivemanager.com | bash
 
 # Solution 2: Fix permissions
-sudo chown -R $USER:$USER ~/.recursive-manager
+sudo chown -R $USER:$USER ~/.recursivemanager
 
 # Solution 3: Use sudo (not recommended)
 sudo curl -fsSL https://install.recursivemanager.com | bash
@@ -714,14 +714,14 @@ sudo curl -fsSL https://install.recursivemanager.com | bash
 #### Command Not Found
 
 ```bash
-# Error: recursive-manager: command not found
+# Error: recursivemanager: command not found
 
 # Solution: Add to PATH
-echo 'export PATH="$HOME/.recursive-manager/bin:$PATH"' >> ~/.bashrc
+echo 'export PATH="$HOME/.recursivemanager/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 
 # Or create symlink
-sudo ln -s ~/.recursive-manager/bin/recursive-manager /usr/local/bin/
+sudo ln -s ~/.recursivemanager/bin/recursivemanager /usr/local/bin/
 ```
 
 ### Runtime Issues
@@ -732,15 +732,15 @@ sudo ln -s ~/.recursive-manager/bin/recursive-manager /usr/local/bin/
 # Error: database is locked
 
 # Solution: Stop conflicting processes
-recursive-manager scheduler stop
-pkill -f recursive-manager
+recursivemanager scheduler stop
+pkill -f recursivemanager
 
 # Remove lock files
-rm ~/.recursive-manager/data/recursive-manager.db-shm
-rm ~/.recursive-manager/data/recursive-manager.db-wal
+rm ~/.recursivemanager/data/recursivemanager.db-shm
+rm ~/.recursivemanager/data/recursivemanager.db-wal
 
 # Restart
-recursive-manager scheduler start
+recursivemanager scheduler start
 ```
 
 #### AI Provider Connection Failed
@@ -749,7 +749,7 @@ recursive-manager scheduler start
 # Error: Failed to connect to AI provider
 
 # Solution 1: Check provider configuration
-recursive-manager debug providers
+recursivemanager debug providers
 
 # Solution 2: Test network connectivity
 curl -I $AICEO_GATEWAY_URL
@@ -758,7 +758,7 @@ curl -I $AICEO_GATEWAY_URL
 echo $AICEO_GATEWAY_API_KEY
 
 # Solution 4: Use fallback provider
-AI_FALLBACK_PROVIDER=glm-direct recursive-manager status
+AI_FALLBACK_PROVIDER=glm-direct recursivemanager status
 ```
 
 #### Out of Memory
@@ -768,10 +768,10 @@ AI_FALLBACK_PROVIDER=glm-direct recursive-manager status
 
 # Solution: Increase Node.js memory limit
 export NODE_OPTIONS="--max-old-space-size=4096"
-recursive-manager status
+recursivemanager status
 
 # Or set in .env
-echo "NODE_OPTIONS=--max-old-space-size=4096" >> ~/.recursive-manager/.env
+echo "NODE_OPTIONS=--max-old-space-size=4096" >> ~/.recursivemanager/.env
 ```
 
 #### Port Already in Use
@@ -780,7 +780,7 @@ echo "NODE_OPTIONS=--max-old-space-size=4096" >> ~/.recursive-manager/.env
 # Error: Port 3000 already in use
 
 # Solution 1: Change port
-recursive-manager metrics --port 3001
+recursivemanager metrics --port 3001
 
 # Solution 2: Kill process using port
 lsof -ti:3000 | xargs kill -9
@@ -816,10 +816,10 @@ npm run build
 
 ```bash
 # Check container logs
-docker logs recursive-manager
+docker logs recursivemanager
 
 # Restart container
-docker-compose restart recursive-manager
+docker-compose restart recursivemanager
 
 # Rebuild image
 docker-compose build --no-cache
@@ -833,7 +833,7 @@ docker-compose up -d
 
 # Solution: Fix volume permissions
 docker-compose down
-sudo chown -R 1000:1000 ~/.recursive-manager/data
+sudo chown -R 1000:1000 ~/.recursivemanager/data
 docker-compose up -d
 ```
 

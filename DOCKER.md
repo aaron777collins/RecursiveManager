@@ -36,10 +36,10 @@ docker-compose up -d
 docker-compose ps
 
 # 6. View logs
-docker-compose logs -f recursive-manager
+docker-compose logs -f recursivemanager
 
 # 7. Run CLI commands
-docker-compose exec recursive-manager node packages/cli/dist/cli.js --help
+docker-compose exec recursivemanager node packages/cli/dist/cli.js --help
 ```
 
 ## Prerequisites
@@ -143,23 +143,23 @@ docker-compose down -v
 
 ```bash
 # Build the image
-docker build -t recursive-manager:latest .
+docker build -t recursivemanager:latest .
 
 # Run the container
 docker run -d \
-  --name recursive-manager \
+  --name recursivemanager \
   --env-file .env \
   -v $(pwd)/data:/app/data \
   -v $(pwd)/logs:/app/logs \
   -p 3000:3000 \
-  recursive-manager:latest
+  recursivemanager:latest
 
 # View logs
-docker logs -f recursive-manager
+docker logs -f recursivemanager
 
 # Stop the container
-docker stop recursive-manager
-docker rm recursive-manager
+docker stop recursivemanager
+docker rm recursivemanager
 ```
 
 ## Volume Management
@@ -175,18 +175,18 @@ RecursiveManager uses named volumes for data persistence:
   └── *.db            # Other databases
 
 ./logs/               # Application logs
-  └── recursive-manager.log
+  └── recursivemanager.log
 ```
 
 ### Backing Up Data
 
 ```bash
 # Create a backup archive
-docker-compose exec recursive-manager tar czf /tmp/backup.tar.gz /app/data
-docker cp recursive-manager:/tmp/backup.tar.gz ./backup-$(date +%Y%m%d).tar.gz
+docker-compose exec recursivemanager tar czf /tmp/backup.tar.gz /app/data
+docker cp recursivemanager:/tmp/backup.tar.gz ./backup-$(date +%Y%m%d).tar.gz
 
 # Or use the built-in snapshot feature
-docker-compose exec recursive-manager \
+docker-compose exec recursivemanager \
   node packages/cli/dist/cli.js rollback --create-snapshot
 ```
 
@@ -216,7 +216,7 @@ LOGS_VOLUME_PATH=/path/to/your/logs
 
 ### Container Networking
 
-The `docker-compose.yml` creates a bridge network (`recursive-manager-network`) with subnet `172.28.0.0/16`.
+The `docker-compose.yml` creates a bridge network (`recursivemanager-network`) with subnet `172.28.0.0/16`.
 
 ### Accessing External Services
 
@@ -250,7 +250,7 @@ The container includes a health check that runs every 30 seconds:
 docker-compose ps
 
 # View health check logs
-docker inspect --format='{{json .State.Health}}' recursive-manager | jq
+docker inspect --format='{{json .State.Health}}' recursivemanager | jq
 ```
 
 Health check tests:
@@ -290,10 +290,10 @@ deploy:
 
 ```bash
 # View real-time stats
-docker stats recursive-manager
+docker stats recursivemanager
 
 # View stats in JSON format
-docker stats --no-stream --format "{{json .}}" recursive-manager
+docker stats --no-stream --format "{{json .}}" recursivemanager
 ```
 
 ## Running CLI Commands
@@ -302,18 +302,18 @@ Execute CLI commands inside the container:
 
 ```bash
 # Interactive shell
-docker-compose exec recursive-manager sh
+docker-compose exec recursivemanager sh
 
 # Run a specific command
-docker-compose exec recursive-manager \
+docker-compose exec recursivemanager \
   node packages/cli/dist/cli.js status
 
 # Run with custom arguments
-docker-compose exec recursive-manager \
+docker-compose exec recursivemanager \
   node packages/cli/dist/cli.js analyze "Should we implement feature X?"
 
 # Create an alias for convenience
-alias ralph="docker-compose exec recursive-manager node packages/cli/dist/cli.js"
+alias ralph="docker-compose exec recursivemanager node packages/cli/dist/cli.js"
 ralph status
 ```
 
@@ -323,13 +323,13 @@ ralph status
 
 ```bash
 # Check logs for errors
-docker-compose logs recursive-manager
+docker-compose logs recursivemanager
 
 # Check container status
 docker-compose ps
 
 # Inspect container configuration
-docker inspect recursive-manager
+docker inspect recursivemanager
 ```
 
 ### Permission Errors
@@ -368,20 +368,20 @@ If the container is killed due to OOM:
 memory: 4G  # Instead of 2G
 
 # Check current memory usage
-docker stats recursive-manager
+docker stats recursivemanager
 ```
 
 ### Network Connectivity Issues
 
 ```bash
 # Test connectivity from inside container
-docker-compose exec recursive-manager ping -c 3 8.8.8.8
+docker-compose exec recursivemanager ping -c 3 8.8.8.8
 
 # Check DNS resolution
-docker-compose exec recursive-manager nslookup google.com
+docker-compose exec recursivemanager nslookup google.com
 
 # Test API endpoint connectivity
-docker-compose exec recursive-manager wget -O- http://host.docker.internal:4000/health
+docker-compose exec recursivemanager wget -O- http://host.docker.internal:4000/health
 ```
 
 ### Rebuild After Code Changes
@@ -410,8 +410,8 @@ docker-compose up -d
 
 ```yaml
 services:
-  recursive-manager:
-    image: recursive-manager:1.0.0  # Use specific version tags
+  recursivemanager:
+    image: recursivemanager:1.0.0  # Use specific version tags
     restart: unless-stopped
 
     # Use Docker secrets instead of env vars
@@ -455,12 +455,12 @@ Create a backup cron job:
 
 ```bash
 #!/bin/bash
-# /etc/cron.daily/recursive-manager-backup
+# /etc/cron.daily/recursivemanager-backup
 
-BACKUP_DIR=/backups/recursive-manager
+BACKUP_DIR=/backups/recursivemanager
 DATE=$(date +%Y%m%d-%H%M%S)
 
-docker-compose exec -T recursive-manager \
+docker-compose exec -T recursivemanager \
   tar czf - /app/data | \
   cat > $BACKUP_DIR/backup-$DATE.tar.gz
 
@@ -474,7 +474,7 @@ Add Prometheus metrics export (Phase 9):
 
 ```yaml
 services:
-  recursive-manager:
+  recursivemanager:
     # ... existing config ...
     ports:
       - "3000:3000"   # API
@@ -493,10 +493,10 @@ services:
 Use Nginx or Caddy as a reverse proxy:
 
 ```nginx
-# /etc/nginx/sites-available/recursive-manager
+# /etc/nginx/sites-available/recursivemanager
 server {
     listen 80;
-    server_name recursive-manager.example.com;
+    server_name recursivemanager.example.com;
 
     location / {
         proxy_pass http://localhost:3000;

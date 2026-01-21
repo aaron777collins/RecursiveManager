@@ -1,6 +1,6 @@
 {
-  "name": "recursive-manager",
-  "version": "1.0.4",
+  "name": "recursivemanager",
+  "version": "1.0.5",
   "private": true,
   "description": "Hierarchical AI agent system with recursive delegation and autonomous task management",
   "keywords": [
@@ -18,7 +18,7 @@
   "license": "MIT",
   "author": "",
   "bin": {
-    "recursive-manager": "./packages/cli/dist/cli.js"
+    "recursivemanager": "./packages/cli/dist/cli.js"
   },
   "workspaces": [
     "packages/*",

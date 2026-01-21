@@ -5,13 +5,13 @@
  * after each execution.
  */
 
-import { type ExecutionResult, type ExecutionMode } from '@recursive-manager/adapters';
+import { type ExecutionResult, type ExecutionMode } from '@recursivemanager/adapters';
 import {
   updateAgent,
   getMetadataPath,
   atomicWrite,
   createAgentLogger,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import Database from 'better-sqlite3';
 import { readFile } from 'fs/promises';
 

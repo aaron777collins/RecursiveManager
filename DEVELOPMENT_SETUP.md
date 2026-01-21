@@ -210,7 +210,7 @@ nano .env
 
 ```env
 # Database
-DATABASE_PATH=./data/recursive-manager.db
+DATABASE_PATH=./data/recursivemanager.db
 
 # Logging
 LOG_LEVEL=info

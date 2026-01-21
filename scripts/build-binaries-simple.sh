@@ -43,6 +43,12 @@ done
 # Copy root package.json
 cp "$ROOT_DIR/package.json" "$BUILD_DIR/"
 
+# Copy upgrade script for the update command
+log_info "Copying upgrade script..."
+mkdir -p "$BUILD_DIR/scripts"
+cp "$ROOT_DIR/scripts/upgrade.sh" "$BUILD_DIR/scripts/update.sh"
+chmod +x "$BUILD_DIR/scripts/update.sh"
+
 # Install ONLY production dependencies (no devDependencies)
 log_info "Installing production dependencies..."
 cd "$BUILD_DIR"
@@ -58,15 +64,15 @@ log_info "Installed $(ls -d node_modules/* | wc -l) packages"
 
 # Create executable wrapper for Unix (Linux/macOS)
 log_info "Creating Unix executable..."
-cat > "$BUILD_DIR/recursive-manager" <<'EOF'
+cat > "$BUILD_DIR/recursivemanager" <<'EOF'
 #!/usr/bin/env node
 require('./packages/cli/dist/cli.js');
 EOF
-chmod +x "$BUILD_DIR/recursive-manager"
+chmod +x "$BUILD_DIR/recursivemanager"
 
 # Create executable wrapper for Windows
 log_info "Creating Windows executable..."
-cat > "$BUILD_DIR/recursive-manager.cmd" <<'EOF'
+cat > "$BUILD_DIR/recursivemanager.cmd" <<'EOF'
 @echo off
 node "%~dp0packages\cli\dist\cli.js" %*
 EOF
@@ -74,26 +80,26 @@ EOF
 # Generate checksums
 log_info "Generating checksums..."
 cd "$BUILD_DIR"
-sha256sum recursive-manager recursive-manager.cmd > SHA256SUMS
+sha256sum recursivemanager recursivemanager.cmd > SHA256SUMS
 cd "$ROOT_DIR"
 
 # Create tarballs for each platform
 log_info "Creating platform-specific tarballs..."
 
 # Linux tarball
-tar czf "$RELEASE_DIR/recursive-manager-v${VERSION}-linux.tar.gz" \
+tar czf "$RELEASE_DIR/recursivemanager-v${VERSION}-linux.tar.gz" \
     -C "$BUILD_DIR" \
-    packages node_modules package.json recursive-manager SHA256SUMS
+    packages node_modules package.json recursivemanager SHA256SUMS
 
 # macOS tarball (same as Linux)
-tar czf "$RELEASE_DIR/recursive-manager-v${VERSION}-macos.tar.gz" \
+tar czf "$RELEASE_DIR/recursivemanager-v${VERSION}-macos.tar.gz" \
     -C "$BUILD_DIR" \
-    packages node_modules package.json recursive-manager SHA256SUMS
+    packages node_modules package.json recursivemanager SHA256SUMS
 
 # Windows tarball
-tar czf "$RELEASE_DIR/recursive-manager-v${VERSION}-windows.tar.gz" \
+tar czf "$RELEASE_DIR/recursivemanager-v${VERSION}-windows.tar.gz" \
     -C "$BUILD_DIR" \
-    packages node_modules package.json recursive-manager.cmd SHA256SUMS
+    packages node_modules package.json recursivemanager.cmd SHA256SUMS
 
 # Create checksums for release tarballs
 log_info "Generating release checksums..."

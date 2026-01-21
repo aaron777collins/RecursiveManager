@@ -3,7 +3,7 @@
  */
 
 import { Command } from 'commander';
-import { startMetricsServer } from '@recursive-manager/core';
+import { startMetricsServer } from '@recursivemanager/core';
 import chalk from 'chalk';
 
 export function createMetricsCommand(): Command {

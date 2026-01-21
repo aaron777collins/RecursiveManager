@@ -254,8 +254,8 @@ Created comprehensive integration test suite that validates the complete concurr
 ### Integration with Existing Code
 
 **Dependencies Verified**:
-- Imports from `@recursive-manager/common`: createAgent, createTask, runMigrations, etc.
-- Imports from `@recursive-manager/common`: acquirePidLock, removePidFile, isProcessRunningByPid
+- Imports from `@recursivemanager/common`: createAgent, createTask, runMigrations, etc.
+- Imports from `@recursivemanager/common`: acquirePidLock, removePidFile, isProcessRunningByPid
 - AgentLock, ExecutionPool, ExecutionOrchestrator from core package
 - Follows same patterns as existing integration tests (executeContinuous, executeReactive)
 
@@ -484,7 +484,7 @@ Implemented a comprehensive PID (Process ID) management system to prevent duplic
 - Process existence checking using signal 0
 - Stale PID file detection and cleanup
 - Synchronous cleanup for exit handlers
-- Directory structure: `~/.recursive-manager/pids/`
+- Directory structure: `~/.recursivemanager/pids/`
 - JSON-based PID files with metadata (pid, processName, createdAt, hostname)
 
 **Key Functions**:
@@ -635,7 +635,7 @@ process.on('exit', () => {
 
 ### Notes
 
-- PID files stored in `~/.recursive-manager/pids/`
+- PID files stored in `~/.recursivemanager/pids/`
 - Uses `process.kill(pid, 0)` for non-destructive process check
 - Works on POSIX systems (Linux, macOS, Unix)
 - Synchronous cleanup required for exit handlers (can't use async)
@@ -1037,8 +1037,8 @@ The test suite integrates with:
 - `ExecutionOrchestrator.synthesizeDecision()` (packages/core/src/execution/index.ts:440-653) - tested through public API
 - `ExecutionOrchestrator.runMultiPerspectiveAnalysis()` (packages/core/src/execution/index.ts:356-425) - public method used for testing
 - `Decision` interface (packages/core/src/execution/index.ts:41-58)
-- Database migrations and schema from @recursive-manager/common
-- Agent configuration types from @recursive-manager/common
+- Database migrations and schema from @recursivemanager/common
+- Agent configuration types from @recursivemanager/common
 - Mock adapter pattern consistent with other test files
 
 ### Comparison with Existing Tests
@@ -1228,8 +1228,8 @@ Created comprehensive unit test suite for the `runMultiPerspectiveAnalysis()` me
 The test suite integrates with:
 - `ExecutionOrchestrator.runMultiPerspectiveAnalysis()` (packages/core/src/execution/index.ts:356-425)
 - `Decision` interface (packages/core/src/execution/index.ts:41-58)
-- Database migrations and schema from @recursive-manager/common
-- Agent configuration types from @recursive-manager/common
+- Database migrations and schema from @recursivemanager/common
+- Agent configuration types from @recursivemanager/common
 - Mock adapter pattern consistent with other test files
 
 ### Comparison with Existing Tests
@@ -1409,7 +1409,7 @@ Created test file: `packages/core/src/execution/__tests__/executeReactive.integr
 
 The test suite integrates with:
 - `ExecutionOrchestrator.executeReactive()` method (packages/core/src/execution/index.ts:224-343)
-- `createMessage()` database helper from @recursive-manager/common
+- `createMessage()` database helper from @recursivemanager/common
 - `queryAuditLog()` for audit trail verification
 - `saveAgentConfig()` for agent configuration persistence
 - Mock adapters with same interface as real adapters
@@ -1876,12 +1876,12 @@ Created test file: `packages/core/src/execution/__tests__/executeContinuous.inte
 
 **Problem**: The test imports `ExecutionOrchestrator` from `packages/core/src/execution/index.ts`, which imports:
 ```typescript
-import { loadExecutionContext } from '@recursive-manager/adapters';
+import { loadExecutionContext } from '@recursivemanager/adapters';
 ```
 
 Meanwhile, `packages/adapters/src/context/index.ts` imports:
 ```typescript
-import { loadAgentConfig } from '@recursive-manager/core';
+import { loadAgentConfig } from '@recursivemanager/core';
 ```
 
 This creates a circular dependency: `core → adapters → core`, which prevents the packages from building.
@@ -1889,14 +1889,14 @@ This creates a circular dependency: `core → adapters → core`, which prevents
 **Error Message**:
 ```
 packages/adapters/src/context/index.ts(18,33): error TS2307:
-Cannot find module '@recursive-manager/core' or its corresponding type declarations.
+Cannot find module '@recursivemanager/core' or its corresponding type declarations.
 ```
 
 ### Recommended Solutions
 
 1. **Move `loadAgentConfig` to common package** (preferred):
    - `loadAgentConfig` is a simple file I/O utility
-   - Should live in `@recursive-manager/common` alongside other file utilities
+   - Should live in `@recursivemanager/common` alongside other file utilities
    - Both `core` and `adapters` can then import from `common`
 
 2. **Move `loadExecutionContext` to core package**:
@@ -1990,7 +1990,7 @@ Unit and integration tests for this functionality are pending (Tasks 3.3.15 and 
 
 **Task 3.3.13: Integration tests for continuous execution - UNBLOCKED**
 
-Successfully resolved the circular dependency between `@recursive-manager/core` and `@recursive-manager/adapters` packages that was blocking Task 3.3.13.
+Successfully resolved the circular dependency between `@recursivemanager/core` and `@recursivemanager/adapters` packages that was blocking Task 3.3.13.
 
 ### Problem Statement
 
@@ -2002,7 +2002,7 @@ This created a build-time circular dependency preventing integration tests from 
 
 ### Solution Implemented
 
-Moved `loadAgentConfig` and `ConfigLoadError` from `@recursive-manager/core` to `@recursive-manager/common` package, breaking the circular dependency:
+Moved `loadAgentConfig` and `ConfigLoadError` from `@recursivemanager/core` to `@recursivemanager/common` package, breaking the circular dependency:
 
 1. **Created** `/packages/common/src/config-loader.ts`:
    - Moved `loadAgentConfig` function with schema validation
@@ -2020,15 +2020,15 @@ Moved `loadAgentConfig` and `ConfigLoadError` from `@recursive-manager/core` to 
    - Removed unused `fs` import
 
 4. **Updated** `/packages/adapters/src/context/index.ts`:
-   - Changed import from `@recursive-manager/core` to `@recursive-manager/common`
+   - Changed import from `@recursivemanager/core` to `@recursivemanager/common`
    - Now imports: `loadAgentConfig`, `getActiveTasks`, `getMessages` all from common
 
 5. **Updated** `/packages/adapters/src/context/__tests__/index.test.ts`:
-   - Changed mock setup from `@recursive-manager/core` to `@recursive-manager/common`
+   - Changed mock setup from `@recursivemanager/core` to `@recursivemanager/common`
    - Updated import statements
 
 6. **Updated** `/packages/core/package.json`:
-   - Added `@recursive-manager/adapters` as a dependency
+   - Added `@recursivemanager/adapters` as a dependency
 
 ### Dependency Flow (After Fix)
 
@@ -2306,7 +2306,7 @@ Created a comprehensive error scenario test suite with 48 new test cases coverin
 
 **Implementation Pattern**:
 ```typescript
-import { buildContinuousPrompt, buildReactivePrompt, buildMultiPerspectivePrompt } from '@recursive-manager/adapters';
+import { buildContinuousPrompt, buildReactivePrompt, buildMultiPerspectivePrompt } from '@recursivemanager/adapters';
 
 // Continuous mode (task-focused)
 const continuousPrompt = buildContinuousPrompt(agentConfig, activeTasks, context);
@@ -2414,9 +2414,9 @@ Tests:       139 passed, 139 total (26 new prompt tests)
    - Depth-limited directory scanning prevents deep recursion
 
 7. **Integration**:
-   - Imports from `@recursive-manager/core` for config loading
-   - Imports from `@recursive-manager/common` for DB queries and paths
-   - Exports from `@recursive-manager/adapters` package index
+   - Imports from `@recursivemanager/core` for config loading
+   - Imports from `@recursivemanager/common` for DB queries and paths
+   - Exports from `@recursivemanager/adapters` package index
    - Ready for use by ExecutionOrchestrator (Phase 3.3)
 
 8. **Comprehensive Test Suite** (`packages/adapters/src/context/__tests__/index.test.ts` - 619 lines):
@@ -2453,7 +2453,7 @@ Tests:       139 passed, 139 total (26 new prompt tests)
 
 **Integration Pattern**:
 ```typescript
-import { loadExecutionContext } from '@recursive-manager/adapters';
+import { loadExecutionContext } from '@recursivemanager/adapters';
 
 // Load complete context
 const context = await loadExecutionContext(
@@ -3597,7 +3597,7 @@ Tests: 10 passed, 10 total
 4. **Exports**:
    - Added `getDatabaseHealth` function export
    - Added `DatabaseHealthStatus` type export
-   - Available from `@recursive-manager/common` package
+   - Available from `@recursivemanager/common` package
 
 **Test Results**:
 
@@ -4655,7 +4655,7 @@ Tests:       29 passed
   - Enum validation (mode, source, priority)
   - Required vs optional fields with sensible defaults
   - Additional properties rejected for strict validation
-- ✅ Exported from `@recursive-manager/common` package
+- ✅ Exported from `@recursivemanager/common` package
   - Added to index.ts with proper TypeScript import
   - Available for use in validation functions
   - Schema file copied to dist/ directory on build
@@ -4803,7 +4803,7 @@ Will be used by:
   - Range validation (minimum values for integers)
   - Required vs optional fields
   - Additional properties control (strict for most, flexible for metadata)
-- ✅ Exported from `@recursive-manager/common` package
+- ✅ Exported from `@recursivemanager/common` package
   - Added to index.ts with proper TypeScript import
   - Available for use in validation functions
   - Schema file copied to dist/ directory on build
@@ -4912,7 +4912,7 @@ Will be used by:
   - Collapses multiple replacement characters
   - Handles Windows colons (C:)
   - Preserves internal dots in filenames
-- ✅ Exported from `@recursive-manager/common` package
+- ✅ Exported from `@recursivemanager/common` package
   - Added to package index with proper TypeScript types
   - Available for use in all other packages
 - ✅ Comprehensive test suite (60 tests, all passing)
@@ -4999,7 +4999,7 @@ Will be used by:
   - `getDatabasePath(options?)` - Get database file path
   - `getBackupsDirectory(options?)` - Get backups directory path
   - `PathError` - Custom error class with agentId/taskId context
-  - `DEFAULT_BASE_DIR` constant (~/.recursive-manager)
+  - `DEFAULT_BASE_DIR` constant (~/.recursivemanager)
 - ✅ Type-safe interfaces:
   - `PathOptions` - Configuration for base directory override
 - ✅ Sharding algorithm:
@@ -5011,19 +5011,19 @@ Will be used by:
   - Consistent sharding (same ID always maps to same shard)
   - Case-insensitive (CEO and ceo map to same shard)
 - ✅ Directory structure:
-  - Base: `~/.recursive-manager/` (configurable via PathOptions)
+  - Base: `~/.recursivemanager/` (configurable via PathOptions)
   - Agents: `{base}/agents/{shard}/{agentId}/`
   - Tasks: `{agentDir}/tasks/{status}/{taskId}/`
   - Config files: `{agentDir}/config.json`, `schedule.json`, `metadata.json`
   - Subdirectories: `{agentDir}/inbox/`, `outbox/`, `workspace/`, `subordinates/`
   - Logs: `{base}/logs/agents/{agentId}.log`
-  - Database: `{base}/recursive-manager.db`
+  - Database: `{base}/recursivemanager.db`
   - Backups: `{base}/backups/`
 - ✅ Error handling:
   - Validates agent IDs and task IDs are not empty
   - Throws PathError with descriptive messages and context
   - Includes agentId and taskId in errors for debugging
-- ✅ Exported from `@recursive-manager/common` package
+- ✅ Exported from `@recursivemanager/common` package
   - Added to package index with all functions and types
   - Available for use in all other packages
 - ✅ Comprehensive test suite (49 tests, all passing)
@@ -5068,7 +5068,7 @@ Will be used by:
 2. **First-character hashing**: Uses first character of agent ID to determine shard (simple, fast, predictable)
 3. **Case-insensitive**: Lowercase agent IDs before sharding to ensure consistency
 4. **Absolute paths**: All functions return absolute paths using path.resolve()
-5. **Custom base directory**: PathOptions allows overriding default ~/.recursive-manager for testing/deployment
+5. **Custom base directory**: PathOptions allows overriding default ~/.recursivemanager for testing/deployment
 6. **Comprehensive utilities**: Provides path functions for every agent resource (config, tasks, logs, etc.)
 7. **Error context**: PathError includes agentId and taskId for better debugging
 8. **TypeScript strict mode**: Handles all edge cases required by strict null checks
@@ -5091,16 +5091,16 @@ Output: {baseDir}/agents/{shard}/{agentId}/
 
 ```typescript
 getAgentDirectory('CEO');
-// → "/home/user/.recursive-manager/agents/c0-cf/CEO"
+// → "/home/user/.recursivemanager/agents/c0-cf/CEO"
 
 getTaskPath('CEO', 'task-1-implement-feature');
-// → "/home/user/.recursive-manager/agents/c0-cf/CEO/tasks/active/task-1-implement-feature"
+// → "/home/user/.recursivemanager/agents/c0-cf/CEO/tasks/active/task-1-implement-feature"
 
 getConfigPath('backend-dev-001');
-// → "/home/user/.recursive-manager/agents/b0-bf/backend-dev-001/config.json"
+// → "/home/user/.recursivemanager/agents/b0-bf/backend-dev-001/config.json"
 
 getAgentLogPath('database-admin');
-// → "/home/user/.recursive-manager/logs/agents/database-admin.log"
+// → "/home/user/.recursivemanager/logs/agents/database-admin.log"
 ```
 
 **Impact**:
@@ -5153,7 +5153,7 @@ The system now has centralized path resolution for all agent resources with auto
   - Verifies enough space for operation AND minimum free space after
   - Provides missing bytes count when insufficient
   - Clear error messages with formatted byte sizes
-- ✅ Exported from `@recursive-manager/common` package
+- ✅ Exported from `@recursivemanager/common` package
   - Added to package index with proper TypeScript types
   - Available for use in all other packages
 - ✅ Comprehensive test suite (40 tests, all passing)
@@ -5267,7 +5267,7 @@ Will be used by:
   - Set/update permissions on existing directories
   - Get detailed permission information (mode, ownership, accessibility)
   - Validate permissions match requirements
-- ✅ Exported from `@recursive-manager/common` package
+- ✅ Exported from `@recursivemanager/common` package
   - Added to package index with proper TypeScript types
   - Available for use in all other packages
 - ✅ Comprehensive test suite (37 tests, all passing)
@@ -5376,7 +5376,7 @@ Will be used by:
   - Number deleted
   - Paths of deleted backups
   - Error count and detailed error information
-- ✅ Exported from `@recursive-manager/common` package
+- ✅ Exported from `@recursivemanager/common` package
   - Added to package index with proper TypeScript types
   - Available for use in all other packages
 - ✅ Comprehensive test suite (18 tests, all passing)
@@ -5459,7 +5459,7 @@ This is the third utility in Phase 1.2 (File System Layer). It provides automate
   - `createDirs` - Auto-create backup directory (default: true)
   - `timestampFormat` - Custom timestamp function (default: ISO 8601)
   - `mode` - Override file permissions (default: preserve original)
-- ✅ Exported from `@recursive-manager/common` package
+- ✅ Exported from `@recursivemanager/common` package
   - Added to package index with proper TypeScript types
   - Available for use in all other packages
 - ✅ Comprehensive test suite (21 tests, all passing)
@@ -5540,7 +5540,7 @@ This is the second utility in Phase 1.2 (File System Layer). It provides the fou
   - Buffer and string content support
   - Temp file in same directory ensures atomic rename
   - Comprehensive error handling with cleanup
-- ✅ Exported from `@recursive-manager/common` package
+- ✅ Exported from `@recursivemanager/common` package
   - Added to package index with proper TypeScript types
   - Available for use in all other packages
 - ✅ Comprehensive test suite (24 tests, all passing)
@@ -6037,11 +6037,11 @@ The codebase now has automated code quality checks and consistent formatting. Al
 - ✅ turbo.json with pipeline configuration for build, test, lint, dev
 - ✅ Created 5 package directories: common, core, cli, scheduler, adapters
 - ✅ Package-specific package.json files with dependencies:
-  - `@recursive-manager/common`: ajv, ajv-formats for JSON schema validation
-  - `@recursive-manager/core`: async-mutex, better-sqlite3, winston
-  - `@recursive-manager/cli`: chalk, commander, inquirer, ora
-  - `@recursive-manager/scheduler`: cron-parser, winston
-  - `@recursive-manager/adapters`: execa for process execution
+  - `@recursivemanager/common`: ajv, ajv-formats for JSON schema validation
+  - `@recursivemanager/core`: async-mutex, better-sqlite3, winston
+  - `@recursivemanager/cli`: chalk, commander, inquirer, ora
+  - `@recursivemanager/scheduler`: cron-parser, winston
+  - `@recursivemanager/adapters`: execa for process execution
 - ✅ TypeScript configuration with strict mode:
   - tsconfig.base.json with strict compiler options
   - Per-package tsconfig.json with project references
@@ -6376,7 +6376,7 @@ Created a comprehensive database migration system in `packages/common/src/db/mig
 
 **Test Results**: All 35 migration tests passing ✅
 
-**Export**: All migration functions exported from `@recursive-manager/common`
+**Export**: All migration functions exported from `@recursivemanager/common`
 
 **Notes**:
 
@@ -6765,11 +6765,11 @@ Successfully implemented a comprehensive structured logging system using Winston
 
 ```typescript
 // Basic usage with default logger
-import { logger } from '@recursive-manager/common';
+import { logger } from '@recursivemanager/common';
 logger.info('Application started');
 
 // With trace ID for correlation
-import { generateTraceId } from '@recursive-manager/common';
+import { generateTraceId } from '@recursivemanager/common';
 const traceId = generateTraceId();
 logger.info('Processing request', { traceId });
 
@@ -6779,7 +6779,7 @@ agentLogger.info('Task started', { taskId: 'task-456' });
 // Results in log with both agentId and taskId
 
 // Custom logger with file output
-import { createLogger } from '@recursive-manager/common';
+import { createLogger } from '@recursivemanager/common';
 const fileLogger = createLogger({
   level: 'debug',
   file: true,
@@ -6846,12 +6846,12 @@ Created `createAgentLogger()` function in `packages/common/src/logger.ts` that:
 
 **Example Usage**:
 ```typescript
-import { createAgentLogger } from '@recursive-manager/common';
+import { createAgentLogger } from '@recursivemanager/common';
 
 // Create logger for CEO agent
 const ceoLogger = createAgentLogger('CEO');
 ceoLogger.info('Task started', { taskId: 'task-123' });
-// Logs to: ~/.recursive-manager/logs/agents/CEO.log
+// Logs to: ~/.recursivemanager/logs/agents/CEO.log
 // Metadata automatically includes: { agentId: 'CEO', taskId: 'task-123' }
 
 // Create with custom options
@@ -7083,7 +7083,7 @@ All 15 tasks in Phase 1.4 (Logging & Audit System) are now complete:
 **Usage Example**:
 ```typescript
 import Database from 'better-sqlite3';
-import { createHierarchicalAgentLogger } from '@recursive-manager/common';
+import { createHierarchicalAgentLogger } from '@recursivemanager/common';
 
 const db = new Database('app.db');
 const logger = createHierarchicalAgentLogger(db, 'backend-dev-001');
@@ -7300,7 +7300,7 @@ Successfully integrated audit logging into all critical database operations for 
    - All tests passing ✅
 
 6. **Integration**:
-   - Exported from `@recursive-manager/core` package
+   - Exported from `@recursivemanager/core` package
    - Used in `loadAgentConfig()` after schema validation
    - Used in `saveAgentConfig()` before writing to disk
    - Fixed existing test that had invalid config (hiringBudget > maxSubordinates)
@@ -8157,9 +8157,9 @@ Task 2.3.8 or Task 2.3.9: Continue with remaining Task Management System impleme
 3. `/packages/core/src/tasks/__tests__/createTaskDirectory.test.ts` - Comprehensive tests (~410 lines)
 
 **Integration Points**:
-- Uses `atomicWrite()` from @recursive-manager/common
-- Uses `getTaskPath()` from @recursive-manager/common
-- Uses `TaskRecord` and `TaskStatus` types from @recursive-manager/common
+- Uses `atomicWrite()` from @recursivemanager/common
+- Uses `getTaskPath()` from @recursivemanager/common
+- Uses `TaskRecord` and `TaskStatus` types from @recursivemanager/common
 - Ready to be integrated with task creation flow in Phase 3
 
 **Status**: ✅ **Task 2.3.3 COMPLETE**
@@ -8432,7 +8432,7 @@ Implemented high-level task completion functionality that coordinates both datab
 
 2. **Function Workflow**:
    - Retrieves task to get current status before completion
-   - Calls `completeTask()` from `@recursive-manager/common` (database layer)
+   - Calls `completeTask()` from `@recursivemanager/common` (database layer)
    - Updates parent task progress recursively (already implemented in Task 2.3.14)
    - Calls `moveTaskDirectory()` to relocate task folder to `completed/`
    - Throws error if task not found, version mismatch, or file move fails
@@ -8703,7 +8703,7 @@ Created comprehensive test suite in `packages/core/src/tasks/__tests__/completeT
 - `deleteSchedule()` - Remove schedules
 
 **Scheduler Daemon**:
-- Runs as a long-lived process (`recursive-manager-scheduler` binary)
+- Runs as a long-lived process (`recursivemanager-scheduler` binary)
 - Uses Winston for structured logging
 - Implements job executor pattern (extensible for future job types)
 - Graceful shutdown on SIGTERM/SIGINT
@@ -8732,7 +8732,7 @@ Created comprehensive test suite in `packages/core/src/tasks/__tests__/completeT
 
 - Build tools (tsc, jest, eslint) not available in current environment, but code follows TypeScript best practices
 - Implementation is ready for testing once build environment is configured
-- Scheduler daemon can be started with `recursive-manager-scheduler` command
+- Scheduler daemon can be started with `recursivemanager-scheduler` command
 - Database migrations already support the schedules table (migration 004)
 - Integration with existing archival functions from Task 2.3.17 and 2.3.19
 
@@ -9545,7 +9545,7 @@ interface FrameworkAdapter {
 ### Design Decisions
 
 1. **Separation of Concerns**: Types defined in separate `types.ts` file for clarity
-2. **AgentConfig Import**: Reused existing `AgentConfig` from `@recursive-manager/common` to maintain consistency
+2. **AgentConfig Import**: Reused existing `AgentConfig` from `@recursivemanager/common` to maintain consistency
 3. **Simplified TaskSchema**: Created execution-focused task interface (subset of full TaskRecord from database)
 4. **Readonly Properties**: Made `name` and `version` readonly in FrameworkAdapter for immutability
 5. **Detailed Error Structure**: ExecutionResult errors include message, stack, and code for debugging

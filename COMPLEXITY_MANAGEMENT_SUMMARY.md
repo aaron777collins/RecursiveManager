@@ -54,13 +54,13 @@ This document summarizes the strategies employed to manage complexity while main
 
 ```bash
 # Beginner (one command):
-recursive-manager init "Build a web app"
+recursivemanager init "Build a web app"
 
 # Intermediate (some control):
-recursive-manager hire "Backend Dev" --manager CTO --cadence daily
+recursivemanager hire "Backend Dev" --manager CTO --cadence daily
 
 # Advanced (full control):
-recursive-manager hire "Backend Dev" \
+recursivemanager hire "Backend Dev" \
   --manager CTO \
   --goal "Build REST API" \
   --cadence custom \
@@ -101,14 +101,14 @@ recursive-manager hire "Backend Dev" \
 #### Abstraction 1: Agent Identity
 ```
 User sees: backend-dev-001
-System tracks: /home/user/.recursive-manager/agents/00-0f/backend-dev-001/
+System tracks: /home/user/.recursivemanager/agents/00-0f/backend-dev-001/
                 UUID: a7f3c9e1-4b2d-4e9a-8f3c-9e14b2d4e9a
                 Process ID: 12345
 ```
 
 #### Abstraction 2: Framework Execution
 ```
-User runs: recursive-manager run backend-dev-001
+User runs: recursivemanager run backend-dev-001
 System does:
   1. Load config from backend-dev-001/config.json
   2. Detect framework (Claude Code)
@@ -151,10 +151,10 @@ Error: Cannot hire agent "backend-dev"
 Reason: Missing required field 'mainGoal' in configuration
 
 Fix: Add --goal flag:
-  recursive-manager hire "backend-dev" --goal "Build REST API for user management"
+  recursivemanager hire "backend-dev" --goal "Build REST API for user management"
 
 Alternatively, use the interactive wizard:
-  recursive-manager hire --interactive
+  recursivemanager hire --interactive
 
 Documentation: https://docs.recursivemanager.dev/cli/hire#required-fields
 Related: If you're trying to hire a team, see https://docs.recursivemanager.dev/tutorials/hiring-team
@@ -171,7 +171,7 @@ Related: If you're trying to hire a team, see https://docs.recursivemanager.dev/
 **Solution**: One command shows everything
 
 ```bash
-recursive-manager debug backend-dev-001
+recursivemanager debug backend-dev-001
 
 # Output:
 ┌─ Agent: backend-dev-001 ────────────────────────┐
@@ -206,9 +206,9 @@ recursive-manager debug backend-dev-001
 │ Workspace: 3.8GB / 5GB (76%)                    │
 │ Files: 142 files, 37 tasks (12 active)          │
 │                                                  │
-│ Directory: /home/user/.recursive-manager/...    │
-│ Logs: recursive-manager logs backend-dev-001    │
-│ Config: recursive-manager config backend-dev-001│
+│ Directory: /home/user/.recursivemanager/...    │
+│ Logs: recursivemanager logs backend-dev-001    │
+│ Config: recursivemanager config backend-dev-001│
 └──────────────────────────────────────────────────┘
 ```
 
@@ -223,7 +223,7 @@ recursive-manager debug backend-dev-001
 **Solution**: Interactive wizard with smart questions
 
 ```bash
-recursive-manager init
+recursivemanager init
 
 → What is your main goal?
   Build a SaaS product for task management
@@ -252,7 +252,7 @@ recursive-manager init
 Next steps:
   1. CEO will analyze goal and create plan
   2. CEO will hire necessary team members
-  3. Monitor progress: recursive-manager status
+  3. Monitor progress: recursivemanager status
 
 Running initial analysis (this may take 2-3 minutes)...
 ```
@@ -270,19 +270,19 @@ Running initial analysis (this may take 2-3 minutes)...
 #### Convention Over Configuration
 ```bash
 # Don't make users specify everything:
-recursive-manager hire "backend-dev" \
+recursivemanager hire "backend-dev" \
   --id backend-dev-001 \           # Auto-generated
   --path agents/00-0f/backend-...  # Auto-calculated
   --config-version 1.0.0           # Auto-filled
 
 # Just ask for what matters:
-recursive-manager hire "Backend Developer" --goal "Build API"
+recursivemanager hire "Backend Developer" --goal "Build API"
 ```
 
 #### Safe by Default
 ```bash
 # Destructive operations require confirmation:
-recursive-manager fire backend-dev-001
+recursivemanager fire backend-dev-001
 
 ⚠️  Warning: This will fire backend-dev-001 and affect 2 subordinates
 
@@ -300,7 +300,7 @@ Proceed? (y/N)
 #### Dry Run Mode
 ```bash
 # Preview before executing:
-recursive-manager fire backend-dev-001 --dry-run
+recursivemanager fire backend-dev-001 --dry-run
 
 Would fire: backend-dev-001
 Would reassign to CTO:
@@ -356,9 +356,9 @@ packages/
 ```markdown
 # Quickstart
 
-npm install -g recursive-manager
-recursive-manager init "Build a web app"
-recursive-manager status
+npm install -g recursivemanager
+recursivemanager init "Build a web app"
+recursivemanager status
 
 Done! Your CEO agent is now planning...
 ```

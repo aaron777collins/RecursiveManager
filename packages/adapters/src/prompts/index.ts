@@ -7,7 +7,7 @@
  * @module prompts
  */
 
-import type { AgentConfig } from '@recursive-manager/common';
+import type { AgentConfig } from '@recursivemanager/common';
 import type { ExecutionContext, TaskSchema, Message } from '../types';
 
 /**

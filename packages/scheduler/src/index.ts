@@ -1,5 +1,5 @@
 /**
- * @recursive-manager/scheduler
+ * @recursivemanager/scheduler
  *
  * Scheduling daemon for RecursiveManager agents.
  * This package handles time-based and event-based agent execution.

@@ -17,14 +17,14 @@
  */
 
 import Database from 'better-sqlite3';
-import { PathOptions, createAgentLogger } from '@recursive-manager/common';
+import { PathOptions, createAgentLogger } from '@recursivemanager/common';
 import {
   getAgent,
   updateAgent,
   AgentRecord,
   createMessage,
   MessageInput,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 import { unblockTasksForResumedAgent, UnblockTasksResult } from './taskBlocking';
 import { ExecutionPool } from '../execution/ExecutionPool.js';
@@ -124,7 +124,7 @@ Your agent has been resumed and is now active again.
 
 You can now continue working on your tasks. Check your task list for any pending work:
 \`\`\`
-recursive-manager run ${agent.id}
+recursivemanager run ${agent.id}
 \`\`\`
 
 If you have tasks that were blocked during the pause, they should now be unblocked and ready to process.

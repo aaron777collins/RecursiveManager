@@ -12,7 +12,7 @@ set -euo pipefail
 # Configuration (can be overridden via environment variables)
 REPO_OWNER="${REPO_OWNER:-aaron777collins}"
 REPO_NAME="${REPO_NAME:-RecursiveManager}"
-INSTALL_DIR="${INSTALL_DIR:-$HOME/.recursive-manager}"
+INSTALL_DIR="${INSTALL_DIR:-$HOME/.recursivemanager}"
 VERSION="${VERSION:-latest}"
 GITHUB_API="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME"
 
@@ -156,7 +156,7 @@ download_binary() {
         log_info "Latest version: v$actual_version" >&2
     fi
 
-    local tarball="recursive-manager-v${actual_version}-${platform}.tar.gz"
+    local tarball="recursivemanager-v${actual_version}-${platform}.tar.gz"
     local download_url="https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/v${actual_version}/$tarball"
 
     log_step "Downloading v$actual_version for $platform..." >&2
@@ -223,7 +223,7 @@ install_binary() {
     log_info "Extracted files"
 
     # Make executable
-    chmod +x "$INSTALL_DIR/recursive-manager" 2>/dev/null || true
+    chmod +x "$INSTALL_DIR/recursivemanager" 2>/dev/null || true
 
     # Save version info
     echo "$version" > "$INSTALL_DIR/.version"
@@ -232,7 +232,7 @@ install_binary() {
     local symlink_created=false
     for bin_dir in "/usr/local/bin" "$HOME/bin" "$HOME/.local/bin"; do
         if [ -d "$bin_dir" ] && [ -w "$bin_dir" ]; then
-            ln -sf "$INSTALL_DIR/recursive-manager" "$bin_dir/recursive-manager"
+            ln -sf "$INSTALL_DIR/recursivemanager" "$bin_dir/recursivemanager"
             log_info "Created symlink in $bin_dir"
             symlink_created=true
             break
@@ -304,16 +304,16 @@ main() {
     echo "Installed: RecursiveManager v$actual_version"
     echo "Location:  $INSTALL_DIR"
     echo ""
-    echo "Run 'recursive-manager --help' to get started"
+    echo "Run 'recursivemanager --help' to get started"
     echo ""
 
     # Quick verification
-    if command -v recursive-manager &> /dev/null; then
-        log_info "Command 'recursive-manager' is in your PATH"
+    if command -v recursivemanager &> /dev/null; then
+        log_info "Command 'recursivemanager' is in your PATH"
     else
-        log_warn "Command 'recursive-manager' not found in PATH"
+        log_warn "Command 'recursivemanager' not found in PATH"
         echo "  Add $INSTALL_DIR to your PATH or use the full path:"
-        echo "  $INSTALL_DIR/recursive-manager"
+        echo "  $INSTALL_DIR/recursivemanager"
     fi
     echo ""
 }

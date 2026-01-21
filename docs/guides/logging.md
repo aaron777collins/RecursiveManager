@@ -42,7 +42,7 @@ RecursiveManager provides three types of loggers, all of which respect the `LOG_
 The default application logger for general use:
 
 ```typescript
-import { logger } from '@recursive-manager/common';
+import { logger } from '@recursivemanager/common';
 
 logger.info('Application started');
 logger.error('Database connection failed', { error: err.message });
@@ -55,14 +55,14 @@ logger.error('Database connection failed', { error: err.message });
 Per-agent loggers with file output:
 
 ```typescript
-import { createAgentLogger } from '@recursive-manager/common';
+import { createAgentLogger } from '@recursivemanager/common';
 
 const agentLogger = createAgentLogger('CEO');
 agentLogger.info('Task started', { taskId: 'task-123' });
 ```
 
 **Features**:
-- Logs to `~/.recursive-manager/logs/agents/{agentId}.log`
+- Logs to `~/.recursivemanager/logs/agents/{agentId}.log`
 - Daily log rotation
 - JSON format for structured parsing
 - Respects `LOG_LEVEL` environment variable
@@ -78,7 +78,7 @@ const debugAgentLogger = createAgentLogger('DevOps', { level: 'debug' });
 Agent logger with organizational hierarchy context:
 
 ```typescript
-import { createHierarchicalAgentLogger } from '@recursive-manager/common';
+import { createHierarchicalAgentLogger } from '@recursivemanager/common';
 
 const logger = createHierarchicalAgentLogger(db, 'backend-dev-001');
 logger.info('Processing task');
@@ -96,7 +96,7 @@ logger.info('Processing task');
 
 ```bash
 export LOG_LEVEL=debug
-recursive-manager run continuous
+recursivemanager run continuous
 ```
 
 All debug messages will appear in logs and console.
@@ -105,7 +105,7 @@ All debug messages will appear in logs and console.
 
 ```bash
 export LOG_LEVEL=info
-recursive-manager run continuous
+recursivemanager run continuous
 ```
 
 Only info, warn, and error messages appear.
@@ -114,7 +114,7 @@ Only info, warn, and error messages appear.
 
 ```bash
 export LOG_LEVEL=warn
-recursive-manager run continuous
+recursivemanager run continuous
 ```
 
 Only warnings and errors appear.
@@ -123,7 +123,7 @@ Only warnings and errors appear.
 
 ```bash
 export LOG_LEVEL=error
-recursive-manager run continuous
+recursivemanager run continuous
 ```
 
 Only error messages appear.
@@ -143,9 +143,9 @@ Default logger and console-enabled loggers output to stdout/stderr:
 Agent loggers output to individual files:
 
 ```
-~/.recursive-manager/logs/agents/CEO.log
-~/.recursive-manager/logs/agents/CTO.log
-~/.recursive-manager/logs/agents/backend-dev-001.log
+~/.recursivemanager/logs/agents/CEO.log
+~/.recursivemanager/logs/agents/CTO.log
+~/.recursivemanager/logs/agents/backend-dev-001.log
 ```
 
 ### Log Rotation
@@ -165,7 +165,7 @@ Logs are retained for 30 days by default.
 All loggers support automatic trace ID injection for distributed tracing:
 
 ```typescript
-import { withTraceId, logger } from '@recursive-manager/common';
+import { withTraceId, logger } from '@recursivemanager/common';
 
 await withTraceId(async () => {
   logger.info('Starting execution');  // Automatically includes traceId

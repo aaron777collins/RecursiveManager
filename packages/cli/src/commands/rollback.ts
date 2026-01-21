@@ -13,7 +13,7 @@ import {
   restoreSnapshot,
   validateSnapshot,
   type Snapshot,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import * as path from 'path';
 
 export function registerRollbackCommand(program: Command): void {

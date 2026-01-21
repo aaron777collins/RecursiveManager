@@ -8,31 +8,31 @@ RecursiveManager is currently in development. This API documentation describes t
 
 ## CLI API
 
-The primary interface is the command-line tool `recursive-manager`.
+The primary interface is the command-line tool `recursivemanager`.
 
 ### Quick Reference
 
 ```bash
 # System
-recursive-manager init                    # Initialize system
-recursive-manager status                  # View org chart
-recursive-manager config <get|set|list>   # Manage configuration
+recursivemanager init                    # Initialize system
+recursivemanager status                  # View org chart
+recursivemanager config <get|set|list>   # Manage configuration
 
 # Agents
-recursive-manager hire [options]          # Create agent
-recursive-manager fire <agent-id>         # Delete agent
-recursive-manager message <agent-id> <text>  # Send message
-recursive-manager run <agent-id>          # Manually trigger
+recursivemanager hire [options]          # Create agent
+recursivemanager fire <agent-id>         # Delete agent
+recursivemanager message <agent-id> <text>  # Send message
+recursivemanager run <agent-id>          # Manually trigger
 
 # Scheduling
-recursive-manager scheduler start         # Start scheduler daemon
-recursive-manager scheduler stop          # Stop scheduler daemon
-recursive-manager scheduler status        # Check scheduler status
+recursivemanager scheduler start         # Start scheduler daemon
+recursivemanager scheduler stop          # Stop scheduler daemon
+recursivemanager scheduler status        # Check scheduler status
 
 # Debugging
-recursive-manager logs <agent-id>         # View agent logs
-recursive-manager inspect <agent-id>      # Inspect agent state
-recursive-manager doctor                  # System health check
+recursivemanager logs <agent-id>         # View agent logs
+recursivemanager inspect <agent-id>      # Inspect agent state
+recursivemanager doctor                  # System health check
 ```
 
 See [CLI Commands](/api/cli-commands) for detailed command reference.
@@ -44,13 +44,13 @@ For advanced use cases, you can use RecursiveManager programmatically.
 ### Installation
 
 ```bash
-npm install @recursive-manager/core
+npm install @recursivemanager/core
 ```
 
 ### Basic Usage
 
 ```typescript
-import { AgentManager, Orchestrator } from '@recursive-manager/core';
+import { AgentManager, Orchestrator } from '@recursivemanager/core';
 
 // Initialize the system
 const manager = new AgentManager({
@@ -83,7 +83,7 @@ console.log(orgChart);
 
 RecursiveManager is organized as a monorepo with 5 packages:
 
-### @recursive-manager/common
+### @recursivemanager/common
 
 Shared utilities and types used across all packages.
 
@@ -93,10 +93,10 @@ Shared utilities and types used across all packages.
 - Utility functions
 
 ```typescript
-import { AgentConfig, TaskSchema, validateConfig } from '@recursive-manager/common';
+import { AgentConfig, TaskSchema, validateConfig } from '@recursivemanager/common';
 ```
 
-### @recursive-manager/core
+### @recursivemanager/core
 
 Core business logic for agent management.
 
@@ -107,10 +107,10 @@ Core business logic for agent management.
 - Database and file system layers
 
 ```typescript
-import { AgentManager, TaskManager, Orchestrator } from '@recursive-manager/core';
+import { AgentManager, TaskManager, Orchestrator } from '@recursivemanager/core';
 ```
 
-### @recursive-manager/cli
+### @recursivemanager/cli
 
 Command-line interface tool.
 
@@ -120,10 +120,10 @@ Command-line interface tool.
 
 ```bash
 # Use as installed binary
-recursive-manager <command>
+recursivemanager <command>
 ```
 
-### @recursive-manager/scheduler
+### @recursivemanager/scheduler
 
 Scheduler daemon for automatic agent execution.
 
@@ -132,10 +132,10 @@ Scheduler daemon for automatic agent execution.
 - `Daemon` - Background execution service
 
 ```typescript
-import { Scheduler, Daemon } from '@recursive-manager/scheduler';
+import { Scheduler, Daemon } from '@recursivemanager/scheduler';
 ```
 
-### @recursive-manager/adapters
+### @recursivemanager/adapters
 
 Framework adapters for different AI coding frameworks.
 
@@ -145,7 +145,7 @@ Framework adapters for different AI coding frameworks.
 - `FrameworkAdapter` - Base interface
 
 ```typescript
-import { ClaudeCodeAdapter, FrameworkAdapter } from '@recursive-manager/adapters';
+import { ClaudeCodeAdapter, FrameworkAdapter } from '@recursivemanager/adapters';
 ```
 
 ## Core Interfaces
@@ -229,7 +229,7 @@ interface ExecutionResult {
 All API methods throw typed errors:
 
 ```typescript
-import { AgentNotFoundError, ValidationError } from '@recursive-manager/core';
+import { AgentNotFoundError, ValidationError } from '@recursivemanager/core';
 
 try {
   await manager.hireAgent(config);

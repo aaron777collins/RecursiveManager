@@ -17,7 +17,7 @@ import {
   loadAgentConfig,
   getActiveTasks,
   getMessages,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import type { ExecutionContext, ExecutionMode, TaskSchema, Message } from '../types';
 
 /**

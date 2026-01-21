@@ -28,13 +28,13 @@ RecursiveManager requires an AI coding framework to execute agents:
 
 ```bash
 # Install RecursiveManager globally
-npm install -g recursive-manager
+npm install -g recursivemanager
 
 # Verify installation
-recursive-manager --version
+recursivemanager --version
 
 # Initialize the system
-recursive-manager init
+recursivemanager init
 ```
 
 ### Method 2: Local Installation
@@ -48,11 +48,11 @@ cd my-agents
 npm init -y
 
 # Install RecursiveManager locally
-npm install recursive-manager
+npm install recursivemanager
 
 # Use with npx
-npx recursive-manager --version
-npx recursive-manager init
+npx recursivemanager --version
+npx recursivemanager init
 ```
 
 ### Method 3: From Source (Developers)
@@ -72,7 +72,7 @@ npm run build
 npm link
 
 # Verify
-recursive-manager --version
+recursivemanager --version
 ```
 
 ## Initial Setup
@@ -80,7 +80,7 @@ recursive-manager --version
 ### 1. Initialize the System
 
 ```bash
-recursive-manager init
+recursivemanager init
 ```
 
 This will:
@@ -98,7 +98,7 @@ Interactive prompts will ask for:
 
 ```bash
 # Check system status
-recursive-manager status
+recursivemanager status
 
 # Should show:
 # ✓ Database initialized
@@ -117,8 +117,8 @@ claude-code --version
 
 # RecursiveManager will auto-detect it
 # Or manually configure:
-recursive-manager config set framework.type claude-code
-recursive-manager config set framework.path /path/to/claude-code
+recursivemanager config set framework.type claude-code
+recursivemanager config set framework.path /path/to/claude-code
 ```
 
 #### OpenCode Setup
@@ -128,8 +128,8 @@ recursive-manager config set framework.path /path/to/claude-code
 npm install -g opencode
 
 # Configure RecursiveManager
-recursive-manager config set framework.type opencode
-recursive-manager config set framework.path $(which opencode)
+recursivemanager config set framework.type opencode
+recursivemanager config set framework.path $(which opencode)
 ```
 
 ## Configuration
@@ -137,8 +137,8 @@ recursive-manager config set framework.path $(which opencode)
 ### Configuration File Location
 
 RecursiveManager stores configuration in:
-- **Linux/macOS**: `~/.config/recursive-manager/config.json`
-- **Windows**: `%APPDATA%/recursive-manager/config.json`
+- **Linux/macOS**: `~/.config/recursivemanager/config.json`
+- **Windows**: `%APPDATA%/recursivemanager/config.json`
 
 ### Key Configuration Options
 
@@ -159,7 +159,7 @@ RecursiveManager stores configuration in:
     "directory": "./logs"
   },
   "database": {
-    "path": "./data/recursive-manager.db"
+    "path": "./data/recursivemanager.db"
   }
 }
 ```
@@ -168,16 +168,16 @@ RecursiveManager stores configuration in:
 
 ```bash
 # View all config
-recursive-manager config list
+recursivemanager config list
 
 # Get specific value
-recursive-manager config get framework.type
+recursivemanager config get framework.type
 
 # Set value
-recursive-manager config set framework.timeout 7200000
+recursivemanager config set framework.timeout 7200000
 
 # Reset to defaults
-recursive-manager config reset
+recursivemanager config reset
 ```
 
 ## Verify Setup
@@ -185,7 +185,7 @@ recursive-manager config reset
 Run the verification script:
 
 ```bash
-recursive-manager doctor
+recursivemanager doctor
 ```
 
 This will check:
@@ -204,7 +204,7 @@ This will check:
 # Error: Claude Code CLI not found
 
 # Solution: Install or configure path
-recursive-manager config set framework.path /path/to/claude-code
+recursivemanager config set framework.path /path/to/claude-code
 ```
 
 ### Permission Errors
@@ -222,9 +222,9 @@ chmod -R 755 ./data
 # Error: database is locked
 
 # Solution: Stop any running processes
-recursive-manager scheduler stop
+recursivemanager scheduler stop
 # Remove lock files
-rm ./data/recursive-manager.db-shm ./data/recursive-manager.db-wal
+rm ./data/recursivemanager.db-shm ./data/recursivemanager.db-wal
 ```
 
 ### Port Already in Use (Scheduler)
@@ -233,7 +233,7 @@ rm ./data/recursive-manager.db-shm ./data/recursive-manager.db-wal
 # Error: Port 3000 already in use
 
 # Solution: Change scheduler port
-recursive-manager config set scheduler.port 3001
+recursivemanager config set scheduler.port 3001
 ```
 
 ## Next Steps

@@ -17,7 +17,7 @@ import {
   getTaskPath,
   type TaskRecord,
   type TaskStatus,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 
 /**
  * Input for creating a task directory
@@ -46,7 +46,7 @@ export interface CreateTaskDirectoryInput {
   /**
    * Optional path options for directory resolution
    */
-  options?: import('@recursive-manager/common').PathOptions;
+  options?: import('@recursivemanager/common').PathOptions;
 }
 
 /**
@@ -329,7 +329,7 @@ export async function moveTaskDirectory(
   taskId: string,
   oldStatus: TaskStatus,
   newStatus: TaskStatus,
-  options: import('@recursive-manager/common').PathOptions = {}
+  options: import('@recursivemanager/common').PathOptions = {}
 ): Promise<void> {
   // Only move if status actually changed
   if (oldStatus === newStatus) {

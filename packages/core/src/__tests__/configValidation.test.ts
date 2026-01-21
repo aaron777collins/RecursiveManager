@@ -14,7 +14,7 @@ import {
   validateAgentConfigStrict,
   SchemaValidationError,
   type AgentConfig,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import {
   validateAgentConfigBusinessLogic,
   validateAgentConfigBusinessLogicStrict,

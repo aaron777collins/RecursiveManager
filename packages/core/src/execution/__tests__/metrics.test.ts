@@ -43,13 +43,13 @@ describe('Prometheus Metrics', () => {
       });
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_executions_total');
+      expect(metrics).toContain('recursivemanager_executions_total');
       expect(metrics).toContain('mode="continuous"');
       expect(metrics).toContain('status="success"');
       expect(metrics).toContain('agent_id="test-agent-1"');
-      expect(metrics).toContain('recursive_manager_execution_duration_ms');
-      expect(metrics).toContain('recursive_manager_tasks_completed_total');
-      expect(metrics).toContain('recursive_manager_messages_processed_total');
+      expect(metrics).toContain('recursivemanager_execution_duration_ms');
+      expect(metrics).toContain('recursivemanager_tasks_completed_total');
+      expect(metrics).toContain('recursivemanager_messages_processed_total');
     });
 
     it('should record failed reactive execution', async () => {
@@ -63,7 +63,7 @@ describe('Prometheus Metrics', () => {
       });
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_executions_total');
+      expect(metrics).toContain('recursivemanager_executions_total');
       expect(metrics).toContain('mode="reactive"');
       expect(metrics).toContain('status="failure"');
       expect(metrics).toContain('agent_id="test-agent-2"');
@@ -80,7 +80,7 @@ describe('Prometheus Metrics', () => {
       });
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_executions_total');
+      expect(metrics).toContain('recursivemanager_executions_total');
       // Zero counters shouldn't be incremented
     });
   });
@@ -93,9 +93,9 @@ describe('Prometheus Metrics', () => {
       });
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_analysis_executions_total');
+      expect(metrics).toContain('recursivemanager_analysis_executions_total');
       expect(metrics).toContain('status="success"');
-      expect(metrics).toContain('recursive_manager_analysis_duration_ms');
+      expect(metrics).toContain('recursivemanager_analysis_duration_ms');
     });
 
     it('should record failed analysis', async () => {
@@ -105,7 +105,7 @@ describe('Prometheus Metrics', () => {
       });
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_analysis_executions_total');
+      expect(metrics).toContain('recursivemanager_analysis_executions_total');
       expect(metrics).toContain('status="failure"');
     });
   });
@@ -118,8 +118,8 @@ describe('Prometheus Metrics', () => {
       });
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_active_executions');
-      expect(metrics).toContain('recursive_manager_queue_depth');
+      expect(metrics).toContain('recursivemanager_active_executions');
+      expect(metrics).toContain('recursivemanager_queue_depth');
     });
 
     it('should handle zero values', async () => {
@@ -129,8 +129,8 @@ describe('Prometheus Metrics', () => {
       });
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_active_executions 0');
-      expect(metrics).toContain('recursive_manager_queue_depth 0');
+      expect(metrics).toContain('recursivemanager_active_executions 0');
+      expect(metrics).toContain('recursivemanager_queue_depth 0');
     });
   });
 
@@ -139,7 +139,7 @@ describe('Prometheus Metrics', () => {
       recordQueueWaitTime(250);
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_queue_wait_time_ms');
+      expect(metrics).toContain('recursivemanager_queue_wait_time_ms');
     });
   });
 
@@ -148,7 +148,7 @@ describe('Prometheus Metrics', () => {
       recordQuotaViolation('memory', 'test-agent-4');
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_quota_violations_total');
+      expect(metrics).toContain('recursivemanager_quota_violations_total');
       expect(metrics).toContain('violation_type="memory"');
       expect(metrics).toContain('agent_id="test-agent-4"');
     });
@@ -157,7 +157,7 @@ describe('Prometheus Metrics', () => {
       recordQuotaViolation('cpu', 'test-agent-5');
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_quota_violations_total');
+      expect(metrics).toContain('recursivemanager_quota_violations_total');
       expect(metrics).toContain('violation_type="cpu"');
       expect(metrics).toContain('agent_id="test-agent-5"');
     });
@@ -166,7 +166,7 @@ describe('Prometheus Metrics', () => {
       recordQuotaViolation('time', 'test-agent-6');
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_quota_violations_total');
+      expect(metrics).toContain('recursivemanager_quota_violations_total');
       expect(metrics).toContain('violation_type="time"');
       expect(metrics).toContain('agent_id="test-agent-6"');
     });
@@ -177,7 +177,7 @@ describe('Prometheus Metrics', () => {
       updateAgentHealth('test-agent-7', 85);
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_agent_health_score');
+      expect(metrics).toContain('recursivemanager_agent_health_score');
       expect(metrics).toContain('agent_id="test-agent-7"');
       expect(metrics).toContain(' 85');
     });
@@ -186,7 +186,7 @@ describe('Prometheus Metrics', () => {
       updateAgentHealth('test-agent-8', 0);
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_agent_health_score');
+      expect(metrics).toContain('recursivemanager_agent_health_score');
       expect(metrics).toContain('agent_id="test-agent-8"');
       expect(metrics).toContain(' 0');
     });
@@ -195,7 +195,7 @@ describe('Prometheus Metrics', () => {
       updateAgentHealth('test-agent-9', 100);
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_agent_health_score');
+      expect(metrics).toContain('recursivemanager_agent_health_score');
       expect(metrics).toContain('agent_id="test-agent-9"');
       expect(metrics).toContain(' 100');
     });
@@ -263,8 +263,8 @@ describe('Prometheus Metrics', () => {
       }
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_executions_total');
-      expect(metrics).toContain('recursive_manager_execution_duration_ms');
+      expect(metrics).toContain('recursivemanager_executions_total');
+      expect(metrics).toContain('recursivemanager_execution_duration_ms');
     });
 
     it('should track different agent IDs separately', async () => {
@@ -321,7 +321,7 @@ describe('Prometheus Metrics', () => {
       updateMemoryUsage();
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_memory_usage_bytes');
+      expect(metrics).toContain('recursivemanager_memory_usage_bytes');
       expect(metrics).toContain('type="heapUsed"');
       expect(metrics).toContain('type="heapTotal"');
       expect(metrics).toContain('type="rss"');
@@ -333,7 +333,7 @@ describe('Prometheus Metrics', () => {
 
       const metrics = await getMetrics();
       // Memory usage should always be positive
-      expect(metrics).toContain('recursive_manager_memory_usage_bytes');
+      expect(metrics).toContain('recursivemanager_memory_usage_bytes');
       // The actual values will vary, but they should exist
     });
   });
@@ -345,7 +345,7 @@ describe('Prometheus Metrics', () => {
       updateCpuUsage();
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_cpu_usage_percent');
+      expect(metrics).toContain('recursivemanager_cpu_usage_percent');
     });
 
     it('should report CPU percentage between 0-100', async () => {
@@ -353,7 +353,7 @@ describe('Prometheus Metrics', () => {
       updateCpuUsage();
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_cpu_usage_percent');
+      expect(metrics).toContain('recursivemanager_cpu_usage_percent');
       // CPU usage should be capped at 100%
     });
 
@@ -363,7 +363,7 @@ describe('Prometheus Metrics', () => {
       updateCpuUsage();
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_cpu_usage_percent');
+      expect(metrics).toContain('recursivemanager_cpu_usage_percent');
     });
   });
 
@@ -373,8 +373,8 @@ describe('Prometheus Metrics', () => {
       updateSystemMetrics();
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_memory_usage_bytes');
-      expect(metrics).toContain('recursive_manager_cpu_usage_percent');
+      expect(metrics).toContain('recursivemanager_memory_usage_bytes');
+      expect(metrics).toContain('recursivemanager_cpu_usage_percent');
     });
 
     it('should be callable multiple times', async () => {
@@ -385,8 +385,8 @@ describe('Prometheus Metrics', () => {
       updateSystemMetrics();
 
       const metrics = await getMetrics();
-      expect(metrics).toContain('recursive_manager_memory_usage_bytes');
-      expect(metrics).toContain('recursive_manager_cpu_usage_percent');
+      expect(metrics).toContain('recursivemanager_memory_usage_bytes');
+      expect(metrics).toContain('recursivemanager_cpu_usage_percent');
     });
   });
 });

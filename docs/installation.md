@@ -38,13 +38,13 @@ npm link
 For automated installations in CI/CD pipelines:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash -s -- --headless --install-dir /opt/recursive-manager
+curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash -s -- --headless --install-dir /opt/recursivemanager
 ```
 
 ### Headless Options
 
 - `--headless` - Non-interactive mode
-- `--install-dir DIR` - Custom install location (default: ~/.recursive-manager)
+- `--install-dir DIR` - Custom install location (default: ~/.recursivemanager)
 - `--skip-shell-config` - Don't modify shell configuration
 - `--skip-build` - Don't build after install (use pre-built)
 - `--package-manager [npm|yarn|pnpm]` - Force specific package manager
@@ -60,8 +60,8 @@ curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/ma
 After installation, verify that RecursiveManager is installed correctly:
 
 ```bash
-recursive-manager --version
-recursive-manager --help
+recursivemanager --version
+recursivemanager --help
 ```
 
 ## Uninstallation
@@ -69,11 +69,11 @@ recursive-manager --help
 To uninstall RecursiveManager:
 
 ```bash
-~/.recursive-manager/scripts/uninstall.sh
+~/.recursivemanager/scripts/uninstall.sh
 ```
 
 Or with options:
 
 ```bash
-~/.recursive-manager/scripts/uninstall.sh --remove-data --headless
+~/.recursivemanager/scripts/uninstall.sh --remove-data --headless
 ```

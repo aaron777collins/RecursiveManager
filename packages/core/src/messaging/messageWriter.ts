@@ -6,7 +6,7 @@
 
 import { mkdir } from 'fs/promises';
 import path from 'path';
-import { atomicWrite, getInboxPath } from '@recursive-manager/common';
+import { atomicWrite, getInboxPath } from '@recursivemanager/common';
 
 /**
  * Message data structure

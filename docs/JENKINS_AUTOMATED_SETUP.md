@@ -58,9 +58,9 @@ Push → Jenkins Webhook → Run CI Stages → Build Binaries → Create GitHub 
 
 ### What Gets Released:
 
-- `recursive-manager-v{version}-linux.tar.gz`
-- `recursive-manager-v{version}-macos.tar.gz`
-- `recursive-manager-v{version}-windows.tar.gz`
+- `recursivemanager-v{version}-linux.tar.gz`
+- `recursivemanager-v{version}-macos.tar.gz`
+- `recursivemanager-v{version}-windows.tar.gz`
 - `checksums.txt`
 
 ## GitHub Webhook Configuration

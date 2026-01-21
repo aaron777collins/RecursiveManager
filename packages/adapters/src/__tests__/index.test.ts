@@ -1,5 +1,5 @@
 /**
- * Example test for @recursive-manager/adapters package
+ * Example test for @recursivemanager/adapters package
  * This test verifies that the Jest configuration is working correctly.
  */
 

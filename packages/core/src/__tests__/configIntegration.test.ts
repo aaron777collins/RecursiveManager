@@ -18,7 +18,7 @@
  */
 
 import { generateDefaultConfig, mergeConfigs, saveAgentConfig, loadAgentConfig } from '../config';
-import { validateAgentConfigStrict } from '@recursive-manager/common';
+import { validateAgentConfigStrict } from '@recursivemanager/common';
 import { mkdtempSync, rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';

@@ -312,8 +312,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { hireAgent, HireValidationError } from '../hireAgent';
 import { getAgentDirectory } from '../directories';
-import { runMigrations } from '@recursive-manager/common/db';
-import { allMigrations } from '@recursive-manager/common/db/migrations';
+import { runMigrations } from '@recursivemanager/common/db';
+import { allMigrations } from '@recursivemanager/common/db/migrations';
 
 describe('hireAgent', () => {
   let db: Database.Database;
@@ -389,15 +389,15 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import { run } from '../commands/run';
-import { initializeDatabase } from '@recursive-manager/common';
+import { initializeDatabase } from '@recursivemanager/common';
 
 // Mock external dependencies
 jest.mock('../utils/prompts', () => ({
   select: jest.fn().mockResolvedValue('continuous'),
 }));
 
-jest.mock('@recursive-manager/core', () => {
-  const actual = jest.requireActual('@recursive-manager/core');
+jest.mock('@recursivemanager/core', () => {
+  const actual = jest.requireActual('@recursivemanager/core');
   return {
     ...actual,
     ExecutionOrchestrator: jest.fn().mockImplementation(() => ({
@@ -472,7 +472,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import { hire } from '../commands/hire';
-import { initializeDatabase } from '@recursive-manager/common';
+import { initializeDatabase } from '@recursivemanager/common';
 
 jest.mock('../utils/prompts', () => ({
   input: jest.fn()
@@ -899,8 +899,8 @@ jest.mock('../utils/prompts', () => ({
 Preserve real implementations while mocking specific exports:
 
 ```typescript
-jest.mock('@recursive-manager/core', () => {
-  const actual = jest.requireActual('@recursive-manager/core');
+jest.mock('@recursivemanager/core', () => {
+  const actual = jest.requireActual('@recursivemanager/core');
   return {
     ...actual,  // Keep all real exports
     ExecutionOrchestrator: jest.fn().mockImplementation(() => ({

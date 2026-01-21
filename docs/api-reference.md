@@ -9,7 +9,7 @@ This page documents the public API for RecursiveManager.
 Main class for managing the agent hierarchy.
 
 ```typescript
-import { RecursiveManager } from '@recursive-manager/core';
+import { RecursiveManager } from '@recursivemanager/core';
 
 const manager = new RecursiveManager(config);
 ```
@@ -60,7 +60,7 @@ interface Task {
 Interface for database operations.
 
 ```typescript
-import { getDatabase } from '@recursive-manager/common';
+import { getDatabase } from '@recursivemanager/common';
 
 const db = await getDatabase();
 ```
@@ -79,7 +79,7 @@ const db = await getDatabase();
 Configuration interface and loader.
 
 ```typescript
-import { loadConfig, config } from '@recursive-manager/common';
+import { loadConfig, config } from '@recursivemanager/common';
 
 const currentConfig = config;
 const newConfig = loadConfig();
@@ -92,7 +92,7 @@ const newConfig = loadConfig();
 Worker pool for parallel task execution.
 
 ```typescript
-import { ExecutionPool } from '@recursive-manager/core';
+import { ExecutionPool } from '@recursivemanager/core';
 
 const pool = new ExecutionPool(workerCount);
 await pool.execute(task);
@@ -105,7 +105,7 @@ await pool.execute(task);
 Multi-perspective analysis framework.
 
 ```typescript
-import { PerspectiveAnalysis } from '@recursive-manager/core';
+import { PerspectiveAnalysis } from '@recursivemanager/core';
 
 const analysis = new PerspectiveAnalysis();
 const result = await analysis.analyze(decision);
@@ -129,7 +129,7 @@ const result = await analysis.analyze(decision);
 Adapter for Claude Code integration.
 
 ```typescript
-import { ClaudeCodeAdapter } from '@recursive-manager/adapters';
+import { ClaudeCodeAdapter } from '@recursivemanager/adapters';
 
 const adapter = new ClaudeCodeAdapter(config);
 await adapter.execute(prompt);
@@ -142,7 +142,7 @@ await adapter.execute(prompt);
 Version information utilities.
 
 ```typescript
-import { VERSION, getVersionInfo } from '@recursive-manager/common';
+import { VERSION, getVersionInfo } from '@recursivemanager/common';
 
 console.log(VERSION); // "0.1.0"
 console.log(getVersionInfo());
@@ -153,7 +153,7 @@ console.log(getVersionInfo());
 Locking mechanism for agent synchronization.
 
 ```typescript
-import { AgentLock } from '@recursive-manager/core';
+import { AgentLock } from '@recursivemanager/core';
 
 const lock = new AgentLock();
 await lock.acquire('agent-123');
@@ -190,5 +190,5 @@ import type {
   AgentStatus,
   TaskStatus,
   RecursiveManagerConfig,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 ```

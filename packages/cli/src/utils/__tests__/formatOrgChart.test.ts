@@ -11,7 +11,7 @@ import {
   formatAsJSON,
   type OrgChartEntry,
 } from '../formatOrgChart';
-import type { AgentRecord } from '@recursive-manager/common';
+import type { AgentRecord } from '@recursivemanager/common';
 
 /**
  * Helper to create a mock agent record

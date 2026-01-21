@@ -1,5 +1,5 @@
 /**
- * Jest configuration for @recursive-manager/common package
+ * Jest configuration for @recursivemanager/common package
  */
 
 module.exports = {

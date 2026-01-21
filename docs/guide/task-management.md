@@ -48,7 +48,7 @@ pending → in-progress → completed → archived
 #### 1. Creation (pending)
 
 ```typescript
-import { createTask } from '@recursive-manager/common';
+import { createTask } from '@recursivemanager/common';
 
 const task = await createTask(db, {
   id: 'task-001',
@@ -72,7 +72,7 @@ const task = await createTask(db, {
 #### 2. Execution (in-progress)
 
 ```typescript
-import { updateTaskStatus } from '@recursive-manager/common';
+import { updateTaskStatus } from '@recursivemanager/common';
 
 await updateTaskStatus(db, 'task-001', 'in-progress', 1); // version 1
 ```
@@ -104,7 +104,7 @@ const task = await createTask(db, {
 #### 4. Completion (completed)
 
 ```typescript
-import { completeTaskWithFiles } from '@recursive-manager/core';
+import { completeTaskWithFiles } from '@recursivemanager/core';
 
 await completeTaskWithFiles(db, 'task-001', 'agent-ceo', {
   baseDir: '/path/to/data'
@@ -121,7 +121,7 @@ await completeTaskWithFiles(db, 'task-001', 'agent-ceo', {
 #### 5. Archival (archived)
 
 ```typescript
-import { archiveOldTasks } from '@recursive-manager/core';
+import { archiveOldTasks } from '@recursivemanager/core';
 
 const archived = await archiveOldTasks(db, 'agent-ceo', {
   baseDir: '/path/to/data',
@@ -247,7 +247,7 @@ The following indexes optimize task queries:
 ### Basic Task Creation
 
 ```typescript
-import { createTask } from '@recursive-manager/common';
+import { createTask } from '@recursivemanager/common';
 
 const task = await createTask(db, {
   id: 'task-analytics-001',
@@ -292,7 +292,7 @@ console.log(updated.subtasks_total); // 1
 Tasks support nesting up to **depth 5** (enforced by `TASK_MAX_DEPTH` constant):
 
 ```typescript
-import { TASK_MAX_DEPTH } from '@recursive-manager/common';
+import { TASK_MAX_DEPTH } from '@recursivemanager/common';
 
 // Depth hierarchy:
 // Depth 0: Root tasks (no parent)
@@ -384,7 +384,7 @@ Analyze Q4 revenue trends and identify growth opportunities.
 ### Updating Task Status
 
 ```typescript
-import { updateTaskStatus } from '@recursive-manager/common';
+import { updateTaskStatus } from '@recursivemanager/common';
 
 // Start working on a task
 await updateTaskStatus(db, 'task-001', 'in-progress', currentVersion);
@@ -416,7 +416,7 @@ try {
 ### Updating Progress
 
 ```typescript
-import { updateTaskProgress } from '@recursive-manager/common';
+import { updateTaskProgress } from '@recursivemanager/common';
 
 // Manually set progress percentage
 await updateTaskProgress(db, 'task-001', {
@@ -462,7 +462,7 @@ console.log(final.percent_complete); // 100
 Tasks track execution attempts:
 
 ```typescript
-import { updateTaskMetadata } from '@recursive-manager/common';
+import { updateTaskMetadata } from '@recursivemanager/common';
 
 // Update execution counters
 await updateTaskMetadata(db, 'task-001', {
@@ -582,7 +582,7 @@ try {
 When an agent is paused, all its tasks are automatically blocked:
 
 ```typescript
-import { pauseAgent } from '@recursive-manager/core';
+import { pauseAgent } from '@recursivemanager/core';
 
 // Pause the agent
 await pauseAgent(db, 'agent-001', 'Taking a break', {
@@ -603,7 +603,7 @@ tasks.forEach(task => {
 When an agent resumes, pause blocking is removed:
 
 ```typescript
-import { resumeAgent } from '@recursive-manager/core';
+import { resumeAgent } from '@recursivemanager/core';
 
 // Resume the agent
 await resumeAgent(db, 'agent-001', {
@@ -628,7 +628,7 @@ tasks.forEach(task => {
 ### Querying Blocked Tasks
 
 ```typescript
-import { getBlockedTasks } from '@recursive-manager/common';
+import { getBlockedTasks } from '@recursivemanager/common';
 
 // Get all blocked tasks for an agent
 const blocked = await getBlockedTasks(db, 'agent-001');
@@ -655,7 +655,7 @@ Task A (blocked_by: ["task-b"])
 ### Manual Deadlock Detection
 
 ```typescript
-import { detectTaskDeadlock } from '@recursive-manager/common';
+import { detectTaskDeadlock } from '@recursivemanager/common';
 
 // Check if a task is part of a deadlock
 const cycle = await detectTaskDeadlock(db, 'task-a');
@@ -672,7 +672,7 @@ if (cycle) {
 ### Automatic Deadlock Monitoring
 
 ```typescript
-import { monitorDeadlocks } from '@recursive-manager/core';
+import { monitorDeadlocks } from '@recursivemanager/core';
 
 // Run deadlock detection on all blocked tasks
 const result = await monitorDeadlocks(db, {
@@ -760,7 +760,7 @@ console.log(taskB.status); // 'pending' (unblocked)
 Send a message to the manager agent to handle the deadlock:
 
 ```typescript
-import { createMessage } from '@recursive-manager/common';
+import { createMessage } from '@recursivemanager/common';
 
 await createMessage(db, {
   from_agent_id: 'agent-001',
@@ -809,7 +809,7 @@ function detectCycle(taskId: string, visited: Set<string>, path: string[]): stri
 Tasks can be delegated from a manager to subordinate agents:
 
 ```typescript
-import { delegateTask } from '@recursive-manager/common';
+import { delegateTask } from '@recursivemanager/common';
 
 // Delegate task to a subordinate
 await delegateTask(db, 'task-001', 'subordinate-agent-id');
@@ -837,7 +837,7 @@ try {
 When a task is delegated, the subordinate receives a notification:
 
 ```typescript
-import { notifyTaskDelegation } from '@recursive-manager/core';
+import { notifyTaskDelegation } from '@recursivemanager/core';
 
 // Send delegation notification
 await notifyTaskDelegation(db, 'task-001', 'subordinate-agent-id', {
@@ -856,7 +856,7 @@ await notifyTaskDelegation(db, 'task-001', 'subordinate-agent-id', {
 import {
   delegateTask,
   notifyTaskDelegation
-} from '@recursive-manager/core';
+} from '@recursivemanager/core';
 
 // Manager creates task
 const task = await createTask(db, {
@@ -885,7 +885,7 @@ console.log('Task delegated successfully');
 ### Basic Completion
 
 ```typescript
-import { completeTask } from '@recursive-manager/common';
+import { completeTask } from '@recursivemanager/common';
 
 const task = await getTask(db, 'task-001');
 await completeTask(db, 'task-001', task.version);
@@ -898,7 +898,7 @@ console.log(completed.completed_at); // Timestamp
 ### Completion with Files
 
 ```typescript
-import { completeTaskWithFiles } from '@recursive-manager/core';
+import { completeTaskWithFiles } from '@recursivemanager/core';
 
 // Complete task and move workspace files
 await completeTaskWithFiles(db, 'task-001', 'agent-ceo', {
@@ -913,7 +913,7 @@ await completeTaskWithFiles(db, 'task-001', 'agent-ceo', {
 ### Completion Notifications
 
 ```typescript
-import { notifyTaskCompletion } from '@recursive-manager/core';
+import { notifyTaskCompletion } from '@recursivemanager/core';
 
 // Notify manager that task is complete
 await notifyTaskCompletion(db, 'task-001', 'agent-ceo', {
@@ -952,7 +952,7 @@ import {
   getTask,
   completeTaskWithFiles,
   notifyTaskCompletion
-} from '@recursive-manager/core';
+} from '@recursivemanager/core';
 
 // Load task
 const task = await getTask(db, 'task-001');
@@ -983,7 +983,7 @@ console.log('Task completed successfully');
 Completed tasks are automatically archived after a retention period:
 
 ```typescript
-import { archiveOldTasks } from '@recursive-manager/core';
+import { archiveOldTasks } from '@recursivemanager/core';
 
 // Archive tasks completed more than 7 days ago
 const result = await archiveOldTasks(db, 'agent-ceo', {
@@ -1018,7 +1018,7 @@ agents/agent-ceo/tasks/archive/
 Old archives can be compressed to save disk space:
 
 ```typescript
-import { compressOldArchives } from '@recursive-manager/core';
+import { compressOldArchives } from '@recursivemanager/core';
 
 // Compress archives older than 90 days
 const result = await compressOldArchives(db, 'agent-ceo', {
@@ -1035,7 +1035,7 @@ console.log(`Compressed: ${result.compressedCount} archives`);
 ### Querying Archived Tasks
 
 ```typescript
-import { getCompletedTasks } from '@recursive-manager/core';
+import { getCompletedTasks } from '@recursivemanager/core';
 
 // Get all completed tasks for an agent (including archived)
 const completed = await getCompletedTasks(db, 'agent-ceo', {
@@ -1057,7 +1057,7 @@ completed.forEach(task => {
 import {
   archiveOldTasks,
   compressOldArchives
-} from '@recursive-manager/core';
+} from '@recursivemanager/core';
 
 async function performMaintenance(db: Database, agentId: string) {
   const baseDir = '/path/to/data';
@@ -1167,7 +1167,7 @@ await createTask(db, {
 
 ```typescript
 // Run periodic deadlock monitoring
-import { monitorDeadlocks } from '@recursive-manager/core';
+import { monitorDeadlocks } from '@recursivemanager/core';
 
 // Check for deadlocks hourly
 setInterval(async () => {
@@ -1185,7 +1185,7 @@ setInterval(async () => {
 ### 6. Use Progress Updates
 
 ```typescript
-import { updateTaskProgress } from '@recursive-manager/common';
+import { updateTaskProgress } from '@recursivemanager/common';
 
 // Update progress as work proceeds
 async function performWork(taskId: string) {
@@ -1206,7 +1206,7 @@ async function performWork(taskId: string) {
 
 ```typescript
 // Archive completed tasks regularly
-import { archiveOldTasks } from '@recursive-manager/core';
+import { archiveOldTasks } from '@recursivemanager/core';
 
 // Daily cleanup job
 async function dailyCleanup() {
@@ -1573,7 +1573,7 @@ for (const blockerId of blockers) {
 2. **Run monitoring:**
 
 ```typescript
-import { monitorDeadlocks } from '@recursive-manager/core';
+import { monitorDeadlocks } from '@recursivemanager/core';
 
 const result = await monitorDeadlocks(db, {
   baseDir: '/path/to/data'
@@ -1611,7 +1611,7 @@ console.log('Actual subtasks:', subtasks);
 1. **Manually trigger update:**
 
 ```typescript
-import { updateParentTaskProgress } from '@recursive-manager/common';
+import { updateParentTaskProgress } from '@recursivemanager/common';
 
 // Force parent progress recalculation
 await updateParentTaskProgress(db, 'child-task-id');
@@ -1726,7 +1726,7 @@ try {
 1. **Recreate task directory:**
 
 ```typescript
-import { createTaskDirectory } from '@recursive-manager/core';
+import { createTaskDirectory } from '@recursivemanager/core';
 
 // Recreate missing workspace
 await createTaskDirectory('task-001', 'agent-001', {

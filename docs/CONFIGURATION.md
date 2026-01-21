@@ -40,10 +40,10 @@ The fastest way to configure RecursiveManager:
 
 ```bash
 # Initialize with interactive wizard
-recursive-manager init
+recursivemanager init
 
 # Or use the configuration command
-recursive-manager config
+recursivemanager config
 ```
 
 ### Manual Configuration
@@ -52,10 +52,10 @@ Create a `.env` file in your installation directory:
 
 ```bash
 # Create config directory
-mkdir -p ~/.recursive-manager
+mkdir -p ~/.recursivemanager
 
 # Create configuration file
-cat > ~/.recursive-manager/.env << 'EOF'
+cat > ~/.recursivemanager/.env << 'EOF'
 # RecursiveManager Configuration v1.0.0
 
 # AI Provider (recommended: aiceo-gateway)
@@ -79,7 +79,7 @@ EOF
 
 RecursiveManager looks for configuration files in this order:
 
-1. **Installation Directory**: `~/.recursive-manager/.env` (recommended)
+1. **Installation Directory**: `~/.recursivemanager/.env` (recommended)
 2. **Current Directory**: `./.env` (project-specific overrides)
 3. **Environment Variables**: Process environment (highest priority)
 
@@ -93,10 +93,10 @@ RecursiveManager looks for configuration files in this order:
 
 ```bash
 # Copy the example template
-cp .env.example ~/.recursive-manager/.env
+cp .env.example ~/.recursivemanager/.env
 
 # Edit with your settings
-nano ~/.recursive-manager/.env
+nano ~/.recursivemanager/.env
 ```
 
 ---
@@ -107,14 +107,14 @@ nano ~/.recursive-manager/.env
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `RECURSIVE_MANAGER_HOME` | `~/.recursive-manager` | Root installation directory containing all data, logs, and configuration |
-| `RECURSIVE_MANAGER_DATA_DIR` | `~/.recursive-manager/data` | Data storage directory for databases, snapshots, and agent workspaces |
+| `RECURSIVEMANAGER_HOME` | `~/.recursivemanager` | Root installation directory containing all data, logs, and configuration |
+| `RECURSIVEMANAGER_DATA_DIR` | `~/.recursivemanager/data` | Data storage directory for databases, snapshots, and agent workspaces |
 
 **Example:**
 ```bash
 # Custom installation location
-RECURSIVE_MANAGER_HOME=/opt/recursive-manager
-RECURSIVE_MANAGER_DATA_DIR=/var/lib/recursive-manager
+RECURSIVEMANAGER_HOME=/opt/recursivemanager
+RECURSIVEMANAGER_DATA_DIR=/var/lib/recursivemanager
 ```
 
 ---
@@ -124,7 +124,7 @@ RECURSIVE_MANAGER_DATA_DIR=/var/lib/recursive-manager
 | Variable | Default | Valid Values | Description |
 |----------|---------|--------------|-------------|
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn`, `error` | Minimum log level for all loggers |
-| `LOG_FILE` | `~/.recursive-manager/logs/recursive-manager.log` | File path | Log output file location |
+| `LOG_FILE` | `~/.recursivemanager/logs/recursivemanager.log` | File path | Log output file location |
 
 **Log Level Details:**
 
@@ -137,11 +137,11 @@ RECURSIVE_MANAGER_DATA_DIR=/var/lib/recursive-manager
 ```bash
 # Development environment
 LOG_LEVEL=debug
-LOG_FILE=/var/log/recursive-manager/debug.log
+LOG_FILE=/var/log/recursivemanager/debug.log
 
 # Production environment
 LOG_LEVEL=info
-LOG_FILE=/var/log/recursive-manager/production.log
+LOG_FILE=/var/log/recursivemanager/production.log
 ```
 
 **Log Features:**
@@ -243,7 +243,7 @@ CLAUDE_CODE_PATH=/home/user/dev/claude-code/bin/claude
 | Variable | Default | Valid Values | Description |
 |----------|---------|--------------|-------------|
 | `DATABASE_TYPE` | `file` | `file`, `sqlite` | Database backend type (both use SQLite under the hood) |
-| `DATABASE_PATH` | `~/.recursive-manager/data/recursive-manager.db` | File path | SQLite database file location |
+| `DATABASE_PATH` | `~/.recursivemanager/data/recursivemanager.db` | File path | SQLite database file location |
 
 **Database Features (Enabled by Default):**
 
@@ -258,24 +258,24 @@ CLAUDE_CODE_PATH=/home/user/dev/claude-code/bin/claude
 ```bash
 # Production database on persistent volume
 DATABASE_TYPE=sqlite
-DATABASE_PATH=/var/lib/recursive-manager/production.db
+DATABASE_PATH=/var/lib/recursivemanager/production.db
 
 # Development database with ephemeral data
 DATABASE_TYPE=file
-DATABASE_PATH=/tmp/recursive-manager-dev.db
+DATABASE_PATH=/tmp/recursivemanager-dev.db
 ```
 
 ### Database Maintenance
 
 ```bash
 # Backup database
-sqlite3 ~/.recursive-manager/data/recursive-manager.db ".backup backup.db"
+sqlite3 ~/.recursivemanager/data/recursivemanager.db ".backup backup.db"
 
 # Check database integrity
-sqlite3 ~/.recursive-manager/data/recursive-manager.db "PRAGMA integrity_check;"
+sqlite3 ~/.recursivemanager/data/recursivemanager.db "PRAGMA integrity_check;"
 
 # Vacuum (compact) database
-sqlite3 ~/.recursive-manager/data/recursive-manager.db "VACUUM;"
+sqlite3 ~/.recursivemanager/data/recursivemanager.db "VACUUM;"
 ```
 
 ---
@@ -344,19 +344,19 @@ DATABASE_ENCRYPTION_USE_KDF=false
 
 ```bash
 # 1. Backup current database
-recursive-manager snapshot create backup-before-rotation
+recursivemanager snapshot create backup-before-rotation
 
 # 2. Export data (decrypted)
-sqlite3 ~/.recursive-manager/data/recursive-manager.db ".dump" > dump.sql
+sqlite3 ~/.recursivemanager/data/recursivemanager.db ".dump" > dump.sql
 
 # 3. Update DATABASE_ENCRYPTION_KEY in .env
 
 # 4. Recreate database
-rm ~/.recursive-manager/data/recursive-manager.db
-recursive-manager init
+rm ~/.recursivemanager/data/recursivemanager.db
+recursivemanager init
 
 # 5. Import data (will be re-encrypted with new key)
-sqlite3 ~/.recursive-manager/data/recursive-manager.db < dump.sql
+sqlite3 ~/.recursivemanager/data/recursivemanager.db < dump.sql
 ```
 
 ---
@@ -555,10 +555,10 @@ AICEO_GATEWAY_API_KEY=your-key
 
 ```bash
 # Verify AI provider configuration
-recursive-manager config --get ai.provider
+recursivemanager config --get ai.provider
 
 # Test provider connectivity (future feature)
-recursive-manager debug provider-health
+recursivemanager debug provider-health
 ```
 
 ---
@@ -639,14 +639,14 @@ Schedules are stored in the `schedules` table:
 
 ```bash
 # View all schedules (future CLI feature)
-recursive-manager scheduler list
+recursivemanager scheduler list
 
 # Enable/disable a schedule
-recursive-manager scheduler enable <schedule-id>
-recursive-manager scheduler disable <schedule-id>
+recursivemanager scheduler enable <schedule-id>
+recursivemanager scheduler disable <schedule-id>
 
 # Create a cron schedule
-recursive-manager scheduler create \
+recursivemanager scheduler create \
   --agent backup-agent \
   --cron "0 2 * * *" \
   --timezone "UTC"
@@ -668,12 +668,12 @@ global:
   evaluation_interval: 15s   # Evaluate rules every 15 seconds
 
 scrape_configs:
-  - job_name: 'recursive-manager'
+  - job_name: 'recursivemanager'
     scrape_interval: 15s
     scrape_timeout: 10s
     metrics_path: '/metrics'
     static_configs:
-      - targets: ['recursive-manager:3000']
+      - targets: ['recursivemanager:3000']
 ```
 
 **Access**: http://localhost:9090 (default Prometheus port)
@@ -703,10 +703,10 @@ Start the metrics HTTP server:
 
 ```bash
 # Start metrics server on default port 3000
-recursive-manager metrics
+recursivemanager metrics
 
 # Custom port
-recursive-manager metrics --port 3100
+recursivemanager metrics --port 3100
 ```
 
 **Endpoints:**
@@ -791,7 +791,7 @@ Optional integrations for alerts and status updates.
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX
 
 # Test notification (future feature)
-recursive-manager notify --slack "Test notification"
+recursivemanager notify --slack "Test notification"
 ```
 
 ### Discord Integration
@@ -801,7 +801,7 @@ recursive-manager notify --slack "Test notification"
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/123456789/abcdefghijklmnopqrstuvwxyz
 
 # Test notification (future feature)
-recursive-manager notify --discord "Test notification"
+recursivemanager notify --discord "Test notification"
 ```
 
 ### Telegram Integration
@@ -812,7 +812,7 @@ TELEGRAM_BOT_TOKEN=123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
 TELEGRAM_CHAT_ID=-1001234567890
 
 # Test notification (future feature)
-recursive-manager notify --telegram "Test notification"
+recursivemanager notify --telegram "Test notification"
 ```
 
 ---
@@ -834,7 +834,7 @@ Optional integration for issue tracking and version control.
 
 ```bash
 GITHUB_TOKEN=ghp_your_token_here
-GITHUB_REPO=yourusername/recursive-manager
+GITHUB_REPO=yourusername/recursivemanager
 ```
 
 ### Features (Future)
@@ -854,9 +854,9 @@ RecursiveManager includes production-ready Docker support.
 | Variable | Default (Container) | Description |
 |----------|---------------------|-------------|
 | `NODE_ENV` | `production` | Node.js environment mode |
-| `RECURSIVE_MANAGER_HOME` | `/app/data` | Container data directory |
-| `RECURSIVE_MANAGER_DATA_DIR` | `/app/data` | Container data directory |
-| `LOG_FILE` | `/app/logs/recursive-manager.log` | Container log file path |
+| `RECURSIVEMANAGER_HOME` | `/app/data` | Container data directory |
+| `RECURSIVEMANAGER_DATA_DIR` | `/app/data` | Container data directory |
+| `LOG_FILE` | `/app/logs/recursivemanager.log` | Container log file path |
 | `METRICS_PORT` | `3000` | Metrics HTTP server port |
 
 ### Docker Compose Configuration
@@ -865,14 +865,14 @@ RecursiveManager includes production-ready Docker support.
 
 ```yaml
 services:
-  recursive-manager:
+  recursivemanager:
     build: .
-    container_name: recursive-manager
+    container_name: recursivemanager
     ports:
       - "3000:3000"  # Metrics endpoint
     volumes:
-      - recursive-manager-data:/app/data
-      - recursive-manager-logs:/app/logs
+      - recursivemanager-data:/app/data
+      - recursivemanager-logs:/app/logs
     environment:
       - NODE_ENV=production
       - LOG_LEVEL=info
@@ -900,18 +900,18 @@ services:
 
 ```bash
 # Inspect volumes
-docker volume inspect recursive-manager-data
-docker volume inspect recursive-manager-logs
+docker volume inspect recursivemanager-data
+docker volume inspect recursivemanager-logs
 
 # Backup volumes
 docker run --rm \
-  -v recursive-manager-data:/data \
+  -v recursivemanager-data:/data \
   -v $(pwd)/backup:/backup \
   alpine tar czf /backup/data-backup.tar.gz /data
 
 # Restore volumes
 docker run --rm \
-  -v recursive-manager-data:/data \
+  -v recursivemanager-data:/data \
   -v $(pwd)/backup:/backup \
   alpine tar xzf /backup/data-backup.tar.gz -C /
 ```
@@ -924,7 +924,7 @@ docker run --rm \
 # Example: AICEO_GATEWAY_URL=http://host.docker.internal:4000/api/glm/submit
 
 # Custom network
-docker network create recursive-manager-network
+docker network create recursivemanager-network
 ```
 
 ---
@@ -936,10 +936,10 @@ Each agent has its own configuration file auto-generated during creation.
 ### Configuration File Location
 
 ```
-{RECURSIVE_MANAGER_DATA_DIR}/agents/{agentId}/config.json
+{RECURSIVEMANAGER_DATA_DIR}/agents/{agentId}/config.json
 ```
 
-Example: `~/.recursive-manager/data/agents/ceo-001/config.json`
+Example: `~/.recursivemanager/data/agents/ceo-001/config.json`
 
 ### Configuration Structure
 
@@ -1041,7 +1041,7 @@ Example: `~/.recursive-manager/data/agents/ceo-001/config.json`
 **Via CLI (Future Feature):**
 ```bash
 # Update agent configuration
-recursive-manager agent config <agent-id> \
+recursivemanager agent config <agent-id> \
   --set permissions.maxSubordinates=20 \
   --set behavior.verbosity=4
 ```
@@ -1049,10 +1049,10 @@ recursive-manager agent config <agent-id> \
 **Manual Editing:**
 ```bash
 # Edit agent config directly
-nano ~/.recursive-manager/data/agents/ceo-001/config.json
+nano ~/.recursivemanager/data/agents/ceo-001/config.json
 
 # Validate configuration (future feature)
-recursive-manager agent validate ceo-001
+recursivemanager agent validate ceo-001
 ```
 
 ---
@@ -1064,7 +1064,7 @@ The `config` command provides interactive and programmatic configuration managem
 ### Usage
 
 ```bash
-recursive-manager config [options]
+recursivemanager config [options]
 ```
 
 ### Options
@@ -1080,22 +1080,22 @@ recursive-manager config [options]
 
 ```bash
 # List all configuration
-recursive-manager config --list
+recursivemanager config --list
 
 # Get worker pool size
-recursive-manager config --get execution.workerPoolSize
+recursivemanager config --get execution.workerPoolSize
 
 # Set worker pool size
-recursive-manager config --set execution.workerPoolSize=10
+recursivemanager config --set execution.workerPoolSize=10
 
 # Get max concurrent tasks
-recursive-manager config --get execution.maxConcurrentTasks
+recursivemanager config --get execution.maxConcurrentTasks
 
 # Set max concurrent tasks
-recursive-manager config --set execution.maxConcurrentTasks=50
+recursivemanager config --set execution.maxConcurrentTasks=50
 
 # Use custom data directory
-recursive-manager config --data-dir /var/lib/recursive-manager --list
+recursivemanager config --data-dir /var/lib/recursivemanager --list
 ```
 
 ### Configurable Keys
@@ -1200,7 +1200,7 @@ DATABASE_ENCRYPTION_USE_KDF=false
 Configuration is loaded in this order (later sources override earlier):
 
 1. **Default Values** (hardcoded in source)
-2. **`~/.recursive-manager/.env`** (user home directory)
+2. **`~/.recursivemanager/.env`** (user home directory)
 3. **`./.env`** (current working directory)
 4. **Process Environment Variables** (highest priority)
 
@@ -1209,7 +1209,7 @@ Configuration is loaded in this order (later sources override earlier):
 ```bash
 # Default: LOG_LEVEL=info
 
-# ~/.recursive-manager/.env
+# ~/.recursivemanager/.env
 LOG_LEVEL=warn
 
 # ./.env (current directory)
@@ -1225,15 +1225,15 @@ export LOG_LEVEL=error
 
 ```bash
 # Check effective configuration
-recursive-manager config --list
+recursivemanager config --list
 
 # Verify environment variables
-env | grep RECURSIVE_MANAGER
+env | grep RECURSIVEMANAGER
 env | grep LOG_LEVEL
 env | grep AI_PROVIDER
 
 # Test configuration loading
-recursive-manager debug config-test
+recursivemanager debug config-test
 ```
 
 ---
@@ -1260,7 +1260,7 @@ AICEO_GATEWAY_URL=http://localhost:4000/api/glm/submit
 AICEO_GATEWAY_API_KEY=dev-key
 
 # Database
-DATABASE_PATH=./dev-data/recursive-manager.db
+DATABASE_PATH=./dev-data/recursivemanager.db
 
 # No encryption in dev (optional - use if testing encryption)
 # DATABASE_ENCRYPTION_KEY=dev-only-key
@@ -1278,7 +1278,7 @@ NODE_ENV=production
 
 # Logging
 LOG_LEVEL=info
-LOG_FILE=/var/log/recursive-manager/production.log
+LOG_FILE=/var/log/recursivemanager/production.log
 
 # Execution
 WORKER_POOL_SIZE=20
@@ -1297,7 +1297,7 @@ ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}  # From secrets manager
 ANTHROPIC_MODEL=claude-sonnet-4-5
 
 # Database
-DATABASE_PATH=/var/lib/recursive-manager/production.db
+DATABASE_PATH=/var/lib/recursivemanager/production.db
 DATABASE_ENCRYPTION_KEY=${DB_ENCRYPTION_KEY}  # From secrets manager
 DATABASE_ENCRYPTION_USE_KDF=false  # Using raw key
 
@@ -1314,7 +1314,7 @@ SLACK_WEBHOOK_URL=${SLACK_WEBHOOK}  # From secrets manager
 
 # GitHub Integration
 GITHUB_TOKEN=${GITHUB_PAT}  # From secrets manager
-GITHUB_REPO=company/recursive-manager
+GITHUB_REPO=company/recursivemanager
 ```
 
 ### Docker Compose Environment
@@ -1324,9 +1324,9 @@ GITHUB_REPO=company/recursive-manager
 NODE_ENV=production
 
 # Container paths
-RECURSIVE_MANAGER_HOME=/app/data
-RECURSIVE_MANAGER_DATA_DIR=/app/data
-LOG_FILE=/app/logs/recursive-manager.log
+RECURSIVEMANAGER_HOME=/app/data
+RECURSIVEMANAGER_DATA_DIR=/app/data
+LOG_FILE=/app/logs/recursivemanager.log
 
 # Logging
 LOG_LEVEL=info
@@ -1340,7 +1340,7 @@ AICEO_GATEWAY_URL=http://host.docker.internal:4000/api/glm/submit
 AICEO_GATEWAY_API_KEY=${AICEO_GATEWAY_API_KEY}
 
 # Database (in Docker volume)
-DATABASE_PATH=/app/data/recursive-manager.db
+DATABASE_PATH=/app/data/recursivemanager.db
 DATABASE_ENCRYPTION_KEY=${DATABASE_ENCRYPTION_KEY}
 DATABASE_ENCRYPTION_USE_KDF=false
 
@@ -1356,7 +1356,7 @@ NODE_ENV=test
 
 # Logging (minimal in CI)
 LOG_LEVEL=warn
-LOG_FILE=/tmp/ci-logs/recursive-manager.log
+LOG_FILE=/tmp/ci-logs/recursivemanager.log
 
 # Execution (limited resources)
 WORKER_POOL_SIZE=2
@@ -1368,7 +1368,7 @@ AICEO_GATEWAY_URL=http://localhost:4000/api/glm/submit
 AICEO_GATEWAY_API_KEY=ci-test-key
 
 # Database (ephemeral)
-DATABASE_PATH=/tmp/recursive-manager-ci.db
+DATABASE_PATH=/tmp/recursivemanager-ci.db
 
 # No encryption in CI (faster tests)
 # DATABASE_ENCRYPTION_KEY not set
@@ -1385,17 +1385,17 @@ DATABASE_PATH=/tmp/recursive-manager-ci.db
 **Solutions**:
 ```bash
 # Verify .env file location
-ls -la ~/.recursive-manager/.env
+ls -la ~/.recursivemanager/.env
 
 # Check file permissions
-chmod 600 ~/.recursive-manager/.env
+chmod 600 ~/.recursivemanager/.env
 
 # Verify syntax (no spaces around =)
 # Good: LOG_LEVEL=info
 # Bad:  LOG_LEVEL = info
 
 # Test configuration loading
-recursive-manager config --list
+recursivemanager config --list
 ```
 
 ### Database Encryption Errors
@@ -1432,7 +1432,7 @@ AI_FALLBACK_PROVIDER=anthropic-direct
 
 # Enable debug logging
 LOG_LEVEL=debug
-recursive-manager analyze "test"
+recursivemanager analyze "test"
 ```
 
 ### Metrics Endpoint Issues
@@ -1445,7 +1445,7 @@ recursive-manager analyze "test"
 lsof -i :3000
 
 # Use custom port
-recursive-manager metrics --port 3100
+recursivemanager metrics --port 3100
 
 # Verify firewall rules
 sudo ufw status
@@ -1460,7 +1460,7 @@ sudo ufw allow 3000/tcp
 ```bash
 # Fix volume permissions
 docker run --rm \
-  -v recursive-manager-data:/data \
+  -v recursivemanager-data:/data \
   alpine chown -R 1000:1000 /data
 
 # Rebuild with correct user
@@ -1473,11 +1473,11 @@ docker-compose up -d
 
 ```bash
 # Validate all configuration (future feature)
-recursive-manager config --validate
+recursivemanager config --validate
 
 # Check specific settings
-recursive-manager config --get execution.workerPoolSize
-recursive-manager config --get ai.provider
+recursivemanager config --get execution.workerPoolSize
+recursivemanager config --get ai.provider
 ```
 
 ---

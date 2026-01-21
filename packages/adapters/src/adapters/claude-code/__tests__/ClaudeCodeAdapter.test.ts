@@ -13,7 +13,7 @@ jest.mock('execa', () => ({
 
 import { ClaudeCodeAdapter } from '../index';
 import type { ExecutionContext, FrameworkAdapter, Capability } from '../../../types';
-import type { AgentConfig } from '@recursive-manager/common';
+import type { AgentConfig } from '@recursivemanager/common';
 import { execa } from 'execa';
 
 const mockedExeca = execa as jest.MockedFunction<typeof execa>;

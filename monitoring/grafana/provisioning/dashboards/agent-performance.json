@@ -590,7 +590,7 @@
   "schemaVersion": 36,
   "style": "dark",
   "tags": [
-    "recursive-manager",
+    "recursivemanager",
     "agents"
   ],
   "templating": {
@@ -603,6 +603,6 @@
   "timepicker": {},
   "timezone": "",
   "title": "RecursiveManager Agent Performance",
-  "uid": "recursive-manager-agents",
+  "uid": "recursivemanager-agents",
   "version": 1
 }

@@ -16,7 +16,7 @@ import {
   runMigrations,
   allMigrations,
   getAgentDirectory,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 
 describe('archiveOldTasks', () => {
   let db: Database.Database;

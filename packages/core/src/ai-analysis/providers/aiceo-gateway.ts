@@ -75,7 +75,7 @@ export class AICEOGatewayProvider implements AIProvider {
           provider: this.provider,
           model: this.model,
           priority: this.priority,
-          source: 'recursive-manager',
+          source: 'recursivemanager',
           sourceId: `${request.agentType}-analysis`,
           messages: [
             { role: 'system', content: request.systemPrompt },

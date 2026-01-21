@@ -8,29 +8,29 @@ Guide to debugging RecursiveManager during development and production.
 
 ```bash
 # Show organization chart
-recursive-manager status
+recursivemanager status
 
 # View specific agent details
-recursive-manager status --agent-id <agent-id>
+recursivemanager status --agent-id <agent-id>
 
 # View in JSON format
-recursive-manager status --format json
+recursivemanager status --format json
 ```
 
 ### Debug Command
 
 ```bash
 # Full agent debug info
-recursive-manager debug <agent-id> --all
+recursivemanager debug <agent-id> --all
 
 # View agent logs
-recursive-manager debug <agent-id> --logs
+recursivemanager debug <agent-id> --logs
 
 # View agent state
-recursive-manager debug <agent-id> --state
+recursivemanager debug <agent-id> --state
 
 # View agent tasks
-recursive-manager debug <agent-id> --tasks
+recursivemanager debug <agent-id> --tasks
 ```
 
 ## Log Files
@@ -39,7 +39,7 @@ recursive-manager debug <agent-id> --tasks
 
 Logs are stored at:
 ```
-~/.recursive-manager/logs/recursive-manager.log
+~/.recursivemanager/logs/recursivemanager.log
 ```
 
 ### Log Levels
@@ -53,13 +53,13 @@ LOG_LEVEL=debug  # debug, info, warn, error
 
 ```bash
 # Tail logs in real-time
-tail -f ~/.recursive-manager/logs/recursive-manager.log
+tail -f ~/.recursivemanager/logs/recursivemanager.log
 
 # Filter by level
-grep "ERROR" ~/.recursive-manager/logs/recursive-manager.log
+grep "ERROR" ~/.recursivemanager/logs/recursivemanager.log
 
 # Show last 100 lines
-tail -n 100 ~/.recursive-manager/logs/recursive-manager.log
+tail -n 100 ~/.recursivemanager/logs/recursivemanager.log
 ```
 
 ## Node.js Debugging
@@ -129,7 +129,7 @@ npm run build
 Add logging to agent code:
 
 ```typescript
-import { logger } from '@recursive-manager/common';
+import { logger } from '@recursivemanager/common';
 
 class Agent {
   async execute(task: Task) {
@@ -158,7 +158,7 @@ DATABASE_LOG_QUERIES=true
 Or add logging in code:
 
 ```typescript
-import { getDatabase, logger } from '@recursive-manager/common';
+import { getDatabase, logger } from '@recursivemanager/common';
 
 const db = await getDatabase();
 
@@ -173,7 +173,7 @@ db.on('query', (sql) => {
 Debug locking issues:
 
 ```typescript
-import { AgentLock } from '@recursive-manager/core';
+import { AgentLock } from '@recursivemanager/core';
 
 const lock = new AgentLock({ debug: true });
 
@@ -202,7 +202,7 @@ lock.on('contention', (resourceId, waitTime) => {
 npm run build
 
 # Check imports use package aliases
-import { Agent } from '@recursive-manager/common'; // ✓
+import { Agent } from '@recursivemanager/common'; // ✓
 import { Agent } from '../../common/src/types/agent'; // ✗
 ```
 
@@ -226,13 +226,13 @@ kill -9 PID
 **Solution**:
 ```bash
 # Check for running instances
-ps aux | grep recursive-manager
+ps aux | grep recursivemanager
 
 # Kill all instances
-pkill -f recursive-manager
+pkill -f recursivemanager
 
 # Or use different database per process
-DATABASE_PATH=~/.recursive-manager/data/test.db
+DATABASE_PATH=~/.recursivemanager/data/test.db
 ```
 
 ### Issue: "Agent not responding"
@@ -242,10 +242,10 @@ DATABASE_PATH=~/.recursive-manager/data/test.db
 **Solution**:
 ```bash
 # Check agent status
-recursive-manager debug <agent-id> --state
+recursivemanager debug <agent-id> --state
 
 # View agent logs
-recursive-manager debug <agent-id> --logs
+recursivemanager debug <agent-id> --logs
 
 # Increase timeout
 AGENT_TIMEOUT_MS=600000
@@ -374,7 +374,7 @@ Add to `docker-compose.yml`:
 
 ```yaml
 services:
-  recursive-manager:
+  recursivemanager:
     command: node --inspect=0.0.0.0:9229 packages/cli/dist/cli.js
     ports:
       - "9229:9229"
@@ -385,7 +385,7 @@ services:
 ### Structured Logging
 
 ```typescript
-import { logger } from '@recursive-manager/common';
+import { logger } from '@recursivemanager/common';
 
 logger.error('Operation failed', {
   agentId: 'agent-123',
@@ -424,7 +424,7 @@ try {
 ### 1. Enable Debug Logging
 
 ```bash
-LOG_LEVEL=debug recursive-manager <command>
+LOG_LEVEL=debug recursivemanager <command>
 ```
 
 ### 2. Use Descriptive Log Messages
@@ -775,12 +775,12 @@ async function executeQuery(sql: string, params: any[]): Promise<any> {
 **Triggers**: Database corruption, file system full, critical bug
 
 **Plan**:
-1. Stop all agents: `recursive-manager emergency-stop`
-2. Backup everything: `recursive-manager backup --full`
-3. Run diagnostics: `recursive-manager diagnose --verbose`
-4. Attempt repair: `recursive-manager repair --auto`
+1. Stop all agents: `recursivemanager emergency-stop`
+2. Backup everything: `recursivemanager backup --full`
+3. Run diagnostics: `recursivemanager diagnose --verbose`
+4. Attempt repair: `recursivemanager repair --auto`
 5. Manual recovery: Restore from backups
-6. Resume: `recursive-manager resume --safe-mode`
+6. Resume: `recursivemanager resume --safe-mode`
 
 ### Runaway Costs (API Usage Explosion)
 
@@ -788,7 +788,7 @@ async function executeQuery(sql: string, params: any[]): Promise<any> {
 
 **Plan**:
 1. Immediate pause: Stop all agents
-2. Audit: `recursive-manager audit --costs --last-24h`
+2. Audit: `recursivemanager audit --costs --last-24h`
 3. Identify culprits: Which agents consumed most?
 4. Fix: Fire runaway agents, fix bugs
 5. Set limits: Configure stricter budgets

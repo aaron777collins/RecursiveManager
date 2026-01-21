@@ -75,7 +75,7 @@ Run a manual analysis from the CLI:
 
 ```bash
 cd /home/ubuntu/repos/RecursiveManager
-npx recursive-manager analyze "Should we implement server-side rendering (SSR) for our React app?"
+npx recursivemanager analyze "Should we implement server-side rendering (SSR) for our React app?"
 ```
 
 **Expected Output**:
@@ -99,7 +99,7 @@ npx recursive-manager analyze "Should we implement server-side rendering (SSR) f
 │ Emotional       │ 0.70       │ Team needs to learn SSR...           │
 └─────────────────┴────────────┴──────────────────────────────────────┘
 
-Full analysis saved to: ~/.recursive-manager/agents/cli-analyze/analyses/2026-01-20T16-12-45.json
+Full analysis saved to: ~/.recursivemanager/agents/cli-analyze/analyses/2026-01-20T16-12-45.json
 ```
 
 ### Scenario 2: JSON Output for Automation
@@ -107,7 +107,7 @@ Full analysis saved to: ~/.recursive-manager/agents/cli-analyze/analyses/2026-01
 Export analysis as JSON for processing:
 
 ```bash
-npx recursive-manager analyze "Should we adopt TypeScript for our JavaScript project?" \
+npx recursivemanager analyze "Should we adopt TypeScript for our JavaScript project?" \
   --format json > analysis.json
 ```
 
@@ -143,7 +143,7 @@ npx recursive-manager analyze "Should we adopt TypeScript for our JavaScript pro
 Generate markdown report:
 
 ```bash
-npx recursive-manager analyze "Should we adopt microservices architecture?" \
+npx recursivemanager analyze "Should we adopt microservices architecture?" \
   --format markdown > decision-analysis.md
 ```
 
@@ -189,8 +189,8 @@ Microservices provide excellent scalability but increase operational complexity:
 ### Scenario 4: Programmatic Analysis in TypeScript
 
 ```typescript
-import { ExecutionOrchestrator } from '@recursive-manager/core';
-import { loadConfig } from '@recursive-manager/common';
+import { ExecutionOrchestrator } from '@recursivemanager/core';
+import { loadConfig } from '@recursivemanager/common';
 
 const config = loadConfig();
 const orchestrator = new ExecutionOrchestrator(config);
@@ -224,8 +224,8 @@ if (result.overallConfidence > 0.75) {
 ### Scenario 5: Agent Lifecycle with Analysis
 
 ```typescript
-import { ExecutionOrchestrator } from '@recursive-manager/core';
-import { loadConfig } from '@recursive-manager/common';
+import { ExecutionOrchestrator } from '@recursivemanager/core';
+import { loadConfig } from '@recursivemanager/common';
 
 const config = loadConfig();
 const orchestrator = new ExecutionOrchestrator(config);
@@ -266,8 +266,8 @@ console.log('Fire Analysis:', fireResult.analysis?.summary);
 Anthropic API usage is metered by tokens. Monitor usage:
 
 ```typescript
-import { MultiPerspectiveAnalysis } from '@recursive-manager/core';
-import { ProviderFactory } from '@recursive-manager/core';
+import { MultiPerspectiveAnalysis } from '@recursivemanager/core';
+import { ProviderFactory } from '@recursivemanager/core';
 
 const provider = await ProviderFactory.createWithHealthCheck();
 const analysis = new MultiPerspectiveAnalysis(provider);
@@ -300,8 +300,8 @@ console.log(`Estimated Cost: $${totalCost.toFixed(4)}`);
 ### Cache to Reduce Costs
 
 ```typescript
-import { MultiPerspectiveAnalysis } from '@recursive-manager/core';
-import { ProviderFactory } from '@recursive-manager/core';
+import { MultiPerspectiveAnalysis } from '@recursivemanager/core';
+import { ProviderFactory } from '@recursivemanager/core';
 
 const provider = await ProviderFactory.createWithHealthCheck();
 const analysis = new MultiPerspectiveAnalysis(provider);

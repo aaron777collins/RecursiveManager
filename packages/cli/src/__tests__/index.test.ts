@@ -1,5 +1,5 @@
 /**
- * Example test for @recursive-manager/cli package
+ * Example test for @recursivemanager/cli package
  * This test verifies that the Jest configuration is working correctly.
  */
 

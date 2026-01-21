@@ -14,7 +14,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as tar from 'tar';
 import { archiveOldTasks, compressOldArchives } from '../archiveTask';
-import { createTask, completeTask, createAgent, runMigrations, allMigrations, getAgentDirectory } from '@recursive-manager/common';
+import { createTask, completeTask, createAgent, runMigrations, allMigrations, getAgentDirectory } from '@recursivemanager/common';
 
 describe('Task Archival - Integration Tests', () => {
   let db: Database.Database;
@@ -87,7 +87,7 @@ describe('Task Archival - Integration Tests', () => {
       for (const { id, date } of taskIds) {
         const yearMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         // Use getAgentDirectory to get the correct sharded path
-        const { getAgentDirectory } = await import('@recursive-manager/common');
+        const { getAgentDirectory } = await import('@recursivemanager/common');
         const agentDir = getAgentDirectory(agent.id, { baseDir: tempDir });
         const archiveDir = path.join(agentDir, 'tasks', 'archive', yearMonth, id);
 

@@ -15,7 +15,7 @@ This gives us the best of both worlds: easy debugging and efficient querying.
 ### System Root
 
 ```
-~/.recursive-manager/                 # System root (configurable)
+~/.recursivemanager/                 # System root (configurable)
 ├── agents/                            # All agent directories
 │   ├── 00-0f/                        # Sharding (first hex digit of agent ID)
 │   │   ├── CEO/                      # Agent directory
@@ -720,7 +720,7 @@ Example:
 ### Continuous Backups
 - **What**: config.json, schedule.json, tasks/active/
 - **When**: Before every execution
-- **Where**: `~/.recursive-manager/backups/{agent-id}/{timestamp}/`
+- **Where**: `~/.recursivemanager/backups/{agent-id}/{timestamp}/`
 - **Retention**: 7 days
 
 ### Task Archival

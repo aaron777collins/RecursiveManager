@@ -14,7 +14,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { saveAgentConfig, loadAgentConfig } from '../config';
-import { getConfigPath, type AgentConfig } from '@recursive-manager/common';
+import { getConfigPath, type AgentConfig } from '@recursivemanager/common';
 
 describe('saveAgentConfig', () => {
   const testBaseDir = path.join(__dirname, '../../__test-data__/saveAgentConfig');

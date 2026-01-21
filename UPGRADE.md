@@ -18,7 +18,7 @@ Comprehensive guide for upgrading, downgrading, and rolling back RecursiveManage
 **Upgrade to the latest version:**
 
 ```bash
-recursive-manager-upgrade
+recursivemanager-upgrade
 ```
 
 The upgrade script automatically:
@@ -36,26 +36,26 @@ The upgrade script automatically:
 
 ```bash
 # Upgrade to latest version
-recursive-manager-upgrade
+recursivemanager-upgrade
 
 # Upgrade to specific version
-recursive-manager-upgrade 2.0.0
+recursivemanager-upgrade 2.0.0
 
 # Downgrade to older version
-recursive-manager-upgrade 1.0.0
+recursivemanager-upgrade 1.0.0
 ```
 
 ### Advanced Commands
 
 ```bash
 # List version history and available backups
-recursive-manager-upgrade --list
+recursivemanager-upgrade --list
 
 # Rollback to previous version
-recursive-manager-upgrade --rollback
+recursivemanager-upgrade --rollback
 
 # Show help
-recursive-manager-upgrade --help
+recursivemanager-upgrade --help
 ```
 
 ---
@@ -66,17 +66,17 @@ recursive-manager-upgrade --help
 
 ```bash
 # Show installed version
-recursive-manager --version
+recursivemanager --version
 
 # Show detailed version info
-cat ~/.recursive-manager/.version
+cat ~/.recursivemanager/.version
 ```
 
 ### List Available Versions
 
 ```bash
 # See all available versions and backups
-recursive-manager-upgrade --list
+recursivemanager-upgrade --list
 ```
 
 **Example output:**
@@ -99,9 +99,9 @@ Available backups:
 ### Version History
 
 RecursiveManager automatically tracks all installed versions in:
-- `~/.recursive-manager/.version` - Current version
-- `~/.recursive-manager/.version_history` - Full history
-- `~/.recursive-manager/.backups/` - Backup tarballs
+- `~/.recursivemanager/.version` - Current version
+- `~/.recursivemanager/.version_history` - Full history
+- `~/.recursivemanager/.backups/` - Backup tarballs
 
 ---
 
@@ -116,13 +116,13 @@ RecursiveManager automatically tracks all installed versions in:
 **Steps:**
 ```bash
 # 1. Backup your agents
-recursive-manager export --all --output agents-backup.json
+recursivemanager export --all --output agents-backup.json
 
 # 2. Upgrade
-recursive-manager-upgrade 2.0.0
+recursivemanager-upgrade 2.0.0
 
 # 3. Verify agents
-recursive-manager list
+recursivemanager list
 ```
 
 ### 2.x → 3.x
@@ -146,7 +146,7 @@ If an upgrade fails or causes issues:
 
 ```bash
 # Rollback to the most recent backup
-recursive-manager-upgrade --rollback
+recursivemanager-upgrade --rollback
 ```
 
 This will:
@@ -160,15 +160,15 @@ If the automatic rollback fails:
 
 ```bash
 # 1. Find available backups
-ls -lh ~/.recursive-manager/.backups/
+ls -lh ~/.recursivemanager/.backups/
 
 # 2. Extract the backup manually
-cd ~/.recursive-manager
+cd ~/.recursivemanager
 rm -rf !(\.backups|\.version_history)  # Remove current installation
 tar xzf .backups/v1.0.0_TIMESTAMP.tar.gz
 
 # 3. Verify
-recursive-manager --version
+recursivemanager --version
 ```
 
 ---
@@ -178,7 +178,7 @@ recursive-manager --version
 ### Scenario 1: Upgrade to Latest
 
 ```bash
-$ recursive-manager-upgrade
+$ recursivemanager-upgrade
 
 ══════════════════════════════════════
   Version Change
@@ -192,7 +192,7 @@ Continue? [Y/n]: Y
 ➜ Creating backup of v1.0.0...
 ✓ Backup created: v1.0.0_20260120_100000.tar.gz
 ➜ Downloading v2.0.0...
-✓ Downloaded recursive-manager-v2.0.0-linux.tar.gz
+✓ Downloaded recursivemanager-v2.0.0-linux.tar.gz
 ✓ Checksum verified ✓
 ➜ Installing v2.0.0...
 ✓ Installation complete!
@@ -207,7 +207,7 @@ Version changed: v1.0.0 → v2.0.0
 ### Scenario 2: Downgrade
 
 ```bash
-$ recursive-manager-upgrade 1.0.0
+$ recursivemanager-upgrade 1.0.0
 
 ══════════════════════════════════════
   Version Change
@@ -232,7 +232,7 @@ Version changed: v2.0.0 → v1.0.0
 ### Scenario 3: Rollback After Issues
 
 ```bash
-$ recursive-manager-upgrade --rollback
+$ recursivemanager-upgrade --rollback
 
 ➜ Rolling back to previous version...
 ✓ Rolling back to v1.0.0...
@@ -256,7 +256,7 @@ $ recursive-manager-upgrade --rollback
 curl -I https://github.com
 
 # Try with explicit version
-recursive-manager-upgrade 2.0.0
+recursivemanager-upgrade 2.0.0
 
 # Check GitHub releases manually
 open https://github.com/aaron777collins/RecursiveManager/releases
@@ -269,7 +269,7 @@ open https://github.com/aaron777collins/RecursiveManager/releases
 **Solution:**
 ```bash
 # Retry the download (may have been corrupted)
-recursive-manager-upgrade 2.0.0
+recursivemanager-upgrade 2.0.0
 
 # If it fails again, report it:
 # https://github.com/aaron777collins/RecursiveManager/issues
@@ -282,13 +282,13 @@ recursive-manager-upgrade 2.0.0
 **Solution:**
 ```bash
 # Rollback to previous version
-recursive-manager-upgrade --rollback
+recursivemanager-upgrade --rollback
 
 # Check if config backup exists
-ls -la ~/.recursive-manager-config-backup-*
+ls -la ~/.recursivemanager-config-backup-*
 
 # Restore config manually
-cp ~/.recursive-manager-config-backup-TIMESTAMP/* ~/.recursive-manager-config/
+cp ~/.recursivemanager-config-backup-TIMESTAMP/* ~/.recursivemanager-config/
 ```
 
 ### "No backups available" error
@@ -301,10 +301,10 @@ cp ~/.recursive-manager-config-backup-TIMESTAMP/* ~/.recursive-manager-config/
 # You must reinstall a specific version:
 
 # 1. Choose a version
-recursive-manager-upgrade --list
+recursivemanager-upgrade --list
 
 # 2. Install that version
-recursive-manager-upgrade 1.0.0
+recursivemanager-upgrade 1.0.0
 ```
 
 ---
@@ -315,7 +315,7 @@ recursive-manager-upgrade 1.0.0
 
 1. **Backup your agents:**
    ```bash
-   recursive-manager export --all --output backup-$(date +%Y%m%d).json
+   recursivemanager export --all --output backup-$(date +%Y%m%d).json
    ```
 
 2. **Check release notes:**
@@ -334,23 +334,23 @@ recursive-manager-upgrade 1.0.0
 
 1. **Verify version:**
    ```bash
-   recursive-manager --version
+   recursivemanager --version
    ```
 
 2. **Test basic functionality:**
    ```bash
-   recursive-manager list
-   recursive-manager --help
+   recursivemanager list
+   recursivemanager --help
    ```
 
 3. **Check agents:**
    ```bash
-   recursive-manager list
+   recursivemanager list
    ```
 
 4. **Run tests (if applicable):**
    ```bash
-   recursive-manager test
+   recursivemanager test
    ```
 
 ---
@@ -361,10 +361,10 @@ recursive-manager-upgrade 1.0.0
 
 ```bash
 # Create a full backup
-tar czf "rm-backup-$(date +%Y%m%d).tar.gz" ~/.recursive-manager
+tar czf "rm-backup-$(date +%Y%m%d).tar.gz" ~/.recursivemanager
 
 # Backup only configuration
-tar czf "rm-config-backup-$(date +%Y%m%d).tar.gz" ~/.recursive-manager-config
+tar czf "rm-config-backup-$(date +%Y%m%d).tar.gz" ~/.recursivemanager-config
 ```
 
 ### Manual Restore
@@ -388,7 +388,7 @@ tar xzf rm-config-backup-20260120.tar.gz -C ~/
 crontab -e
 
 # Add this line:
-0 2 * * * /path/to/recursive-manager-upgrade > /dev/null 2>&1
+0 2 * * * /path/to/recursivemanager-upgrade > /dev/null 2>&1
 ```
 
 ### Systemd Timer (Linux)

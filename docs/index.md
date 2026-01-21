@@ -63,7 +63,7 @@ curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/ma
 For CI/CD environments, use headless mode:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash -s -- --headless --install-dir /opt/recursive-manager
+curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash -s -- --headless --install-dir /opt/recursivemanager
 ```
 
 Or install manually:
@@ -137,8 +137,8 @@ Each agent can:
 Break down a monolithic refactoring into hierarchical tasks, with specialized agents handling different modules.
 
 ```bash
-recursive-manager init "Refactor monolith to microservices"
-recursive-manager status
+recursivemanager init "Refactor monolith to microservices"
+recursivemanager status
 # CEO creates VPs for: Auth, Payments, Inventory, Shipping
 # Each VP creates subordinates for: Database, API, Tests, Docs
 ```
@@ -147,7 +147,7 @@ recursive-manager status
 Use the 8-perspective analysis framework for critical architectural decisions.
 
 ```bash
-recursive-manager init "Choose database: SQL vs NoSQL"
+recursivemanager init "Choose database: SQL vs NoSQL"
 # System analyzes from Security, Architecture, Simplicity,
 # Financial, Marketing, UX, Growth, Emotional perspectives
 # Generates comprehensive decision report
@@ -157,7 +157,7 @@ recursive-manager init "Choose database: SQL vs NoSQL"
 Let the system manage long-running tasks without manual intervention.
 
 ```bash
-recursive-manager init "Implement OAuth2 login system"
+recursivemanager init "Implement OAuth2 login system"
 # Continuous mode: agents work autonomously, reporting progress
 # Reactive mode: agents respond to external events (PRs, issues)
 ```
@@ -167,8 +167,8 @@ Integrate with CI/CD pipelines for automated code quality checks and deployments
 
 ```bash
 # In your GitHub Actions workflow
-recursive-manager init "Review PR #123 for security issues" --headless
-recursive-manager status --format json > report.json
+recursivemanager init "Review PR #123 for security issues" --headless
+recursivemanager status --format json > report.json
 ```
 
 ---

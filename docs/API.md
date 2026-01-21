@@ -3,7 +3,7 @@
 **Version:** 1.0.0
 **Last Updated:** January 2026
 
-Complete API reference for RecursiveManager's five core packages: `@recursive-manager/core`, `@recursive-manager/cli`, `@recursive-manager/adapters`, `@recursive-manager/scheduler`, and `@recursive-manager/common`.
+Complete API reference for RecursiveManager's five core packages: `@recursivemanager/core`, `@recursivemanager/cli`, `@recursivemanager/adapters`, `@recursivemanager/scheduler`, and `@recursivemanager/common`.
 
 ---
 
@@ -64,7 +64,7 @@ All APIs use TypeScript with full type safety and comprehensive error handling.
 
 ## Core Package API
 
-**Package:** `@recursive-manager/core`
+**Package:** `@recursivemanager/core`
 **Version:** 0.1.0
 
 ### Configuration Management
@@ -84,7 +84,7 @@ async function loadAgentConfig(
 
 **Parameters:**
 - `agentId` - Agent identifier (e.g., `'ceo-001'`)
-- `options.baseDir` - Base directory (default: `~/.recursive-manager`)
+- `options.baseDir` - Base directory (default: `~/.recursivemanager`)
 
 **Returns:** `Promise<AgentConfig>` - Validated agent configuration
 
@@ -93,7 +93,7 @@ async function loadAgentConfig(
 
 **Example:**
 ```typescript
-import { loadAgentConfig } from '@recursive-manager/core';
+import { loadAgentConfig } from '@recursivemanager/core';
 
 const config = await loadAgentConfig('ceo-001');
 console.log(config.identity.role); // 'CEO'
@@ -170,7 +170,7 @@ async function saveAgentConfig(
 
 **Example:**
 ```typescript
-import { saveAgentConfig, loadAgentConfig } from '@recursive-manager/core';
+import { saveAgentConfig, loadAgentConfig } from '@recursivemanager/core';
 
 const config = await loadAgentConfig('dev-003');
 config.permissions.maxSubordinates = 5;
@@ -220,7 +220,7 @@ function generateDefaultConfig(
 
 **Example:**
 ```typescript
-import { generateDefaultConfig } from '@recursive-manager/core';
+import { generateDefaultConfig } from '@recursivemanager/core';
 
 const config = generateDefaultConfig(
   'QA Engineer',
@@ -261,7 +261,7 @@ function mergeConfigs(
 
 **Example:**
 ```typescript
-import { mergeConfigs, generateDefaultConfig } from '@recursive-manager/core';
+import { mergeConfigs, generateDefaultConfig } from '@recursivemanager/core';
 
 const base = generateDefaultConfig('Developer', 'Write code', 'cto-001');
 const override = {
@@ -308,7 +308,7 @@ interface BusinessValidationError {
 
 **Example:**
 ```typescript
-import { validateAgentConfigBusinessLogic } from '@recursive-manager/core';
+import { validateAgentConfigBusinessLogic } from '@recursivemanager/core';
 
 const result = validateAgentConfigBusinessLogic(config);
 if (!result.valid) {
@@ -338,7 +338,7 @@ function validateAgentConfigBusinessLogicStrict(
 
 **Example:**
 ```typescript
-import { validateAgentConfigBusinessLogicStrict } from '@recursive-manager/core';
+import { validateAgentConfigBusinessLogicStrict } from '@recursivemanager/core';
 
 try {
   validateAgentConfigBusinessLogicStrict(config);
@@ -397,7 +397,7 @@ interface HireResult {
 
 **Example:**
 ```typescript
-import { hireAgent, generateDefaultConfig } from '@recursive-manager/core';
+import { hireAgent, generateDefaultConfig } from '@recursivemanager/core';
 
 const config = generateDefaultConfig(
   'Backend Developer',
@@ -451,7 +451,7 @@ type FireStrategy = 'reassign' | 'promote' | 'cascade';
 
 **Example:**
 ```typescript
-import { fireAgent } from '@recursive-manager/core';
+import { fireAgent } from '@recursivemanager/core';
 
 // Fire agent, move subordinates to parent
 const result = await fireAgent('dev-004', 'reassign');
@@ -504,7 +504,7 @@ interface PauseAgentOptions {
 
 **Example:**
 ```typescript
-import { pauseAgent } from '@recursive-manager/core';
+import { pauseAgent } from '@recursivemanager/core';
 
 const result = await pauseAgent('dev-005', {
   performedBy: 'cto-001'
@@ -556,7 +556,7 @@ interface ResumeAgentOptions {
 
 **Example:**
 ```typescript
-import { resumeAgent } from '@recursive-manager/core';
+import { resumeAgent } from '@recursivemanager/core';
 
 const result = await resumeAgent('dev-005', {
   performedBy: 'cto-001'
@@ -598,7 +598,7 @@ interface ValidationError {
 
 **Example:**
 ```typescript
-import { validateHire, validateHireStrict } from '@recursive-manager/core';
+import { validateHire, validateHireStrict } from '@recursivemanager/core';
 
 // Non-strict: Returns result
 const result = validateHire(config);
@@ -669,7 +669,7 @@ async function archiveOldTasks(
 
 **Example:**
 ```typescript
-import { archiveOldTasks } from '@recursive-manager/core';
+import { archiveOldTasks } from '@recursivemanager/core';
 
 // Archive tasks older than 30 days
 await archiveOldTasks(30);
@@ -920,9 +920,9 @@ interface ExecutionResult {
 
 **Example:**
 ```typescript
-import { ExecutionOrchestrator } from '@recursive-manager/core';
-import { AdapterRegistry } from '@recursive-manager/adapters';
-import { getDatabase } from '@recursive-manager/common';
+import { ExecutionOrchestrator } from '@recursivemanager/core';
+import { AdapterRegistry } from '@recursivemanager/adapters';
+import { getDatabase } from '@recursivemanager/common';
 
 const orchestrator = new ExecutionOrchestrator({
   adapterRegistry: new AdapterRegistry(),
@@ -1149,7 +1149,7 @@ Prometheus metrics collection and HTTP server for monitoring.
 Export Prometheus metrics registry and collectors.
 
 ```typescript
-import { metricsRegistry } from '@recursive-manager/core';
+import { metricsRegistry } from '@recursivemanager/core';
 
 // Get metrics in Prometheus format
 const metrics = await metricsRegistry.metrics();
@@ -1166,7 +1166,7 @@ import {
   executionCounter,
   executionDuration,
   activeExecutionsGauge
-} from '@recursive-manager/core';
+} from '@recursivemanager/core';
 
 // Counters
 executionCounter.inc({ mode: 'continuous', agentId: 'dev-001', status: 'success' });
@@ -1200,7 +1200,7 @@ activeExecutionsGauge.set(3);
 Convenience functions for recording metrics.
 
 ```typescript
-import { recordExecution, recordAnalysis, updatePoolMetrics } from '@recursive-manager/core';
+import { recordExecution, recordAnalysis, updatePoolMetrics } from '@recursivemanager/core';
 
 // Record execution
 recordExecution({
@@ -1247,7 +1247,7 @@ updatePoolMetrics({
 HTTP server for Prometheus scraping.
 
 ```typescript
-import { MetricsServer, startMetricsServer } from '@recursive-manager/core';
+import { MetricsServer, startMetricsServer } from '@recursivemanager/core';
 
 // Start server
 const server = await startMetricsServer({
@@ -1362,7 +1362,7 @@ Returns formatted message string for file storage.
 
 ## CLI Package API
 
-**Package:** `@recursive-manager/cli`
+**Package:** `@recursivemanager/cli`
 **Version:** 0.1.0
 
 ### Org Chart Visualization
@@ -1405,8 +1405,8 @@ interface FormatOptions {
 
 **Example:**
 ```typescript
-import { formatOrgChart } from '@recursive-manager/cli';
-import { getOrgChart } from '@recursive-manager/common';
+import { formatOrgChart } from '@recursivemanager/cli';
+import { getOrgChart } from '@recursivemanager/common';
 
 const db = getDatabase();
 const orgChart = db.prepare('SELECT * FROM org_hierarchy').all();
@@ -1458,7 +1458,7 @@ function displayOrgChart(
 
 **Example:**
 ```typescript
-import { displayOrgChart } from '@recursive-manager/cli';
+import { displayOrgChart } from '@recursivemanager/cli';
 
 displayOrgChart(orgChart, 'tree', { useColor: true, showStats: true });
 ```
@@ -1491,7 +1491,7 @@ interface AgentRecord {
 
 ## Adapters Package API
 
-**Package:** `@recursive-manager/adapters`
+**Package:** `@recursivemanager/adapters`
 **Version:** 0.1.0
 
 ### Framework Adapter Types
@@ -1693,7 +1693,7 @@ interface AdapterInfo {
 
 **Example:**
 ```typescript
-import { AdapterRegistry, ClaudeCodeAdapter } from '@recursive-manager/adapters';
+import { AdapterRegistry, ClaudeCodeAdapter } from '@recursivemanager/adapters';
 
 const registry = new AdapterRegistry({
   defaultAdapter: 'claude-code',
@@ -1770,7 +1770,7 @@ interface ClaudeCodeAdapterOptions {
 
 **Example:**
 ```typescript
-import { ClaudeCodeAdapter } from '@recursive-manager/adapters';
+import { ClaudeCodeAdapter } from '@recursivemanager/adapters';
 
 const adapter = new ClaudeCodeAdapter({
   cliPath: '/usr/local/bin/claude',
@@ -1821,8 +1821,8 @@ interface LoadContextOptions extends PathOptions {
 
 **Example:**
 ```typescript
-import { loadExecutionContext } from '@recursive-manager/adapters';
-import { getDatabase } from '@recursive-manager/common';
+import { loadExecutionContext } from '@recursivemanager/adapters';
+import { getDatabase } from '@recursivemanager/common';
 
 const db = getDatabase();
 const context = await loadExecutionContext(db, 'dev-001', 'continuous', {
@@ -1917,7 +1917,7 @@ function buildMultiPerspectivePrompt(
 
 ## Scheduler Package API
 
-**Package:** `@recursive-manager/scheduler`
+**Package:** `@recursivemanager/scheduler`
 **Version:** 0.1.0
 
 ### Schedule Manager
@@ -1989,8 +1989,8 @@ interface CreateCronScheduleInput {
 
 **Example:**
 ```typescript
-import { ScheduleManager } from '@recursive-manager/scheduler';
-import { getDatabase } from '@recursive-manager/common';
+import { ScheduleManager } from '@recursivemanager/scheduler';
+import { getDatabase } from '@recursivemanager/common';
 
 const db = getDatabase();
 const scheduler = new ScheduleManager(db);
@@ -2119,7 +2119,7 @@ Creates schedule to monitor for deadlocks every 15 minutes.
 
 ## Common Package API
 
-**Package:** `@recursive-manager/common`
+**Package:** `@recursivemanager/common`
 **Version:** 0.1.0
 
 ### Version Information
@@ -2148,7 +2148,7 @@ interface VersionInfo {
 
 **Example:**
 ```typescript
-import { VERSION, getVersionInfo } from '@recursive-manager/common';
+import { VERSION, getVersionInfo } from '@recursivemanager/common';
 
 console.log('Version:', VERSION);
 
@@ -2194,7 +2194,7 @@ interface AtomicWriteOptions {
 
 **Example:**
 ```typescript
-import { atomicWrite } from '@recursive-manager/common';
+import { atomicWrite } from '@recursivemanager/common';
 
 await atomicWrite('/path/to/file.json', JSON.stringify(data, null, 2), {
   createDirs: true,
@@ -2236,7 +2236,7 @@ interface BackupOptions {
 
 **Example:**
 ```typescript
-import { createBackup } from '@recursive-manager/common';
+import { createBackup } from '@recursivemanager/common';
 
 const backupPath = await createBackup('/path/to/config.json', {
   backupExtension: '.bak',
@@ -2285,7 +2285,7 @@ interface CleanupResult {
 
 **Example:**
 ```typescript
-import { cleanupBackups } from '@recursive-manager/common';
+import { cleanupBackups } from '@recursivemanager/common';
 
 const result = await cleanupBackups('/path/to/*.backup', {
   retentionDays: 30,
@@ -2347,7 +2347,7 @@ interface PermissionCheckResult {
 
 **Example:**
 ```typescript
-import { checkDirectoryPermissions } from '@recursive-manager/common';
+import { checkDirectoryPermissions } from '@recursivemanager/common';
 
 const result = await checkDirectoryPermissions('/path/to/dir', {
   requiredPermissions: 0o755,
@@ -2438,7 +2438,7 @@ interface DiskSpaceInfo {
 
 **Example:**
 ```typescript
-import { getDiskSpace, formatBytes } from '@recursive-manager/common';
+import { getDiskSpace, formatBytes } from '@recursivemanager/common';
 
 const info = await getDiskSpace('/home/user');
 console.log('Total:', formatBytes(info.total));
@@ -2484,9 +2484,9 @@ interface DiskSpaceSufficiencyResult {
 
 **Example:**
 ```typescript
-import { checkDiskSpace } from '@recursive-manager/common';
+import { checkDiskSpace } from '@recursivemanager/common';
 
-const result = await checkDiskSpace('/var/lib/recursive-manager', {
+const result = await checkDiskSpace('/var/lib/recursivemanager', {
   minFreeBytes: 1024 * 1024 * 1024,  // 1 GB
   minFreePercent: 10
 });
@@ -2529,7 +2529,7 @@ function formatBytes(bytes: number, decimals?: number): string
 
 **Example:**
 ```typescript
-import { formatBytes } from '@recursive-manager/common';
+import { formatBytes } from '@recursivemanager/common';
 
 console.log(formatBytes(1024));              // "1.00 KB"
 console.log(formatBytes(1536, 0));           // "2 KB"
@@ -2554,7 +2554,7 @@ Path construction and validation utilities.
 #### Path Constants
 
 ```typescript
-export const DEFAULT_BASE_DIR: string;   // ~/.recursive-manager
+export const DEFAULT_BASE_DIR: string;   // ~/.recursivemanager
 ```
 
 ---
@@ -2591,16 +2591,16 @@ import {
   getAgentDirectory,
   getConfigPath,
   getWorkspacePath
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 
 const agentDir = getAgentDirectory('ceo-001');
-// /home/user/.recursive-manager/agents/ce/ceo-001
+// /home/user/.recursivemanager/agents/ce/ceo-001
 
 const configPath = getConfigPath('ceo-001');
-// /home/user/.recursive-manager/agents/ce/ceo-001/config.json
+// /home/user/.recursivemanager/agents/ce/ceo-001/config.json
 
 const workspace = getWorkspacePath('ceo-001');
-// /home/user/.recursive-manager/agents/ce/ceo-001/workspace
+// /home/user/.recursivemanager/agents/ce/ceo-001/workspace
 ```
 
 ---
@@ -2618,7 +2618,7 @@ function sanitizePathComponent(component: string): string
 
 **Example:**
 ```typescript
-import { validateAgentId, validatePathContainment, sanitizePathComponent } from '@recursive-manager/common';
+import { validateAgentId, validatePathContainment, sanitizePathComponent } from '@recursivemanager/common';
 
 // Validate agent ID
 if (!validateAgentId('ceo-001')) {
@@ -2627,8 +2627,8 @@ if (!validateAgentId('ceo-001')) {
 
 // Prevent path traversal
 const safe = validatePathContainment(
-  '/home/user/.recursive-manager/agents/ce/ceo-001/workspace/file.txt',
-  '/home/user/.recursive-manager'
+  '/home/user/.recursivemanager/agents/ce/ceo-001/workspace/file.txt',
+  '/home/user/.recursivemanager'
 );
 
 // Sanitize path component
@@ -2674,7 +2674,7 @@ type ValidationResult = {
 
 **Example:**
 ```typescript
-import { validateAgentConfig, validateAgentConfigStrict } from '@recursive-manager/common';
+import { validateAgentConfig, validateAgentConfigStrict } from '@recursivemanager/common';
 
 // Non-strict: Returns result
 const result = validateAgentConfig(config);
@@ -2731,7 +2731,7 @@ interface CorruptionInfo {
 
 **Example:**
 ```typescript
-import { detectCorruption } from '@recursive-manager/common';
+import { detectCorruption } from '@recursivemanager/common';
 
 const corruption = await detectCorruption('/path/to/file.json');
 if (corruption?.corrupted) {
@@ -2794,7 +2794,7 @@ interface RecoveryResult {
 
 **Example:**
 ```typescript
-import { attemptRecovery } from '@recursive-manager/common';
+import { attemptRecovery } from '@recursivemanager/common';
 
 const result = await attemptRecovery('/path/to/corrupted.json', {
   maxAttempts: 5,
@@ -2835,7 +2835,7 @@ function safeLoadSync(
 
 **Example:**
 ```typescript
-import { safeLoad } from '@recursive-manager/common';
+import { safeLoad } from '@recursivemanager/common';
 
 const config = await safeLoad('/path/to/config.json');
 // Automatically detects corruption and recovers from backup if needed
@@ -2860,7 +2860,7 @@ async function initializeDatabase(
 **Options:**
 ```typescript
 interface DatabaseOptions {
-  path?: string;                      // Default: ~/.recursive-manager/data.db
+  path?: string;                      // Default: ~/.recursivemanager/data.db
   readonly?: boolean;                 // Default: false
   timeout?: number;                   // Default: 5000ms
 }
@@ -2876,7 +2876,7 @@ interface DatabaseConnection {
 
 **Example:**
 ```typescript
-import { initializeDatabase } from '@recursive-manager/common';
+import { initializeDatabase } from '@recursivemanager/common';
 
 const connection = await initializeDatabase({
   path: '/path/to/database.db',
@@ -2902,7 +2902,7 @@ function getDatabase(): DatabasePool
 
 **Example:**
 ```typescript
-import { getDatabase } from '@recursive-manager/common';
+import { getDatabase } from '@recursivemanager/common';
 
 const db = getDatabase();
 const connection = db.getConnection();
@@ -2953,7 +2953,7 @@ async function transaction<T>(fn: (db: Database) => T): Promise<T>
 
 **Example:**
 ```typescript
-import { transaction } from '@recursive-manager/common';
+import { transaction } from '@recursivemanager/common';
 
 await transaction(async (db) => {
   db.prepare('INSERT INTO agents (id, role) VALUES (?, ?)').run('dev-001', 'Developer');
@@ -3002,7 +3002,7 @@ interface MigrationStatus {
 
 **Example:**
 ```typescript
-import { getMigrationStatus, runMigrations } from '@recursive-manager/common';
+import { getMigrationStatus, runMigrations } from '@recursivemanager/common';
 
 const status = await getMigrationStatus();
 console.log('Current version:', status.currentVersion);
@@ -3085,8 +3085,8 @@ interface OrgHierarchyRecord {
 
 **Example:**
 ```typescript
-import { createAgent, getAgent, getOrgChart } from '@recursive-manager/common';
-import { getDatabase } from '@recursive-manager/common';
+import { createAgent, getAgent, getOrgChart } from '@recursivemanager/common';
+import { getDatabase } from '@recursivemanager/common';
 
 const db = getDatabase().getConnection().db;
 
@@ -3248,7 +3248,7 @@ interface AuditQueryFilter {
 
 **Example:**
 ```typescript
-import { auditLog, queryAuditLog, AuditAction } from '@recursive-manager/common';
+import { auditLog, queryAuditLog, AuditAction } from '@recursivemanager/common';
 
 // Log audit event
 auditLog(db, {
@@ -3328,13 +3328,13 @@ interface LogMetadata {
 
 **Example:**
 ```typescript
-import { createLogger } from '@recursive-manager/common';
+import { createLogger } from '@recursivemanager/common';
 
 const logger = createLogger({
   level: 'debug',
   console: true,
   file: true,
-  filePath: '/var/log/recursive-manager.log',
+  filePath: '/var/log/recursivemanager.log',
   rotation: true
 });
 
@@ -3362,7 +3362,7 @@ function createAgentLogger(agentId: string): Logger
 
 **Example:**
 ```typescript
-import { createAgentLogger } from '@recursive-manager/common';
+import { createAgentLogger } from '@recursivemanager/common';
 
 const logger = createAgentLogger('dev-001');
 logger.info('Task started', { taskId: 'task-456' });
@@ -3408,7 +3408,7 @@ import {
   getAgentHierarchyContext,
   createHierarchicalAgentLogger,
   getDatabase
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 
 const db = getDatabase().getConnection().db;
 const context = await getAgentHierarchyContext(db, 'dev-001');
@@ -3437,7 +3437,7 @@ function getRequestContext(): Record<string, unknown> | undefined
 
 **Example:**
 ```typescript
-import { withTraceId, getCurrentTraceId, logger } from '@recursive-manager/common';
+import { withTraceId, getCurrentTraceId, logger } from '@recursivemanager/common';
 
 await withTraceId(async () => {
   const traceId = getCurrentTraceId();
@@ -3455,7 +3455,7 @@ await withTraceId(async () => {
 #### Default Logger
 
 ```typescript
-import { logger } from '@recursive-manager/common';
+import { logger } from '@recursivemanager/common';
 
 logger.info('Application started');
 logger.error('Critical error', { error: err });
@@ -3489,7 +3489,7 @@ async function acquirePidLock(
 
 **Example:**
 ```typescript
-import { acquirePidLock } from '@recursive-manager/common';
+import { acquirePidLock } from '@recursivemanager/common';
 
 const release = await acquirePidLock('dev-001');
 
@@ -3558,7 +3558,7 @@ interface EncryptedData {
 
 **Example:**
 ```typescript
-import { DatabaseEncryption } from '@recursive-manager/common';
+import { DatabaseEncryption } from '@recursivemanager/common';
 
 const encryption = new DatabaseEncryption();
 
@@ -3594,7 +3594,7 @@ interface SecretMetadata {
 
 **Example:**
 ```typescript
-import { APIKeyManager } from '@recursive-manager/common';
+import { APIKeyManager } from '@recursivemanager/common';
 
 const keyManager = new APIKeyManager();
 
@@ -3828,7 +3828,7 @@ import {
   HireAgentError,
   HireValidationError,
   logger
-} from '@recursive-manager/core';
+} from '@recursivemanager/core';
 
 try {
   const result = await hireAgent('cto-001', config);

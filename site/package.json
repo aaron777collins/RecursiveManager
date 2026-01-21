@@ -1,5 +1,5 @@
 {
-  "name": "@recursive-manager/docs",
+  "name": "@recursivemanager/docs",
   "version": "0.1.0",
   "private": true,
   "description": "Documentation site for RecursiveManager",

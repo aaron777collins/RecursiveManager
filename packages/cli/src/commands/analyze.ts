@@ -10,7 +10,7 @@
 import { Command } from 'commander';
 import { header, error, info, code, subheader, success } from '../utils/colors';
 import { createSpinner } from '../utils/spinner';
-import type { MultiPerspectiveResult } from '@recursive-manager/core';
+import type { MultiPerspectiveResult } from '@recursivemanager/core';
 
 export function registerAnalyzeCommand(program: Command): void {
   program
@@ -30,8 +30,8 @@ export function registerAnalyzeCommand(program: Command): void {
         const spinner = createSpinner('Running analysis with 8 perspective agents...');
 
         // Dynamically import AI analysis components
-        const { MultiPerspectiveAnalysis } = await import('@recursive-manager/core/dist/ai-analysis/multi-perspective.js');
-        const { ProviderFactory } = await import('@recursive-manager/core/dist/ai-analysis/providers/factory.js');
+        const { MultiPerspectiveAnalysis } = await import('@recursivemanager/core/dist/ai-analysis/multi-perspective.js');
+        const { ProviderFactory } = await import('@recursivemanager/core/dist/ai-analysis/providers/factory.js');
 
         // Create provider with health check and fallback support
         const provider = await ProviderFactory.createWithHealthCheck();

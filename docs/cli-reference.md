@@ -14,7 +14,7 @@ Complete reference for all RecursiveManager CLI commands.
 Initialize RecursiveManager with a goal.
 
 ```bash
-recursive-manager init <goal>
+recursivemanager init <goal>
 ```
 
 **Arguments:**
@@ -29,13 +29,13 @@ recursive-manager init <goal>
 
 ```bash
 # Initialize with a simple goal
-recursive-manager init "Analyze competitor pricing"
+recursivemanager init "Analyze competitor pricing"
 
 # Initialize with custom workspace
-recursive-manager init "Build API scraper" --workspace ./my-project
+recursivemanager init "Build API scraper" --workspace ./my-project
 
 # Initialize with custom depth
-recursive-manager init "Complex task" --depth 10
+recursivemanager init "Complex task" --depth 10
 ```
 
 ### status
@@ -43,7 +43,7 @@ recursive-manager init "Complex task" --depth 10
 Show the agent organization chart or details about a specific agent.
 
 ```bash
-recursive-manager status [options]
+recursivemanager status [options]
 ```
 
 **Options:**
@@ -56,16 +56,16 @@ recursive-manager status [options]
 
 ```bash
 # Show organization chart
-recursive-manager status
+recursivemanager status
 
 # Show specific agent details
-recursive-manager status --agent-id agent-123
+recursivemanager status --agent-id agent-123
 
 # Show as JSON
-recursive-manager status --format json
+recursivemanager status --format json
 
 # Filter by status
-recursive-manager status --filter working
+recursivemanager status --filter working
 ```
 
 ### update
@@ -73,7 +73,7 @@ recursive-manager status --filter working
 Update RecursiveManager to the latest version.
 
 ```bash
-recursive-manager update [version] [options]
+recursivemanager update [version] [options]
 ```
 
 **Arguments:**
@@ -90,16 +90,16 @@ recursive-manager update [version] [options]
 
 ```bash
 # Update to latest version
-recursive-manager update
+recursivemanager update
 
 # Check for updates
-recursive-manager update --check
+recursivemanager update --check
 
 # List available versions
-recursive-manager update --list
+recursivemanager update --list
 
 # Install specific version
-recursive-manager update 0.2.0
+recursivemanager update 0.2.0
 ```
 
 ### rollback
@@ -107,7 +107,7 @@ recursive-manager update 0.2.0
 Rollback to the previous version.
 
 ```bash
-recursive-manager rollback
+recursivemanager rollback
 ```
 
 This command will restore the previous version from the backup created during the last update.
@@ -117,7 +117,7 @@ This command will restore the previous version from the backup created during th
 Interactive configuration wizard.
 
 ```bash
-recursive-manager config [options]
+recursivemanager config [options]
 ```
 
 **Options:**
@@ -129,13 +129,13 @@ recursive-manager config [options]
 
 ```bash
 # Run configuration wizard
-recursive-manager config
+recursivemanager config
 
 # Show current configuration
-recursive-manager config --show
+recursivemanager config --show
 
 # Edit configuration file
-recursive-manager config --edit
+recursivemanager config --edit
 ```
 
 ### debug
@@ -143,7 +143,7 @@ recursive-manager config --edit
 Debug an agent with detailed information.
 
 ```bash
-recursive-manager debug <agent-id> [options]
+recursivemanager debug <agent-id> [options]
 ```
 
 **Arguments:**
@@ -159,13 +159,13 @@ recursive-manager debug <agent-id> [options]
 
 ```bash
 # Debug agent with all information
-recursive-manager debug agent-123 --all
+recursivemanager debug agent-123 --all
 
 # Show only agent logs
-recursive-manager debug agent-123 --logs
+recursivemanager debug agent-123 --logs
 
 # Show agent state
-recursive-manager debug agent-123 --state
+recursivemanager debug agent-123 --state
 ```
 
 ### analyze
@@ -173,7 +173,7 @@ recursive-manager debug agent-123 --state
 Run multi-perspective AI analysis on a decision or question.
 
 ```bash
-recursive-manager analyze <question> [options]
+recursivemanager analyze <question> [options]
 ```
 
 **Arguments:**
@@ -188,13 +188,13 @@ recursive-manager analyze <question> [options]
 
 ```bash
 # Analyze a technical decision
-recursive-manager analyze "Should we use microservices or monolith?"
+recursivemanager analyze "Should we use microservices or monolith?"
 
 # Output as markdown
-recursive-manager analyze "Best database for real-time analytics?" --format markdown
+recursivemanager analyze "Best database for real-time analytics?" --format markdown
 
 # Output as JSON
-recursive-manager analyze "Security implications of public API?" --format json
+recursivemanager analyze "Security implications of public API?" --format json
 ```
 
 This command runs 8 specialized AI agents in parallel to analyze decisions from multiple perspectives: Security, Architecture, Simplicity, Financial, Marketing, UX, Growth, and Emotional. Each agent provides recommendations with confidence scores.
@@ -204,7 +204,7 @@ This command runs 8 specialized AI agents in parallel to analyze decisions from 
 Hire a new agent and add to organizational hierarchy.
 
 ```bash
-recursive-manager hire <agent-id> [options]
+recursivemanager hire <agent-id> [options]
 ```
 
 **Arguments:**
@@ -228,13 +228,13 @@ recursive-manager hire <agent-id> [options]
 
 ```bash
 # Hire a CTO agent
-recursive-manager hire cto-001 --role "Chief Technology Officer" --goal "Lead technical strategy" --can-hire --max-subordinates 5
+recursivemanager hire cto-001 --role "Chief Technology Officer" --goal "Lead technical strategy" --can-hire --max-subordinates 5
 
 # Hire a backend engineer under the CTO
-recursive-manager hire backend-001 --manager-id cto-001 --role "Backend Engineer" --goal "Build REST API"
+recursivemanager hire backend-001 --manager-id cto-001 --role "Backend Engineer" --goal "Build REST API"
 
 # Hire with full configuration
-recursive-manager hire frontend-001 -m cto-001 -r "Frontend Engineer" -g "Build React UI" --can-escalate --framework claude-code
+recursivemanager hire frontend-001 -m cto-001 -r "Frontend Engineer" -g "Build React UI" --can-escalate --framework claude-code
 ```
 
 ### fire
@@ -242,7 +242,7 @@ recursive-manager hire frontend-001 -m cto-001 -r "Frontend Engineer" -g "Build 
 Fire an agent and handle their subordinates.
 
 ```bash
-recursive-manager fire <agent-id> [options]
+recursivemanager fire <agent-id> [options]
 ```
 
 **Arguments:**
@@ -263,16 +263,16 @@ recursive-manager fire <agent-id> [options]
 
 ```bash
 # Fire an agent (interactive mode)
-recursive-manager fire backend-001
+recursivemanager fire backend-001
 
 # Fire and reassign subordinates
-recursive-manager fire manager-001 --strategy reassign
+recursivemanager fire manager-001 --strategy reassign
 
 # Fire without confirmation
-recursive-manager fire temp-worker-001 -y
+recursivemanager fire temp-worker-001 -y
 
 # Cascade fire (fire agent and all subordinates)
-recursive-manager fire failed-team-lead-001 --strategy cascade --yes
+recursivemanager fire failed-team-lead-001 --strategy cascade --yes
 ```
 
 ### message
@@ -280,7 +280,7 @@ recursive-manager fire failed-team-lead-001 --strategy cascade --yes
 Send a message to an agent for reactive execution.
 
 ```bash
-recursive-manager message <agent-id> [options]
+recursivemanager message <agent-id> [options]
 ```
 
 **Arguments:**
@@ -300,16 +300,16 @@ recursive-manager message <agent-id> [options]
 
 ```bash
 # Send a message (opens editor for content)
-recursive-manager message cto-001 --subject "API performance issue"
+recursivemanager message cto-001 --subject "API performance issue"
 
 # Send with inline content
-recursive-manager message backend-001 -s "Deploy to staging" -c "Please deploy branch feature/auth to staging environment"
+recursivemanager message backend-001 -s "Deploy to staging" -c "Please deploy branch feature/auth to staging environment"
 
 # Send urgent message
-recursive-manager message ops-001 -s "Production alert" -p urgent -a
+recursivemanager message ops-001 -s "Production alert" -p urgent -a
 
 # Send from another agent
-recursive-manager message frontend-001 -f cto-001 -s "Code review needed" --channel slack
+recursivemanager message frontend-001 -f cto-001 -s "Code review needed" --channel slack
 ```
 
 ### run
@@ -317,7 +317,7 @@ recursive-manager message frontend-001 -f cto-001 -s "Code review needed" --chan
 Manually trigger agent execution.
 
 ```bash
-recursive-manager run <agent-id> [options]
+recursivemanager run <agent-id> [options]
 ```
 
 **Arguments:**
@@ -337,16 +337,16 @@ recursive-manager run <agent-id> [options]
 
 ```bash
 # Run agent in continuous mode (process tasks)
-recursive-manager run backend-001
+recursivemanager run backend-001
 
 # Run in reactive mode (process messages)
-recursive-manager run support-agent-001 --mode reactive
+recursivemanager run support-agent-001 --mode reactive
 
 # Run without confirmation
-recursive-manager run worker-001 -y
+recursivemanager run worker-001 -y
 
 # Run and output as JSON
-recursive-manager run cto-001 --json
+recursivemanager run cto-001 --json
 ```
 
 ### logs
@@ -354,7 +354,7 @@ recursive-manager run cto-001 --json
 View and filter agent logs.
 
 ```bash
-recursive-manager logs [agent-id] [options]
+recursivemanager logs [agent-id] [options]
 ```
 
 **Arguments:**
@@ -375,25 +375,25 @@ recursive-manager logs [agent-id] [options]
 
 ```bash
 # View last 50 lines from agent
-recursive-manager logs ceo-001
+recursivemanager logs ceo-001
 
 # View last 100 lines with error level filter
-recursive-manager logs cto-002 -n 100 --level error
+recursivemanager logs cto-002 -n 100 --level error
 
 # View logs since timestamp
-recursive-manager logs backend-003 --since "2026-01-20 10:00:00"
+recursivemanager logs backend-003 --since "2026-01-20 10:00:00"
 
 # Search logs for pattern
-recursive-manager logs frontend-004 --grep "execution failed"
+recursivemanager logs frontend-004 --grep "execution failed"
 
 # View all agent logs combined
-recursive-manager logs --all
+recursivemanager logs --all
 
 # Follow logs in real-time
-recursive-manager logs worker-005 -f
+recursivemanager logs worker-005 -f
 
 # Output as JSON
-recursive-manager logs manager-006 --json
+recursivemanager logs manager-006 --json
 ```
 
 ### version
@@ -401,7 +401,7 @@ recursive-manager logs manager-006 --json
 Show RecursiveManager version information.
 
 ```bash
-recursive-manager version
+recursivemanager version
 ```
 
 Shows the current version, release date, and release URL.
@@ -411,7 +411,7 @@ Shows the current version, release date, and release URL.
 Show help information.
 
 ```bash
-recursive-manager help [command]
+recursivemanager help [command]
 ```
 
 **Arguments:**
@@ -421,8 +421,8 @@ recursive-manager help [command]
 
 ```bash
 # Show general help
-recursive-manager help
+recursivemanager help
 
 # Show help for specific command
-recursive-manager help init
+recursivemanager help init
 ```

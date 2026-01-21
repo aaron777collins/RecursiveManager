@@ -10,7 +10,7 @@ import {
   type ExecutionResult,
   loadExecutionContext,
   AdapterRegistry,
-} from '@recursive-manager/adapters';
+} from '@recursivemanager/adapters';
 import {
   getAgent,
   createAgentLogger,
@@ -19,7 +19,7 @@ import {
   DatabasePool,
   withTraceId,
   generateTraceId,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { AgentLock, AgentLockError } from './AgentLock';
 import { ExecutionPool, type PoolStatistics } from './ExecutionPool';
 import type { MultiPerspectiveResult } from '../ai-analysis/multi-perspective.js';

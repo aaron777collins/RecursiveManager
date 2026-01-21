@@ -26,11 +26,11 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Default configuration
-INSTALL_DIR="${HOME}/.recursive-manager"
+INSTALL_DIR="${HOME}/.recursivemanager"
 HEADLESS=false
 REMOVE_DATA=false
 SKIP_BACKUP=false
-BACKUP_DIR="${HOME}/.recursive-manager-backup-$(date +%Y%m%d-%H%M%S)"
+BACKUP_DIR="${HOME}/.recursivemanager-backup-$(date +%Y%m%d-%H%M%S)"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -58,7 +58,7 @@ while [[ $# -gt 0 ]]; do
       echo ""
       echo "Options:"
       echo "  --headless                       Non-interactive uninstallation mode"
-      echo "  --install-dir DIR                Custom installation directory (default: ~/.recursive-manager)"
+      echo "  --install-dir DIR                Custom installation directory (default: ~/.recursivemanager)"
       echo "  --remove-data                    Remove all data and configuration"
       echo "  --skip-backup                    Don't create backup before removal"
       echo "  --help                           Show this help message"
@@ -187,10 +187,10 @@ create_backup() {
   fi
 
   # Backup version history
-  local version_history="${HOME}/.recursive_manager_version_history"
+  local version_history="${HOME}/.recursivemanager_version_history"
   if [ -f "$version_history" ]; then
     log_info "Backing up version history..."
-    cp "$version_history" "$BACKUP_DIR/.recursive_manager_version_history"
+    cp "$version_history" "$BACKUP_DIR/.recursivemanager_version_history"
   fi
 
   log_success "Backup created at: $BACKUP_DIR"
@@ -213,7 +213,7 @@ remove_shell_aliases() {
   for config_file in "${shell_configs[@]}"; do
     if [ -f "$config_file" ]; then
       # Check if RecursiveManager config exists
-      if grep -q "RecursiveManager" "$config_file" 2>/dev/null || grep -q "recursive-manager" "$config_file" 2>/dev/null; then
+      if grep -q "RecursiveManager" "$config_file" 2>/dev/null || grep -q "recursivemanager" "$config_file" 2>/dev/null; then
         log_info "Removing RecursiveManager configuration from $config_file..."
 
         # Create a temporary file
@@ -222,10 +222,10 @@ remove_shell_aliases() {
         # Remove lines between "# RecursiveManager" and the alias line
         awk '
           /# RecursiveManager/ { skip=1; next }
-          /export RECURSIVE_MANAGER_HOME=/ { if (skip) { skip=0; next } }
-          /alias recursive-manager=/ { if (skip) { skip=0; next } }
+          /export RECURSIVEMANAGER_HOME=/ { if (skip) { skip=0; next } }
+          /alias recursivemanager=/ { if (skip) { skip=0; next } }
           !skip { print }
-          /alias recursive-manager=/ { next }
+          /alias recursivemanager=/ { next }
         ' "$config_file" > "$temp_file"
 
         # Replace original file
@@ -274,7 +274,7 @@ remove_data() {
   log_header "Removing Data and Configuration"
 
   # Remove version history
-  local version_history="${HOME}/.recursive_manager_version_history"
+  local version_history="${HOME}/.recursivemanager_version_history"
   if [ -f "$version_history" ]; then
     log_info "Removing version history..."
     rm -f "$version_history"
@@ -282,7 +282,7 @@ remove_data() {
   fi
 
   # Remove old backups (from update.sh)
-  local backup_pattern="${HOME}/.recursive-manager-backup-*"
+  local backup_pattern="${HOME}/.recursivemanager-backup-*"
   if ls $backup_pattern 1> /dev/null 2>&1; then
     log_info "Removing old backups..."
     rm -rf $backup_pattern

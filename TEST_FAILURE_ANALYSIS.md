@@ -12,13 +12,13 @@ From the root `npm test` command:
 
 ## Package-by-Package Breakdown
 
-### 1. @recursive-manager/common
+### 1. @recursivemanager/common
 **Status:** ALL TESTS PASSED ✅
 - All database tests passed
 - All utility tests passed
 - All schema validation tests passed
 
-### 2. @recursive-manager/adapters
+### 2. @recursivemanager/adapters
 **Status:** 18 FAILED, 235 PASSED ❌
 **Pass Rate:** 92.9%
 
@@ -41,7 +41,7 @@ From the root `npm test` command:
 
 **Fix Required:** Increase beforeAll timeout or optimize CLI availability check
 
-### 3. @recursive-manager/core
+### 3. @recursivemanager/core
 **Status:** 26 TEST SUITES FAILED, 6 PASSED ❌
 **Results:** 159 failed tests (from 401 total across all packages)
 
@@ -78,16 +78,16 @@ From the root `npm test` command:
 - **Issue:** Database initialization fails, then teardown tries to close undefined db
 - **Root Cause:** Cascade from better-sqlite3 binding issue
 
-### 4. @recursive-manager/scheduler
+### 4. @recursivemanager/scheduler
 **Status:** Unknown (tests were running but output not captured in initial run)
 
-### 5. @recursive-manager/cli
+### 5. @recursivemanager/cli
 **Status:** Cannot Run ❌
 - **Error:** `jest: not found`
 - **Issue:** Jest not installed or not in PATH for CLI package
 - **Blocker:** Cannot assess CLI test status
 
-### 6. @recursive-manager/docs
+### 6. @recursivemanager/docs
 **Status:** Build only (no tests)
 
 ## Modified Files (Git Status)

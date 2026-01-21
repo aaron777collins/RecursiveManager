@@ -1,6 +1,6 @@
 {
-  "name": "@recursive-manager/core",
-  "version": "1.0.4",
+  "name": "@recursivemanager/core",
+  "version": "1.0.5",
   "description": "Core orchestrator and execution engine for RecursiveManager",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -20,8 +20,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@recursive-manager/adapters": "*",
-    "@recursive-manager/common": "*",
+    "@recursivemanager/adapters": "*",
+    "@recursivemanager/common": "*",
     "async-mutex": "^0.4.0",
     "better-sqlite3": "^9.2.2",
     "express": "^5.2.1",

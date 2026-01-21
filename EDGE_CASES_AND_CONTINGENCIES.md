@@ -929,12 +929,12 @@ async function runMultiPerspectiveAnalysis(
 - Critical bug in core
 
 **Plan**:
-1. **Stop all agents**: `recursive-manager emergency-stop`
-2. **Backup everything**: `recursive-manager backup --full`
-3. **Run diagnostics**: `recursive-manager diagnose --verbose`
-4. **Attempt repair**: `recursive-manager repair --auto`
+1. **Stop all agents**: `recursivemanager emergency-stop`
+2. **Backup everything**: `recursivemanager backup --full`
+3. **Run diagnostics**: `recursivemanager diagnose --verbose`
+4. **Attempt repair**: `recursivemanager repair --auto`
 5. **Manual recovery**: Restore from backups, rebuild database
-6. **Resume**: `recursive-manager resume --safe-mode`
+6. **Resume**: `recursivemanager resume --safe-mode`
 
 ### Contingency 2: Runaway Costs (API Usage Explosion)
 
@@ -945,7 +945,7 @@ async function runMultiPerspectiveAnalysis(
 
 **Plan**:
 1. **Immediate pause**: Stop all agents
-2. **Audit**: `recursive-manager audit --costs --last-24h`
+2. **Audit**: `recursivemanager audit --costs --last-24h`
 3. **Identify culprits**: Which agents consumed most tokens?
 4. **Fix**: Fire runaway agents, fix bugs
 5. **Set limits**: Configure stricter budgets

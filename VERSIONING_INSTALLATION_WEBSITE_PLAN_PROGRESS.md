@@ -163,7 +163,7 @@ RALPH_DONE
     - Fixed AgentLock.tryAcquire to use async (async-mutex doesn't support sync)
     - Added getDatabase() convenience function to common package
     - Fixed DatabaseConnection vs Database.Database type usage
-    - Added @recursive-manager/adapters reference to core tsconfig.json
+    - Added @recursivemanager/adapters reference to core tsconfig.json
     - Updated database connection calls to use .db property
   - Fixed some test errors (partial - pre-existing test failures remain in other packages)
   - Commit: ab59d08 (bypassed pre-commit hook due to pre-existing test failures)
@@ -318,7 +318,7 @@ RALPH_DONE
     - Version number in title (RecursiveManager v{version})
     - Extracted changelog content from CHANGELOG.md
     - Installation instructions with one-liner
-    - Update instructions using recursive-manager update command
+    - Update instructions using recursivemanager update command
   - Configured as non-draft, non-prerelease by default
   - Added verification step to confirm release creation
   - Follows GitHub Actions best practices
@@ -352,7 +352,7 @@ RALPH_DONE
 - Task 5.3: Created .env.example file
   - Created comprehensive environment configuration template
   - Includes sections for:
-    - Installation paths (RECURSIVE_MANAGER_HOME, RECURSIVE_MANAGER_DATA_DIR)
+    - Installation paths (RECURSIVEMANAGER_HOME, RECURSIVEMANAGER_DATA_DIR)
     - Logging configuration (LOG_LEVEL, LOG_FILE)
     - Agent configuration (MAX_AGENT_DEPTH, MAX_AGENTS_PER_MANAGER, AGENT_TIMEOUT_MS)
     - Execution settings (WORKER_POOL_SIZE, CONTINUOUS_EXECUTION_INTERVAL_MS)
@@ -421,7 +421,7 @@ RALPH_DONE
     - Execution settings (workerPoolSize, continuousExecutionIntervalMs)
     - Framework adapter configuration (defaultFramework, claudeCodePath)
   - Implemented loadConfig() function with environment variable loading:
-    - Loads from ~/.recursive-manager/.env if exists
+    - Loads from ~/.recursivemanager/.env if exists
     - Loads from current directory .env
     - Reads from process environment variables
     - Provides sensible defaults for all values

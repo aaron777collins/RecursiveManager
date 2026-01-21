@@ -28,7 +28,7 @@ export interface Config {
  */
 export function loadConfig(dataDir?: string): Config {
   const configDir =
-    dataDir || process.env.RECURSIVE_MANAGER_DATA_DIR || resolve(process.cwd(), '.recursive-manager');
+    dataDir || process.env.RECURSIVEMANAGER_DATA_DIR || resolve(process.cwd(), '.recursivemanager');
 
   // Check if data directory exists and is a directory
   if (existsSync(configDir)) {
@@ -44,11 +44,11 @@ export function loadConfig(dataDir?: string): Config {
     }
   }
 
-  const markerFile = resolve(configDir, '.recursive-manager');
+  const markerFile = resolve(configDir, '.recursivemanager');
 
   // Check if RecursiveManager is initialized
   if (!existsSync(markerFile)) {
-    console.error(error('RecursiveManager not initialized! Run: recursive-manager init "<goal>"'));
+    console.error(error('RecursiveManager not initialized! Run: recursivemanager init "<goal>"'));
     process.exit(1);
   }
 
@@ -162,7 +162,7 @@ export function loadConfig(dataDir?: string): Config {
  */
 export function getConfigPath(dataDir?: string): string {
   const configDir =
-    dataDir || process.env.RECURSIVE_MANAGER_DATA_DIR || resolve(process.cwd(), '.recursive-manager');
+    dataDir || process.env.RECURSIVEMANAGER_DATA_DIR || resolve(process.cwd(), '.recursivemanager');
   return resolve(configDir, 'config.json');
 }
 

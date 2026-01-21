@@ -8,7 +8,7 @@ import {
   BusinessValidationFailure,
 } from '../business-validation';
 import { mergeConfigs, type DeepPartial } from '../../config';
-import type { AgentConfig } from '@recursive-manager/common';
+import type { AgentConfig } from '@recursivemanager/common';
 
 describe('Business Validation', () => {
   // Helper to create a minimal valid config

@@ -89,9 +89,9 @@ This ensures comprehensive consideration of trade-offs.
 
 ```bash
 # Create a development organization
-recursive-manager hire --role "CTO" --goal "Manage engineering"
-recursive-manager message CTO "Hire backend and frontend developers"
-recursive-manager message CTO "Implement feature X with tests"
+recursivemanager hire --role "CTO" --goal "Manage engineering"
+recursivemanager message CTO "Hire backend and frontend developers"
+recursivemanager message CTO "Implement feature X with tests"
 ```
 
 The CTO agent:
@@ -104,17 +104,17 @@ The CTO agent:
 
 ```bash
 # Create a task automation hierarchy
-recursive-manager hire --role "Automation Manager" --goal "Handle scheduled tasks"
-recursive-manager message "Automation Manager" "Run daily backups and send reports"
+recursivemanager hire --role "Automation Manager" --goal "Handle scheduled tasks"
+recursivemanager message "Automation Manager" "Run daily backups and send reports"
 ```
 
 ### Customer Support
 
 ```bash
 # Create a support organization
-recursive-manager hire --role "Support Lead" --goal "Handle customer inquiries"
+recursivemanager hire --role "Support Lead" --goal "Handle customer inquiries"
 # Connect to Slack/Telegram
-recursive-manager message "Support Lead" "Monitor #support channel and respond"
+recursivemanager message "Support Lead" "Monitor #support channel and respond"
 ```
 
 ## Key Features

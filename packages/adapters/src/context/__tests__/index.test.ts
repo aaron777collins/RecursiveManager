@@ -17,7 +17,7 @@ import {
 import type { ExecutionContext } from '../../types';
 
 // Mock dependencies
-jest.mock('@recursive-manager/common', () => ({
+jest.mock('@recursivemanager/common', () => ({
   loadAgentConfig: jest.fn(),
   getActiveTasks: jest.fn(),
   getMessages: jest.fn(),
@@ -36,7 +36,7 @@ import {
   getMessages,
   getWorkspacePath,
   getAgentDirectory,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 
 // Typed mocks
 const mockLoadAgentConfig = loadAgentConfig as jest.MockedFunction<typeof loadAgentConfig>;

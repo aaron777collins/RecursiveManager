@@ -59,7 +59,7 @@ The plan completely misses critical infrastructure problems:
 
 **Common Package Exports (Verified)**
 All planned imports are available:
-- ✅ `initializeDatabase` - exported from @recursive-manager/common
+- ✅ `initializeDatabase` - exported from @recursivemanager/common
 - ✅ `runMigrations` - exported, but SYNCHRONOUS (not async!)
 - ✅ `allMigrations` - exported from migrations/index.ts
 - ✅ `createAgent` - exported from db/queries/agents.ts
@@ -141,7 +141,7 @@ All core tests follow consistent patterns:
   - File: `packages/cli/src/commands/config.ts`
   - Implement the reset functionality (currently returns error)
   - Should restore default configuration
-  - Test: `recursive-manager config --reset`
+  - Test: `recursivemanager config --reset`
 
 - [ ] Task 2.2: Verify CLI builds successfully
   - Run `cd packages/cli && npm run build`

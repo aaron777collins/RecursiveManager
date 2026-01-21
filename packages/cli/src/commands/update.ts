@@ -96,7 +96,7 @@ export function registerUpdateCommand(program: Command): void {
         console.error(error('Update failed: ' + (err as Error).message));
         console.log();
         console.log(warning('You can also update manually using:'));
-        console.log(code('  cd ~/.recursive-manager && git pull && npm install && npm run build'));
+        console.log(code('  cd ~/.recursivemanager && git pull && npm install && npm run build'));
         console.log();
         process.exit(1);
       }

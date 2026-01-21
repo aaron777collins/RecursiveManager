@@ -80,16 +80,16 @@ test_ubuntu_install() {
         cd RecursiveManager
 
         # Run headless install
-        bash scripts/install.sh --headless --install-dir /opt/recursive-manager --skip-shell-config
+        bash scripts/install.sh --headless --install-dir /opt/recursivemanager --skip-shell-config
 
         # Verify installation
         echo 'Verifying installation...'
-        test -d /opt/recursive-manager || (echo 'Installation directory not found' && exit 1)
+        test -d /opt/recursivemanager || (echo 'Installation directory not found' && exit 1)
 
         # Check if CLI works (if built)
-        if [ -f /opt/recursive-manager/packages/cli/dist/cli.js ]; then
-            node /opt/recursive-manager/packages/cli/dist/cli.js --version || true
-            node /opt/recursive-manager/packages/cli/dist/cli.js --help || true
+        if [ -f /opt/recursivemanager/packages/cli/dist/cli.js ]; then
+            node /opt/recursivemanager/packages/cli/dist/cli.js --version || true
+            node /opt/recursivemanager/packages/cli/dist/cli.js --help || true
         fi
 
         echo 'Installation test passed!'
@@ -133,11 +133,11 @@ test_debian_install() {
         cd RecursiveManager
 
         # Run headless install
-        bash scripts/install.sh --headless --install-dir /opt/recursive-manager --skip-shell-config
+        bash scripts/install.sh --headless --install-dir /opt/recursivemanager --skip-shell-config
 
         # Verify installation
         echo 'Verifying installation...'
-        test -d /opt/recursive-manager || (echo 'Installation directory not found' && exit 1)
+        test -d /opt/recursivemanager || (echo 'Installation directory not found' && exit 1)
 
         echo 'Installation test passed!'
     " || exit_code=$?

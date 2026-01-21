@@ -96,26 +96,26 @@ Ralph, this plan is designed for you to implement step-by-step. Here are your in
 
 **Implementation:**
 
-**1. Implement recursive-manager init**
+**1. Implement recursivemanager init**
 - Create project directory structure
 - Initialize database with migrations
 - Create default agent configuration
 - Set up logging directory
 - Generate starter config file
 
-**2. Implement recursive-manager config**
+**2. Implement recursivemanager config**
 - config get <key> - Read value
 - config set <key> <value> - Write value
 - config list - Show all configuration
 - config validate - Validate config
 
-**3. Implement recursive-manager debug**
+**3. Implement recursivemanager debug**
 - Show system information
 - Display database statistics
 - Show recent error logs
 - Export diagnostic bundle (JSON)
 
-**4. Implement recursive-manager status**
+**4. Implement recursivemanager status**
 - Check database connection
 - List agents and states
 - Show recent activity
@@ -187,7 +187,7 @@ Ralph, this plan is designed for you to implement step-by-step. Here are your in
 
 ## PHASE 2: IMPLEMENT ALL CLI COMMANDS (P0)
 
-### Task 2.1: Implement recursive-manager hire
+### Task 2.1: Implement recursivemanager hire
 
 **Implementation:**
 - Accept agent config via CLI flags or interactive prompt
@@ -202,7 +202,7 @@ Ralph, this plan is designed for you to implement step-by-step. Here are your in
 
 ---
 
-### Task 2.2: Implement recursive-manager fire
+### Task 2.2: Implement recursivemanager fire
 
 **Implementation:**
 - Accept agent ID or name
@@ -217,7 +217,7 @@ Ralph, this plan is designed for you to implement step-by-step. Here are your in
 
 ---
 
-### Task 2.3: Implement recursive-manager pause
+### Task 2.3: Implement recursivemanager pause
 
 **Implementation:**
 - Accept agent ID or name
@@ -231,7 +231,7 @@ Ralph, this plan is designed for you to implement step-by-step. Here are your in
 
 ---
 
-### Task 2.4: Implement recursive-manager resume
+### Task 2.4: Implement recursivemanager resume
 
 **Implementation:**
 - Accept agent ID or name
@@ -245,7 +245,7 @@ Ralph, this plan is designed for you to implement step-by-step. Here are your in
 
 ---
 
-### Task 2.5: Implement recursive-manager list
+### Task 2.5: Implement recursivemanager list
 
 **Implementation:**
 - Fetch all agents from database
@@ -258,7 +258,7 @@ Ralph, this plan is designed for you to implement step-by-step. Here are your in
 
 ---
 
-### Task 2.6: Implement recursive-manager logs
+### Task 2.6: Implement recursivemanager logs
 
 **Implementation:**
 - Accept agent ID or name
@@ -272,7 +272,7 @@ Ralph, this plan is designed for you to implement step-by-step. Here are your in
 
 ---
 
-### Task 2.7: Implement recursive-manager schedule
+### Task 2.7: Implement recursivemanager schedule
 
 **Implementation:**
 - schedule add <agent-id> --cron "..." --task "..."
@@ -730,7 +730,7 @@ Ralph, this plan is designed for you to implement step-by-step. Here are your in
 1. Verify NPM account
 2. Run npm publish (or via Jenkins)
 3. Verify published
-4. Test install: npm install -g recursive-manager
+4. Test install: npm install -g recursivemanager
 5. Update npm badge
 
 ---

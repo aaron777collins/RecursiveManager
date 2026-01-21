@@ -7,7 +7,7 @@
  */
 
 import Database from 'better-sqlite3';
-import { getAgent, getTask, createMessage, auditLog, AuditAction } from '@recursive-manager/common';
+import { getAgent, getTask, createMessage, auditLog, AuditAction } from '@recursivemanager/common';
 import { loadAgentConfig } from '../config';
 import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 
@@ -15,7 +15,7 @@ import { generateMessageId, writeMessageToInbox, MessageData } from '../messagin
  * Options for deadlock notification
  */
 export interface NotifyDeadlockOptions {
-  /** Custom data directory (defaults to ~/.recursive-manager) */
+  /** Custom data directory (defaults to ~/.recursivemanager) */
   dataDir?: string;
   /** Force notification even if agents have disabled deadlock notifications */
   force?: boolean;

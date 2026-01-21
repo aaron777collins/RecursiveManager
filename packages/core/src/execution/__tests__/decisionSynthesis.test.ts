@@ -23,7 +23,7 @@ import {
   runMigrations,
   allMigrations,
   DatabasePool,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { ExecutionOrchestrator } from '../index';
 
 // Mock types for adapters (avoiding import issues)

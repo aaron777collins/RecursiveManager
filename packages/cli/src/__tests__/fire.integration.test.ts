@@ -14,8 +14,8 @@ import {
   getAgent,
   createAgent,
   createTask,
-} from '@recursive-manager/common';
-import { hireAgent, fireAgent } from '@recursive-manager/core';
+} from '@recursivemanager/common';
+import { hireAgent, fireAgent } from '@recursivemanager/core';
 
 // Mock the interactive prompts and spinners to avoid CLI interaction during tests
 jest.mock('../utils/prompts', () => ({
@@ -53,7 +53,7 @@ describe('fire command integration', () => {
 
   beforeEach(async () => {
     // Create temporary directory for test
-    testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'recursive-manager-fire-test-'));
+    testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'recursivemanager-fire-test-'));
 
     // Initialize database directly
     const dbPath = path.join(testDataDir, 'database.sqlite');
@@ -90,7 +90,7 @@ describe('fire command integration', () => {
     fs.mkdirSync(testDataDir, { recursive: true });
     fs.writeFileSync(path.join(testDataDir, 'config.json'), JSON.stringify(config, null, 2));
     fs.writeFileSync(
-      path.join(testDataDir, '.recursive-manager'),
+      path.join(testDataDir, '.recursivemanager'),
       JSON.stringify({ initialized: new Date().toISOString() })
     );
   });

@@ -6,7 +6,7 @@
  */
 
 import { mergeConfigs, generateDefaultConfig } from '../config';
-import type { AgentConfig } from '@recursive-manager/common';
+import type { AgentConfig } from '@recursivemanager/common';
 
 describe('mergeConfigs', () => {
   let baseConfig: AgentConfig;

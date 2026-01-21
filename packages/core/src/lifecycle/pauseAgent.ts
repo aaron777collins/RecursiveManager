@@ -17,14 +17,14 @@
  */
 
 import Database from 'better-sqlite3';
-import { PathOptions, createAgentLogger } from '@recursive-manager/common';
+import { PathOptions, createAgentLogger } from '@recursivemanager/common';
 import {
   getAgent,
   updateAgent,
   AgentRecord,
   createMessage,
   MessageInput,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 import { blockTasksForPausedAgent, BlockTasksResult } from './taskBlocking';
 import { ExecutionPool } from '../execution/ExecutionPool.js';
@@ -131,7 +131,7 @@ Your manager${agent.reporting_to ? ` (${agent.reporting_to})` : ''} or a system 
 
 To resume, they should use:
 \`\`\`
-recursive-manager resume ${agent.id}
+recursivemanager resume ${agent.id}
 \`\`\`
 
 ## Action Required
@@ -194,7 +194,7 @@ Your subordinate **${agent.display_name}** (${agent.role}) has been paused.
 The agent will remain paused until manually resumed. To resume:
 
 \`\`\`
-recursive-manager resume ${agent.id}
+recursivemanager resume ${agent.id}
 \`\`\`
 
 If the agent has active tasks, you may want to:

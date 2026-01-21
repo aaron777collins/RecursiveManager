@@ -50,8 +50,8 @@ This downloads pre-built binaries, verifies checksums, and adds RecursiveManager
 
 **Manual Binary Install:**
 1. Download from [Releases](https://github.com/aaron777collins/RecursiveManager/releases)
-2. Extract: `tar xzf recursive-manager-v1.0.0-*.tar.gz -C ~/.recursive-manager`
-3. Add to PATH: `export PATH="$HOME/.recursive-manager:$PATH"`
+2. Extract: `tar xzf recursivemanager-v1.0.0-*.tar.gz -C ~/.recursivemanager`
+3. Add to PATH: `export PATH="$HOME/.recursivemanager:$PATH"`
 
 **From Source:**
 ```bash
@@ -69,7 +69,7 @@ VERSION=1.0.0 INSTALL_DIR=/opt/rm curl -fsSL https://raw.githubusercontent.com/a
 
 ```bash
 # Initialize with a high-level goal
-recursive-manager init "Build a SaaS product for task management"
+recursivemanager init "Build a SaaS product for task management"
 
 # The CEO agent will:
 # 1. Analyze the goal from multiple perspectives
@@ -78,7 +78,7 @@ recursive-manager init "Build a SaaS product for task management"
 # 4. Each hired agent further delegates as needed
 
 # Monitor progress
-recursive-manager status
+recursivemanager status
 
 # Output:
 # ┌─ Organization Chart ─────────────────────────┐
@@ -96,13 +96,13 @@ recursive-manager status
 Upgrade to the latest version:
 
 ```bash
-recursive-manager-upgrade
+recursivemanager-upgrade
 ```
 
 Or upgrade to a specific version:
 
 ```bash
-recursive-manager-upgrade 2.0.0
+recursivemanager-upgrade 2.0.0
 ```
 
 **[📖 Full Upgrade Guide](./UPGRADE.md)** - Upgrade, downgrade, rollback, and version management
@@ -121,19 +121,19 @@ RecursiveManager includes a self-update mechanism:
 
 ```bash
 # Check for updates
-recursive-manager update --check
+recursivemanager update --check
 
 # Update to latest version
-recursive-manager update
+recursivemanager update
 
 # Update to specific version
-recursive-manager update 0.2.0
+recursivemanager update 0.2.0
 
 # Rollback to previous version
-recursive-manager rollback
+recursivemanager rollback
 
 # View version history
-recursive-manager update --history
+recursivemanager update --history
 ```
 
 ## Documentation
@@ -229,7 +229,7 @@ RecursiveManager integrates seamlessly with AICEO's GLM Gateway to enable:
 
 3. **Test Integration**:
    ```bash
-   recursive-manager analyze "Should we implement Redis caching?"
+   recursivemanager analyze "Should we implement Redis caching?"
    ```
 
 📖 **[Read the full AICEO Integration Guide](./docs/AICEO_INTEGRATION_GUIDE.md)** for step-by-step setup, testing, quota management, and monitoring.
@@ -274,7 +274,7 @@ Before major decisions (hiring, firing, strategic changes), agents automatically
 **Example Usage:**
 ```bash
 # Manual analysis
-recursive-manager analyze "Should we migrate to microservices?"
+recursivemanager analyze "Should we migrate to microservices?"
 
 # Output: All 8 perspectives with confidence scores, synthesized decision
 # ┌─────────────┬────────────┬────────────────────────────┐
@@ -396,7 +396,7 @@ RecursiveManager is now **PRODUCTION READY** with all core phases complete. The 
 - **Structured Logging**: JSON format with Winston, automatic rotation and compression
 - **Correlation IDs**: Distributed tracing with trace IDs across all operations
 - **Log Levels**: Configurable via environment variable (debug, info, warn, error)
-- **CLI Metrics Server**: `recursive-manager metrics` command with `/health` and `/metrics` endpoints
+- **CLI Metrics Server**: `recursivemanager metrics` command with `/health` and `/metrics` endpoints
 
 ✅ **Docker Production Deployment**
 - Multi-stage production Dockerfile (security scanning with Trivy)
@@ -408,19 +408,19 @@ RecursiveManager is now **PRODUCTION READY** with all core phases complete. The 
 - Signal handling with dumb-init
 
 ✅ **CLI Interface** (13 Commands)
-- `recursive-manager init` - Initialize with goal
-- `recursive-manager status` - Show org chart and agent details
-- `recursive-manager hire` - Hire new agents (with multi-perspective analysis)
-- `recursive-manager fire` - Fire agents (with automatic snapshot)
-- `recursive-manager message` - Send messages to agents for reactive execution
-- `recursive-manager run` - Manually trigger agent execution
-- `recursive-manager logs` - View and filter agent logs with advanced search
-- `recursive-manager analyze` - Run multi-perspective AI analysis
-- `recursive-manager metrics` - Start Prometheus metrics HTTP server
-- `recursive-manager update` - Self-update system with rollback
-- `recursive-manager config` - Configuration management
-- `recursive-manager debug` - Agent debugging and inspection
-- `recursive-manager rollback` - Restore from database snapshots
+- `recursivemanager init` - Initialize with goal
+- `recursivemanager status` - Show org chart and agent details
+- `recursivemanager hire` - Hire new agents (with multi-perspective analysis)
+- `recursivemanager fire` - Fire agents (with automatic snapshot)
+- `recursivemanager message` - Send messages to agents for reactive execution
+- `recursivemanager run` - Manually trigger agent execution
+- `recursivemanager logs` - View and filter agent logs with advanced search
+- `recursivemanager analyze` - Run multi-perspective AI analysis
+- `recursivemanager metrics` - Start Prometheus metrics HTTP server
+- `recursivemanager update` - Self-update system with rollback
+- `recursivemanager config` - Configuration management
+- `recursivemanager debug` - Agent debugging and inspection
+- `recursivemanager rollback` - Restore from database snapshots
 
 📖 **[Complete CLI Reference](./docs/cli-reference.md)** - Full documentation for all commands
 
@@ -481,11 +481,11 @@ RecursiveManager is inherently complex (recursive hierarchies, multi-framework s
 
 ### Developer Experience
 
-- **One-command start**: `recursive-manager init "goal"`
+- **One-command start**: `recursivemanager init "goal"`
 - **Convention over configuration**: Sensible defaults everywhere
 - **Self-documenting**: Files include README.md and comments
 - **Fail fast**: Validate early, fail with clear messages
-- **Easy debugging**: `recursive-manager debug <agent-id>` shows everything
+- **Easy debugging**: `recursivemanager debug <agent-id>` shows everything
 
 ### Testing Strategy
 

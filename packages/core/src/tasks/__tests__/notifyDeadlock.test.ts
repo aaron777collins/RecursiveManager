@@ -24,10 +24,10 @@ import {
   runMigrations,
   allMigrations,
   getMessages,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { saveAgentConfig } from '../../config';
-import { AgentConfig } from '@recursive-manager/common';
-import { getInboxPath } from '@recursive-manager/common';
+import { AgentConfig } from '@recursivemanager/common';
+import { getInboxPath } from '@recursivemanager/common';
 
 describe('notifyDeadlock', () => {
   let db: Database.Database;
@@ -514,7 +514,7 @@ describe('notifyDeadlock', () => {
       );
 
       // Delete agentA's directory to cause write failure
-      const { getAgentDirectory } = await import('@recursive-manager/common');
+      const { getAgentDirectory } = await import('@recursivemanager/common');
       const agentDirA = getAgentDirectory(agentA, { baseDir: testDir });
       await fs.remove(agentDirA);
 
@@ -556,7 +556,7 @@ describe('notifyDeadlock', () => {
       );
 
       // Delete agentA's config file
-      const { getAgentDirectory } = await import('@recursive-manager/common');
+      const { getAgentDirectory } = await import('@recursivemanager/common');
       const agentDirA = getAgentDirectory(agentA, { baseDir: testDir });
       const configPath = path.join(agentDirA, 'config.json');
       await fs.remove(configPath);
@@ -734,7 +734,7 @@ describe('notifyDeadlock', () => {
       );
 
       // Delete agentA's directory to cause failure
-      const { getAgentDirectory } = await import('@recursive-manager/common');
+      const { getAgentDirectory } = await import('@recursivemanager/common');
       const agentDirA = getAgentDirectory(agentA, { baseDir: testDir });
       await fs.remove(agentDirA);
 

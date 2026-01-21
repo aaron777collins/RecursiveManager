@@ -324,7 +324,7 @@ export function createLogger(options?: LoggerOptions): Logger {
  * // Create logger for CEO agent
  * const ceoLogger = createAgentLogger('CEO');
  * ceoLogger.info('Task started', { taskId: 'task-123' });
- * // Logs to: ~/.recursive-manager/logs/agents/CEO.log
+ * // Logs to: ~/.recursivemanager/logs/agents/CEO.log
  *
  * // Create with debug level and console output
  * const debugAgentLogger = createAgentLogger('DevOps', {
@@ -649,7 +649,7 @@ export function getRequestContext(key: string): unknown | undefined {
  *
  * @example
  * ```typescript
- * import { logger } from '@recursive-manager/common';
+ * import { logger } from '@recursivemanager/common';
  *
  * logger.info('Application started');
  * logger.error('Database connection failed', { error: err.message });

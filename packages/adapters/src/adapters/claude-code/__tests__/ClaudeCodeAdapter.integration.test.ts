@@ -28,7 +28,7 @@ jest.mock('execa', () => ({
 
 import { ClaudeCodeAdapter } from '../index';
 import type { ExecutionContext } from '../../../types';
-import type { AgentConfig } from '@recursive-manager/common';
+import type { AgentConfig } from '@recursivemanager/common';
 import fs from 'fs-extra';
 import path from 'path';
 import os from 'os';

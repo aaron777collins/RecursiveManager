@@ -396,9 +396,9 @@ Tests: 253 total (235 passed, 18 failed)
 Success Rate: 93%
 
 Breakdown:
-✓ @recursive-manager/common - 100% passing
-✓ @recursive-manager/core - 100% passing
-✗ @recursive-manager/adapters - 18 failures (needs Claude Code CLI)
+✓ @recursivemanager/common - 100% passing
+✓ @recursivemanager/core - 100% passing
+✗ @recursivemanager/adapters - 18 failures (needs Claude Code CLI)
 ```
 
 The failing tests are integration tests that require Claude Code CLI to be installed. Unit tests are solid.

@@ -88,11 +88,11 @@ export function getVersionInfo() {
 
 **Commands**:
 ```bash
-recursive-manager update              # Update to latest
-recursive-manager update --check      # Check for updates
-recursive-manager update --list       # List versions
-recursive-manager update 0.2.0        # Install specific version
-recursive-manager rollback            # Revert to previous
+recursivemanager update              # Update to latest
+recursivemanager update --check      # Check for updates
+recursivemanager update --list       # List versions
+recursivemanager update 0.2.0        # Install specific version
+recursivemanager rollback            # Revert to previous
 ```
 
 **Implementation**: Based on portableralph's update.sh (572 lines) with adaptations for:
@@ -110,7 +110,7 @@ recursive-manager rollback            # Revert to previous
 **Features**:
 - One-liner installation: `curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash`
 - Manual installation instructions
-- Headless mode for CI/CD: `--headless --install-dir /opt/recursive-manager`
+- Headless mode for CI/CD: `--headless --install-dir /opt/recursivemanager`
 - Dependency checking (Node.js, npm/yarn/pnpm, git)
 - Shell alias setup
 - Post-install verification
@@ -118,7 +118,7 @@ recursive-manager rollback            # Revert to previous
 **Headless Options**:
 ```bash
 --headless                  # Non-interactive mode
---install-dir DIR           # Custom install location (default: ~/.recursive-manager)
+--install-dir DIR           # Custom install location (default: ~/.recursivemanager)
 --skip-shell-config         # Don't modify shell config
 --skip-build                # Don't build after install (use pre-built)
 --package-manager [npm|yarn|pnpm]  # Force specific package manager
@@ -139,7 +139,7 @@ recursive-manager rollback            # Revert to previous
 ```json
 {
   "bin": {
-    "recursive-manager": "./packages/cli/dist/index.js"
+    "recursivemanager": "./packages/cli/dist/index.js"
   }
 }
 ```
@@ -168,14 +168,14 @@ packages/cli/
 
 **CLI Commands**:
 ```bash
-recursive-manager init "goal"           # Initialize with goal
-recursive-manager status                # Show org chart
-recursive-manager status --agent-id ID  # Agent details
-recursive-manager update                # Self-update
-recursive-manager config                # Configuration wizard
-recursive-manager debug <agent-id>      # Debug agent
-recursive-manager version               # Show version
-recursive-manager help                  # Show help
+recursivemanager init "goal"           # Initialize with goal
+recursivemanager status                # Show org chart
+recursivemanager status --agent-id ID  # Agent details
+recursivemanager update                # Self-update
+recursivemanager config                # Configuration wizard
+recursivemanager debug <agent-id>      # Debug agent
+recursivemanager version               # Show version
+recursivemanager help                  # Show help
 ```
 
 ---
@@ -494,7 +494,7 @@ jobs:
             ## Updating
 
             ```bash
-            recursive-manager update
+            recursivemanager update
             ```
           draft: false
           prerelease: false
@@ -557,12 +557,12 @@ site/
 # RecursiveManager Configuration
 
 # Installation
-RECURSIVE_MANAGER_HOME=~/.recursive-manager
-RECURSIVE_MANAGER_DATA_DIR=~/.recursive-manager/data
+RECURSIVEMANAGER_HOME=~/.recursivemanager
+RECURSIVEMANAGER_DATA_DIR=~/.recursivemanager/data
 
 # Logging
 LOG_LEVEL=info
-LOG_FILE=~/.recursive-manager/logs/recursive-manager.log
+LOG_FILE=~/.recursivemanager/logs/recursivemanager.log
 
 # Agent Configuration
 MAX_AGENT_DEPTH=5
@@ -579,7 +579,7 @@ CLAUDE_CODE_PATH=claude
 
 # Database (optional - file-based by default)
 # DATABASE_TYPE=sqlite
-# DATABASE_PATH=~/.recursive-manager/data/recursive-manager.db
+# DATABASE_PATH=~/.recursivemanager/data/recursivemanager.db
 
 # Notifications (optional)
 # SLACK_WEBHOOK_URL=
@@ -642,7 +642,7 @@ export interface RecursiveManagerConfig {
 
 export function loadConfig(): RecursiveManagerConfig {
   // Load .env from home directory if exists
-  const envPath = path.join(os.homedir(), '.recursive-manager', '.env');
+  const envPath = path.join(os.homedir(), '.recursivemanager', '.env');
   if (fs.existsSync(envPath)) {
     dotenv.config({ path: envPath });
   }
@@ -650,13 +650,13 @@ export function loadConfig(): RecursiveManagerConfig {
   // Load from current directory
   dotenv.config();
 
-  const home = process.env.RECURSIVE_MANAGER_HOME || path.join(os.homedir(), '.recursive-manager');
+  const home = process.env.RECURSIVEMANAGER_HOME || path.join(os.homedir(), '.recursivemanager');
 
   return {
     home,
-    dataDir: process.env.RECURSIVE_MANAGER_DATA_DIR || path.join(home, 'data'),
+    dataDir: process.env.RECURSIVEMANAGER_DATA_DIR || path.join(home, 'data'),
     logLevel: (process.env.LOG_LEVEL as any) || 'info',
-    logFile: process.env.LOG_FILE || path.join(home, 'logs', 'recursive-manager.log'),
+    logFile: process.env.LOG_FILE || path.join(home, 'logs', 'recursivemanager.log'),
     maxAgentDepth: parseInt(process.env.MAX_AGENT_DEPTH || '5', 10),
     maxAgentsPerManager: parseInt(process.env.MAX_AGENTS_PER_MANAGER || '10', 10),
     agentTimeoutMs: parseInt(process.env.AGENT_TIMEOUT_MS || '300000', 10),
@@ -687,8 +687,8 @@ set -euo pipefail
 docker run -it --rm ubuntu:latest bash -c "
   apt-get update && apt-get install -y curl git
   curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash --headless
-  recursive-manager version
-  recursive-manager help
+  recursivemanager version
+  recursivemanager help
 "
 ```
 

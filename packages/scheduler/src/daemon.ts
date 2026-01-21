@@ -16,8 +16,8 @@ import {
   createLogger,
   withTraceId,
   type Logger,
-} from '@recursive-manager/common';
-import { archiveOldTasks, compressOldArchives, monitorDeadlocks, ExecutionPool } from '@recursive-manager/core';
+} from '@recursivemanager/common';
+import { archiveOldTasks, compressOldArchives, monitorDeadlocks, ExecutionPool } from '@recursivemanager/core';
 import { ScheduleManager } from './ScheduleManager';
 import type { ScheduleRecord } from './ScheduleManager';
 

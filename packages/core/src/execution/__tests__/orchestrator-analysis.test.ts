@@ -7,8 +7,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { ExecutionOrchestrator } from '../index.js';
-import type { AdapterRegistry } from '@recursive-manager/adapters';
-import type { DatabasePool } from '@recursive-manager/common';
+import type { AdapterRegistry } from '@recursivemanager/adapters';
+import type { DatabasePool } from '@recursivemanager/common';
 import type { AIProvider, AIAnalysisRequest, AIAnalysisResponse } from '../../ai-analysis/providers/base.js';
 
 // Mock AI Provider

@@ -27,13 +27,13 @@ Before implementation, we analyze the system from 8 distinct perspectives to ens
 ##### 1. Progressive Disclosure in CLI
 ```bash
 # BASIC: Simple commands for 80% use cases
-recursive-manager hire "Build API" --role backend-dev
+recursivemanager hire "Build API" --role backend-dev
 
 # INTERMEDIATE: More control
-recursive-manager hire "Build API" --role backend-dev --manager CTO --cadence daily
+recursivemanager hire "Build API" --role backend-dev --manager CTO --cadence daily
 
 # ADVANCED: Full control with flags
-recursive-manager hire "Build API" \
+recursivemanager hire "Build API" \
   --role backend-dev \
   --manager CTO \
   --cadence custom \
@@ -64,7 +64,7 @@ Error: Cannot hire agent "backend-dev"
 Reason: Missing required field 'mainGoal'
 
 Fix: Add --goal flag:
-  recursive-manager hire "backend-dev" --goal "Build REST API for user management"
+  recursivemanager hire "backend-dev" --goal "Build REST API for user management"
 
 Documentation: https://docs.recursivemanager.dev/cli/hire
 ```
@@ -86,7 +86,7 @@ agents/
 ##### 5. Single Command Debugging
 ```bash
 # Show everything about an agent
-recursive-manager debug agent-id
+recursivemanager debug agent-id
 
 # Output:
 # ┌─ Agent: backend-dev-001 ────────────────────────┐
@@ -109,13 +109,13 @@ recursive-manager debug agent-id
 # │   ✓ 45 min ago - Task completed (4m 45s)        │
 # │   ✓ 1 hour ago - Task completed (2m 3s)         │
 # │                                                  │
-# │ Files: /home/user/.recursive-manager/agents/... │
+# │ Files: /home/user/.recursivemanager/agents/... │
 # └──────────────────────────────────────────────────┘
 ```
 
 ##### 6. Guided Setup
 ```bash
-recursive-manager init
+recursivemanager init
 
 # Interactive prompts:
 # → What is your main goal? Build a SaaS product
@@ -132,7 +132,7 @@ recursive-manager init
 # Next steps:
 #   1. CEO will analyze goal and create plan
 #   2. CEO will hire necessary team members
-#   3. Monitor progress: recursive-manager status
+#   3. Monitor progress: recursivemanager status
 #
 # Documentation: https://docs.recursivemanager.dev/quickstart
 ```
@@ -170,7 +170,7 @@ Level 5: Custom framework adapters, plugins
 **Exposed**: Human-readable IDs, roles, goals
 
 ```bash
-# User doesn't see: /home/user/.recursive-manager/agents/a7f3c9e1-4b2d-4e9a-8f3c-9e14b2d4e9a/
+# User doesn't see: /home/user/.recursivemanager/agents/a7f3c9e1-4b2d-4e9a-8f3c-9e14b2d4e9a/
 # User sees: backend-dev-001
 ```
 
@@ -185,7 +185,7 @@ Level 5: Custom framework adapters, plugins
 # - How state is loaded/saved
 #
 # User just runs:
-recursive-manager run backend-dev-001
+recursivemanager run backend-dev-001
 ```
 
 ##### Abstraction 3: Message Routing
@@ -194,7 +194,7 @@ recursive-manager run backend-dev-001
 
 ```bash
 # Messages from Slack, Telegram, Email all appear as:
-recursive-manager messages backend-dev-001
+recursivemanager messages backend-dev-001
 
 # Output:
 # [Slack] @john: Can you add OAuth support?
@@ -205,10 +205,10 @@ recursive-manager messages backend-dev-001
 ### Recommendations
 
 #### For 80% Use Cases
-1. **One-command start**: `recursive-manager init "Build a SaaS product"`
+1. **One-command start**: `recursivemanager init "Build a SaaS product"`
 2. **Auto-management**: CEO agent handles all hiring/firing
 3. **Smart defaults**: No config files needed initially
-4. **Clear feedback**: Progress visible via `recursive-manager status`
+4. **Clear feedback**: Progress visible via `recursivemanager status`
 
 #### For Power Users
 1. **Full control**: Every parameter customizable

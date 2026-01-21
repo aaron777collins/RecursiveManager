@@ -152,7 +152,7 @@ External Message (Slack/Telegram/Email)
 ```
 Agent decides to hire
     │
-    ├─ Call CLI: recursive-manager hire \
+    ├─ Call CLI: recursivemanager hire \
     │              --role "Backend Developer" \
     │              --goal "Build REST API" \
     │              --manager "CTO"
@@ -653,7 +653,7 @@ execute_agent "$AGENT_ID" "$INSTANCE_TYPE"
 4. Decision Making
    ├─ Should I delegate? (if non-trivial)
    │  ├─ YES → Hire sub-agent
-   │  │      ├─ Call: recursive-manager hire ...
+   │  │      ├─ Call: recursivemanager hire ...
    │  │      ├─ Update tasks.md (delegated)
    │  │      └─ Exit
    │  └─ NO → Execute myself
@@ -853,7 +853,7 @@ def update_task_list(agent_id, modifier_fn):
 
 **Problem**: Manager gets fired but subordinates remain
 
-**Solution**: Cascade deletion in `recursive-manager fire` command
+**Solution**: Cascade deletion in `recursivemanager fire` command
 
 ```python
 def fire_agent(agent_id, fired_by):
@@ -1107,9 +1107,9 @@ Pick ONE task from your continuous task list and work on it.
 4. Update state files (progress.md, continuous.md, notes.md)
 
 ## Tools Available
-- recursive-manager hire --role "X" --goal "Y" --manager "{agent_id}"
-- recursive-manager message <agent-id> "message"
-- recursive-manager fire <agent-id>
+- recursivemanager hire --role "X" --goal "Y" --manager "{agent_id}"
+- recursivemanager message <agent-id> "message"
+- recursivemanager fire <agent-id>
 
 ## Quality First
 Always think from multiple perspectives before acting. Cost doesn't matter, quality does.
@@ -1210,10 +1210,10 @@ def get_framework_adapter(agent_id: str) -> FrameworkAdapter:
 #### Pattern 1: Manager → Worker (Delegation)
 ```
 Manager creates worker:
-    recursive-manager hire --role "Backend Dev" --goal "Build API" --manager "CTO"
+    recursivemanager hire --role "Backend Dev" --goal "Build API" --manager "CTO"
 
 Manager sends task:
-    recursive-manager message backend-dev-001 "Prioritize OAuth over other tasks"
+    recursivemanager message backend-dev-001 "Prioritize OAuth over other tasks"
 
 Worker acknowledges:
     (Reactive instance processes message, updates task list, responds via messaging module)
@@ -1241,7 +1241,7 @@ Manager handles:
 #### Pattern 4: Peer-to-Peer (Rare)
 ```
 Backend → Frontend collaboration:
-    recursive-manager message frontend-dev-002 "API endpoint /auth ready for integration"
+    recursivemanager message frontend-dev-002 "API endpoint /auth ready for integration"
 ```
 
 ### 8.2 Message Contract
@@ -2350,7 +2350,7 @@ cfo_uses_existing("database-admin-shared")
 - File locking and atomic writes
 
 **Deliverables**:
-- `recursive-manager` CLI tool
+- `recursivemanager` CLI tool
 - Core file structure
 - Claude Code adapter
 - Manual agent execution
@@ -2520,12 +2520,12 @@ cfo_uses_existing("database-admin-shared")
 
 ## Appendix A: CLI Reference
 
-### recursive-manager init
+### recursivemanager init
 
 Initialize a new RecursiveManager system.
 
 ```bash
-recursive-manager init --root-agent "CEO" --goal "Build SaaS product"
+recursivemanager init --root-agent "CEO" --goal "Build SaaS product"
 ```
 
 Creates:
@@ -2535,12 +2535,12 @@ Creates:
 
 ---
 
-### recursive-manager hire
+### recursivemanager hire
 
 Hire a new agent.
 
 ```bash
-recursive-manager hire \
+recursivemanager hire \
   --role "Backend Developer" \
   --goal "Build REST API for authentication" \
   --manager "CTO" \
@@ -2555,12 +2555,12 @@ Creates:
 
 ---
 
-### recursive-manager fire
+### recursivemanager fire
 
 Fire an agent (and all subordinates).
 
 ```bash
-recursive-manager fire backend-dev-001
+recursivemanager fire backend-dev-001
 ```
 
 Effects:
@@ -2571,23 +2571,23 @@ Effects:
 
 ---
 
-### recursive-manager run
+### recursivemanager run
 
 Manually run an agent instance (for debugging).
 
 ```bash
-recursive-manager run backend-dev-001 --type continuous
-recursive-manager run CEO --type reactive --trigger schedule
+recursivemanager run backend-dev-001 --type continuous
+recursivemanager run CEO --type reactive --trigger schedule
 ```
 
 ---
 
-### recursive-manager message
+### recursivemanager message
 
 Send message to agent.
 
 ```bash
-recursive-manager message backend-dev-001 "Prioritize OAuth implementation"
+recursivemanager message backend-dev-001 "Prioritize OAuth implementation"
 ```
 
 Effects:
@@ -2596,13 +2596,13 @@ Effects:
 
 ---
 
-### recursive-manager status
+### recursivemanager status
 
 Show system status.
 
 ```bash
-recursive-manager status
-recursive-manager status backend-dev-001  # Specific agent
+recursivemanager status
+recursivemanager status backend-dev-001  # Specific agent
 ```
 
 Output:
@@ -2613,15 +2613,15 @@ Output:
 
 ---
 
-### recursive-manager scheduler
+### recursivemanager scheduler
 
 Control scheduler daemon.
 
 ```bash
-recursive-manager scheduler start
-recursive-manager scheduler stop
-recursive-manager scheduler restart
-recursive-manager scheduler status
+recursivemanager scheduler start
+recursivemanager scheduler stop
+recursivemanager scheduler restart
+recursivemanager scheduler status
 ```
 
 ---
@@ -2688,7 +2688,7 @@ recursive-manager scheduler status
 
 ```
 1. User initializes system:
-   recursive-manager init --root-agent CEO --goal "Build SaaS product"
+   recursivemanager init --root-agent CEO --goal "Build SaaS product"
 
 2. CEO initialization instance runs:
    - Multi-perspective analysis
@@ -2697,7 +2697,7 @@ recursive-manager scheduler status
 
 3. CEO continuous instance runs:
    - Picks task: "Hire CTO"
-   - Executes: recursive-manager hire --role CTO --goal "Build application" --manager CEO
+   - Executes: recursivemanager hire --role CTO --goal "Build application" --manager CEO
    - Updates continuous.md
 
 4. CTO initialization instance runs:
@@ -2707,7 +2707,7 @@ recursive-manager scheduler status
 
 5. CTO continuous instance runs:
    - Picks task: "Hire Backend Developer"
-   - Executes: recursive-manager hire --role "Backend Developer" --goal "Build API" --manager CTO
+   - Executes: recursivemanager hire --role "Backend Developer" --goal "Build API" --manager CTO
 
 ... and so on
 ```

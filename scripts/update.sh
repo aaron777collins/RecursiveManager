@@ -15,9 +15,9 @@ NC='\033[0m' # No Color
 # Configuration
 GITHUB_REPO="aaron777collins/RecursiveManager"
 GITHUB_API="https://api.github.com/repos/${GITHUB_REPO}"
-VERSION_HISTORY_FILE="${HOME}/.recursive_manager_version_history"
-BACKUP_DIR="${HOME}/.recursive_manager_backup"
-INSTALL_DIR="${RECURSIVE_MANAGER_HOME:-${HOME}/.recursive-manager}"
+VERSION_HISTORY_FILE="${HOME}/.recursivemanager_version_history"
+BACKUP_DIR="${HOME}/.recursivemanager_backup"
+INSTALL_DIR="${RECURSIVEMANAGER_HOME:-${HOME}/.recursivemanager}"
 
 # Function to print colored output
 print_info() {
@@ -425,7 +425,7 @@ check_for_updates() {
     if [[ $comparison -eq 2 ]]; then
         print_success "A new version is available!"
         echo ""
-        print_info "Run 'recursive-manager update' to update"
+        print_info "Run 'recursivemanager update' to update"
         return 0
     elif [[ $comparison -eq 0 ]]; then
         print_success "You are running the latest version"
@@ -460,7 +460,7 @@ rollback() {
 
     if [[ -z "$backup_path" ]]; then
         print_error "No backup found to rollback to"
-        print_info "You can install a specific version with: recursive-manager update <version>"
+        print_info "You can install a specific version with: recursivemanager update <version>"
         return 1
     fi
 
@@ -501,7 +501,7 @@ update_to_version() {
 
     if [[ -z "$release_json" ]]; then
         print_error "Version ${target_version} not found"
-        print_info "Run 'recursive-manager update --list' to see available versions"
+        print_info "Run 'recursivemanager update --list' to see available versions"
         return 1
     fi
 
@@ -554,12 +554,12 @@ main() {
             print_header "RecursiveManager Update Script"
             echo ""
             echo "Usage:"
-            echo "  recursive-manager update              Update to latest version"
-            echo "  recursive-manager update <version>    Update to specific version"
-            echo "  recursive-manager update --check      Check for updates"
-            echo "  recursive-manager update --list       List available versions"
-            echo "  recursive-manager update --history    Show version history"
-            echo "  recursive-manager rollback            Rollback to previous version"
+            echo "  recursivemanager update              Update to latest version"
+            echo "  recursivemanager update <version>    Update to specific version"
+            echo "  recursivemanager update --check      Check for updates"
+            echo "  recursivemanager update --list       List available versions"
+            echo "  recursivemanager update --history    Show version history"
+            echo "  recursivemanager rollback            Rollback to previous version"
             echo ""
             ;;
         "")

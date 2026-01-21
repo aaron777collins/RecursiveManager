@@ -5,16 +5,16 @@ set -euo pipefail
 # Manages version updates with automatic backups
 #
 # Usage:
-#   Upgrade to latest:     recursive-manager-upgrade
-#   Upgrade to specific:   recursive-manager-upgrade 2.0.0
-#   Downgrade:             recursive-manager-upgrade 1.0.0
-#   Rollback:              recursive-manager-upgrade --rollback
-#   List versions:         recursive-manager-upgrade --list
+#   Upgrade to latest:     recursivemanager-upgrade
+#   Upgrade to specific:   recursivemanager-upgrade 2.0.0
+#   Downgrade:             recursivemanager-upgrade 1.0.0
+#   Rollback:              recursivemanager-upgrade --rollback
+#   List versions:         recursivemanager-upgrade --list
 
 # Configuration
 REPO_OWNER="${REPO_OWNER:-aaron777collins}"
 REPO_NAME="${REPO_NAME:-RecursiveManager}"
-INSTALL_DIR="${INSTALL_DIR:-$HOME/.recursive-manager}"
+INSTALL_DIR="${INSTALL_DIR:-$HOME/.recursivemanager}"
 BACKUP_DIR="$INSTALL_DIR/.backups"
 VERSION_HISTORY="$INSTALL_DIR/.version_history"
 GITHUB_API="https://api.github.com/repos/$REPO_OWNER/$REPO_NAME"
@@ -168,7 +168,7 @@ rollback() {
 download_version() {
     local version=$1
     local platform=$(detect_platform)
-    local tarball="recursive-manager-v${version}-${platform}.tar.gz"
+    local tarball="recursivemanager-v${version}-${platform}.tar.gz"
     local download_url="https://github.com/$REPO_OWNER/$REPO_NAME/releases/download/v${version}/$tarball"
 
     log_step "Downloading v$version..."
@@ -294,16 +294,16 @@ show_usage() {
     echo "RecursiveManager Version Manager"
     echo ""
     echo "Usage:"
-    echo "  recursive-manager-upgrade           Upgrade to latest version"
-    echo "  recursive-manager-upgrade VERSION   Upgrade/downgrade to specific version"
-    echo "  recursive-manager-upgrade --list    List version history and backups"
-    echo "  recursive-manager-upgrade --rollback Rollback to previous version"
+    echo "  recursivemanager-upgrade           Upgrade to latest version"
+    echo "  recursivemanager-upgrade VERSION   Upgrade/downgrade to specific version"
+    echo "  recursivemanager-upgrade --list    List version history and backups"
+    echo "  recursivemanager-upgrade --rollback Rollback to previous version"
     echo ""
     echo "Examples:"
-    echo "  recursive-manager-upgrade           # Upgrade to latest"
-    echo "  recursive-manager-upgrade 2.0.0     # Upgrade to v2.0.0"
-    echo "  recursive-manager-upgrade 1.0.0     # Downgrade to v1.0.0"
-    echo "  recursive-manager-upgrade --rollback # Undo last change"
+    echo "  recursivemanager-upgrade           # Upgrade to latest"
+    echo "  recursivemanager-upgrade 2.0.0     # Upgrade to v2.0.0"
+    echo "  recursivemanager-upgrade 1.0.0     # Downgrade to v1.0.0"
+    echo "  recursivemanager-upgrade --rollback # Undo last change"
     echo ""
 }
 

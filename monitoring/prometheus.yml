@@ -12,9 +12,9 @@ global:
 # Scrape configuration
 scrape_configs:
   # RecursiveManager metrics
-  - job_name: 'recursive-manager'
+  - job_name: 'recursivemanager'
     static_configs:
-      - targets: ['recursive-manager:3000']
+      - targets: ['recursivemanager:3000']
     metrics_path: '/metrics'
     scrape_interval: 15s
     scrape_timeout: 10s

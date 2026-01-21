@@ -23,10 +23,10 @@ import {
   delegateTask,
   getMessage,
   getMessages,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { saveAgentConfig } from '../../config';
-import { AgentConfig } from '@recursive-manager/common';
-import { getInboxPath } from '@recursive-manager/common';
+import { AgentConfig } from '@recursivemanager/common';
+import { getInboxPath } from '@recursivemanager/common';
 
 describe('notifyTaskDelegation', () => {
   let db: Database.Database;

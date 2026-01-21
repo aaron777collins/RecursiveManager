@@ -30,11 +30,11 @@ module.exports = {
 
   // Module path aliases (matching tsconfig paths)
   moduleNameMapper: {
-    '^@recursive-manager/common$': '<rootDir>/packages/common/src',
-    '^@recursive-manager/core$': '<rootDir>/packages/core/src',
-    '^@recursive-manager/cli$': '<rootDir>/packages/cli/src',
-    '^@recursive-manager/scheduler$': '<rootDir>/packages/scheduler/src',
-    '^@recursive-manager/adapters$': '<rootDir>/packages/adapters/src',
+    '^@recursivemanager/common$': '<rootDir>/packages/common/src',
+    '^@recursivemanager/core$': '<rootDir>/packages/core/src',
+    '^@recursivemanager/cli$': '<rootDir>/packages/cli/src',
+    '^@recursivemanager/scheduler$': '<rootDir>/packages/scheduler/src',
+    '^@recursivemanager/adapters$': '<rootDir>/packages/adapters/src',
   },
 
   // Coverage configuration

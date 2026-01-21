@@ -118,10 +118,10 @@ RecursiveManager has significant functionality implemented but requires critical
 ### 5. CLI Commands Not Implemented
 
 **Commands Missing Implementation:**
-- `recursive-manager init` - Project initialization
-- `recursive-manager status` - System status check
-- `recursive-manager config` - Configuration management
-- `recursive-manager debug` - Debug information
+- `recursivemanager init` - Project initialization
+- `recursivemanager status` - System status check
+- `recursivemanager config` - Configuration management
+- `recursivemanager debug` - Debug information
 
 **Current Status:** Placeholder functions that log "not implemented"
 

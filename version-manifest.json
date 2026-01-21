@@ -8,18 +8,18 @@
       "changelog_url": "https://github.com/aaron777collins/RecursiveManager/releases/tag/v1.0.0",
       "assets": {
         "linux": {
-          "filename": "recursive-manager-v1.0.0-linux.tar.gz",
-          "url": "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursive-manager-v1.0.0-linux.tar.gz",
+          "filename": "recursivemanager-v1.0.0-linux.tar.gz",
+          "url": "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursivemanager-v1.0.0-linux.tar.gz",
           "size": 19922944
         },
         "macos": {
-          "filename": "recursive-manager-v1.0.0-macos.tar.gz",
-          "url": "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursive-manager-v1.0.0-macos.tar.gz",
+          "filename": "recursivemanager-v1.0.0-macos.tar.gz",
+          "url": "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursivemanager-v1.0.0-macos.tar.gz",
           "size": 19922944
         },
         "windows": {
-          "filename": "recursive-manager-v1.0.0-windows.tar.gz",
-          "url": "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursive-manager-v1.0.0-windows.tar.gz",
+          "filename": "recursivemanager-v1.0.0-windows.tar.gz",
+          "url": "https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursivemanager-v1.0.0-windows.tar.gz",
           "size": 19922944
         }
       },

@@ -7,7 +7,7 @@ RecursiveManager can be configured through environment variables or a `.env` fil
 The primary configuration file is located at:
 
 ```
-~/.recursive-manager/.env
+~/.recursivemanager/.env
 ```
 
 You can also use a `.env` file in your project directory.
@@ -16,13 +16,13 @@ You can also use a `.env` file in your project directory.
 
 ### Installation Paths
 
-- `RECURSIVE_MANAGER_HOME` - Installation directory (default: `~/.recursive-manager`)
-- `RECURSIVE_MANAGER_DATA_DIR` - Data directory (default: `~/.recursive-manager/data`)
+- `RECURSIVEMANAGER_HOME` - Installation directory (default: `~/.recursivemanager`)
+- `RECURSIVEMANAGER_DATA_DIR` - Data directory (default: `~/.recursivemanager/data`)
 
 ### Logging
 
 - `LOG_LEVEL` - Logging level: `debug`, `info`, `warn`, `error` (default: `info`)
-- `LOG_FILE` - Log file path (default: `~/.recursive-manager/logs/recursive-manager.log`)
+- `LOG_FILE` - Log file path (default: `~/.recursivemanager/logs/recursivemanager.log`)
 
 ### Agent Configuration
 
@@ -43,7 +43,7 @@ You can also use a `.env` file in your project directory.
 ### Database (Optional)
 
 - `DATABASE_TYPE` - Database type: `sqlite` or `file` (default: `file`)
-- `DATABASE_PATH` - Database file path (default: `~/.recursive-manager/data/recursive-manager.db`)
+- `DATABASE_PATH` - Database file path (default: `~/.recursivemanager/data/recursivemanager.db`)
 
 ### Notifications (Optional)
 
@@ -63,12 +63,12 @@ You can also use a `.env` file in your project directory.
 # RecursiveManager Configuration
 
 # Installation
-RECURSIVE_MANAGER_HOME=~/.recursive-manager
-RECURSIVE_MANAGER_DATA_DIR=~/.recursive-manager/data
+RECURSIVEMANAGER_HOME=~/.recursivemanager
+RECURSIVEMANAGER_DATA_DIR=~/.recursivemanager/data
 
 # Logging
 LOG_LEVEL=info
-LOG_FILE=~/.recursive-manager/logs/recursive-manager.log
+LOG_FILE=~/.recursivemanager/logs/recursivemanager.log
 
 # Agent Configuration
 MAX_AGENT_DEPTH=5
@@ -89,7 +89,7 @@ CLAUDE_CODE_PATH=claude
 For an interactive configuration experience, use:
 
 ```bash
-recursive-manager config
+recursivemanager config
 ```
 
 This will guide you through setting up all configuration options.

@@ -66,26 +66,26 @@ Transform RecursiveManager from 97.8% test pass rate to 100% production-ready st
 **Root Cause:** Commands not implemented (placeholder stubs)
 
 **Implementation Steps:**
-1. Implement `recursive-manager init` command
+1. Implement `recursivemanager init` command
    - Create project directory structure
    - Initialize database with migrations
    - Create default agent configuration
    - Set up logging directory
    - Generate starter config file
 
-2. Implement `recursive-manager status` command
+2. Implement `recursivemanager status` command
    - Check database connection
    - List active agents and their states
    - Show recent activity log
    - Display system health metrics
 
-3. Implement `recursive-manager config` command
+3. Implement `recursivemanager config` command
    - `config get <key>` - Read config value
    - `config set <key> <value>` - Write config value
    - `config list` - Show all configuration
    - `config validate` - Validate current config
 
-4. Implement `recursive-manager debug` command
+4. Implement `recursivemanager debug` command
    - Show system information
    - Display database statistics
    - Show recent error logs

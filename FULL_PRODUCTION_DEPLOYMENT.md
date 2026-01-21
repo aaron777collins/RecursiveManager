@@ -157,23 +157,23 @@ Focus exclusively on {PERSPECTIVE} concerns.
 ## Phase 3: Implement ALL CLI Commands
 
 ### 3.1 Commands to Implement (currently stubs)
-1. `recursive-manager init`
-2. `recursive-manager hire`
-3. `recursive-manager fire`
-4. `recursive-manager run`
-5. `recursive-manager pause`
-6. `recursive-manager resume`
-7. `recursive-manager status`
-8. `recursive-manager config`
-9. `recursive-manager debug`
-10. `recursive-manager version`
+1. `recursivemanager init`
+2. `recursivemanager hire`
+3. `recursivemanager fire`
+4. `recursivemanager run`
+5. `recursivemanager pause`
+6. `recursivemanager resume`
+7. `recursivemanager status`
+8. `recursivemanager config`
+9. `recursivemanager debug`
+10. `recursivemanager version`
 
 ### 3.2 Command Implementations
 
 #### init
 **File**: `packages/cli/src/commands/init.ts`
 ```typescript
-- Initialize .recursive-manager directory
+- Initialize .recursivemanager directory
 - Create config.json
 - Initialize SQLite database
 - Create workspace directories
@@ -895,9 +895,9 @@ CMD ["npm", "start"]
 version: '3.8'
 
 services:
-  recursive-manager:
+  recursivemanager:
     build: .
-    container_name: recursive-manager
+    container_name: recursivemanager
     restart: unless-stopped
     ports:
       - "3000:3000"
@@ -919,7 +919,7 @@ services:
 
   backup:
     image: alpine:latest
-    container_name: recursive-manager-backup
+    container_name: recursivemanager-backup
     restart: unless-stopped
     volumes:
       - ./data:/data:ro
@@ -1106,11 +1106,11 @@ docker-compose logs -f
 - Set up NPM authentication in Jenkins
 
 **Packages to publish**:
-1. `@recursive-manager/common`
-2. `@recursive-manager/core`
-3. `@recursive-manager/adapters`
-4. `@recursive-manager/scheduler`
-5. `@recursive-manager/cli`
+1. `@recursivemanager/common`
+2. `@recursivemanager/core`
+3. `@recursivemanager/adapters`
+4. `@recursivemanager/scheduler`
+5. `@recursivemanager/cli`
 
 ### 11.5 GitHub Release
 - Create release v1.0.0

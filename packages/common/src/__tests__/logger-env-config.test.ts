@@ -81,7 +81,7 @@ describe('Logger Environment Configuration', () => {
   describe('createAgentLogger with environment config', () => {
     beforeEach(() => {
       // Set up test environment directory
-      process.env.RECURSIVE_MANAGER_HOME = testDir;
+      process.env.RECURSIVEMANAGER_HOME = testDir;
     });
 
     it('should use LOG_LEVEL=debug for agent logger when env var is set', () => {

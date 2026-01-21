@@ -510,7 +510,7 @@ Team impact is significant and complex. Initial reaction may be excitement (mode
 ## Metadata
 
 - **Analysis ID**: `550e8400-e29b-41d4-a716-446655440000`
-- **Saved to**: `~/.recursive-manager/agents/cli-analyze/analyses/2026-01-20T14-32-18.json`
+- **Saved to**: `~/.recursivemanager/agents/cli-analyze/analyses/2026-01-20T14-32-18.json`
 - **Provider**: AICEO Gateway (glm-4.7)
 - **Cache Hit**: No (first analysis)
 - **Total Tokens**: 12,450 input, 8,720 output

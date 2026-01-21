@@ -141,7 +141,7 @@ coverage
 **How to fix:**
 1. Move secrets to `.env` file
 2. Use environment variables: `process.env.API_KEY`
-3. Use secret management: `APIKeyManager` from `@recursive-manager/common`
+3. Use secret management: `APIKeyManager` from `@recursivemanager/common`
 
 Example:
 ```typescript
@@ -152,7 +152,7 @@ const apiKey = "sk-1234567890abcdef";
 const apiKey = process.env.ANTHROPIC_API_KEY;
 
 // ✅ Better - using secret manager
-import { apiKeyManager } from '@recursive-manager/common';
+import { apiKeyManager } from '@recursivemanager/common';
 const apiKey = await apiKeyManager.get('anthropic-api-key');
 ```
 

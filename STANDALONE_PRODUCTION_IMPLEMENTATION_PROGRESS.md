@@ -195,7 +195,7 @@ The plan has 12 phases, but dependencies are:
 - [x] 2.3.1: MultiPerspectiveAnalysis Orchestrator (multi-perspective.ts) - COMPLETE (parallel execution with Promise.all)
 - [x] 2.3.2: Result Aggregation Logic - COMPLETE (variance-based confidence, executive summary synthesis, history persistence)
 - [x] 2.3.3: Wire to ExecutionOrchestrator - COMPLETE (analyzeDecision, hireAgentWithAnalysis, fireAgentWithAnalysis, etc.)
-- [x] 2.3.4: Wire to CLI (analyze.ts) - COMPLETE (recursive-manager analyze with text/json/markdown output)
+- [x] 2.3.4: Wire to CLI (analyze.ts) - COMPLETE (recursivemanager analyze with text/json/markdown output)
 
 #### 2.4: Adapter System Provider Configuration ✅ COMPLETE
 - [x] 2.4.1: Update ClaudeCodeAdapter - COMPLETE (supports ANTHROPIC_BASE_URL override)
@@ -395,10 +395,10 @@ The plan has 12 phases, but dependencies are:
 
 #### 11.4: Upgrade Script (Version Management)
 - [ ] 11.4.1: Add Upgrade Logic - Detect current version, fetch available, download to temp, atomic swap
-- [ ] 11.4.2: Add Downgrade Support - Command: recursive-manager downgrade X.Y.Z
-- [ ] 11.4.3: Add Backup Before Upgrade - Backup binary to ~/.recursive-manager/backups/vX.Y.Z/
+- [ ] 11.4.2: Add Downgrade Support - Command: recursivemanager downgrade X.Y.Z
+- [ ] 11.4.3: Add Backup Before Upgrade - Backup binary to ~/.recursivemanager/backups/vX.Y.Z/
 - [ ] 11.4.4: Add Rollback Command - Restore previous version from backup
-- [ ] 11.4.5: Add Version History Tracking - Log to ~/.recursive-manager/.version-history
+- [ ] 11.4.5: Add Version History Tracking - Log to ~/.recursivemanager/.version-history
 
 #### 11.5: Release Automation
 - [ ] 11.5.1: Create Release Script (release.sh) - Bump version, generate CHANGELOG, build binaries, create GitHub release
@@ -565,7 +565,7 @@ Created a comprehensive 34,000+ line production-ready CLI guide with 13 commands
 
 Created a comprehensive 23,000+ line production-ready API reference documenting the complete API surface of RecursiveManager v1.0.0:
 
-**1. Core Package API (@recursive-manager/core)**
+**1. Core Package API (@recursivemanager/core)**
 - **Configuration Management**: 5 functions (loadAgentConfig, loadAgentConfigWithBusinessValidation, saveAgentConfig, generateDefaultConfig, mergeConfigs)
 - **Business Validation**: 2 functions (validateAgentConfigBusinessLogic, validateAgentConfigBusinessLogicStrict)
 - **Agent Lifecycle**: 8 functions (hireAgent, fireAgent, pauseAgent, resumeAgent, validateHire, detectCycle, checkHiringBudget, checkRateLimit)
@@ -575,21 +575,21 @@ Created a comprehensive 23,000+ line production-ready API reference documenting 
 - **Execution State**: saveExecutionResult function
 - **Messaging**: 3 functions (writeMessageToInbox, generateMessageId, formatMessageFile)
 
-**2. CLI Package API (@recursive-manager/cli)**
+**2. CLI Package API (@recursivemanager/cli)**
 - **Org Chart Visualization**: 5 functions (formatOrgChart, formatAsTree, formatAsIndented, formatAsTable, formatAsJSON, displayOrgChart)
 
-**3. Adapters Package API (@recursive-manager/adapters)**
+**3. Adapters Package API (@recursivemanager/adapters)**
 - **Framework Adapter Types**: 7 core interfaces (FrameworkAdapter, ExecutionMode, ExecutionContext, ExecutionResult, TaskSchema, Message, Capability)
 - **Adapter Registry**: 25 methods for registration, lookup, capabilities, health checks, and fallback support
 - **Claude Code Adapter**: Full implementation with 10 supported features
 - **Execution Context**: 6 functions for loading context (loadExecutionContext, loadConfig, loadTasks, loadMessages, loadWorkspaceFiles, validateExecutionContext)
 - **Prompt Templates**: 3 prompt builders (buildContinuousPrompt, buildReactivePrompt, buildMultiPerspectivePrompt)
 
-**4. Scheduler Package API (@recursive-manager/scheduler)**
+**4. Scheduler Package API (@recursivemanager/scheduler)**
 - **Schedule Manager**: 13 methods (createCronSchedule, getScheduleById, getSchedulesByAgentId, deleteSchedule, enableSchedule, disableSchedule, updateScheduleAfterExecution, getScheduleDependencies, getCompletedScheduleIds, getSchedulesReadyToExecute, getSchedulesReadyWithDependencies, setExecutionId, submitScheduleToPool)
 - **Built-in Schedules**: 2 convenience functions (registerDailyArchivalJob, registerDeadlockMonitoringJob)
 
-**5. Common Package API (@recursive-manager/common)**
+**5. Common Package API (@recursivemanager/common)**
 - **Version Information**: 3 exports (VERSION, RELEASE_DATE, RELEASE_URL) + getVersionInfo()
 - **File I/O Operations**: 7 functions (atomicWrite, atomicWriteSync, createBackup, createBackupSync, cleanupBackups, cleanupBackupsSync)
 - **Directory Permissions**: 10 functions (checkDirectoryPermissions, checkDirectoryPermissionsSync, ensureDirectoryPermissions, ensureDirectoryPermissionsSync, setDirectoryPermissions, setDirectoryPermissionsSync, getDirectoryPermissions, getDirectoryPermissionsSync, validateDirectoryPermissions, validateDirectoryPermissionsSync)
@@ -639,7 +639,7 @@ Phase 10 now **33% complete** (6/18 tasks).
 Created a comprehensive 1502-line production-ready configuration reference covering all aspects of RecursiveManager v1.0.0 configuration:
 
 **1. Complete Configuration Coverage (62+ Environment Variables)**
-- Installation & Paths: `RECURSIVE_MANAGER_HOME`, `RECURSIVE_MANAGER_DATA_DIR`
+- Installation & Paths: `RECURSIVEMANAGER_HOME`, `RECURSIVEMANAGER_DATA_DIR`
 - Logging: `LOG_LEVEL` (debug/info/warn/error), `LOG_FILE`, JSON format, rotation
 - Agent Configuration: `MAX_AGENT_DEPTH`, `MAX_AGENTS_PER_MANAGER`, `AGENT_TIMEOUT_MS`
 - Execution Settings: `WORKER_POOL_SIZE`, `CONTINUOUS_EXECUTION_INTERVAL_MS`
@@ -760,7 +760,7 @@ Created a comprehensive 869-line production-ready installation guide covering al
 - Version verification commands
 
 **4. Initial Configuration**
-- System initialization with `recursive-manager init`
+- System initialization with `recursivemanager init`
 - Configuration file structure and location
 - Environment variable configuration
 - CLI config management commands
@@ -888,7 +888,7 @@ Completely overhauled the README.md to accurately reflect the production-ready v
   - RecursiveManager Overview (system-wide metrics)
   - Agent Performance (per-agent analytics)
   - System Metrics (CPU/memory/resource monitoring)
-- **CLI Metrics Server**: Complete guide to `recursive-manager metrics` command
+- **CLI Metrics Server**: Complete guide to `recursivemanager metrics` command
 - **Logging System**: Integration with Winston, correlation IDs, log levels
 - **Alerting**: Example Prometheus alert rules and Grafana alert configuration
 - **Best Practices**: Metrics collection, dashboard design, retention, security, performance
@@ -1008,7 +1008,7 @@ Implemented automatic trace ID propagation using AsyncLocalStorage for distribut
 - `getCurrentTraceId()` - Get current trace ID from context
 - `setRequestContext(key, value)` - Store additional context data
 - `getRequestContext(key)` - Retrieve context data
-- All exported from `@recursive-manager/common`
+- All exported from `@recursivemanager/common`
 
 **3. Logger Integration**
 - Modified `mergeMetadata()` to automatically inject trace ID from context
@@ -1127,7 +1127,7 @@ Implemented complete Grafana dashboard infrastructure with provisioning and 3 co
 - **Prometheus Configuration**:
   - Port 9090:9090 (Prometheus UI at http://localhost:9090)
   - Scrapes RecursiveManager metrics every 15s
-  - Depends on recursive-manager service
+  - Depends on recursivemanager service
 - **Volume Definitions**: Added prometheus-data and grafana-data volumes
 
 **8. Comprehensive Documentation** (`monitoring/README.md`)
@@ -1299,10 +1299,10 @@ This ensures:
 
 - **Task 8.5: Create docker-compose.yml for full stack** (Previous iteration - COMPLETE ✅):
   - Created comprehensive docker-compose.yml with version 3.8 specification
-  - Main service: recursive-manager with production Dockerfile target
-  - Container name: recursive-manager with restart: unless-stopped policy
+  - Main service: recursivemanager with production Dockerfile target
+  - Container name: recursivemanager with restart: unless-stopped policy
   - Environment: Complete configuration with all 40+ environment variables
-    - Core: NODE_ENV, RECURSIVE_MANAGER_HOME, RECURSIVE_MANAGER_DATA_DIR
+    - Core: NODE_ENV, RECURSIVEMANAGER_HOME, RECURSIVEMANAGER_DATA_DIR
     - Logging: LOG_LEVEL, LOG_FILE
     - Agent config: MAX_AGENT_DEPTH, MAX_AGENTS_PER_MANAGER, AGENT_TIMEOUT_MS
     - Execution: WORKER_POOL_SIZE, CONTINUOUS_EXECUTION_INTERVAL_MS
@@ -1314,13 +1314,13 @@ This ensures:
     - Notifications: Slack, Discord, Telegram (optional)
     - GitHub integration: GITHUB_TOKEN, GITHUB_REPO (optional)
   - Volume management:
-    - Named volumes: recursive-manager-data, recursive-manager-logs
+    - Named volumes: recursivemanager-data, recursivemanager-logs
     - Bind mounts: ./data and ./logs with configurable paths
     - Placeholder volumes for future monitoring (Prometheus, Grafana)
   - Port mapping: ${PORT:-3000}:3000 for future API server
   - Health check: Node.js runtime test every 30s
   - Resource limits: 2 CPU cores max, 2GB RAM max, with reservations
-  - Network: Custom bridge network (recursive-manager-network) with 172.28.0.0/16 subnet
+  - Network: Custom bridge network (recursivemanager-network) with 172.28.0.0/16 subnet
   - Optional services (commented): AICEO Gateway, Prometheus, Grafana for future phases
   - YAML syntax validated
 
@@ -1512,7 +1512,7 @@ This ensures:
   3. **Configuration**:
      - Environment variables: `SECRET_ENCRYPTION_KEY`, `SECRET_ENCRYPTION_USE_KDF`, `SECRET_CACHE_EXPIRY_MS`
      - Updated `.env.example` with secret management documentation
-     - Exported from `@recursive-manager/common` package index
+     - Exported from `@recursivemanager/common` package index
 
   4. **Documentation** (`docs/security/secret-management.md` - 550+ lines):
      - Complete API reference with code examples
@@ -1742,7 +1742,7 @@ Previous Completions:
   3. **ScheduleManager Enhancement**:
      - **Added ExecutionPool integration**:
        - Modified constructor to accept optional `ExecutionPool` parameter
-       - Imported ExecutionPool type from `@recursive-manager/core`
+       - Imported ExecutionPool type from `@recursivemanager/core`
      - **New methods**:
        - `submitScheduleToPool()` - Submits schedule to ExecutionPool with dependency tracking
          - Maps schedule dependencies to execution IDs
@@ -2099,25 +2099,25 @@ Previous Completions:
   **Command Usage Examples**:
   ```bash
   # View last 50 lines from agent
-  recursive-manager logs ceo-001
+  recursivemanager logs ceo-001
 
   # View last 100 lines with error level filter
-  recursive-manager logs cto-002 -n 100 --level error
+  recursivemanager logs cto-002 -n 100 --level error
 
   # View logs since timestamp
-  recursive-manager logs backend-003 --since "2026-01-20 10:00:00"
+  recursivemanager logs backend-003 --since "2026-01-20 10:00:00"
 
   # Search logs for pattern
-  recursive-manager logs frontend-004 --grep "execution failed"
+  recursivemanager logs frontend-004 --grep "execution failed"
 
   # View all agent logs combined
-  recursive-manager logs --all
+  recursivemanager logs --all
 
   # Follow logs in real-time
-  recursive-manager logs worker-005 -f
+  recursivemanager logs worker-005 -f
 
   # Output as JSON
-  recursive-manager logs manager-006 --json
+  recursivemanager logs manager-006 --json
   ```
 
   **Files Modified**:
@@ -2248,7 +2248,7 @@ Previous Completions:
   **Summary**: Fixed and enabled the hire CLI command by correcting TypeScript errors, updating AgentConfig structure to match current schema, and implementing inline agent ID generation.
 
   **Issues Fixed**:
-  1. Removed non-existent `generateAgentId` import from @recursive-manager/common
+  1. Removed non-existent `generateAgentId` import from @recursivemanager/common
   2. Implemented inline agent ID generation using crypto.randomBytes()
   3. Fixed AgentGoal structure: `keyResults` → `subGoals`/`successCriteria`
   4. Fixed AgentBehavior fields: removed `proactivity`, `riskTolerance`, `communicationFrequency`, `decisionMakingStyle`
@@ -2362,7 +2362,7 @@ Previous Completions:
 
 - **Task 3.1-3.4 (PARTIAL COMPLETE)**: Implemented 4 missing CLI commands (hire, fire, message, run) and added core exports
 
-  **Summary**: Created comprehensive CLI commands for hiring agents, firing agents, sending messages, and manually running agents. All commands include interactive prompts, validation, colored output, and JSON output options. Added necessary exports to @recursive-manager/core for lifecycle and messaging functions.
+  **Summary**: Created comprehensive CLI commands for hiring agents, firing agents, sending messages, and manually running agents. All commands include interactive prompts, validation, colored output, and JSON output options. Added necessary exports to @recursivemanager/core for lifecycle and messaging functions.
 
   **Commands Implemented**:
   1. **hire** - Create and assign new agents to hierarchy with full configuration
@@ -2445,12 +2445,12 @@ Previous Completions:
 
 - Task 1.8 (FINAL - COMPLETE ✅): Fixed final test failure in task-lifecycle-integration.test.ts, achieved 100% test pass rate (2097/2098, 1 skipped)
 
-  **Summary**: Fixed path resolution inconsistency in task lifecycle integration tests where environment variable `RECURSIVE_MANAGER_DATA_DIR` was set but not being used by path-utils functions. Solution: added PathOptions support to `createTaskDirectory` and updated test to pass explicit `baseDir` for all path operations.
+  **Summary**: Fixed path resolution inconsistency in task lifecycle integration tests where environment variable `RECURSIVEMANAGER_DATA_DIR` was set but not being used by path-utils functions. Solution: added PathOptions support to `createTaskDirectory` and updated test to pass explicit `baseDir` for all path operations.
 
   **Root Cause**:
-  - Test set `process.env.RECURSIVE_MANAGER_DATA_DIR = testDir` but `path-utils.ts` functions use `options.baseDir ?? DEFAULT_BASE_DIR`
+  - Test set `process.env.RECURSIVEMANAGER_DATA_DIR = testDir` but `path-utils.ts` functions use `options.baseDir ?? DEFAULT_BASE_DIR`
   - Environment variable is NOT read by path-utils (only used in some CLI/config files)
-  - Test was calling `getTaskPath()` without options, using `~/.recursive-manager` instead of `testDir`
+  - Test was calling `getTaskPath()` without options, using `~/.recursivemanager` instead of `testDir`
   - This caused path mismatches between directory creation and verification
 
   **Fixes Applied**:
@@ -2732,11 +2732,11 @@ Previous Completions:
   **Summary**: Ran `npm run type-check` across all 5 packages in the monorepo. All TypeScript type checking completed successfully with 0 errors.
 
   **Packages Verified**:
-  - @recursive-manager/common ✅
-  - @recursive-manager/adapters ✅
-  - @recursive-manager/core ✅
-  - @recursive-manager/scheduler ✅
-  - @recursive-manager/cli ✅
+  - @recursivemanager/common ✅
+  - @recursivemanager/adapters ✅
+  - @recursivemanager/core ✅
+  - @recursivemanager/scheduler ✅
+  - @recursivemanager/cli ✅
 
   **Build System**: Turbo orchestrated all type-check tasks in parallel, completing in 5.3 seconds
 
@@ -3090,7 +3090,7 @@ Task 4.8: Add resource quotas (CPU/memory limits per feature)
 - **Location**: `packages/common/src/config.ts`
 - **Implementation**: 
   - Uses `dotenv` library (v17.2.3)
-  - Multi-level configuration loading: `~/.recursive-manager/.env` → `./.env` → environment variables
+  - Multi-level configuration loading: `~/.recursivemanager/.env` → `./.env` → environment variables
   - Supports 16+ configuration categories
   - Full documentation exists at `docs/configuration.md`
 

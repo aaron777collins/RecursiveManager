@@ -24,7 +24,7 @@ import {
   getSchedulePath,
   getMetadataPath,
   safeLoad,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import path from 'path';
 import fs from 'fs-extra';
 import os from 'os';

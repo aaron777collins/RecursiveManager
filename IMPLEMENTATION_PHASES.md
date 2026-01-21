@@ -673,12 +673,12 @@ export class TelegramAdapter implements MessagingAdapter {
 ### Phase 6.1: Core CLI Commands
 
 **Deliverables**:
-- [ ] `recursive-manager init`
-- [ ] `recursive-manager hire`
-- [ ] `recursive-manager fire`
-- [ ] `recursive-manager status`
-- [ ] `recursive-manager message`
-- [ ] `recursive-manager run`
+- [ ] `recursivemanager init`
+- [ ] `recursivemanager hire`
+- [ ] `recursivemanager fire`
+- [ ] `recursivemanager status`
+- [ ] `recursivemanager message`
+- [ ] `recursivemanager run`
 
 **Key Files**:
 ```typescript
@@ -707,11 +707,11 @@ export async function statusCommand(options: StatusOptions): Promise<void>;
 ### Phase 6.2: Advanced CLI Features
 
 **Deliverables**:
-- [ ] `recursive-manager debug`
-- [ ] `recursive-manager logs`
-- [ ] `recursive-manager audit`
-- [ ] `recursive-manager backup`
-- [ ] `recursive-manager emergency-stop`
+- [ ] `recursivemanager debug`
+- [ ] `recursivemanager logs`
+- [ ] `recursivemanager audit`
+- [ ] `recursivemanager backup`
+- [ ] `recursivemanager emergency-stop`
 
 **Key Files**:
 ```typescript

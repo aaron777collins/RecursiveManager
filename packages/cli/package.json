@@ -1,11 +1,11 @@
 {
-  "name": "@recursive-manager/cli",
-  "version": "1.0.4",
+  "name": "@recursivemanager/cli",
+  "version": "1.0.5",
   "description": "Command-line interface for RecursiveManager",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "recursive-manager": "./dist/cli.js"
+    "recursivemanager": "./dist/cli.js"
   },
   "exports": {
     ".": {
@@ -23,8 +23,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@recursive-manager/common": "*",
-    "@recursive-manager/core": "*",
+    "@recursivemanager/common": "*",
+    "@recursivemanager/core": "*",
     "chalk": "^4.1.2",
     "commander": "^11.1.0",
     "inquirer": "^8.2.6",

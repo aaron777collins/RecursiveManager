@@ -14,7 +14,7 @@ import {
   getAgent,
   initializeDatabase,
   type LogLevel,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 
 interface LogEntry {
   timestamp: string;

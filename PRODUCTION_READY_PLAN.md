@@ -156,7 +156,7 @@ async analyzeMultiPerspective(
 
 **In `pauseAgent.ts`**:
 ```typescript
-import { getSchedulerDaemon } from '@recursive-manager/scheduler';
+import { getSchedulerDaemon } from '@recursivemanager/scheduler';
 
 export async function pauseAgent(db: Database, agentId: string): Promise<void> {
   // ... existing validation code
@@ -171,7 +171,7 @@ export async function pauseAgent(db: Database, agentId: string): Promise<void> {
 
 **In `resumeAgent.ts`**:
 ```typescript
-import { getSchedulerDaemon } from '@recursive-manager/scheduler';
+import { getSchedulerDaemon } from '@recursivemanager/scheduler';
 
 export async function resumeAgent(db: Database, agentId: string): Promise<void> {
   // ... existing validation code
@@ -309,7 +309,7 @@ process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
   console.error(reason);
 
   // Log to file
-  const errorLog = path.join(process.cwd(), '.recursive-manager', 'errors.log');
+  const errorLog = path.join(process.cwd(), '.recursivemanager', 'errors.log');
   fs.appendFileSync(errorLog, `[${new Date().toISOString()}] Unhandled Rejection: ${reason}\n`);
 
   process.exit(1);
@@ -320,7 +320,7 @@ process.on('uncaughtException', (error: Error) => {
   console.error(error);
 
   // Log to file
-  const errorLog = path.join(process.cwd(), '.recursive-manager', 'errors.log');
+  const errorLog = path.join(process.cwd(), '.recursivemanager', 'errors.log');
   fs.appendFileSync(errorLog, `[${new Date().toISOString()}] Uncaught Exception: ${error.stack}\n`);
 
   process.exit(1);
@@ -773,7 +773,7 @@ CMD ["npm", "start"]
 version: '3.8'
 
 services:
-  recursive-manager:
+  recursivemanager:
     build: .
     volumes:
       - ./data:/app/data
@@ -975,7 +975,7 @@ tsconfig.json
 - Create test tag `v0.1.1-test`
 - Verify workflow runs
 - Check NPM registry for published package
-- Install from NPM: `npm install @recursive-manager/cli`
+- Install from NPM: `npm install @recursivemanager/cli`
 
 **Success Criteria**: NPM publishing automated
 

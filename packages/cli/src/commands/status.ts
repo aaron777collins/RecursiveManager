@@ -6,7 +6,7 @@ import { Command } from 'commander';
 import { header, error, info, code, subheader } from '../utils/colors';
 import { createSpinner } from '../utils/spinner';
 import { loadConfig } from '../utils/config';
-import { initializeDatabase, getOrgChart, getAgent, getSubordinates, getActiveTasks, type TaskRecord } from '@recursive-manager/common';
+import { initializeDatabase, getOrgChart, getAgent, getSubordinates, getActiveTasks, type TaskRecord } from '@recursivemanager/common';
 import { formatOrgChart } from '../utils/formatOrgChart';
 import type { OrgChartEntry } from '../utils/formatOrgChart';
 
@@ -72,7 +72,7 @@ export function registerStatusCommand(program: Command): void {
           const orgChart = getOrgChart(db);
 
           if (orgChart.length === 0) {
-            console.log(info('No agents found. Use ' + code('recursive-manager init "<goal>"') + ' to get started.'));
+            console.log(info('No agents found. Use ' + code('recursivemanager init "<goal>"') + ' to get started.'));
             console.log();
             return;
           }
@@ -108,7 +108,7 @@ export function registerStatusCommand(program: Command): void {
         }
 
         console.log(
-          info('Use ' + code('recursive-manager status --agent-id <id>') + ' for details')
+          info('Use ' + code('recursivemanager status --agent-id <id>') + ' for details')
         );
         console.log();
       } catch (err) {

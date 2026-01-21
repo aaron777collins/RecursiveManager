@@ -161,7 +161,7 @@ describeIntegration('AI Provider End-to-End Integration', () => {
       // Check if history file was created
       // Note: This assumes history persistence is implemented with a specific directory structure
       // Adjust the path based on actual implementation
-      const historyDir = path.join(os.homedir(), '.recursive-manager', 'analyses');
+      const historyDir = path.join(os.homedir(), '.recursivemanager', 'analyses');
 
       if (await fs.pathExists(historyDir)) {
         const historyFiles = await fs.readdir(historyDir);

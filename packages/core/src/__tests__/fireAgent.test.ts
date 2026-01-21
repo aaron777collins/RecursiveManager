@@ -29,7 +29,7 @@ import {
   allMigrations,
   getMessages,
   getUnreadMessageCount,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 
 // Test database and temp directory
 let db: Database.Database;

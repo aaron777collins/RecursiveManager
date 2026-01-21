@@ -23,7 +23,7 @@ import {
   getSubordinates,
   queryAuditLog,
   AuditAction,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { loadAgentConfig } from '../config';
 
 /**

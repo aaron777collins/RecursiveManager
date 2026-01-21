@@ -113,7 +113,7 @@ export AI_PROVIDER=aiceo-gateway
 export AI_FALLBACK_PROVIDER=glm-direct
 
 # If AICEO Gateway is down, automatically uses GLM Direct
-npx recursive-manager analyze "Should we implement A/B testing for our features?"
+npx recursivemanager analyze "Should we implement A/B testing for our features?"
 ```
 
 **Console Output on Failover**:
@@ -135,8 +135,8 @@ INFO: Using fallback provider for analysis
 Override default provider for specific analysis:
 
 ```typescript
-import { ProviderFactory } from '@recursive-manager/core';
-import { MultiPerspectiveAnalysis } from '@recursive-manager/core';
+import { ProviderFactory } from '@recursivemanager/core';
+import { MultiPerspectiveAnalysis } from '@recursivemanager/core';
 
 // Use AICEO Gateway (primary)
 const primaryProvider = ProviderFactory.create('aiceo-gateway');
@@ -221,8 +221,8 @@ const result = await analyzeWithCostOptimization(
 Compare results across multiple providers:
 
 ```typescript
-import { ProviderFactory } from '@recursive-manager/core';
-import { MultiPerspectiveAnalysis } from '@recursive-manager/core';
+import { ProviderFactory } from '@recursivemanager/core';
+import { MultiPerspectiveAnalysis } from '@recursivemanager/core';
 
 async function compareProviders(question: string) {
   const providers = ['aiceo-gateway', 'anthropic-direct', 'openai-direct'];
@@ -275,7 +275,7 @@ await compareProviders("Should we migrate to Kubernetes?");
 Monitor provider availability:
 
 ```typescript
-import { ProviderFactory } from '@recursive-manager/core';
+import { ProviderFactory } from '@recursivemanager/core';
 
 async function checkProviderHealth() {
   const providers = [
@@ -334,7 +334,7 @@ await checkProviderHealth();
 Try providers in order until one succeeds:
 
 ```typescript
-import { ProviderFactory } from '@recursive-manager/core';
+import { ProviderFactory } from '@recursivemanager/core';
 
 async function analyzeWithSequentialFailover(question: string) {
   const providerPriority = [

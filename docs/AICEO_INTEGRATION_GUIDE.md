@@ -233,7 +233,7 @@ cd /home/ubuntu/repos/RecursiveManager
 npm run build
 
 # Run a test analysis command (will fail if gateway unreachable)
-npx recursive-manager analyze "Should we add caching?" --format json
+npx recursivemanager analyze "Should we add caching?" --format json
 ```
 
 **Expected behavior:**
@@ -252,7 +252,7 @@ npx recursive-manager analyze "Should we add caching?" --format json
 Run a simple analysis to verify the full pipeline:
 
 ```bash
-npx recursive-manager analyze "What are the risks of adding Redis caching?" --format text
+npx recursivemanager analyze "What are the risks of adding Redis caching?" --format text
 ```
 
 **Expected output:**
@@ -293,7 +293,7 @@ cd /home/ubuntu/repos/AICEO
 tail -f logs/api.log
 
 # You should see entries like:
-# [INFO] POST /api/glm/submit - source: recursive-manager, sourceId: security-agent-analysis
+# [INFO] POST /api/glm/submit - source: recursivemanager, sourceId: security-agent-analysis
 # [INFO] Request queued with priority: high, queue depth: 0
 # [INFO] Request completed in 1234ms, wait time: 0ms
 ```
@@ -315,7 +315,7 @@ psql -U aiceo -d aiceo -c "
     success,
     created_at
   FROM glm_gateway_requests
-  WHERE source = 'recursive-manager'
+  WHERE source = 'recursivemanager'
   ORDER BY created_at DESC
   LIMIT 10;
 "
@@ -325,8 +325,8 @@ psql -U aiceo -d aiceo -c "
 ```
       source       |       source_id        | provider |  model  | success |         created_at
 -------------------+------------------------+----------+---------+---------+----------------------------
- recursive-manager | security-agent-analysis| glm      | glm-4.7 | t       | 2026-01-20 12:34:56.789
- recursive-manager | architecture-analysis  | glm      | glm-4.7 | t       | 2026-01-20 12:34:57.123
+ recursivemanager | security-agent-analysis| glm      | glm-4.7 | t       | 2026-01-20 12:34:56.789
+ recursivemanager | architecture-analysis  | glm      | glm-4.7 | t       | 2026-01-20 12:34:57.123
  ...
 ```
 
@@ -467,7 +467,7 @@ cd /home/ubuntu/repos/AICEO
 tail -f logs/gateway.log
 
 # Filter for RecursiveManager requests only
-tail -f logs/gateway.log | grep "recursive-manager"
+tail -f logs/gateway.log | grep "recursivemanager"
 
 # Monitor errors only
 tail -f logs/gateway.log | grep ERROR
@@ -580,7 +580,7 @@ ORDER BY total_tokens DESC;
 ```
       source       | total_input_tokens | total_output_tokens | total_tokens | requests | avg_input_tokens | avg_output_tokens
 -------------------+--------------------+---------------------+--------------+----------+------------------+-------------------
- recursive-manager | 1,250,000          | 3,750,000           | 5,000,000    | 2,450    | 510.20           | 1,530.61
+ recursivemanager | 1,250,000          | 3,750,000           | 5,000,000    | 2,450    | 510.20           | 1,530.61
  slack-bot         | 450,000            | 850,000             | 1,300,000    | 1,200    | 375.00           | 708.33
  aiceo             | 300,000            | 600,000             | 900,000      | 800      | 375.00           | 750.00
 ```
@@ -657,7 +657,7 @@ SELECT
   ROUND(AVG(input_tokens), 2) as avg_input,
   ROUND(AVG(output_tokens), 2) as avg_output
 FROM glm_gateway_requests
-WHERE source = 'recursive-manager'
+WHERE source = 'recursivemanager'
   AND created_at >= NOW() - INTERVAL '7 days'
 GROUP BY source_id
 ORDER BY avg_output DESC;

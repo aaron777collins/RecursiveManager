@@ -55,7 +55,7 @@ describe('loadConfig prerequisite checks', () => {
   it('should fail when marker file is a directory', () => {
     // Create directory and marker as a directory
     fs.ensureDirSync(testDataDir);
-    fs.ensureDirSync(path.join(testDataDir, '.recursive-manager'));
+    fs.ensureDirSync(path.join(testDataDir, '.recursivemanager'));
 
     expect(() => loadConfig(testDataDir)).toThrow('Process.exit() called');
     expect(consoleError).toHaveBeenCalledWith(
@@ -66,7 +66,7 @@ describe('loadConfig prerequisite checks', () => {
   it('should fail when marker file has invalid content', () => {
     // Create marker file with invalid JSON
     fs.ensureDirSync(testDataDir);
-    fs.writeFileSync(path.join(testDataDir, '.recursive-manager'), 'invalid json');
+    fs.writeFileSync(path.join(testDataDir, '.recursivemanager'), 'invalid json');
 
     expect(() => loadConfig(testDataDir)).toThrow('Process.exit() called');
     expect(consoleError).toHaveBeenCalledWith(
@@ -78,7 +78,7 @@ describe('loadConfig prerequisite checks', () => {
     // Create marker file without initialized field
     fs.ensureDirSync(testDataDir);
     fs.writeFileSync(
-      path.join(testDataDir, '.recursive-manager'),
+      path.join(testDataDir, '.recursivemanager'),
       JSON.stringify({ someField: 'value' })
     );
 
@@ -92,7 +92,7 @@ describe('loadConfig prerequisite checks', () => {
     // Create valid marker but no config
     fs.ensureDirSync(testDataDir);
     fs.writeFileSync(
-      path.join(testDataDir, '.recursive-manager'),
+      path.join(testDataDir, '.recursivemanager'),
       JSON.stringify({ initialized: true, version: '0.1.0' })
     );
 
@@ -106,7 +106,7 @@ describe('loadConfig prerequisite checks', () => {
     // Create valid marker and config as directory
     fs.ensureDirSync(testDataDir);
     fs.writeFileSync(
-      path.join(testDataDir, '.recursive-manager'),
+      path.join(testDataDir, '.recursivemanager'),
       JSON.stringify({ initialized: true, version: '0.1.0' })
     );
     fs.ensureDirSync(path.join(testDataDir, 'config.json'));
@@ -121,7 +121,7 @@ describe('loadConfig prerequisite checks', () => {
     // Create valid marker and invalid config
     fs.ensureDirSync(testDataDir);
     fs.writeFileSync(
-      path.join(testDataDir, '.recursive-manager'),
+      path.join(testDataDir, '.recursivemanager'),
       JSON.stringify({ initialized: true, version: '0.1.0' })
     );
     fs.writeFileSync(path.join(testDataDir, 'config.json'), 'invalid json');
@@ -136,7 +136,7 @@ describe('loadConfig prerequisite checks', () => {
     // Create valid marker and config without required fields
     fs.ensureDirSync(testDataDir);
     fs.writeFileSync(
-      path.join(testDataDir, '.recursive-manager'),
+      path.join(testDataDir, '.recursivemanager'),
       JSON.stringify({ initialized: true, version: '0.1.0' })
     );
     fs.writeFileSync(
@@ -155,7 +155,7 @@ describe('loadConfig prerequisite checks', () => {
     const dbPath = path.join(testDataDir, 'database.sqlite');
     fs.ensureDirSync(testDataDir);
     fs.writeFileSync(
-      path.join(testDataDir, '.recursive-manager'),
+      path.join(testDataDir, '.recursivemanager'),
       JSON.stringify({ initialized: true, version: '0.1.0' })
     );
     fs.writeFileSync(
@@ -180,7 +180,7 @@ describe('loadConfig prerequisite checks', () => {
     const dbPath = path.join(testDataDir, 'database.sqlite');
     fs.ensureDirSync(testDataDir);
     fs.writeFileSync(
-      path.join(testDataDir, '.recursive-manager'),
+      path.join(testDataDir, '.recursivemanager'),
       JSON.stringify({ initialized: true, version: '0.1.0' })
     );
     fs.writeFileSync(
@@ -206,7 +206,7 @@ describe('loadConfig prerequisite checks', () => {
     const dbPath = path.join(testDataDir, 'database.sqlite');
     fs.ensureDirSync(testDataDir);
     fs.writeFileSync(
-      path.join(testDataDir, '.recursive-manager'),
+      path.join(testDataDir, '.recursivemanager'),
       JSON.stringify({ initialized: true, version: '0.1.0' })
     );
     fs.writeFileSync(
@@ -236,7 +236,7 @@ describe('loadConfig prerequisite checks', () => {
     const dbPath = path.join(testDataDir, 'database.sqlite');
     fs.ensureDirSync(testDataDir);
     fs.writeFileSync(
-      path.join(testDataDir, '.recursive-manager'),
+      path.join(testDataDir, '.recursivemanager'),
       JSON.stringify({ initialized: true, version: '0.1.0' })
     );
     fs.writeFileSync(

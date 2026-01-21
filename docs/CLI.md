@@ -3,7 +3,7 @@
 **Version:** 1.0.0
 **Last Updated:** January 2026
 
-Complete command-line interface guide for RecursiveManager. Learn how to manage hierarchical AI agent organizations through the `recursive-manager` CLI.
+Complete command-line interface guide for RecursiveManager. Learn how to manage hierarchical AI agent organizations through the `recursivemanager` CLI.
 
 ---
 
@@ -67,7 +67,7 @@ All commands support:
 ### Install from NPM (Recommended)
 
 ```bash
-npm install -g recursive-manager
+npm install -g recursivemanager
 ```
 
 ### Install from Source
@@ -83,7 +83,7 @@ npm link
 ### Verify Installation
 
 ```bash
-recursive-manager --version
+recursivemanager --version
 # Output: RecursiveManager v1.0.0
 ```
 
@@ -93,19 +93,19 @@ Enable command completion for your shell:
 
 **Bash:**
 ```bash
-recursive-manager completion bash >> ~/.bashrc
+recursivemanager completion bash >> ~/.bashrc
 source ~/.bashrc
 ```
 
 **Zsh:**
 ```bash
-recursive-manager completion zsh >> ~/.zshrc
+recursivemanager completion zsh >> ~/.zshrc
 source ~/.zshrc
 ```
 
 **Fish:**
 ```bash
-recursive-manager completion fish > ~/.config/fish/completions/recursive-manager.fish
+recursivemanager completion fish > ~/.config/fish/completions/recursivemanager.fish
 ```
 
 ---
@@ -115,7 +115,7 @@ recursive-manager completion fish > ~/.config/fish/completions/recursive-manager
 ### 1. Initialize with a Goal
 
 ```bash
-recursive-manager init "Build a REST API for user authentication"
+recursivemanager init "Build a REST API for user authentication"
 ```
 
 This creates a CEO agent with the specified goal and initializes the workspace.
@@ -123,7 +123,7 @@ This creates a CEO agent with the specified goal and initializes the workspace.
 ### 2. Check Organization Status
 
 ```bash
-recursive-manager status
+recursivemanager status
 ```
 
 View the agent organization chart as a tree structure.
@@ -132,14 +132,14 @@ View the agent organization chart as a tree structure.
 
 ```bash
 # Hire a CTO
-recursive-manager hire cto-001 \
+recursivemanager hire cto-001 \
   --role "Chief Technology Officer" \
   --goal "Design and implement technical architecture" \
   --can-hire \
   --max-subordinates 10
 
 # Hire a Backend Engineer under the CTO
-recursive-manager hire backend-001 \
+recursivemanager hire backend-001 \
   --manager-id cto-001 \
   --role "Backend Engineer" \
   --goal "Implement REST API endpoints"
@@ -148,7 +148,7 @@ recursive-manager hire backend-001 \
 ### 4. Send Messages to Agents
 
 ```bash
-recursive-manager message backend-001 \
+recursivemanager message backend-001 \
   --subject "Implement login endpoint" \
   --content "Create POST /api/auth/login with email/password validation"
 ```
@@ -157,13 +157,13 @@ recursive-manager message backend-001 \
 
 ```bash
 # View agent logs
-recursive-manager logs backend-001
+recursivemanager logs backend-001
 
 # Follow logs in real-time
-recursive-manager logs backend-001 --follow
+recursivemanager logs backend-001 --follow
 
 # Filter by level
-recursive-manager logs backend-001 --level error
+recursivemanager logs backend-001 --level error
 ```
 
 ---
@@ -176,7 +176,7 @@ Initialize RecursiveManager with a top-level goal.
 
 **Syntax:**
 ```bash
-recursive-manager init <goal> [options]
+recursivemanager init <goal> [options]
 ```
 
 **Arguments:**
@@ -187,25 +187,25 @@ recursive-manager init <goal> [options]
 - `--depth <number>` - Maximum hierarchy depth (default: 5, max: 20)
 - `--framework <name>` - AI framework to use (default: `claude-code`)
   - Supported: `claude-code`, `opencode`
-- `--data-dir <path>` - Custom data directory (default: `~/.recursive-manager`)
+- `--data-dir <path>` - Custom data directory (default: `~/.recursivemanager`)
 
 **Examples:**
 
 ```bash
 # Simple initialization
-recursive-manager init "Analyze competitor pricing strategies"
+recursivemanager init "Analyze competitor pricing strategies"
 
 # Initialize with custom workspace
-recursive-manager init "Build e-commerce API" --workspace ./my-api-project
+recursivemanager init "Build e-commerce API" --workspace ./my-api-project
 
 # Initialize with deeper hierarchy
-recursive-manager init "Complex multi-phase project" --depth 10
+recursivemanager init "Complex multi-phase project" --depth 10
 
 # Initialize with specific framework
-recursive-manager init "Refactor legacy codebase" --framework opencode
+recursivemanager init "Refactor legacy codebase" --framework opencode
 
 # Initialize with custom data directory (multi-environment)
-recursive-manager init "Development task" --data-dir ~/.recursive-manager-dev
+recursivemanager init "Development task" --data-dir ~/.recursivemanager-dev
 ```
 
 **What Happens:**
@@ -220,14 +220,14 @@ recursive-manager init "Development task" --data-dir ~/.recursive-manager-dev
 ✓ Initialized RecursiveManager
 ✓ Created CEO agent (ceo-001)
 ✓ Workspace: /path/to/workspace
-✓ Data directory: ~/.recursive-manager
+✓ Data directory: ~/.recursivemanager
 
 CEO Goal: Build e-commerce API
 
 Next steps:
-  1. View status: recursive-manager status
-  2. Hire agents: recursive-manager hire --help
-  3. Run CEO: recursive-manager run ceo-001
+  1. View status: recursivemanager status
+  2. Hire agents: recursivemanager hire --help
+  3. Run CEO: recursivemanager run ceo-001
 ```
 
 ---
@@ -238,7 +238,7 @@ Show agent organization chart or details for a specific agent.
 
 **Syntax:**
 ```bash
-recursive-manager status [options]
+recursivemanager status [options]
 ```
 
 **Options:**
@@ -252,25 +252,25 @@ recursive-manager status [options]
 
 ```bash
 # Show full organization chart (tree view)
-recursive-manager status
+recursivemanager status
 
 # Show specific agent details
-recursive-manager status --agent-id backend-001
+recursivemanager status --agent-id backend-001
 
 # Show as JSON (for scripting)
-recursive-manager status --format json
+recursivemanager status --format json
 
 # Show as table
-recursive-manager status --format table
+recursivemanager status --format table
 
 # Show only first 3 levels
-recursive-manager status --depth 3
+recursivemanager status --depth 3
 
 # Filter by working agents
-recursive-manager status --filter working
+recursivemanager status --filter working
 
 # Filter by paused agents
-recursive-manager status --filter paused
+recursivemanager status --filter paused
 ```
 
 **Output (Tree Format):**
@@ -313,7 +313,7 @@ Agents: 6 total (2 working, 1 paused, 2 idle, 1 active)
 
 **Agent Details View:**
 ```bash
-recursive-manager status --agent-id backend-001
+recursivemanager status --agent-id backend-001
 ```
 
 ```
@@ -344,7 +344,7 @@ Hire a new agent and add to the organizational hierarchy.
 
 **Syntax:**
 ```bash
-recursive-manager hire <agent-id> [options]
+recursivemanager hire <agent-id> [options]
 ```
 
 **Arguments:**
@@ -368,7 +368,7 @@ recursive-manager hire <agent-id> [options]
 
 ```bash
 # Hire a CTO with hiring permissions
-recursive-manager hire cto-001 \
+recursivemanager hire cto-001 \
   --role "Chief Technology Officer" \
   --goal "Design and implement technical architecture" \
   --can-hire \
@@ -377,14 +377,14 @@ recursive-manager hire cto-001 \
   --can-fire
 
 # Hire a backend engineer under the CTO
-recursive-manager hire backend-001 \
+recursivemanager hire backend-001 \
   --manager-id cto-001 \
   --role "Backend Engineer" \
   --goal "Implement REST API endpoints with PostgreSQL" \
   --can-escalate
 
 # Hire a senior engineer with subordinate management
-recursive-manager hire senior-eng-001 \
+recursivemanager hire senior-eng-001 \
   --manager-id cto-001 \
   --role "Senior Backend Engineer" \
   --goal "Lead API development team" \
@@ -394,14 +394,14 @@ recursive-manager hire senior-eng-001 \
   --can-fire
 
 # Hire with custom framework
-recursive-manager hire qa-001 \
+recursivemanager hire qa-001 \
   --manager-id cto-001 \
   --role "QA Engineer" \
   --goal "Implement automated testing suite" \
   --framework opencode
 
 # Hire and output as JSON (for automation)
-recursive-manager hire worker-001 \
+recursivemanager hire worker-001 \
   --manager-id senior-eng-001 \
   --role "Junior Engineer" \
   --goal "Implement user authentication" \
@@ -423,12 +423,12 @@ recursive-manager hire worker-001 \
   Goal: Implement REST API endpoints
 
 Agent configuration saved to:
-  ~/.recursive-manager/agents/backend-001/config.json
+  ~/.recursivemanager/agents/backend-001/config.json
 
 Next steps:
-  1. Send a message: recursive-manager message backend-001 --subject "First task"
-  2. Run agent: recursive-manager run backend-001
-  3. View logs: recursive-manager logs backend-001
+  1. Send a message: recursivemanager message backend-001 --subject "First task"
+  2. Run agent: recursivemanager run backend-001
+  3. View logs: recursivemanager logs backend-001
 ```
 
 **JSON Output:**
@@ -459,7 +459,7 @@ Fire an agent and handle their subordinates according to a specified strategy.
 
 **Syntax:**
 ```bash
-recursive-manager fire <agent-id> [options]
+recursivemanager fire <agent-id> [options]
 ```
 
 **Arguments:**
@@ -478,19 +478,19 @@ recursive-manager fire <agent-id> [options]
 
 ```bash
 # Fire an agent (interactive mode)
-recursive-manager fire backend-001
+recursivemanager fire backend-001
 
 # Fire and reassign subordinates to manager
-recursive-manager fire manager-001 --strategy reassign
+recursivemanager fire manager-001 --strategy reassign
 
 # Fire with cascade (fires all subordinates too)
-recursive-manager fire failed-team-001 --strategy cascade --yes
+recursivemanager fire failed-team-001 --strategy cascade --yes
 
 # Fire and promote a subordinate
-recursive-manager fire cto-001 --strategy promote
+recursivemanager fire cto-001 --strategy promote
 
 # Fire without confirmation (automation)
-recursive-manager fire temp-worker-001 -y --strategy reassign --json
+recursivemanager fire temp-worker-001 -y --strategy reassign --json
 ```
 
 **Interactive Mode:**
@@ -529,7 +529,7 @@ Snapshot created: snapshot-fire-backend-001-20260120-104500
   Snapshot: snapshot-fire-backend-001-20260120-104500
 
 You can rollback this action with:
-  recursive-manager rollback --snapshot snapshot-fire-backend-001-20260120-104500
+  recursivemanager rollback --snapshot snapshot-fire-backend-001-20260120-104500
 ```
 
 ---
@@ -540,7 +540,7 @@ Send a message to an agent for reactive execution.
 
 **Syntax:**
 ```bash
-recursive-manager message <agent-id> [options]
+recursivemanager message <agent-id> [options]
 ```
 
 **Arguments:**
@@ -568,33 +568,33 @@ recursive-manager message <agent-id> [options]
 
 ```bash
 # Send a message (opens editor for content)
-recursive-manager message cto-001 --subject "API performance issue"
+recursivemanager message cto-001 --subject "API performance issue"
 
 # Send with inline content
-recursive-manager message backend-001 \
+recursivemanager message backend-001 \
   --subject "Deploy to staging" \
   --content "Please deploy branch feature/auth to staging environment"
 
 # Send urgent message
-recursive-manager message ops-001 \
+recursivemanager message ops-001 \
   --subject "Production alert: API down" \
   --priority urgent \
   --action-required
 
 # Send from another agent (inter-agent communication)
-recursive-manager message frontend-001 \
+recursivemanager message frontend-001 \
   --from cto-001 \
   --subject "Code review needed" \
   --content "Please review PR #123 for authentication changes"
 
 # Send via Slack
-recursive-manager message team-lead-001 \
+recursivemanager message team-lead-001 \
   --subject "Daily standup reminder" \
   --content "Team standup in 15 minutes" \
   --channel slack
 
 # Send and output as JSON
-recursive-manager message worker-001 \
+recursivemanager message worker-001 \
   --subject "Task assignment" \
   --content "Implement user profile API endpoint" \
   --priority high \
@@ -606,7 +606,7 @@ recursive-manager message worker-001 \
 Messages are stored in the agent's inbox as markdown files:
 
 ```
-~/.recursive-manager/inbox/backend-001/msg-20260120-104500-abc123.md
+~/.recursivemanager/inbox/backend-001/msg-20260120-104500-abc123.md
 ```
 
 **Message Structure:**
@@ -636,7 +636,7 @@ Checklist:
 If `--content` is omitted, the default editor opens with a template:
 
 ```bash
-recursive-manager message backend-001 --subject "New task"
+recursivemanager message backend-001 --subject "New task"
 ```
 
 Opens editor with:
@@ -658,7 +658,7 @@ New task
   Message ID: msg-20260120-104500-abc123
 
 Agent will process this message on next reactive execution:
-  recursive-manager run backend-001 --mode reactive
+  recursivemanager run backend-001 --mode reactive
 ```
 
 ---
@@ -669,7 +669,7 @@ Manually trigger agent execution in continuous or reactive mode.
 
 **Syntax:**
 ```bash
-recursive-manager run <agent-id> [options]
+recursivemanager run <agent-id> [options]
 ```
 
 **Arguments:**
@@ -687,16 +687,16 @@ recursive-manager run <agent-id> [options]
 
 ```bash
 # Run agent in continuous mode (process tasks)
-recursive-manager run backend-001
+recursivemanager run backend-001
 
 # Run in reactive mode (process messages)
-recursive-manager run support-agent-001 --mode reactive
+recursivemanager run support-agent-001 --mode reactive
 
 # Run without confirmation (automation)
-recursive-manager run worker-001 -y
+recursivemanager run worker-001 -y
 
 # Run and output as JSON
-recursive-manager run cto-001 --json
+recursivemanager run cto-001 --json
 ```
 
 **Continuous Mode:**
@@ -704,12 +704,12 @@ recursive-manager run cto-001 --json
 Processes pending tasks from the agent's task list.
 
 ```bash
-recursive-manager run backend-001 --mode continuous
+recursivemanager run backend-001 --mode continuous
 ```
 
 **What Happens:**
 1. Loads agent configuration
-2. Reads pending tasks from `~/.recursive-manager/tasks/backend-001/`
+2. Reads pending tasks from `~/.recursivemanager/tasks/backend-001/`
 3. Spawns AI agent with task context
 4. Agent works on tasks
 5. Updates task status (completed/failed)
@@ -736,7 +736,7 @@ Executing...
   Status: Success
 
 View logs:
-  recursive-manager logs backend-001
+  recursivemanager logs backend-001
 ```
 
 **Reactive Mode:**
@@ -744,12 +744,12 @@ View logs:
 Processes messages from the agent's inbox.
 
 ```bash
-recursive-manager run support-agent-001 --mode reactive
+recursivemanager run support-agent-001 --mode reactive
 ```
 
 **What Happens:**
 1. Loads agent configuration
-2. Reads unread messages from `~/.recursive-manager/inbox/support-agent-001/`
+2. Reads unread messages from `~/.recursivemanager/inbox/support-agent-001/`
 3. Spawns AI agent with message context
 4. Agent processes messages and responds
 5. Marks messages as read
@@ -773,7 +773,7 @@ Executing...
   Status: Success
 
 View logs:
-  recursive-manager logs support-agent-001
+  recursivemanager logs support-agent-001
 ```
 
 ---
@@ -784,7 +784,7 @@ View and filter agent logs with advanced filtering options.
 
 **Syntax:**
 ```bash
-recursive-manager logs [agent-id] [options]
+recursivemanager logs [agent-id] [options]
 ```
 
 **Arguments:**
@@ -805,49 +805,49 @@ recursive-manager logs [agent-id] [options]
 
 ```bash
 # View last 50 lines from agent
-recursive-manager logs ceo-001
+recursivemanager logs ceo-001
 
 # View last 100 lines
-recursive-manager logs backend-001 -n 100
+recursivemanager logs backend-001 -n 100
 
 # View all logs (no limit)
-recursive-manager logs backend-001 -n 0
+recursivemanager logs backend-001 -n 0
 
 # Filter by log level
-recursive-manager logs cto-002 --level error
-recursive-manager logs frontend-001 --level warn
+recursivemanager logs cto-002 --level error
+recursivemanager logs frontend-001 --level warn
 
 # View logs since timestamp
-recursive-manager logs backend-003 --since "2026-01-20 10:00:00"
+recursivemanager logs backend-003 --since "2026-01-20 10:00:00"
 
 # View logs in time range
-recursive-manager logs worker-004 --since "2026-01-20 09:00:00" --until "2026-01-20 10:00:00"
+recursivemanager logs worker-004 --since "2026-01-20 09:00:00" --until "2026-01-20 10:00:00"
 
 # Search logs for pattern
-recursive-manager logs frontend-004 --grep "execution failed"
-recursive-manager logs backend-001 -g "error|exception|failed"
+recursivemanager logs frontend-004 --grep "execution failed"
+recursivemanager logs backend-001 -g "error|exception|failed"
 
 # View all agent logs combined
-recursive-manager logs --all
+recursivemanager logs --all
 
 # Follow logs in real-time
-recursive-manager logs worker-005 -f
+recursivemanager logs worker-005 -f
 
 # Combine filters
-recursive-manager logs backend-001 \
+recursivemanager logs backend-001 \
   --level error \
   --since "2026-01-20 08:00:00" \
   --grep "database" \
   -n 100
 
 # Output as JSON for processing
-recursive-manager logs manager-006 --json | jq '.[] | select(.level == "error")'
+recursivemanager logs manager-006 --json | jq '.[] | select(.level == "error")'
 ```
 
 **Log Output Format (Text):**
 ```
 2026-01-20 10:45:30 [INFO] backend-001: Starting execution
-2026-01-20 10:45:31 [DEBUG] backend-001: Loading configuration from ~/.recursive-manager/agents/backend-001/config.json
+2026-01-20 10:45:31 [DEBUG] backend-001: Loading configuration from ~/.recursivemanager/agents/backend-001/config.json
 2026-01-20 10:45:32 [INFO] backend-001: Found 3 pending tasks
 2026-01-20 10:45:35 [INFO] backend-001: Completed task: Implement login endpoint
 2026-01-20 10:45:40 [WARN] backend-001: Task execution took longer than expected (5s)
@@ -883,7 +883,7 @@ recursive-manager logs manager-006 --json | jq '.[] | select(.level == "error")'
 
 **Following Logs (Real-time):**
 ```bash
-recursive-manager logs backend-001 --follow
+recursivemanager logs backend-001 --follow
 ```
 
 ```
@@ -894,7 +894,7 @@ recursive-manager logs backend-001 --follow
 
 **All Agent Logs:**
 ```bash
-recursive-manager logs --all
+recursivemanager logs --all
 ```
 
 ```
@@ -912,7 +912,7 @@ Run multi-perspective AI analysis on a decision or question using 8 specialized 
 
 **Syntax:**
 ```bash
-recursive-manager analyze <question> [options]
+recursivemanager analyze <question> [options]
 ```
 
 **Arguments:**
@@ -927,16 +927,16 @@ recursive-manager analyze <question> [options]
 
 ```bash
 # Analyze a technical decision
-recursive-manager analyze "Should we use microservices or monolith architecture?"
+recursivemanager analyze "Should we use microservices or monolith architecture?"
 
 # Analyze with markdown output
-recursive-manager analyze "Best database for real-time analytics?" --format markdown
+recursivemanager analyze "Best database for real-time analytics?" --format markdown
 
 # Analyze with JSON output (for processing)
-recursive-manager analyze "Security implications of public API?" --format json
+recursivemanager analyze "Security implications of public API?" --format json
 
 # Analyze with custom timeout
-recursive-manager analyze "Complex architectural decision about distributed systems" --timeout 300
+recursivemanager analyze "Complex architectural decision about distributed systems" --timeout 300
 ```
 
 **How It Works:**
@@ -1092,7 +1092,7 @@ When to reconsider:
 
 Current recommendation: Monolith saves time, money, and team sanity.
 
-Analysis saved to: ~/.recursive-manager/analysis/analysis-20260120-104500.md
+Analysis saved to: ~/.recursivemanager/analysis/analysis-20260120-104500.md
 ```
 
 **Output (Markdown Format):**
@@ -1100,15 +1100,15 @@ Analysis saved to: ~/.recursive-manager/analysis/analysis-20260120-104500.md
 Saves a markdown file with the full analysis:
 
 ```bash
-recursive-manager analyze "Should we use Redis for caching?" --format markdown
+recursivemanager analyze "Should we use Redis for caching?" --format markdown
 ```
 
-Creates: `~/.recursive-manager/analysis/analysis-20260120-104500.md`
+Creates: `~/.recursivemanager/analysis/analysis-20260120-104500.md`
 
 **Output (JSON Format):**
 
 ```bash
-recursive-manager analyze "Best database for time-series data?" --format json
+recursivemanager analyze "Best database for time-series data?" --format json
 ```
 
 ```json
@@ -1154,7 +1154,7 @@ Interactive configuration wizard for RecursiveManager.
 
 **Syntax:**
 ```bash
-recursive-manager config [options]
+recursivemanager config [options]
 ```
 
 **Options:**
@@ -1168,25 +1168,25 @@ recursive-manager config [options]
 
 ```bash
 # Run interactive configuration wizard
-recursive-manager config
+recursivemanager config
 
 # Show current configuration
-recursive-manager config --show
+recursivemanager config --show
 
 # Edit configuration file in default editor
-recursive-manager config --edit
+recursivemanager config --edit
 
 # Reset to defaults
-recursive-manager config --reset
+recursivemanager config --reset
 
 # Validate configuration
-recursive-manager config --validate
+recursivemanager config --validate
 ```
 
 **Interactive Configuration:**
 
 ```bash
-recursive-manager config
+recursivemanager config
 ```
 
 ```
@@ -1194,9 +1194,9 @@ RecursiveManager Configuration Wizard
 ================================================================================
 
 1. Data Directory
-   Current: ~/.recursive-manager
+   Current: ~/.recursivemanager
    Change? (y/N): y
-   New path: ~/.recursive-manager-prod
+   New path: ~/.recursivemanager-prod
 
 2. Maximum Hierarchy Depth
    Current: 5
@@ -1238,21 +1238,21 @@ RecursiveManager Configuration Wizard
    Encryption Password: [hidden]
    Enable Audit Logging: yes
 
-Configuration saved to: ~/.recursive-manager/config.json
+Configuration saved to: ~/.recursivemanager/config.json
 
 Test configuration with:
-  recursive-manager config --validate
+  recursivemanager config --validate
 ```
 
 **Show Configuration:**
 
 ```bash
-recursive-manager config --show
+recursivemanager config --show
 ```
 
 ```json
 {
-  "dataDir": "~/.recursive-manager",
+  "dataDir": "~/.recursivemanager",
   "maxDepth": 5,
   "defaultFramework": "claude-code",
   "aiProvider": {
@@ -1282,15 +1282,15 @@ recursive-manager config --show
 **Edit Configuration:**
 
 ```bash
-recursive-manager config --edit
+recursivemanager config --edit
 ```
 
-Opens `~/.recursive-manager/config.json` in the default editor (respects `$EDITOR`).
+Opens `~/.recursivemanager/config.json` in the default editor (respects `$EDITOR`).
 
 **Reset Configuration:**
 
 ```bash
-recursive-manager config --reset
+recursivemanager config --reset
 ```
 
 ```
@@ -1300,13 +1300,13 @@ WARNING: This will reset all configuration to defaults.
 Continue? (y/N): y
 
 ✓ Configuration reset to defaults
-✓ Backup saved to: ~/.recursive-manager/config.json.backup
+✓ Backup saved to: ~/.recursivemanager/config.json.backup
 ```
 
 **Validate Configuration:**
 
 ```bash
-recursive-manager config --validate
+recursivemanager config --validate
 ```
 
 ```
@@ -1322,7 +1322,7 @@ Validating configuration...
 Validation failed: 1 error found
 
 Fix and re-run:
-  recursive-manager config --edit
+  recursivemanager config --edit
 ```
 
 ---
@@ -1333,7 +1333,7 @@ Debug an agent with detailed diagnostics and state inspection.
 
 **Syntax:**
 ```bash
-recursive-manager debug <agent-id> [options]
+recursivemanager debug <agent-id> [options]
 ```
 
 **Arguments:**
@@ -1353,28 +1353,28 @@ recursive-manager debug <agent-id> [options]
 
 ```bash
 # Debug agent with all information
-recursive-manager debug backend-001 --all
+recursivemanager debug backend-001 --all
 
 # Show only agent logs
-recursive-manager debug backend-001 --logs
+recursivemanager debug backend-001 --logs
 
 # Show agent state
-recursive-manager debug backend-001 --state
+recursivemanager debug backend-001 --state
 
 # Show pending tasks
-recursive-manager debug backend-001 --tasks
+recursivemanager debug backend-001 --tasks
 
 # Show inbox messages
-recursive-manager debug backend-001 --messages
+recursivemanager debug backend-001 --messages
 
 # Show execution metrics
-recursive-manager debug backend-001 --metrics
+recursivemanager debug backend-001 --metrics
 
 # Combine multiple options
-recursive-manager debug backend-001 --state --tasks --logs
+recursivemanager debug backend-001 --state --tasks --logs
 
 # Output as JSON for processing
-recursive-manager debug backend-001 --all --json
+recursivemanager debug backend-001 --all --json
 ```
 
 **Debug Output (--all):**
@@ -1466,16 +1466,16 @@ Agent Debug Information: backend-001
 └──────────────────────────────────────────────────────────────────────────────┘
 
 View full logs:
-  recursive-manager logs backend-001
+  recursivemanager logs backend-001
 
 Run agent:
-  recursive-manager run backend-001
+  recursivemanager run backend-001
 ```
 
 **JSON Output:**
 
 ```bash
-recursive-manager debug backend-001 --all --json
+recursivemanager debug backend-001 --all --json
 ```
 
 ```json
@@ -1553,7 +1553,7 @@ Update RecursiveManager to the latest version or a specific version.
 
 **Syntax:**
 ```bash
-recursive-manager update [version] [options]
+recursivemanager update [version] [options]
 ```
 
 **Arguments:**
@@ -1571,31 +1571,31 @@ recursive-manager update [version] [options]
 
 ```bash
 # Update to latest stable version
-recursive-manager update
+recursivemanager update
 
 # Check for updates
-recursive-manager update --check
+recursivemanager update --check
 
 # List available versions
-recursive-manager update --list
+recursivemanager update --list
 
 # Install specific version
-recursive-manager update 1.2.0
+recursivemanager update 1.2.0
 
 # Install latest pre-release
-recursive-manager update --prerelease
+recursivemanager update --prerelease
 
 # Force reinstall current version (repair)
-recursive-manager update --force
+recursivemanager update --force
 
 # Show version history
-recursive-manager update --history
+recursivemanager update --history
 ```
 
 **Check for Updates:**
 
 ```bash
-recursive-manager update --check
+recursivemanager update --check
 ```
 
 ```
@@ -1609,13 +1609,13 @@ New features in 1.2.0:
   • Bug fixes
 
 Update available! Run:
-  recursive-manager update
+  recursivemanager update
 ```
 
 **List Available Versions:**
 
 ```bash
-recursive-manager update --list
+recursivemanager update --list
 ```
 
 ```
@@ -1631,13 +1631,13 @@ Pre-release:
   1.2.1-rc.2 (released 2026-01-14)
 
 Install with:
-  recursive-manager update <version>
+  recursivemanager update <version>
 ```
 
 **Update to Latest:**
 
 ```bash
-recursive-manager update
+recursivemanager update
 ```
 
 ```
@@ -1665,7 +1665,7 @@ Install size: 42.8 MB
 Proceed with update? (Y/n): y
 
 Creating backup...
-✓ Backup created: ~/.recursive-manager/backups/v1.0.0
+✓ Backup created: ~/.recursivemanager/backups/v1.0.0
 
 Downloading version 1.2.0...
 █████████████████████████████████████████ 100% (15.2 MB / 15.2 MB)
@@ -1677,16 +1677,16 @@ Verifying installation...
 ✓ Version 1.2.0 installed successfully
 
 Update complete! Run:
-  recursive-manager --version
+  recursivemanager --version
 
 Rollback if needed:
-  recursive-manager rollback
+  recursivemanager rollback
 ```
 
 **Install Specific Version:**
 
 ```bash
-recursive-manager update 1.1.0
+recursivemanager update 1.1.0
 ```
 
 ```
@@ -1697,20 +1697,20 @@ WARNING: This is a downgrade. Some features may not work.
 Proceed? (y/N): y
 
 Creating backup...
-✓ Backup created: ~/.recursive-manager/backups/v1.2.0
+✓ Backup created: ~/.recursivemanager/backups/v1.2.0
 
 Installing version 1.1.0...
 ✓ Installation complete
 ✓ Version 1.1.0 installed successfully
 
 Rollback to 1.2.0:
-  recursive-manager rollback
+  recursivemanager rollback
 ```
 
 **Version History:**
 
 ```bash
-recursive-manager update --history
+recursivemanager update --history
 ```
 
 ```
@@ -1722,9 +1722,9 @@ Version History:
 2026-01-01 12:00:00  Initial installation (1.0.0)
 
 Backups available:
-  ~/.recursive-manager/backups/v1.2.0 (5.2 GB)
-  ~/.recursive-manager/backups/v1.1.0 (5.1 GB)
-  ~/.recursive-manager/backups/v1.0.0 (5.0 GB)
+  ~/.recursivemanager/backups/v1.2.0 (5.2 GB)
+  ~/.recursivemanager/backups/v1.1.0 (5.1 GB)
+  ~/.recursivemanager/backups/v1.0.0 (5.0 GB)
 ```
 
 ---
@@ -1735,7 +1735,7 @@ Rollback to the previous version from backup.
 
 **Syntax:**
 ```bash
-recursive-manager rollback [options]
+recursivemanager rollback [options]
 ```
 
 **Options:**
@@ -1747,22 +1747,22 @@ recursive-manager rollback [options]
 
 ```bash
 # Rollback to previous version
-recursive-manager rollback
+recursivemanager rollback
 
 # List available backups
-recursive-manager rollback --list
+recursivemanager rollback --list
 
 # Rollback to specific version
-recursive-manager rollback --version 1.0.0
+recursivemanager rollback --version 1.0.0
 
 # Rollback without confirmation
-recursive-manager rollback --yes
+recursivemanager rollback --yes
 ```
 
 **List Available Backups:**
 
 ```bash
-recursive-manager rollback --list
+recursivemanager rollback --list
 ```
 
 ```
@@ -1779,34 +1779,34 @@ Available backups:
    Status: Complete
 
 Rollback to a backup:
-  recursive-manager rollback --version <version>
+  recursivemanager rollback --version <version>
 ```
 
 **Rollback to Previous:**
 
 ```bash
-recursive-manager rollback
+recursivemanager rollback
 ```
 
 ```
 Current version: 1.2.0
 Previous version: 1.1.0
 
-Backup found: ~/.recursive-manager/backups/v1.1.0
+Backup found: ~/.recursivemanager/backups/v1.1.0
 Backup size: 5.1 GB
 Backup date: 2026-01-20 10:00:00
 
 This will restore:
-  • Binary: recursive-manager v1.1.0
+  • Binary: recursivemanager v1.1.0
   • Configuration: config.json
-  • Data directory: ~/.recursive-manager
+  • Data directory: ~/.recursivemanager
 
 Current data will be backed up first.
 
 Proceed with rollback? (y/N): y
 
 Creating backup of current version...
-✓ Backup created: ~/.recursive-manager/backups/v1.2.0
+✓ Backup created: ~/.recursivemanager/backups/v1.2.0
 
 Restoring version 1.1.0...
 ✓ Binary restored
@@ -1817,13 +1817,13 @@ Verifying installation...
 ✓ Version 1.1.0 restored successfully
 
 Rollback complete! Run:
-  recursive-manager --version
+  recursivemanager --version
 ```
 
 **Rollback to Specific Version:**
 
 ```bash
-recursive-manager rollback --version 1.0.0
+recursivemanager rollback --version 1.0.0
 ```
 
 ```
@@ -1847,12 +1847,12 @@ Show RecursiveManager version information.
 
 **Syntax:**
 ```bash
-recursive-manager version
+recursivemanager version
 ```
 
 Or use the shorthand:
 ```bash
-recursive-manager --version
+recursivemanager --version
 ```
 
 **Output:**
@@ -1864,11 +1864,11 @@ Release Date: 2026-01-01
 Release URL: https://github.com/yourusername/RecursiveManager/releases/tag/v1.0.0
 
 Components:
-  @recursive-manager/core: 0.1.0
-  @recursive-manager/cli: 0.1.0
-  @recursive-manager/adapters: 0.1.0
-  @recursive-manager/scheduler: 0.1.0
-  @recursive-manager/common: 0.1.0
+  @recursivemanager/core: 0.1.0
+  @recursivemanager/cli: 0.1.0
+  @recursivemanager/adapters: 0.1.0
+  @recursivemanager/scheduler: 0.1.0
+  @recursivemanager/common: 0.1.0
 
 Platform: linux-x64
 Node.js: v20.10.0
@@ -1882,27 +1882,27 @@ Show help information for RecursiveManager or a specific command.
 
 **Syntax:**
 ```bash
-recursive-manager help [command]
+recursivemanager help [command]
 ```
 
 Or use the shorthand:
 ```bash
-recursive-manager --help
-recursive-manager <command> --help
+recursivemanager --help
+recursivemanager <command> --help
 ```
 
 **Examples:**
 
 ```bash
 # Show general help
-recursive-manager help
+recursivemanager help
 
 # Show help for specific command
-recursive-manager help init
-recursive-manager help hire
+recursivemanager help init
+recursivemanager help hire
 
 # Using --help flag
-recursive-manager init --help
+recursivemanager init --help
 ```
 
 **General Help Output:**
@@ -1910,7 +1910,7 @@ recursive-manager init --help
 ```
 RecursiveManager v1.0.0 - Hierarchical AI Agent Management System
 
-Usage: recursive-manager <command> [options]
+Usage: recursivemanager <command> [options]
 
 Commands:
   init <goal>          Initialize RecursiveManager with a goal
@@ -1933,12 +1933,12 @@ Global Options:
   --help              Show help information
 
 Examples:
-  recursive-manager init "Build REST API"
-  recursive-manager hire cto-001 --role "CTO" --goal "Technical leadership"
-  recursive-manager status --format json
-  recursive-manager message backend-001 --subject "Deploy to staging"
-  recursive-manager logs backend-001 --follow
-  recursive-manager analyze "Should we use Redis for caching?"
+  recursivemanager init "Build REST API"
+  recursivemanager hire cto-001 --role "CTO" --goal "Technical leadership"
+  recursivemanager status --format json
+  recursivemanager message backend-001 --subject "Deploy to staging"
+  recursivemanager logs backend-001 --follow
+  recursivemanager analyze "Should we use Redis for caching?"
 
 Documentation:
   https://github.com/yourusername/RecursiveManager/tree/main/docs
@@ -1950,13 +1950,13 @@ Report issues:
 **Command-Specific Help:**
 
 ```bash
-recursive-manager help hire
+recursivemanager help hire
 ```
 
 ```
-recursive-manager hire - Hire a new agent
+recursivemanager hire - Hire a new agent
 
-Usage: recursive-manager hire <agent-id> [options]
+Usage: recursivemanager hire <agent-id> [options]
 
 Arguments:
   <agent-id>          Unique identifier for the new agent
@@ -1977,14 +1977,14 @@ Options:
 
 Examples:
   # Hire a CTO with hiring permissions
-  recursive-manager hire cto-001 \
+  recursivemanager hire cto-001 \
     --role "Chief Technology Officer" \
     --goal "Design technical architecture" \
     --can-hire \
     --max-subordinates 10
 
   # Hire a backend engineer
-  recursive-manager hire backend-001 \
+  recursivemanager hire backend-001 \
     --manager-id cto-001 \
     --role "Backend Engineer" \
     --goal "Implement REST API"
@@ -2001,13 +2001,13 @@ Documentation:
 
 ```bash
 # 1. Initialize with a goal
-recursive-manager init "Build a SaaS analytics platform"
+recursivemanager init "Build a SaaS analytics platform"
 
 # 2. View the org chart (just CEO initially)
-recursive-manager status
+recursivemanager status
 
 # 3. Hire a CTO
-recursive-manager hire cto-001 \
+recursivemanager hire cto-001 \
   --role "Chief Technology Officer" \
   --goal "Design and implement technical architecture" \
   --can-hire \
@@ -2016,73 +2016,73 @@ recursive-manager hire cto-001 \
   --can-fire
 
 # 4. Hire key engineers under the CTO
-recursive-manager hire backend-001 \
+recursivemanager hire backend-001 \
   --manager-id cto-001 \
   --role "Senior Backend Engineer" \
   --goal "Build API and database layer" \
   --can-hire \
   --max-subordinates 5
 
-recursive-manager hire frontend-001 \
+recursivemanager hire frontend-001 \
   --manager-id cto-001 \
   --role "Senior Frontend Engineer" \
   --goal "Build React dashboard and components" \
   --can-hire \
   --max-subordinates 3
 
-recursive-manager hire devops-001 \
+recursivemanager hire devops-001 \
   --manager-id cto-001 \
   --role "DevOps Engineer" \
   --goal "Set up CI/CD and infrastructure"
 
 # 5. View updated org chart
-recursive-manager status
+recursivemanager status
 
 # 6. Send initial messages
-recursive-manager message backend-001 \
+recursivemanager message backend-001 \
   --subject "First sprint goals" \
   --content "Implement user auth, data ingestion pipeline, and analytics queries"
 
-recursive-manager message frontend-001 \
+recursivemanager message frontend-001 \
   --subject "First sprint goals" \
   --content "Build dashboard layout, charts, and user management UI"
 
 # 7. Run agents
-recursive-manager run backend-001
-recursive-manager run frontend-001
+recursivemanager run backend-001
+recursivemanager run frontend-001
 ```
 
 ### Workflow 2: Reactive Message-Based Execution
 
 ```bash
 # 1. Send a message to an agent
-recursive-manager message support-agent-001 \
+recursivemanager message support-agent-001 \
   --subject "Customer reported bug" \
   --priority urgent \
   --content "Customer reports login fails with Google OAuth"
 
 # 2. Run agent in reactive mode
-recursive-manager run support-agent-001 --mode reactive
+recursivemanager run support-agent-001 --mode reactive
 
 # 3. Check logs to see what the agent did
-recursive-manager logs support-agent-001 -n 100
+recursivemanager logs support-agent-001 -n 100
 
 # 4. Debug if needed
-recursive-manager debug support-agent-001 --tasks --messages
+recursivemanager debug support-agent-001 --tasks --messages
 ```
 
 ### Workflow 3: Multi-Perspective Analysis
 
 ```bash
 # 1. Analyze a technical decision
-recursive-manager analyze "Should we use GraphQL or REST for our API?" \
+recursivemanager analyze "Should we use GraphQL or REST for our API?" \
   --format markdown
 
 # 2. Review the analysis
-cat ~/.recursive-manager/analysis/analysis-*.md
+cat ~/.recursivemanager/analysis/analysis-*.md
 
 # 3. Make a decision and communicate to team
-recursive-manager message cto-001 \
+recursivemanager message cto-001 \
   --subject "API architecture decision" \
   --content "Based on multi-perspective analysis, recommending REST for v1.0"
 ```
@@ -2091,55 +2091,55 @@ recursive-manager message cto-001 \
 
 ```bash
 # 1. View org chart to see agent status
-recursive-manager status
+recursivemanager status
 
 # 2. Check logs for errors
-recursive-manager logs --all --level error -n 200
+recursivemanager logs --all --level error -n 200
 
 # 3. Debug a specific agent
-recursive-manager debug backend-001 --all
+recursivemanager debug backend-001 --all
 
 # 4. View agent-specific logs
-recursive-manager logs backend-001 --follow
+recursivemanager logs backend-001 --follow
 
 # 5. Search for specific issues
-recursive-manager logs backend-001 --grep "timeout|error|failed"
+recursivemanager logs backend-001 --grep "timeout|error|failed"
 ```
 
 ### Workflow 5: Update and Rollback
 
 ```bash
 # 1. Check for updates
-recursive-manager update --check
+recursivemanager update --check
 
 # 2. Update to latest version
-recursive-manager update
+recursivemanager update
 
 # 3. If something breaks, rollback
-recursive-manager rollback
+recursivemanager rollback
 
 # 4. Or update to specific stable version
-recursive-manager update 1.1.0
+recursivemanager update 1.1.0
 ```
 
 ### Workflow 6: Team Restructuring
 
 ```bash
 # 1. View current org chart
-recursive-manager status
+recursivemanager status
 
 # 2. Fire an underperforming agent
-recursive-manager fire backend-002 \
+recursivemanager fire backend-002 \
   --strategy reassign
 
 # 3. Hire a replacement
-recursive-manager hire backend-003 \
+recursivemanager hire backend-003 \
   --manager-id cto-001 \
   --role "Backend Engineer" \
   --goal "Implement payment processing"
 
 # 4. Verify org chart
-recursive-manager status
+recursivemanager status
 ```
 
 ---
@@ -2152,7 +2152,7 @@ All commands support `--json` output for automation:
 
 ```bash
 # Get org chart as JSON
-ORG_JSON=$(recursive-manager status --format json)
+ORG_JSON=$(recursivemanager status --format json)
 
 # Parse with jq
 echo $ORG_JSON | jq '.agents[] | select(.status == "working")'
@@ -2162,7 +2162,7 @@ WORKING_COUNT=$(echo $ORG_JSON | jq '[.agents[] | select(.status == "working")] 
 
 # Automate hiring based on conditions
 if [ $WORKING_COUNT -lt 5 ]; then
-  recursive-manager hire worker-new-001 \
+  recursivemanager hire worker-new-001 \
     --manager-id cto-001 \
     --role "Worker" \
     --goal "Handle overflow tasks" \
@@ -2176,17 +2176,17 @@ Use `--data-dir` for multiple environments:
 
 ```bash
 # Development environment
-recursive-manager init "Dev project" --data-dir ~/.rm-dev
+recursivemanager init "Dev project" --data-dir ~/.rm-dev
 
 # Staging environment
-recursive-manager init "Staging project" --data-dir ~/.rm-staging
+recursivemanager init "Staging project" --data-dir ~/.rm-staging
 
 # Production environment
-recursive-manager init "Prod project" --data-dir ~/.rm-prod
+recursivemanager init "Prod project" --data-dir ~/.rm-prod
 
 # Set environment variable for convenience
 export RM_DATA_DIR=~/.rm-dev
-recursive-manager status --data-dir $RM_DATA_DIR
+recursivemanager status --data-dir $RM_DATA_DIR
 ```
 
 ### Batch Operations with Shell Scripts
@@ -2206,7 +2206,7 @@ ENGINEERS=(
 
 for engineer in "${ENGINEERS[@]}"; do
   IFS=':' read -r id role goal <<< "$engineer"
-  recursive-manager hire "$id" \
+  recursivemanager hire "$id" \
     --manager-id "$MANAGER_ID" \
     --role "$role" \
     --goal "$goal" \
@@ -2215,19 +2215,19 @@ for engineer in "${ENGINEERS[@]}"; do
 done
 
 echo "Team hiring complete!"
-recursive-manager status
+recursivemanager status
 ```
 
 ### Log Analysis with grep and jq
 
 ```bash
 # Find all errors in the last hour
-recursive-manager logs --all \
+recursivemanager logs --all \
   --since "$(date -d '1 hour ago' '+%Y-%m-%d %H:%M:%S')" \
   --level error
 
 # Export logs as JSON and analyze
-recursive-manager logs backend-001 --json -n 1000 > logs.json
+recursivemanager logs backend-001 --json -n 1000 > logs.json
 
 # Count errors by type
 jq -r '.[] | select(.level == "error") | .message' logs.json | sort | uniq -c | sort -rn
@@ -2240,13 +2240,13 @@ jq -r '.[] | select(.message | contains("Execution finished")) | .metadata.durat
 
 ```bash
 # Real-time org chart monitoring
-watch -n 5 'recursive-manager status --format tree'
+watch -n 5 'recursivemanager status --format tree'
 
 # Monitor working agents count
-watch -n 10 'recursive-manager status --format json | jq "[.agents[] | select(.status == \"working\")] | length"'
+watch -n 10 'recursivemanager status --format json | jq "[.agents[] | select(.status == \"working\")] | length"'
 
 # Monitor error logs
-watch -n 5 'recursive-manager logs --all --level error -n 10'
+watch -n 5 'recursivemanager logs --all --level error -n 10'
 ```
 
 ---
@@ -2255,11 +2255,11 @@ watch -n 5 'recursive-manager logs --all --level error -n 10'
 
 ### Configuration File
 
-Location: `~/.recursive-manager/config.json`
+Location: `~/.recursivemanager/config.json`
 
 ```json
 {
-  "dataDir": "~/.recursive-manager",
+  "dataDir": "~/.recursivemanager",
   "maxDepth": 5,
   "defaultFramework": "claude-code",
   "aiProvider": {
@@ -2274,7 +2274,7 @@ Location: `~/.recursive-manager/config.json`
     "format": "json",
     "maxFileSize": 104857600,
     "maxFiles": 10,
-    "directory": "~/.recursive-manager/logs"
+    "directory": "~/.recursivemanager/logs"
   },
   "execution": {
     "maxConcurrent": 10,
@@ -2301,7 +2301,7 @@ RecursiveManager supports environment variables for configuration:
 
 ```bash
 # Data directory
-export RM_DATA_DIR=~/.recursive-manager
+export RM_DATA_DIR=~/.recursivemanager
 
 # AI provider
 export AI_PROVIDER=anthropic
@@ -2325,7 +2325,7 @@ Load from `.env` file:
 
 ```bash
 # .env
-RM_DATA_DIR=~/.recursive-manager
+RM_DATA_DIR=~/.recursivemanager
 AI_PROVIDER=anthropic
 ANTHROPIC_API_KEY=sk-ant-...
 LOG_LEVEL=info
@@ -2340,16 +2340,16 @@ LOG_LEVEL=info
 #### 1. Command Not Found
 
 ```
-bash: recursive-manager: command not found
+bash: recursivemanager: command not found
 ```
 
 **Solution:**
 ```bash
 # Check if installed globally
-npm list -g recursive-manager
+npm list -g recursivemanager
 
 # If not installed
-npm install -g recursive-manager
+npm install -g recursivemanager
 
 # Or link from source
 cd /path/to/RecursiveManager
@@ -2359,16 +2359,16 @@ npm link
 #### 2. Permission Denied
 
 ```
-Error: EACCES: permission denied, open '~/.recursive-manager/config.json'
+Error: EACCES: permission denied, open '~/.recursivemanager/config.json'
 ```
 
 **Solution:**
 ```bash
 # Fix permissions
-chmod -R 755 ~/.recursive-manager
+chmod -R 755 ~/.recursivemanager
 
 # Or run with sudo (not recommended)
-sudo recursive-manager <command>
+sudo recursivemanager <command>
 ```
 
 #### 3. Agent Hire Fails
@@ -2380,10 +2380,10 @@ Error: Manager 'cto-001' does not have hiring budget
 **Solution:**
 ```bash
 # Check manager's hiring budget
-recursive-manager debug cto-001 --state
+recursivemanager debug cto-001 --state
 
 # Increase hiring budget by updating config
-recursive-manager config --edit
+recursivemanager config --edit
 # Edit: permissions.hiringBudget.total
 ```
 
@@ -2396,13 +2396,13 @@ Error: Database is locked
 **Solution:**
 ```bash
 # Check for running processes
-ps aux | grep recursive-manager
+ps aux | grep recursivemanager
 
 # Kill stale processes
-pkill -f recursive-manager
+pkill -f recursivemanager
 
 # Remove lock file
-rm ~/.recursive-manager/.lock
+rm ~/.recursivemanager/.lock
 ```
 
 #### 5. API Provider Timeout
@@ -2414,7 +2414,7 @@ Error: AI provider request timeout after 60s
 **Solution:**
 ```bash
 # Increase timeout in config
-recursive-manager config
+recursivemanager config
 # Set: aiProvider.timeout = 120000
 
 # Or use environment variable
@@ -2430,26 +2430,26 @@ Enable verbose logging:
 export LOG_LEVEL=debug
 
 # Run command
-recursive-manager status
+recursivemanager status
 
 # View debug logs
-recursive-manager logs --all --level debug -n 500
+recursivemanager logs --all --level debug -n 500
 ```
 
 ### Health Check
 
 ```bash
 # Verify installation
-recursive-manager --version
+recursivemanager --version
 
 # Validate configuration
-recursive-manager config --validate
+recursivemanager config --validate
 
 # Check data directory
-ls -la ~/.recursive-manager
+ls -la ~/.recursivemanager
 
 # Test agent hire (dry run)
-recursive-manager hire test-001 \
+recursivemanager hire test-001 \
   --role "Test Agent" \
   --goal "Test hiring" \
   --json
@@ -2465,7 +2465,7 @@ Add to `~/.bashrc`:
 
 ```bash
 # RecursiveManager completion
-eval "$(recursive-manager completion bash)"
+eval "$(recursivemanager completion bash)"
 ```
 
 ### Zsh Completion
@@ -2474,13 +2474,13 @@ Add to `~/.zshrc`:
 
 ```bash
 # RecursiveManager completion
-eval "$(recursive-manager completion zsh)"
+eval "$(recursivemanager completion zsh)"
 ```
 
 ### Fish Completion
 
 ```bash
-recursive-manager completion fish > ~/.config/fish/completions/recursive-manager.fish
+recursivemanager completion fish > ~/.config/fish/completions/recursivemanager.fish
 ```
 
 ### Aliases
@@ -2491,22 +2491,22 @@ Add useful aliases to your shell config:
 # ~/.bashrc or ~/.zshrc
 
 # Short aliases
-alias rm='recursive-manager'
-alias rms='recursive-manager status'
-alias rml='recursive-manager logs'
-alias rmh='recursive-manager hire'
-alias rmf='recursive-manager fire'
-alias rmr='recursive-manager run'
-alias rma='recursive-manager analyze'
+alias rm='recursivemanager'
+alias rms='recursivemanager status'
+alias rml='recursivemanager logs'
+alias rmh='recursivemanager hire'
+alias rmf='recursivemanager fire'
+alias rmr='recursivemanager run'
+alias rma='recursivemanager analyze'
 
 # JSON output aliases
-alias rmsj='recursive-manager status --format json'
-alias rmlj='recursive-manager logs --json'
+alias rmsj='recursivemanager status --format json'
+alias rmlj='recursivemanager logs --json'
 
 # Multi-environment aliases
-alias rm-dev='recursive-manager --data-dir ~/.rm-dev'
-alias rm-staging='recursive-manager --data-dir ~/.rm-staging'
-alias rm-prod='recursive-manager --data-dir ~/.rm-prod'
+alias rm-dev='recursivemanager --data-dir ~/.rm-dev'
+alias rm-staging='recursivemanager --data-dir ~/.rm-staging'
+alias rm-prod='recursivemanager --data-dir ~/.rm-prod'
 ```
 
 ---

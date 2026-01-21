@@ -608,7 +608,7 @@
   "schemaVersion": 36,
   "style": "dark",
   "tags": [
-    "recursive-manager"
+    "recursivemanager"
   ],
   "templating": {
     "list": []
@@ -620,6 +620,6 @@
   "timepicker": {},
   "timezone": "",
   "title": "RecursiveManager Overview",
-  "uid": "recursive-manager-overview",
+  "uid": "recursivemanager-overview",
   "version": 1
 }

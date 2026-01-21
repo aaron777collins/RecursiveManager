@@ -14,7 +14,7 @@ import * as os from 'os';
 /**
  * Default base directory for all RecursiveManager data
  */
-export const DEFAULT_BASE_DIR = path.join(os.homedir(), '.recursive-manager');
+export const DEFAULT_BASE_DIR = path.join(os.homedir(), '.recursivemanager');
 
 /**
  * Number of sharding buckets (16 for hex digits 0-F)
@@ -27,7 +27,7 @@ const SHARD_COUNT = 16;
 export interface PathOptions {
   /**
    * Base directory for all RecursiveManager data
-   * @default ~/.recursive-manager
+   * @default ~/.recursivemanager
    */
   baseDir?: string;
 }
@@ -118,7 +118,7 @@ export function getAgentShard(agentId: string): string {
  * @example
  * ```typescript
  * getAgentDirectory('CEO')
- * // => "/home/user/.recursive-manager/agents/c0-cf/CEO"
+ * // => "/home/user/.recursivemanager/agents/c0-cf/CEO"
  *
  * getAgentDirectory('backend-dev-001', { baseDir: '/opt/rm' })
  * // => "/opt/rm/agents/b0-bf/backend-dev-001"
@@ -150,10 +150,10 @@ export function getAgentDirectory(agentId: string, options: PathOptions = {}): s
  * @example
  * ```typescript
  * getTaskPath('CEO', 'task-1-implement-feature')
- * // => "/home/user/.recursive-manager/agents/c0-cf/CEO/tasks/active/task-1-implement-feature"
+ * // => "/home/user/.recursivemanager/agents/c0-cf/CEO/tasks/active/task-1-implement-feature"
  *
  * getTaskPath('CEO', 'task-2-review', 'completed')
- * // => "/home/user/.recursive-manager/agents/c0-cf/CEO/tasks/completed/task-2-review"
+ * // => "/home/user/.recursivemanager/agents/c0-cf/CEO/tasks/completed/task-2-review"
  * ```
  */
 export function getTaskPath(
@@ -184,7 +184,7 @@ export function getTaskPath(
  * @example
  * ```typescript
  * getInboxPath('CEO')
- * // => "/home/user/.recursive-manager/agents/c0-cf/CEO/inbox"
+ * // => "/home/user/.recursivemanager/agents/c0-cf/CEO/inbox"
  * ```
  */
 export function getInboxPath(agentId: string, options: PathOptions = {}): string {
@@ -202,7 +202,7 @@ export function getInboxPath(agentId: string, options: PathOptions = {}): string
  * @example
  * ```typescript
  * getOutboxPath('CEO')
- * // => "/home/user/.recursive-manager/agents/c0-cf/CEO/outbox"
+ * // => "/home/user/.recursivemanager/agents/c0-cf/CEO/outbox"
  * ```
  */
 export function getOutboxPath(agentId: string, options: PathOptions = {}): string {
@@ -220,7 +220,7 @@ export function getOutboxPath(agentId: string, options: PathOptions = {}): strin
  * @example
  * ```typescript
  * getWorkspacePath('CEO')
- * // => "/home/user/.recursive-manager/agents/c0-cf/CEO/workspace"
+ * // => "/home/user/.recursivemanager/agents/c0-cf/CEO/workspace"
  * ```
  */
 export function getWorkspacePath(agentId: string, options: PathOptions = {}): string {
@@ -238,7 +238,7 @@ export function getWorkspacePath(agentId: string, options: PathOptions = {}): st
  * @example
  * ```typescript
  * getSubordinatesPath('CEO')
- * // => "/home/user/.recursive-manager/agents/c0-cf/CEO/subordinates"
+ * // => "/home/user/.recursivemanager/agents/c0-cf/CEO/subordinates"
  * ```
  */
 export function getSubordinatesPath(agentId: string, options: PathOptions = {}): string {
@@ -256,7 +256,7 @@ export function getSubordinatesPath(agentId: string, options: PathOptions = {}):
  * @example
  * ```typescript
  * getConfigPath('CEO')
- * // => "/home/user/.recursive-manager/agents/c0-cf/CEO/config.json"
+ * // => "/home/user/.recursivemanager/agents/c0-cf/CEO/config.json"
  * ```
  */
 export function getConfigPath(agentId: string, options: PathOptions = {}): string {
@@ -274,7 +274,7 @@ export function getConfigPath(agentId: string, options: PathOptions = {}): strin
  * @example
  * ```typescript
  * getSchedulePath('CEO')
- * // => "/home/user/.recursive-manager/agents/c0-cf/CEO/schedule.json"
+ * // => "/home/user/.recursivemanager/agents/c0-cf/CEO/schedule.json"
  * ```
  */
 export function getSchedulePath(agentId: string, options: PathOptions = {}): string {
@@ -292,7 +292,7 @@ export function getSchedulePath(agentId: string, options: PathOptions = {}): str
  * @example
  * ```typescript
  * getMetadataPath('CEO')
- * // => "/home/user/.recursive-manager/agents/c0-cf/CEO/metadata.json"
+ * // => "/home/user/.recursivemanager/agents/c0-cf/CEO/metadata.json"
  * ```
  */
 export function getMetadataPath(agentId: string, options: PathOptions = {}): string {
@@ -309,7 +309,7 @@ export function getMetadataPath(agentId: string, options: PathOptions = {}): str
  * @example
  * ```typescript
  * getLogsDirectory()
- * // => "/home/user/.recursive-manager/logs"
+ * // => "/home/user/.recursivemanager/logs"
  * ```
  */
 export function getLogsDirectory(options: PathOptions = {}): string {
@@ -327,7 +327,7 @@ export function getLogsDirectory(options: PathOptions = {}): string {
  * @example
  * ```typescript
  * getAgentLogPath('CEO')
- * // => "/home/user/.recursive-manager/logs/agents/CEO.log"
+ * // => "/home/user/.recursivemanager/logs/agents/CEO.log"
  * ```
  */
 export function getAgentLogPath(agentId: string, options: PathOptions = {}): string {
@@ -348,12 +348,12 @@ export function getAgentLogPath(agentId: string, options: PathOptions = {}): str
  * @example
  * ```typescript
  * getDatabasePath()
- * // => "/home/user/.recursive-manager/recursive-manager.db"
+ * // => "/home/user/.recursivemanager/recursivemanager.db"
  * ```
  */
 export function getDatabasePath(options: PathOptions = {}): string {
   const baseDir = options.baseDir ?? DEFAULT_BASE_DIR;
-  return path.resolve(baseDir, 'recursive-manager.db');
+  return path.resolve(baseDir, 'recursivemanager.db');
 }
 
 /**
@@ -365,7 +365,7 @@ export function getDatabasePath(options: PathOptions = {}): string {
  * @example
  * ```typescript
  * getBackupsDirectory()
- * // => "/home/user/.recursive-manager/backups"
+ * // => "/home/user/.recursivemanager/backups"
  * ```
  */
 export function getBackupsDirectory(options: PathOptions = {}): string {
@@ -383,7 +383,7 @@ export function getBackupsDirectory(options: PathOptions = {}): string {
 export interface PathValidationOptions {
   /**
    * Base directory for path containment checks
-   * @default ~/.recursive-manager
+   * @default ~/.recursivemanager
    */
   baseDir?: string;
 
@@ -529,18 +529,18 @@ export function validateTaskId(
  *
  * @example
  * ```typescript
- * validatePathContainment('/home/user/.recursive-manager/agents/CEO', {
- *   baseDir: '/home/user/.recursive-manager'
+ * validatePathContainment('/home/user/.recursivemanager/agents/CEO', {
+ *   baseDir: '/home/user/.recursivemanager'
  * })
- * // => { valid: true, sanitized: '/home/user/.recursive-manager/agents/CEO' }
+ * // => { valid: true, sanitized: '/home/user/.recursivemanager/agents/CEO' }
  *
  * validatePathContainment('/etc/passwd', {
- *   baseDir: '/home/user/.recursive-manager'
+ *   baseDir: '/home/user/.recursivemanager'
  * })
  * // => { valid: false, error: 'Path is outside base directory' }
  *
  * validatePathContainment('../../../etc/passwd', {
- *   baseDir: '/home/user/.recursive-manager'
+ *   baseDir: '/home/user/.recursivemanager'
  * })
  * // => { valid: false, error: 'Path is outside base directory' }
  * ```
@@ -592,7 +592,7 @@ export function validatePathContainment(
  * @example
  * ```typescript
  * validateAgentPath('CEO')
- * // => { valid: true, sanitized: '/home/user/.recursive-manager/agents/c0-cf/CEO' }
+ * // => { valid: true, sanitized: '/home/user/.recursivemanager/agents/c0-cf/CEO' }
  *
  * validateAgentPath('../../../etc')
  * // => { valid: false, error: '...' }
@@ -639,7 +639,7 @@ export function validateAgentPath(
  * @example
  * ```typescript
  * validateTaskPath('CEO', 'task-1-implement-feature')
- * // => { valid: true, sanitized: '/home/user/.recursive-manager/agents/c0-cf/CEO/tasks/active/task-1-implement-feature' }
+ * // => { valid: true, sanitized: '/home/user/.recursivemanager/agents/c0-cf/CEO/tasks/active/task-1-implement-feature' }
  *
  * validateTaskPath('CEO', '../../../etc/passwd')
  * // => { valid: false, error: '...' }

@@ -10,7 +10,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-IMAGE_NAME="${1:-recursive-manager:latest}"
+IMAGE_NAME="${1:-recursivemanager:latest}"
 SEVERITY="${2:-HIGH,CRITICAL}"
 EXIT_ON_ERROR="${3:-false}"
 

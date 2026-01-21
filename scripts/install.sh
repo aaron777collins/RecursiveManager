@@ -11,7 +11,7 @@
 #
 # Usage:
 #   Interactive: curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash
-#   Headless: curl -fsSL ... | bash -s -- --headless --install-dir /opt/recursive-manager
+#   Headless: curl -fsSL ... | bash -s -- --headless --install-dir /opt/recursivemanager
 #
 ################################################################################
 
@@ -28,7 +28,7 @@ NC='\033[0m' # No Color
 
 # Default configuration
 GITHUB_REPO="aaron777collins/RecursiveManager"
-INSTALL_DIR="${HOME}/.recursive-manager"
+INSTALL_DIR="${HOME}/.recursivemanager"
 HEADLESS=false
 SKIP_SHELL_CONFIG=false
 SKIP_BUILD=false
@@ -69,7 +69,7 @@ while [[ $# -gt 0 ]]; do
       echo ""
       echo "Options:"
       echo "  --headless                       Non-interactive installation mode"
-      echo "  --install-dir DIR                Custom installation directory (default: ~/.recursive-manager)"
+      echo "  --install-dir DIR                Custom installation directory (default: ~/.recursivemanager)"
       echo "  --skip-shell-config              Don't modify shell configuration files"
       echo "  --skip-build                     Don't build after installation (use for pre-built packages)"
       echo "  --package-manager [npm|yarn|pnpm] Force specific package manager"
@@ -78,7 +78,7 @@ while [[ $# -gt 0 ]]; do
       echo ""
       echo "Example:"
       echo "  curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/main/scripts/install.sh | bash"
-      echo "  curl -fsSL ... | bash -s -- --headless --install-dir /opt/recursive-manager"
+      echo "  curl -fsSL ... | bash -s -- --headless --install-dir /opt/recursivemanager"
       exit 0
       ;;
     *)
@@ -374,7 +374,7 @@ setup_shell_alias() {
   fi
 
   # Check if alias already exists
-  if grep -q "recursive-manager" "$shell_config" 2>/dev/null; then
+  if grep -q "recursivemanager" "$shell_config" 2>/dev/null; then
     log_info "Shell alias already configured in $shell_config"
     return
   fi
@@ -385,8 +385,8 @@ setup_shell_alias() {
   cat >> "$shell_config" << EOF
 
 # RecursiveManager
-export RECURSIVE_MANAGER_HOME="$INSTALL_DIR"
-alias recursive-manager="node $INSTALL_DIR/packages/cli/dist/index.js"
+export RECURSIVEMANAGER_HOME="$INSTALL_DIR"
+alias recursivemanager="node $INSTALL_DIR/packages/cli/dist/index.js"
 EOF
 
   log_success "Shell alias configured"
@@ -467,8 +467,8 @@ show_post_install_message() {
     echo ""
     echo "Then run:"
     echo ""
-    echo -e "  ${CYAN}recursive-manager version${NC}"
-    echo -e "  ${CYAN}recursive-manager help${NC}"
+    echo -e "  ${CYAN}recursivemanager version${NC}"
+    echo -e "  ${CYAN}recursivemanager help${NC}"
   else
     echo "To use RecursiveManager, run:"
     echo ""

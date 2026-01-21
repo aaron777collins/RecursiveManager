@@ -1,5 +1,5 @@
 /**
- * @recursive-manager/common
+ * @recursivemanager/common
  *
  * Common utilities, types, and schemas for RecursiveManager.
  * This package provides shared functionality used across all other packages.

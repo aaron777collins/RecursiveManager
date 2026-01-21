@@ -29,7 +29,7 @@ This will:
 - ✅ Detect your platform automatically
 - ✅ Download the latest version
 - ✅ Verify checksums (SHA256)
-- ✅ Install to `~/.recursive-manager`
+- ✅ Install to `~/.recursivemanager`
 - ✅ Add to your PATH
 
 ---
@@ -80,12 +80,12 @@ curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/ma
 For CI/CD or automated installations:
 
 ```bash
-VERSION=1.0.0 INSTALL_DIR=/opt/recursive-manager curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/master/scripts/install-binary.sh | bash
+VERSION=1.0.0 INSTALL_DIR=/opt/recursivemanager curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/master/scripts/install-binary.sh | bash
 ```
 
 **Environment Variables:**
 - `VERSION` - Version to install (default: `latest`)
-- `INSTALL_DIR` - Installation directory (default: `~/.recursive-manager`)
+- `INSTALL_DIR` - Installation directory (default: `~/.recursivemanager`)
 - `REPO_OWNER` - GitHub repo owner (default: `aaron777collins`)
 - `REPO_NAME` - GitHub repo name (default: `RecursiveManager`)
 
@@ -97,9 +97,9 @@ VERSION=1.0.0 INSTALL_DIR=/opt/recursive-manager curl -fsSL https://raw.githubus
 
 Visit the [Releases Page](https://github.com/aaron777collins/RecursiveManager/releases) and download the binary for your platform:
 
-- **Linux**: `recursive-manager-v1.0.0-linux.tar.gz`
-- **macOS**: `recursive-manager-v1.0.0-macos.tar.gz`
-- **Windows**: `recursive-manager-v1.0.0-windows.tar.gz`
+- **Linux**: `recursivemanager-v1.0.0-linux.tar.gz`
+- **macOS**: `recursivemanager-v1.0.0-macos.tar.gz`
+- **Windows**: `recursivemanager-v1.0.0-windows.tar.gz`
 
 #### Step 2: Verify Checksum (Recommended)
 
@@ -118,13 +118,13 @@ shasum -a 256 --check --ignore-missing checksums.txt
 
 ```bash
 # Create installation directory
-mkdir -p ~/.recursive-manager
+mkdir -p ~/.recursivemanager
 
 # Extract tarball
-tar xzf recursive-manager-v1.0.0-*.tar.gz -C ~/.recursive-manager
+tar xzf recursivemanager-v1.0.0-*.tar.gz -C ~/.recursivemanager
 
 # Make executable
-chmod +x ~/.recursive-manager/recursive-manager
+chmod +x ~/.recursivemanager/recursivemanager
 ```
 
 #### Step 4: Add to PATH
@@ -132,21 +132,21 @@ chmod +x ~/.recursive-manager/recursive-manager
 **Linux/macOS (bash/zsh):**
 
 ```bash
-echo 'export PATH="$HOME/.recursive-manager:$PATH"' >> ~/.bashrc
+echo 'export PATH="$HOME/.recursivemanager:$PATH"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
 **macOS (zsh):**
 
 ```bash
-echo 'export PATH="$HOME/.recursive-manager:$PATH"' >> ~/.zshrc
+echo 'export PATH="$HOME/.recursivemanager:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-$env:Path += ";$HOME\.recursive-manager"
+$env:Path += ";$HOME\.recursivemanager"
 [System.Environment]::SetEnvironmentVariable("Path", $env:Path, [System.EnvironmentVariableScope]::User)
 ```
 
@@ -180,7 +180,7 @@ npm test
 npm link
 
 # Or create symlink manually
-ln -s "$(pwd)/packages/cli/dist/cli.js" /usr/local/bin/recursive-manager
+ln -s "$(pwd)/packages/cli/dist/cli.js" /usr/local/bin/recursivemanager
 ```
 
 ---
@@ -239,13 +239,13 @@ After installation, verify RecursiveManager is working:
 
 ```bash
 # Check version
-recursive-manager --version
+recursivemanager --version
 
 # Show help
-recursive-manager --help
+recursivemanager --help
 
 # Run a simple test
-recursive-manager hire --name "TestAgent" --role "developer"
+recursivemanager hire --name "TestAgent" --role "developer"
 ```
 
 **Expected output:**
@@ -259,28 +259,28 @@ RecursiveManager v1.0.0
 
 ### Command not found
 
-**Problem:** `recursive-manager: command not found`
+**Problem:** `recursivemanager: command not found`
 
 **Solution:**
 ```bash
 # Check if installation directory is in PATH
-echo $PATH | grep recursive-manager
+echo $PATH | grep recursivemanager
 
 # Add to PATH if missing
-export PATH="$HOME/.recursive-manager:$PATH"
+export PATH="$HOME/.recursivemanager:$PATH"
 
 # Or use full path
-~/.recursive-manager/recursive-manager --version
+~/.recursivemanager/recursivemanager --version
 ```
 
 ### Permission denied
 
-**Problem:** `Permission denied` when running `recursive-manager`
+**Problem:** `Permission denied` when running `recursivemanager`
 
 **Solution:**
 ```bash
 # Make executable
-chmod +x ~/.recursive-manager/recursive-manager
+chmod +x ~/.recursivemanager/recursivemanager
 
 # Or reinstall with correct permissions
 VERSION=latest bash <(curl -fsSL https://raw.githubusercontent.com/aaron777collins/RecursiveManager/master/scripts/install-binary.sh)
@@ -293,8 +293,8 @@ VERSION=latest bash <(curl -fsSL https://raw.githubusercontent.com/aaron777colli
 **Solution:**
 ```bash
 # Re-download the binary (may have been corrupted)
-rm recursive-manager-v1.0.0-*.tar.gz
-curl -fsSLO https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursive-manager-v1.0.0-linux.tar.gz
+rm recursivemanager-v1.0.0-*.tar.gz
+curl -fsSLO https://github.com/aaron777collins/RecursiveManager/releases/download/v1.0.0/recursivemanager-v1.0.0-linux.tar.gz
 
 # Verify again
 sha256sum --check --ignore-missing checksums.txt
@@ -330,26 +330,26 @@ node --version
 
 ```bash
 # Remove installation directory
-rm -rf ~/.recursive-manager
+rm -rf ~/.recursivemanager
 
 # Remove from PATH
 # Edit your ~/.bashrc or ~/.zshrc and remove the line:
-# export PATH="$HOME/.recursive-manager:$PATH"
+# export PATH="$HOME/.recursivemanager:$PATH"
 
 # Remove symlinks (if created)
-sudo rm /usr/local/bin/recursive-manager 2>/dev/null || true
+sudo rm /usr/local/bin/recursivemanager 2>/dev/null || true
 
 # Remove configuration (optional)
-rm -rf ~/.recursive-manager-config
+rm -rf ~/.recursivemanager-config
 ```
 
 ### Keep Configuration
 
 ```bash
 # Remove only binaries
-rm -rf ~/.recursive-manager
+rm -rf ~/.recursivemanager
 
-# Keep configuration at ~/.recursive-manager-config
+# Keep configuration at ~/.recursivemanager-config
 ```
 
 ---
@@ -359,8 +359,8 @@ rm -rf ~/.recursive-manager
 After installation:
 
 1. **Read the [Quick Start Guide](./README.md#quick-start)** to learn basic usage
-2. **Configure RecursiveManager**: `recursive-manager config --interactive`
-3. **Hire your first agent**: `recursive-manager hire --name "CEO" --role "ceo"`
+2. **Configure RecursiveManager**: `recursivemanager config --interactive`
+3. **Hire your first agent**: `recursivemanager hire --name "CEO" --role "ceo"`
 4. **Check out [UPGRADE.md](./UPGRADE.md)** for version management
 
 ---

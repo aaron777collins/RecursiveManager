@@ -102,7 +102,7 @@ All complex features preserved:
 - **Sensible defaults**: 80% use cases work with defaults
 - **Clear abstractions**: Hide UUIDs, file paths, execution details
 - **Excellent errors**: Actionable messages with suggested fixes
-- **Single-command debug**: `recursive-manager debug <agent-id>` shows everything
+- **Single-command debug**: `recursivemanager debug <agent-id>` shows everything
 - **Guided setup**: Interactive wizard for cold start
 - **Pit of success**: Convention over configuration
 - **Modular architecture**: Clean boundaries, dependency injection

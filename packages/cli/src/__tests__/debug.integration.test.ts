@@ -17,7 +17,7 @@ import {
   createTask,
   createAgent,
   updateAgent,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 
 // Mock the interactive prompts and spinners to avoid CLI interaction during tests
 jest.mock('../utils/prompts', () => ({
@@ -53,7 +53,7 @@ describe('debug command integration', () => {
 
   beforeEach(async () => {
     // Create temporary directory for test
-    testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'recursive-manager-debug-test-'));
+    testDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'recursivemanager-debug-test-'));
 
     // Initialize database directly (simpler than calling initCommand)
     const dbPath = path.join(testDataDir, 'database.sqlite');
@@ -89,7 +89,7 @@ describe('debug command integration', () => {
     // Write config to file
     fs.mkdirSync(testDataDir, { recursive: true });
     fs.writeFileSync(path.join(testDataDir, 'config.json'), JSON.stringify(config, null, 2));
-    fs.writeFileSync(path.join(testDataDir, '.recursive-manager'), JSON.stringify({ initialized: new Date().toISOString() }));
+    fs.writeFileSync(path.join(testDataDir, '.recursivemanager'), JSON.stringify({ initialized: new Date().toISOString() }));
   });
 
   afterEach(() => {

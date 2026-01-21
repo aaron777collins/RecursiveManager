@@ -2,7 +2,7 @@
  * Agent Configuration Loading (Phase 2.1 - Moved from core to resolve circular dependency)
  *
  * This module handles loading agent configuration files with validation and error recovery.
- * It was moved from @recursive-manager/core to @recursive-manager/common to break the
+ * It was moved from @recursivemanager/core to @recursivemanager/common to break the
  * circular dependency between core and adapters packages.
  *
  * Circular dependency issue:

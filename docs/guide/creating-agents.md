@@ -22,7 +22,7 @@ The primary way to create agents is through the `hireAgent()` function, which or
 ### Function Signature
 
 ```typescript
-import { hireAgent } from '@recursive-manager/core';
+import { hireAgent } from '@recursivemanager/core';
 
 const agent = await hireAgent(
   db,           // Database connection
@@ -268,11 +268,11 @@ interface AgentMetadata {
 ### Example 1: Creating a Root CEO Agent
 
 ```typescript
-import { initializeDatabase } from '@recursive-manager/common';
-import { hireAgent, generateDefaultConfig } from '@recursive-manager/core';
+import { initializeDatabase } from '@recursivemanager/common';
+import { hireAgent, generateDefaultConfig } from '@recursivemanager/core';
 
 // Initialize database
-const db = initializeDatabase('/path/to/.recursive-manager');
+const db = initializeDatabase('/path/to/.recursivemanager');
 
 // Generate CEO configuration
 const ceoConfig = generateDefaultConfig(
@@ -477,7 +477,7 @@ The `hireAgent()` function performs these operations automatically:
 Creates a complete directory structure:
 
 ```
-~/.recursive-manager/agents/{agentId}/
+~/.recursivemanager/agents/{agentId}/
 ├── tasks/
 │   ├── active/
 │   ├── completed/
@@ -839,7 +839,7 @@ Begin with a simple hierarchy:
 Check manager capacity before hiring:
 
 ```typescript
-import { getSubordinates } from '@recursive-manager/common';
+import { getSubordinates } from '@recursivemanager/common';
 
 const subordinates = await getSubordinates(db, managerId);
 const manager = await getAgent(db, managerId);
@@ -867,7 +867,7 @@ Always validate configurations against the JSON schema:
 
 ```typescript
 import Ajv from 'ajv';
-import agentConfigSchema from '@recursive-manager/common/schemas/agent-config.schema.json';
+import agentConfigSchema from '@recursivemanager/common/schemas/agent-config.schema.json';
 
 const ajv = new Ajv();
 const validate = ajv.compile(agentConfigSchema);
@@ -1011,7 +1011,7 @@ async function hireIfPossible(
 - [Core Concepts Guide](/guide/core-concepts) - Understanding the agent hierarchy
 - [Task Management Guide](/guide/task-management) - How agents work with tasks
 - [Agent Lifecycle Guide](/guide/agent-lifecycle) - Managing agent states
-- [CLI Commands Reference](/api/cli-commands) - Using `recursive-manager init`
+- [CLI Commands Reference](/api/cli-commands) - Using `recursivemanager init`
 - [Core API Reference](/api/core) - Complete API documentation
 
 ## Next Steps

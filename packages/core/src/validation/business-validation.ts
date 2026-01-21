@@ -5,7 +5,7 @@
  * This includes cross-field validation, organizational constraints, and business rules.
  */
 
-import type { AgentConfig } from '@recursive-manager/common';
+import type { AgentConfig } from '@recursivemanager/common';
 
 /**
  * Business validation error

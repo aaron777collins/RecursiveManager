@@ -11,11 +11,11 @@
  * These tests verify end-to-end scheduler functionality beyond individual unit tests.
  */
 
-import { ScheduleManager } from '@recursive-manager/scheduler';
+import { ScheduleManager } from '@recursivemanager/scheduler';
 import { ExecutionPool } from '../ExecutionPool';
 import type { Database } from 'better-sqlite3';
 import SqliteDatabase from 'better-sqlite3';
-import { runMigrations, allMigrations } from '@recursive-manager/common';
+import { runMigrations, allMigrations } from '@recursivemanager/common';
 import * as fs from 'fs';
 import * as path from 'path';
 

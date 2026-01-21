@@ -1,6 +1,6 @@
 {
-  "name": "@recursive-manager/common",
-  "version": "1.0.4",
+  "name": "@recursivemanager/common",
+  "version": "1.0.5",
   "description": "Common utilities, types, and schemas for RecursiveManager",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

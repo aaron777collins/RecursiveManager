@@ -18,7 +18,7 @@ export const metricsRegistry = new Registry();
  * Labels: mode (continuous|reactive), status (success|failure), agent_id
  */
 export const executionCounter = new Counter({
-  name: 'recursive_manager_executions_total',
+  name: 'recursivemanager_executions_total',
   help: 'Total number of feature executions',
   labelNames: ['mode', 'status', 'agent_id'],
   registers: [metricsRegistry],
@@ -30,7 +30,7 @@ export const executionCounter = new Counter({
  * Buckets: 100ms, 500ms, 1s, 5s, 10s, 30s, 60s, 120s, 300s
  */
 export const executionDuration = new Histogram({
-  name: 'recursive_manager_execution_duration_ms',
+  name: 'recursivemanager_execution_duration_ms',
   help: 'Feature execution duration in milliseconds',
   labelNames: ['mode', 'agent_id'],
   buckets: [100, 500, 1000, 5000, 10000, 30000, 60000, 120000, 300000],
@@ -42,7 +42,7 @@ export const executionDuration = new Histogram({
  * Labels: agent_id
  */
 export const tasksCompletedCounter = new Counter({
-  name: 'recursive_manager_tasks_completed_total',
+  name: 'recursivemanager_tasks_completed_total',
   help: 'Total number of tasks completed by agents',
   labelNames: ['agent_id'],
   registers: [metricsRegistry],
@@ -53,7 +53,7 @@ export const tasksCompletedCounter = new Counter({
  * Labels: agent_id
  */
 export const messagesProcessedCounter = new Counter({
-  name: 'recursive_manager_messages_processed_total',
+  name: 'recursivemanager_messages_processed_total',
   help: 'Total number of messages processed by agents',
   labelNames: ['agent_id'],
   registers: [metricsRegistry],
@@ -63,7 +63,7 @@ export const messagesProcessedCounter = new Counter({
  * Gauge: Current number of active executions
  */
 export const activeExecutionsGauge = new Gauge({
-  name: 'recursive_manager_active_executions',
+  name: 'recursivemanager_active_executions',
   help: 'Current number of active executions',
   registers: [metricsRegistry],
 });
@@ -72,7 +72,7 @@ export const activeExecutionsGauge = new Gauge({
  * Gauge: Current execution queue depth
  */
 export const queueDepthGauge = new Gauge({
-  name: 'recursive_manager_queue_depth',
+  name: 'recursivemanager_queue_depth',
   help: 'Current number of tasks waiting in execution queue',
   registers: [metricsRegistry],
 });
@@ -82,7 +82,7 @@ export const queueDepthGauge = new Gauge({
  * Buckets: 10ms, 50ms, 100ms, 500ms, 1s, 5s, 10s, 30s
  */
 export const queueWaitTime = new Histogram({
-  name: 'recursive_manager_queue_wait_time_ms',
+  name: 'recursivemanager_queue_wait_time_ms',
   help: 'Time tasks spend waiting in queue before execution',
   buckets: [10, 50, 100, 500, 1000, 5000, 10000, 30000],
   registers: [metricsRegistry],
@@ -93,7 +93,7 @@ export const queueWaitTime = new Histogram({
  * Labels: violation_type (memory|cpu|time)
  */
 export const quotaViolationsCounter = new Counter({
-  name: 'recursive_manager_quota_violations_total',
+  name: 'recursivemanager_quota_violations_total',
   help: 'Total number of resource quota violations',
   labelNames: ['violation_type', 'agent_id'],
   registers: [metricsRegistry],
@@ -104,7 +104,7 @@ export const quotaViolationsCounter = new Counter({
  * Labels: agent_id
  */
 export const agentHealthGauge = new Gauge({
-  name: 'recursive_manager_agent_health_score',
+  name: 'recursivemanager_agent_health_score',
   help: 'Agent health score (0-100)',
   labelNames: ['agent_id'],
   registers: [metricsRegistry],
@@ -115,7 +115,7 @@ export const agentHealthGauge = new Gauge({
  * Tracks heap used, heap total, RSS, and external memory
  */
 export const memoryUsageGauge = new Gauge({
-  name: 'recursive_manager_memory_usage_bytes',
+  name: 'recursivemanager_memory_usage_bytes',
   help: 'Current memory usage in bytes',
   labelNames: ['type'], // heapUsed, heapTotal, rss, external
   registers: [metricsRegistry],
@@ -126,7 +126,7 @@ export const memoryUsageGauge = new Gauge({
  * Based on process.cpuUsage() measurements
  */
 export const cpuUsageGauge = new Gauge({
-  name: 'recursive_manager_cpu_usage_percent',
+  name: 'recursivemanager_cpu_usage_percent',
   help: 'CPU usage percentage over last measurement interval',
   registers: [metricsRegistry],
 });
@@ -136,7 +136,7 @@ export const cpuUsageGauge = new Gauge({
  * Labels: status (success|failure)
  */
 export const analysisCounter = new Counter({
-  name: 'recursive_manager_analysis_executions_total',
+  name: 'recursivemanager_analysis_executions_total',
   help: 'Total number of multi-perspective analysis executions',
   labelNames: ['status'],
   registers: [metricsRegistry],
@@ -147,7 +147,7 @@ export const analysisCounter = new Counter({
  * Buckets: 500ms, 1s, 5s, 10s, 30s, 60s, 120s
  */
 export const analysisDuration = new Histogram({
-  name: 'recursive_manager_analysis_duration_ms',
+  name: 'recursivemanager_analysis_duration_ms',
   help: 'Multi-perspective analysis duration in milliseconds',
   buckets: [500, 1000, 5000, 10000, 30000, 60000, 120000],
   registers: [metricsRegistry],

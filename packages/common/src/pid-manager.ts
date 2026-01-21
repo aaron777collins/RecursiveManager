@@ -60,7 +60,7 @@ export interface PidInfo {
 export interface PidOptions {
   /**
    * Base directory for PID files
-   * @default ~/.recursive-manager/pids
+   * @default ~/.recursivemanager/pids
    */
   baseDir?: string;
 

@@ -1,11 +1,11 @@
 {
-  "name": "@recursive-manager/scheduler",
-  "version": "1.0.4",
+  "name": "@recursivemanager/scheduler",
+  "version": "1.0.5",
   "description": "Scheduling daemon for RecursiveManager agents",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "recursive-manager-scheduler": "./dist/daemon.js"
+    "recursivemanager-scheduler": "./dist/daemon.js"
   },
   "exports": {
     ".": {
@@ -23,8 +23,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@recursive-manager/common": "*",
-    "@recursive-manager/core": "*",
+    "@recursivemanager/common": "*",
+    "@recursivemanager/core": "*",
     "cron-parser": "^4.9.0",
     "uuid": "^9.0.1",
     "winston": "^3.11.0"

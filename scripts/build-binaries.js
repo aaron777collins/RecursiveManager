@@ -10,11 +10,11 @@ const path = require('path');
 const crypto = require('crypto');
 
 const PLATFORMS = [
-  { os: 'linux', arch: 'x64', output: 'recursive-manager-linux-x64' },
-  { os: 'linux', arch: 'arm64', output: 'recursive-manager-linux-arm64' },
-  { os: 'darwin', arch: 'x64', output: 'recursive-manager-darwin-x64' },
-  { os: 'darwin', arch: 'arm64', output: 'recursive-manager-darwin-arm64' },
-  { os: 'win32', arch: 'x64', output: 'recursive-manager-win-x64.exe' },
+  { os: 'linux', arch: 'x64', output: 'recursivemanager-linux-x64' },
+  { os: 'linux', arch: 'arm64', output: 'recursivemanager-linux-arm64' },
+  { os: 'darwin', arch: 'x64', output: 'recursivemanager-darwin-x64' },
+  { os: 'darwin', arch: 'arm64', output: 'recursivemanager-darwin-arm64' },
+  { os: 'win32', arch: 'x64', output: 'recursivemanager-win-x64.exe' },
 ];
 
 const RELEASE_DIR = path.join(__dirname, '../release');
@@ -82,8 +82,8 @@ case "$ARCH" in
 esac
 
 case "$OS" in
-  linux) BINARY="recursive-manager-linux-$ARCH" ;;
-  darwin) BINARY="recursive-manager-darwin-$ARCH" ;;
+  linux) BINARY="recursivemanager-linux-$ARCH" ;;
+  darwin) BINARY="recursivemanager-darwin-$ARCH" ;;
   *) echo "Unsupported OS: $OS"; exit 1 ;;
 esac
 
@@ -101,16 +101,16 @@ fi
 
 # Download binary
 curl -L -H "Authorization: token $GITHUB_TOKEN" \\
-  -o "$INSTALL_DIR/recursive-manager" \\
+  -o "$INSTALL_DIR/recursivemanager" \\
   "$REPO_URL/download/v$VERSION/$BINARY"
 
 # Make executable
-chmod +x "$INSTALL_DIR/recursive-manager"
+chmod +x "$INSTALL_DIR/recursivemanager"
 
 # Verify installation
-if command -v recursive-manager &> /dev/null; then
+if command -v recursivemanager &> /dev/null; then
   echo "✓ RecursiveManager v$VERSION installed successfully!"
-  echo "Run 'recursive-manager --version' to verify"
+  echo "Run 'recursivemanager --version' to verify"
 else
   echo "Installation complete, but $INSTALL_DIR is not in your PATH"
   echo "Add this line to your ~/.bashrc or ~/.zshrc:"

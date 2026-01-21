@@ -12,7 +12,7 @@
  */
 
 import { generateDefaultConfig } from '../config';
-import { validateAgentConfigStrict, type AgentConfig } from '@recursive-manager/common';
+import { validateAgentConfigStrict, type AgentConfig } from '@recursivemanager/common';
 
 describe('generateDefaultConfig', () => {
   const baseRole = 'Senior Developer';

@@ -8,7 +8,7 @@ import { createSpinner } from '../utils/spinner';
 import { confirm } from '../utils/prompts';
 import * as fs from 'fs';
 import * as path from 'path';
-import { initializeDatabase, runMigrations, allMigrations, createAgent } from '@recursive-manager/common';
+import { initializeDatabase, runMigrations, allMigrations, createAgent } from '@recursivemanager/common';
 
 export function registerInitCommand(program: Command): void {
   program
@@ -24,10 +24,10 @@ export function registerInitCommand(program: Command): void {
         // Determine data directory
         const dataDir =
           options.dataDir ||
-          process.env.RECURSIVE_MANAGER_DATA_DIR ||
-          path.resolve(process.cwd(), '.recursive-manager');
+          process.env.RECURSIVEMANAGER_DATA_DIR ||
+          path.resolve(process.cwd(), '.recursivemanager');
 
-        const markerFile = path.resolve(dataDir, '.recursive-manager');
+        const markerFile = path.resolve(dataDir, '.recursivemanager');
 
         // Check if already initialized
         const alreadyInitialized = fs.existsSync(markerFile);
@@ -107,9 +107,9 @@ export function registerInitCommand(program: Command): void {
         console.log();
         console.log(info('Next steps:'));
         console.log(
-          '  1. Run ' + code('recursive-manager status') + ' to view the organization chart'
+          '  1. Run ' + code('recursivemanager status') + ' to view the organization chart'
         );
-        console.log('  2. Run ' + code('recursive-manager config') + ' to adjust settings');
+        console.log('  2. Run ' + code('recursivemanager config') + ' to adjust settings');
         console.log();
       } catch (err) {
         console.error(error('Initialization failed: ' + (err as Error).message));

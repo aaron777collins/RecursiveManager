@@ -18,7 +18,7 @@ import {
   atomicWrite,
   createBackup,
   type AgentConfig,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 
 describe('loadAgentConfig', () => {
   const testBaseDir = path.join(__dirname, '../../__test-data__/loadAgentConfig');

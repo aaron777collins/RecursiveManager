@@ -102,7 +102,7 @@ git commit -m "docs: update installation instructions"
 npm test
 
 # Run tests for specific package
-npm test -- --filter=@recursive-manager/core
+npm test -- --filter=@recursivemanager/core
 
 # Run tests in watch mode
 npm test -- --watch
@@ -118,7 +118,7 @@ npm test -- --coverage
 npm run build
 
 # Build specific package
-npm run build -- --filter=@recursive-manager/core
+npm run build -- --filter=@recursivemanager/core
 
 # Clean build artifacts
 npm run clean

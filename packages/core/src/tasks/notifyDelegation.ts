@@ -12,7 +12,7 @@ import {
   createMessage,
   auditLog,
   AuditAction,
-} from '@recursive-manager/common';
+} from '@recursivemanager/common';
 import { loadAgentConfig } from '../config';
 import { generateMessageId, writeMessageToInbox, MessageData } from '../messaging/messageWriter';
 
@@ -20,7 +20,7 @@ import { generateMessageId, writeMessageToInbox, MessageData } from '../messagin
  * Options for task delegation notification
  */
 export interface NotifyDelegationOptions {
-  /** Custom data directory (defaults to ~/.recursive-manager) */
+  /** Custom data directory (defaults to ~/.recursivemanager) */
   dataDir?: string;
   /** Force notification even if agent has disabled delegation notifications */
   force?: boolean;

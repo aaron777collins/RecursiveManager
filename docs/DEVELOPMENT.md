@@ -80,7 +80,7 @@ Before you begin, ensure you have:
    ```bash
    npm link
    ```
-   Now you can use `recursive-manager` command globally during development.
+   Now you can use `recursivemanager` command globally during development.
 
 ---
 
@@ -123,8 +123,8 @@ NODE_ENV=development
 LOG_LEVEL=debug
 
 # RecursiveManager paths
-RECURSIVE_MANAGER_HOME=./dev-data
-RECURSIVE_MANAGER_DATA_DIR=./dev-data/data
+RECURSIVEMANAGER_HOME=./dev-data
+RECURSIVEMANAGER_DATA_DIR=./dev-data/data
 
 # AI Provider (for multi-perspective analysis)
 AI_PROVIDER=anthropic-direct
@@ -136,7 +136,7 @@ ANTHROPIC_API_KEY=sk-ant-your-key-here
 # AICEO_GATEWAY_API_KEY=your-shared-secret
 
 # Database
-DB_PATH=./dev-data/recursive-manager.db
+DB_PATH=./dev-data/recursivemanager.db
 DB_ENABLE_WAL=true
 
 # Metrics
@@ -409,7 +409,7 @@ export class ExecutionOrchestrator {
 import { Database } from 'better-sqlite3';
 import { Logger } from 'winston';
 
-import { AgentConfig } from '@recursive-manager/common';
+import { AgentConfig } from '@recursivemanager/common';
 import { loadAgentConfig } from './config';
 
 // 2. Type definitions
@@ -584,14 +584,14 @@ Enable debug logging:
 
 ```bash
 export LOG_LEVEL=debug
-recursive-manager status
+recursivemanager status
 ```
 
 Log to file:
 
 ```bash
 export LOG_FILE=./debug.log
-recursive-manager hire cto "Lead technical development"
+recursivemanager hire cto "Lead technical development"
 ```
 
 ### Database Inspection
@@ -600,7 +600,7 @@ Inspect SQLite database:
 
 ```bash
 # Open database
-sqlite3 ~/.recursive-manager/data/recursive-manager.db
+sqlite3 ~/.recursivemanager/data/recursivemanager.db
 
 # List tables
 .tables
@@ -621,7 +621,7 @@ Start Prometheus metrics server:
 
 ```bash
 export PROMETHEUS_PORT=9090
-recursive-manager daemon start
+recursivemanager daemon start
 ```
 
 Access metrics at: `http://localhost:9090/metrics`
@@ -641,7 +641,7 @@ Access metrics at: `http://localhost:9090/metrics`
 2. Initialize package.json:
    ```json
    {
-     "name": "@recursive-manager/new-package",
+     "name": "@recursivemanager/new-package",
      "version": "1.0.0",
      "main": "dist/index.js",
      "types": "dist/index.d.ts",
@@ -707,8 +707,8 @@ Reference other packages in package.json:
 ```json
 {
   "dependencies": {
-    "@recursive-manager/common": "workspace:*",
-    "@recursive-manager/core": "workspace:*"
+    "@recursivemanager/common": "workspace:*",
+    "@recursivemanager/core": "workspace:*"
   }
 }
 ```
@@ -736,7 +736,7 @@ Reference other packages in package.json:
 1. **Create command file** (`packages/cli/src/commands/new-command.ts`):
    ```typescript
    import { Command } from 'commander';
-   import { getDatabase } from '@recursive-manager/common';
+   import { getDatabase } from '@recursivemanager/common';
 
    export function createNewCommand(): Command {
      return new Command('new-command')
@@ -768,7 +768,7 @@ Reference other packages in package.json:
 
    describe('new-command', () => {
      it('should execute successfully', () => {
-       const result = execSync('recursive-manager new-command test-arg');
+       const result = execSync('recursivemanager new-command test-arg');
        expect(result.toString()).toContain('Executing with arg: test-arg');
      });
    });
@@ -776,19 +776,19 @@ Reference other packages in package.json:
 
 4. **Update documentation** (`docs/CLI.md`):
    ```markdown
-   ### `recursive-manager new-command`
+   ### `recursivemanager new-command`
 
    Description of the command.
 
    **Usage:**
    \`\`\`bash
-   recursive-manager new-command <arg> [options]
+   recursivemanager new-command <arg> [options]
    \`\`\`
 
    **Examples:**
    \`\`\`bash
-   recursive-manager new-command test-arg
-   recursive-manager new-command test-arg --flag
+   recursivemanager new-command test-arg
+   recursivemanager new-command test-arg --flag
    \`\`\`
    ```
 
@@ -832,7 +832,7 @@ Reference other packages in package.json:
 
 4. **Run migration** (automatic on startup):
    ```bash
-   recursive-manager status  # Triggers migration check
+   recursivemanager status  # Triggers migration check
    ```
 
 ### Migration Best Practices
@@ -857,7 +857,7 @@ Reference other packages in package.json:
 
 ```typescript
 import { hireAgent } from '../agents';
-import { getDatabase } from '@recursive-manager/common';
+import { getDatabase } from '@recursivemanager/common';
 
 describe('hireAgent', () => {
   let db: Database;
@@ -907,7 +907,7 @@ describe('hireAgent', () => {
 
 **Mock database**:
 ```typescript
-jest.mock('@recursive-manager/common', () => ({
+jest.mock('@recursivemanager/common', () => ({
   getDatabase: jest.fn(() => mockDatabase),
 }));
 ```
@@ -1027,16 +1027,16 @@ npm run build
 **Solution**:
 ```bash
 # Kill any running processes
-pkill -f recursive-manager
+pkill -f recursivemanager
 
 # Remove PID lock files
-rm -rf ~/.recursive-manager/pids/*
+rm -rf ~/.recursivemanager/pids/*
 
 # Restart
-recursive-manager status
+recursivemanager status
 ```
 
-#### "Command not found: recursive-manager"
+#### "Command not found: recursivemanager"
 
 **Solution**:
 ```bash
@@ -1066,7 +1066,7 @@ export PATH="$PWD/packages/cli/dist:$PATH"
 ### Reporting Bugs
 
 **Include**:
-- RecursiveManager version (`recursive-manager --version`)
+- RecursiveManager version (`recursivemanager --version`)
 - Node.js version (`node --version`)
 - Operating system
 - Steps to reproduce
@@ -1080,8 +1080,8 @@ export PATH="$PWD/packages/cli/dist:$PATH"
 **Version**: RecursiveManager 1.0.0, Node.js 18.20.0, Ubuntu 22.04
 
 **Steps**:
-1. Run `recursive-manager hire cto "Lead development"`
-2. Immediately run `recursive-manager status`
+1. Run `recursivemanager hire cto "Lead development"`
+2. Immediately run `recursivemanager status`
 
 **Expected**: Both commands succeed
 

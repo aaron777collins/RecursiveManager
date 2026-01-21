@@ -108,7 +108,7 @@ generate_checksums() {
     # Create checksums file
     > checksums.txt
 
-    for file in recursive-manager*; do
+    for file in recursivemanager*; do
         if [[ -f "$file" && "$file" != "checksums.txt" ]]; then
             sha256sum "$file" >> checksums.txt
         fi
@@ -128,7 +128,7 @@ sign_binaries() {
     log_info "Signing binaries with GPG..."
     cd "$BUILD_DIR"
 
-    for file in recursive-manager*; do
+    for file in recursivemanager*; do
         if [[ -f "$file" && "$file" != *.asc && "$file" != "checksums.txt" ]]; then
             gpg --default-key "$GPG_KEY_ID" --armor --detach-sign "$file"
             log_info "Signed: $file"
@@ -144,13 +144,13 @@ sign_binaries() {
 # Create tarball for distribution
 create_tarball() {
     local platform=$1
-    local tarball_name="recursive-manager-v${VERSION}-${platform}.tar.gz"
+    local tarball_name="recursivemanager-v${VERSION}-${platform}.tar.gz"
 
     log_info "Creating tarball: $tarball_name..."
     cd "$BUILD_DIR"
 
     tar czf "$tarball_name" \
-        recursive-manager* \
+        recursivemanager* \
         checksums.txt \
         checksums.txt.asc 2>/dev/null || true
 
@@ -170,13 +170,13 @@ main() {
     build_project
 
     # Build for Linux
-    create_bundle "linux" "recursive-manager-linux"
+    create_bundle "linux" "recursivemanager-linux"
 
     # Build for macOS
-    create_bundle "darwin" "recursive-manager-macos"
+    create_bundle "darwin" "recursivemanager-macos"
 
     # Build for Windows
-    create_bundle "win" "recursive-manager-win"
+    create_bundle "win" "recursivemanager-win"
 
     # Generate checksums
     generate_checksums
