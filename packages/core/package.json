@@ -1,6 +1,6 @@
 {
   "name": "@recursivemanager/core",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Core orchestrator and execution engine for RecursiveManager",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

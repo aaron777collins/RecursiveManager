@@ -1,6 +1,6 @@
 {
   "name": "@recursivemanager/scheduler",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Scheduling daemon for RecursiveManager agents",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
