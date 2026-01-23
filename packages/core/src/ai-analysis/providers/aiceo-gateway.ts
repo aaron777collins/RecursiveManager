@@ -3,9 +3,20 @@
  *
  * Routes AI analysis requests through AICEO's centralized GLM Gateway
  * for rate limiting, quota management, and provider abstraction.
+ *
+ * Supports the "custom" provider for routing through custom endpoints
+ * (e.g., z.ai proxy for Claude access).
  */
 
 import { AIProvider, AIAnalysisRequest, AIAnalysisResponse } from './base.js';
+
+/**
+ * Message format for AI requests
+ */
+interface Message {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
 
 /**
  * AICEO Gateway API response structure
@@ -35,9 +46,11 @@ interface AICEOGatewayResponse {
  * Configuration via environment variables:
  * - AICEO_GATEWAY_URL: Gateway endpoint (default: http://localhost:4000/api/glm/submit)
  * - AICEO_GATEWAY_API_KEY: Shared secret for authentication
- * - AICEO_GATEWAY_PROVIDER: Which LLM provider AICEO should use (glm, anthropic, openai)
- * - AICEO_GATEWAY_MODEL: Model to request (e.g., glm-4.7)
+ * - AICEO_GATEWAY_PROVIDER: Which LLM provider AICEO should use (glm, anthropic, openai, custom)
+ * - AICEO_GATEWAY_MODEL: Model to request (e.g., glm-4.7, claude-sonnet-4-5-20250514)
  * - AICEO_GATEWAY_PRIORITY: Request priority (high, normal, low)
+ * - AICEO_GATEWAY_CUSTOM_ENDPOINT: Custom endpoint URL (when provider=custom)
+ * - AICEO_GATEWAY_CUSTOM_API_KEY: Custom endpoint API key (when provider=custom)
  */
 export class AICEOGatewayProvider implements AIProvider {
   name = 'aiceo-gateway';
@@ -47,6 +60,8 @@ export class AICEOGatewayProvider implements AIProvider {
   private readonly provider: string;
   private readonly model: string;
   private readonly priority: 'high' | 'normal' | 'low';
+  private readonly customEndpoint?: string;
+  private readonly customApiKey?: string;
 
   constructor() {
     this.baseUrl = process.env.AICEO_GATEWAY_URL || 'http://localhost:4000/api/glm/submit';
@@ -54,10 +69,46 @@ export class AICEOGatewayProvider implements AIProvider {
     this.provider = process.env.AICEO_GATEWAY_PROVIDER || 'glm';
     this.model = process.env.AICEO_GATEWAY_MODEL || 'glm-4.7';
     this.priority = (process.env.AICEO_GATEWAY_PRIORITY || 'high') as 'high' | 'normal' | 'low';
+    this.customEndpoint = process.env.AICEO_GATEWAY_CUSTOM_ENDPOINT;
+    this.customApiKey = process.env.AICEO_GATEWAY_CUSTOM_API_KEY;
 
     if (!this.apiKey) {
       console.warn('AICEO_GATEWAY_API_KEY not set - requests will fail');
     }
+
+    // Validate custom provider configuration
+    if (this.provider === 'custom') {
+      if (!this.customEndpoint) {
+        console.warn('AICEO_GATEWAY_PROVIDER=custom but AICEO_GATEWAY_CUSTOM_ENDPOINT not set');
+      }
+      if (!this.customApiKey) {
+        console.warn('AICEO_GATEWAY_PROVIDER=custom but AICEO_GATEWAY_CUSTOM_API_KEY not set');
+      }
+    }
+  }
+
+  /**
+   * Format messages for the custom provider
+   *
+   * The custom provider (z.ai) uses OpenAI-style format and doesn't support
+   * the 'system' role directly. We prepend the system prompt to the user message.
+   */
+  private formatMessagesForCustom(messages: Message[]): Message[] {
+    // Find system message and user message
+    const systemMessage = messages.find(m => m.role === 'system');
+    const userMessage = messages.find(m => m.role === 'user');
+
+    if (!systemMessage || !userMessage) {
+      // If no system message, return as-is
+      return messages.filter(m => m.role !== 'system');
+    }
+
+    // Prepend system prompt to user message
+    const combinedContent = `${systemMessage.content}\n\n${userMessage.content}`;
+
+    return [
+      { role: 'user', content: combinedContent }
+    ];
   }
 
   /**
@@ -65,53 +116,93 @@ export class AICEOGatewayProvider implements AIProvider {
    */
   async submit(request: AIAnalysisRequest): Promise<AIAnalysisResponse> {
     try {
-      const response = await fetch(this.baseUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': this.apiKey
-        },
-        body: JSON.stringify({
-          provider: this.provider,
-          model: this.model,
-          priority: this.priority,
-          source: 'recursivemanager',
-          sourceId: `${request.agentType}-analysis`,
-          messages: [
-            { role: 'system', content: request.systemPrompt },
-            { role: 'user', content: request.prompt }
-          ],
-          temperature: request.temperature || 0.7,
-          maxTokens: request.maxTokens || 4000
-        })
-      });
+      // Build request messages
+      const messages: Message[] = [
+        { role: 'system', content: request.systemPrompt },
+        { role: 'user', content: request.prompt }
+      ];
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`AICEO Gateway error (${response.status}): ${errorText}`);
-      }
+      // Format messages for custom provider if needed
+      const formattedMessages = this.provider === 'custom'
+        ? this.formatMessagesForCustom(messages)
+        : messages;
 
-      const data = await response.json() as AICEOGatewayResponse;
-
-      if (!data.success) {
-        throw new Error(`AICEO Gateway error: ${data.error || 'Unknown error'}`);
-      }
-
-      if (!data.response) {
-        throw new Error('AICEO Gateway returned success but no response data');
-      }
-
-      return {
-        content: data.response.content,
-        confidence: this.extractConfidence(data.response.content),
-        reasoning: this.extractReasoning(data.response.content),
-        metadata: {
-          model: data.response.model || this.model,
-          usage: data.response.usage,
-          waitTime: data.metadata?.waitTime,
-          provider: data.metadata?.provider || this.provider
-        }
+      // Build request body
+      const requestBody: Record<string, any> = {
+        provider: this.provider,
+        model: this.model,
+        priority: this.priority,
+        source: 'recursivemanager',
+        sourceId: `${request.agentType}-analysis`,
+        messages: formattedMessages,
+        temperature: request.temperature || 0.7,
+        maxTokens: request.maxTokens || 4000
       };
+
+      // Add custom provider fields if using custom provider
+      if (this.provider === 'custom') {
+        if (this.customEndpoint) {
+          requestBody.customEndpoint = this.customEndpoint;
+        }
+        if (this.customApiKey) {
+          requestBody.customApiKey = this.customApiKey;
+        }
+      }
+
+      // CRITICAL: Set 30-minute timeout for GLM gateway to handle long queues
+      // Without this, the request can hang forever if the gateway is unresponsive
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30 * 60 * 1000); // 30 minutes
+
+      try {
+        const response = await fetch(this.baseUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': this.apiKey
+          },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`AICEO Gateway error (${response.status}): ${errorText}`);
+        }
+
+        const data = await response.json() as AICEOGatewayResponse;
+
+        if (!data.success) {
+          throw new Error(`AICEO Gateway error: ${data.error || 'Unknown error'}`);
+        }
+
+        if (!data.response) {
+          throw new Error('AICEO Gateway returned success but no response data');
+        }
+
+        return {
+          content: data.response.content,
+          confidence: this.extractConfidence(data.response.content),
+          reasoning: this.extractReasoning(data.response.content),
+          metadata: {
+            model: data.response.model || this.model,
+            usage: data.response.usage,
+            waitTime: data.metadata?.waitTime,
+            provider: data.metadata?.provider || this.provider
+          }
+        };
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+
+        // Check if this was a timeout error
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          throw new Error('AICEO Gateway request timed out after 30 minutes (GLM queue was too long)');
+        }
+
+        throw fetchError;
+      }
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(`AICEOGatewayProvider failed: ${error.message}`);

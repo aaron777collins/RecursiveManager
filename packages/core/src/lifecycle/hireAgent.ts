@@ -553,13 +553,30 @@ export async function hireAgent(
           managerId,
           error: error.message,
         });
-        // Note: We don't throw here because the agent was successfully created
-        // This is a non-critical update that can be fixed manually
-        logger.warn('Agent hired successfully but parent registry update failed', {
+
+        // CRITICAL: If parent registry update fails, we need to roll back the agent creation
+        // Otherwise we have a corrupt organizational hierarchy (agent exists in DB but parent doesn't know about it)
+        logger.error('Rolling back agent creation due to parent registry update failure', {
           agentId,
           managerId,
-          message: 'Manual registry update may be required',
         });
+
+        try {
+          await db.deleteAgent(agentId);
+          logger.info('Agent creation rolled back successfully', { agentId });
+        } catch (rollbackErr) {
+          logger.error('Failed to rollback agent creation - database may be in inconsistent state', {
+            agentId,
+            managerId,
+            rollbackError: (rollbackErr as Error).message,
+          });
+        }
+
+        throw new HireAgentError(
+          `Failed to update parent subordinates registry: ${error.message}`,
+          agentId,
+          'PARENT_REGISTRY_UPDATE_FAILED'
+        );
       }
     }
 

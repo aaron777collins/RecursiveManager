@@ -1000,7 +1000,12 @@ export async function fireAgent(
         agentId,
         error: (err as Error).message,
       });
-      // Continue with firing even if orphan handling partially failed
+      // CRITICAL: Do not continue if orphan handling fails - this would leave the org hierarchy in a corrupt state
+      throw new FireAgentError(
+        `Failed to handle orphaned subordinates during fire operation: ${(err as Error).message}`,
+        agentId,
+        'ORPHAN_HANDLING_FAILED'
+      );
     }
 
     // STEP 3: HANDLE ABANDONED TASKS
