@@ -70,7 +70,7 @@ export class AICEOGatewayProvider implements AIProvider {
     this.baseUrl = process.env.AICEO_GATEWAY_URL || 'http://localhost:4000/api/llm/submit';
     this.apiKey = process.env.AICEO_GATEWAY_API_KEY || '';
     this.provider = process.env.AICEO_GATEWAY_PROVIDER || 'openrouter';
-    this.model = process.env.AICEO_GATEWAY_MODEL || 'anthropic/claude-3.5-sonnet';
+    this.model = process.env.AICEO_GATEWAY_MODEL || 'deepseek/deepseek-chat-v3-0324';
     this.priority = (process.env.AICEO_GATEWAY_PRIORITY || 'high') as 'high' | 'normal' | 'low';
     this.customEndpoint = process.env.AICEO_GATEWAY_CUSTOM_ENDPOINT;
     this.customApiKey = process.env.AICEO_GATEWAY_CUSTOM_API_KEY;
