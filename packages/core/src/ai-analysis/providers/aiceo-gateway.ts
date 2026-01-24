@@ -1,11 +1,14 @@
 /**
  * AICEO Gateway Provider
  *
- * Routes AI analysis requests through AICEO's centralized GLM Gateway
+ * Routes AI analysis requests through AICEO's centralized LLM Gateway
  * for rate limiting, quota management, and provider abstraction.
  *
- * Supports the "custom" provider for routing through custom endpoints
- * (e.g., z.ai proxy for Claude access).
+ * Available providers:
+ * - openrouter: Routes through OpenRouter whitelist proxy (recommended)
+ * - anthropic: Direct Anthropic API
+ * - openai: Direct OpenAI API
+ * - custom: Custom OpenAI-compatible endpoint
  */
 
 import { AIProvider, AIAnalysisRequest, AIAnalysisResponse } from './base.js';
@@ -44,10 +47,10 @@ interface AICEOGatewayResponse {
  * Provider that routes requests through AICEO Gateway
  *
  * Configuration via environment variables:
- * - AICEO_GATEWAY_URL: Gateway endpoint (default: http://localhost:4000/api/glm/submit)
+ * - AICEO_GATEWAY_URL: Gateway endpoint (default: http://localhost:4000/api/llm/submit)
  * - AICEO_GATEWAY_API_KEY: Shared secret for authentication
- * - AICEO_GATEWAY_PROVIDER: Which LLM provider AICEO should use (glm, anthropic, openai, custom)
- * - AICEO_GATEWAY_MODEL: Model to request (e.g., glm-4.7, claude-sonnet-4-5-20250514)
+ * - AICEO_GATEWAY_PROVIDER: Which LLM provider AICEO should use (openrouter, anthropic, openai, custom)
+ * - AICEO_GATEWAY_MODEL: Model to request (e.g., anthropic/claude-3.5-sonnet, openai/gpt-4-turbo)
  * - AICEO_GATEWAY_PRIORITY: Request priority (high, normal, low)
  * - AICEO_GATEWAY_CUSTOM_ENDPOINT: Custom endpoint URL (when provider=custom)
  * - AICEO_GATEWAY_CUSTOM_API_KEY: Custom endpoint API key (when provider=custom)
@@ -64,10 +67,10 @@ export class AICEOGatewayProvider implements AIProvider {
   private readonly customApiKey?: string;
 
   constructor() {
-    this.baseUrl = process.env.AICEO_GATEWAY_URL || 'http://localhost:4000/api/glm/submit';
+    this.baseUrl = process.env.AICEO_GATEWAY_URL || 'http://localhost:4000/api/llm/submit';
     this.apiKey = process.env.AICEO_GATEWAY_API_KEY || '';
-    this.provider = process.env.AICEO_GATEWAY_PROVIDER || 'glm';
-    this.model = process.env.AICEO_GATEWAY_MODEL || 'glm-4.7';
+    this.provider = process.env.AICEO_GATEWAY_PROVIDER || 'openrouter';
+    this.model = process.env.AICEO_GATEWAY_MODEL || 'anthropic/claude-3.5-sonnet';
     this.priority = (process.env.AICEO_GATEWAY_PRIORITY || 'high') as 'high' | 'normal' | 'low';
     this.customEndpoint = process.env.AICEO_GATEWAY_CUSTOM_ENDPOINT;
     this.customApiKey = process.env.AICEO_GATEWAY_CUSTOM_API_KEY;
