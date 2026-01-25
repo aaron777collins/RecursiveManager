@@ -1,12 +1,14 @@
 #!/bin/bash
 
 # monitor-ralph.sh - Monitor multiple ralph processes and post updates to Slack
-# Usage: ./monitor-ralph.sh [interval_seconds]
+# Usage: REPO_DIR=/path ./monitor-ralph.sh [interval_seconds]
+# Environment:
+#   REPO_DIR    Path to RecursiveManager repository (default: /home/ubuntu/repos/RecursiveManager)
 
 set -e
 
 INTERVAL=${1:-60}  # Default: check every 60 seconds
-REPO_DIR="/home/ubuntu/repos/RecursiveManager"
+REPO_DIR="${REPO_DIR:-/home/ubuntu/repos/RecursiveManager}"
 SLACK_WEBHOOK="${SLACK_WEBHOOK_URL}"
 
 # Color codes

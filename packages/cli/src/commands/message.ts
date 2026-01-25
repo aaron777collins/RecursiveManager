@@ -23,6 +23,7 @@ interface MessageOptions {
   channel?: 'internal' | 'slack' | 'telegram' | 'email';
   actionRequired?: boolean;
   json?: boolean;
+  yes?: boolean;
 }
 
 export function registerMessageCommand(program: Command): void {
@@ -44,6 +45,7 @@ export function registerMessageCommand(program: Command): void {
     )
     .option('-a, --action-required', 'Mark message as requiring action')
     .option('--json', 'Output result as JSON')
+    .option('-y, --yes', 'Skip confirmation prompts')
     .action(async (agentId: string, content: string | undefined, options: MessageOptions) => {
       try {
         console.log(header('\n✉️  Send Message to Agent'));
@@ -150,7 +152,7 @@ export function registerMessageCommand(program: Command): void {
           console.log(code(`  Content: ${messageContent.substring(0, 60)}${messageContent.length > 60 ? '...' : ''}`));
           console.log();
 
-          const shouldProceed = await confirm('Send this message?', true);
+          const shouldProceed = options.yes || await confirm('Send this message?', true);
           if (!shouldProceed) {
             console.log(info('Message cancelled'));
             dbConnection.close();

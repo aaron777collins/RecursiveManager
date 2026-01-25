@@ -28,7 +28,7 @@ import {
   safeLoad,
   withTraceId,
 } from '@recursivemanager/common';
-import { createAgent, AgentRecord, createSnapshot } from '@recursivemanager/common';
+import { createAgent, updateAgent, AgentRecord, createSnapshot } from '@recursivemanager/common';
 import { saveAgentConfig } from '../config';
 import { validateHireStrict } from './validateHire';
 
@@ -562,7 +562,8 @@ export async function hireAgent(
         });
 
         try {
-          await db.deleteAgent(agentId);
+          // Mark the agent as fired to effectively "delete" it (soft delete)
+          updateAgent(db, agentId, { status: 'fired' });
           logger.info('Agent creation rolled back successfully', { agentId });
         } catch (rollbackErr) {
           logger.error('Failed to rollback agent creation - database may be in inconsistent state', {

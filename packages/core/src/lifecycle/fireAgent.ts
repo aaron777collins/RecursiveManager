@@ -1004,7 +1004,7 @@ export async function fireAgent(
       throw new FireAgentError(
         `Failed to handle orphaned subordinates during fire operation: ${(err as Error).message}`,
         agentId,
-        'ORPHAN_HANDLING_FAILED'
+        err as Error
       );
     }
 

@@ -22,6 +22,15 @@ export class AgentLockError extends Error {
 }
 
 /**
+ * Internal state for tracking pending tryAcquire operations
+ */
+interface MutexState {
+  mutex: Mutex;
+  /** Flag to prevent TOCTOU race in tryAcquire - set synchronously before await */
+  tryAcquirePending: boolean;
+}
+
+/**
  * AgentLock class
  *
  * Provides per-agent mutex locking to prevent concurrent executions.
@@ -46,8 +55,23 @@ export class AgentLockError extends Error {
  * ```
  */
 export class AgentLock {
-  /** Map of agent ID to mutex */
-  private readonly mutexes: Map<string, Mutex> = new Map();
+  /** Map of agent ID to mutex state */
+  private readonly mutexStates: Map<string, MutexState> = new Map();
+
+  /**
+   * Get or create mutex state for an agent
+   */
+  private getOrCreateMutexState(agentId: string): MutexState {
+    let state = this.mutexStates.get(agentId);
+    if (!state) {
+      state = {
+        mutex: new Mutex(),
+        tryAcquirePending: false,
+      };
+      this.mutexStates.set(agentId, state);
+    }
+    return state;
+  }
 
   /**
    * Acquire lock for an agent
@@ -64,15 +88,11 @@ export class AgentLock {
       throw new AgentLockError('Invalid agent ID provided');
     }
 
-    // Get or create mutex for this agent
-    let mutex = this.mutexes.get(agentId);
-    if (!mutex) {
-      mutex = new Mutex();
-      this.mutexes.set(agentId, mutex);
-    }
+    // Get or create mutex state for this agent
+    const state = this.getOrCreateMutexState(agentId);
 
     // Acquire the mutex (will queue if already locked)
-    const release = await mutex.acquire();
+    const release = await state.mutex.acquire();
 
     // Return wrapped release function
     return () => {
@@ -81,14 +101,27 @@ export class AgentLock {
   }
 
   /**
-   * Try to acquire lock without waiting (async version)
+   * Try to acquire lock without waiting (non-blocking)
    *
    * Returns release function if lock is available, null if locked.
-   * Does not queue the request - checks immediately and returns.
+   * Does not queue the request - returns immediately.
    *
-   * Note: Since async-mutex doesn't support synchronous tryAcquire,
-   * this method checks if the lock is available and returns null if locked.
-   * For a proper non-blocking acquire, use this method with await.
+   * IMPORTANT: This method uses an atomic check-and-set pattern to prevent
+   * TOCTOU (time-of-check-to-time-of-use) race conditions. The pattern works
+   * because JavaScript is single-threaded:
+   *
+   * 1. We synchronously check both isLocked() AND tryAcquirePending flag
+   * 2. If both are false, we synchronously set tryAcquirePending = true
+   * 3. Only then do we await the actual acquire()
+   * 4. Any concurrent tryAcquire calls will see tryAcquirePending = true
+   *    and return null immediately
+   *
+   * This ensures that between checking the lock state and acquiring the lock,
+   * no other tryAcquire call can slip through.
+   *
+   * Note: Regular acquire() calls can still queue up and will wait their turn.
+   * This is the intended behavior - tryAcquire is for non-blocking attempts,
+   * while acquire() is for guaranteed acquisition (with waiting).
    *
    * @param agentId - Agent identifier to lock
    * @returns Promise resolving to release function if acquired, null if locked
@@ -99,26 +132,32 @@ export class AgentLock {
       throw new AgentLockError('Invalid agent ID provided');
     }
 
-    // Get or create mutex for this agent
-    let mutex = this.mutexes.get(agentId);
-    if (!mutex) {
-      mutex = new Mutex();
-      this.mutexes.set(agentId, mutex);
-    }
+    // Get or create mutex state for this agent
+    const state = this.getOrCreateMutexState(agentId);
 
-    // Check if mutex is already locked
-    if (mutex.isLocked()) {
+    // ATOMIC CHECK: In JavaScript's single-threaded model, this synchronous
+    // block cannot be interrupted. We check BOTH conditions and set the flag
+    // before any await, preventing TOCTOU races between concurrent tryAcquire calls.
+    if (state.mutex.isLocked() || state.tryAcquirePending) {
       return null;
     }
 
-    // Mutex appears unlocked, try to acquire
-    // Note: Small race condition possible, but acceptable for tryAcquire semantics
-    const release = await mutex.acquire();
+    // Mark that we have a pending tryAcquire - this is still synchronous
+    // Any concurrent tryAcquire will now see this flag and return null
+    state.tryAcquirePending = true;
 
-    // Return wrapped release function
-    return () => {
-      release();
-    };
+    try {
+      // Now we can safely await - we've already "reserved" our spot
+      const release = await state.mutex.acquire();
+
+      // Return wrapped release function
+      return () => {
+        release();
+      };
+    } finally {
+      // Clear the pending flag whether we succeed or fail
+      state.tryAcquirePending = false;
+    }
   }
 
   /**
@@ -128,8 +167,8 @@ export class AgentLock {
    * @returns True if agent is currently locked
    */
   isLocked(agentId: string): boolean {
-    const mutex = this.mutexes.get(agentId);
-    return mutex ? mutex.isLocked() : false;
+    const state = this.mutexStates.get(agentId);
+    return state ? state.mutex.isLocked() : false;
   }
 
   /**
@@ -157,7 +196,7 @@ export class AgentLock {
    * @param agentId - Agent identifier to clean up
    */
   cleanup(agentId: string): void {
-    this.mutexes.delete(agentId);
+    this.mutexStates.delete(agentId);
   }
 
   /**
@@ -166,7 +205,7 @@ export class AgentLock {
    * @returns Number of agent mutexes currently tracked
    */
   getMutexCount(): number {
-    return this.mutexes.size;
+    return this.mutexStates.size;
   }
 
   /**
@@ -176,6 +215,6 @@ export class AgentLock {
    * Will not check if mutexes are currently locked.
    */
   clearAll(): void {
-    this.mutexes.clear();
+    this.mutexStates.clear();
   }
 }

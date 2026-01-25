@@ -306,7 +306,8 @@ export async function isProcessRunningByPid(
 /**
  * Acquire a PID lock for a process
  *
- * This creates a PID file and ensures no other instance is running.
+ * This creates a PID file atomically using O_EXCL flag to prevent TOCTOU race conditions.
+ * If the file already exists, it checks if the process is still running.
  * Returns a cleanup function that removes the PID file.
  *
  * @param processName - Name/identifier of the process
@@ -318,19 +319,83 @@ export async function acquirePidLock(
   processName: string,
   options: PidOptions = {}
 ): Promise<() => Promise<void>> {
-  // Check if another instance is running
-  const existingPid = await isProcessRunningByPid(processName, options);
+  const pidPath = getPidFilePath(processName, options);
+  const pidDir = getPidDirectory(options);
+  const { checkProcess = true, removeStale = true } = options;
 
-  if (existingPid) {
+  // Ensure PID directory exists
+  await fs.mkdir(pidDir, { recursive: true, mode: 0o755 });
+
+  // Create PID info
+  const pidInfo: PidInfo = {
+    pid: process.pid,
+    processName,
+    createdAt: new Date().toISOString(),
+    hostname: require('os').hostname(),
+  };
+
+  const pidContent = JSON.stringify(pidInfo, null, 2);
+
+  // Try to create the PID file exclusively (O_EXCL via 'wx' flag)
+  // This is atomic - either we create it or we fail
+  try {
+    const fileHandle = await fs.open(pidPath, 'wx', 0o644);
+    await fileHandle.writeFile(pidContent, 'utf-8');
+    await fileHandle.close();
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error) {
+      const nodeError = error as NodeJS.ErrnoException;
+
+      // File already exists - check if the process is still running
+      if (nodeError.code === 'EEXIST') {
+        // Read existing PID file
+        const existingPid = await readPidFile(processName, options);
+
+        if (existingPid) {
+          // Check if the process is actually running
+          if (checkProcess) {
+            const running = isProcessRunning(existingPid.pid);
+
+            if (running) {
+              throw new PidError(
+                `Process '${processName}' is already running (PID: ${existingPid.pid})`,
+                processName,
+                pidPath
+              );
+            }
+
+            // Process is not running - stale PID file
+            if (removeStale) {
+              // Remove stale PID file and retry acquisition
+              await removePidFile(processName, options);
+              return acquirePidLock(processName, options);
+            }
+          } else {
+            // Not checking process, assume it's running
+            throw new PidError(
+              `Process '${processName}' has an existing PID file (PID: ${existingPid.pid})`,
+              processName,
+              pidPath
+            );
+          }
+        }
+
+        // PID file exists but is invalid/unreadable - try to remove and retry
+        if (removeStale) {
+          await removePidFile(processName, options);
+          return acquirePidLock(processName, options);
+        }
+      }
+    }
+
+    // Re-throw other errors
     throw new PidError(
-      `Process '${processName}' is already running (PID: ${existingPid.pid})`,
+      `Failed to acquire PID lock: ${error instanceof Error ? error.message : String(error)}`,
       processName,
-      getPidFilePath(processName, options)
+      pidPath,
+      error instanceof Error ? error : undefined
     );
   }
-
-  // Write our PID file
-  await writePidFile(processName, process.pid, options);
 
   // Return cleanup function
   return async () => {

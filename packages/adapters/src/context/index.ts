@@ -11,7 +11,6 @@ import * as path from 'path';
 import { Database } from 'better-sqlite3';
 import {
   getWorkspacePath,
-  getAgentDirectory,
   PathOptions,
   type AgentConfig,
   loadAgentConfig,
@@ -305,7 +304,7 @@ export async function loadExecutionContext(
 
     // Determine workspace and working directories
     const workspaceDir = getWorkspacePath(agentId, options);
-    const workingDir = getAgentDirectory(agentId, options);
+    const workingDir = workspaceDir; // Working directory should be the workspace
 
     // Construct execution context
     const context: ExecutionContext = {

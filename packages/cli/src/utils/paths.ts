@@ -10,6 +10,7 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 
 /**
  * Get the installation root directory where RecursiveManager is installed
@@ -62,7 +63,7 @@ export function getInstallRoot(): string {
   }
 
   // Fall back to default installation directory
-  const homeDir = process.env.HOME || process.env.USERPROFILE || '';
+  const homeDir = os.homedir();
   return path.join(homeDir, '.recursivemanager');
 }
 

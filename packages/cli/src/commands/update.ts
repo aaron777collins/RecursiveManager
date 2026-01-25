@@ -5,6 +5,7 @@
 import { Command } from 'commander';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import * as os from 'os';
 import { header, success, error, info, code, warning } from '../utils/colors';
 import { createSpinner } from '../utils/spinner';
 import { confirm } from '../utils/prompts';
@@ -12,6 +13,30 @@ import { getScriptPath } from '../utils/paths';
 import { VERSION } from '../index';
 
 const execAsync = promisify(exec);
+
+/**
+ * Execute a shell script in a cross-platform manner
+ * Uses bash on Unix-like systems and PowerShell on Windows
+ */
+async function executeScript(
+  scriptPath: string,
+  args: string[] = []
+): Promise<{ stdout: string; stderr: string }> {
+  const isWindows = os.platform() === 'win32';
+
+  if (isWindows) {
+    // On Windows, use PowerShell to execute the script
+    // Convert .sh path to .ps1 if a PowerShell equivalent exists
+    const psScriptPath = scriptPath.replace(/\.sh$/, '.ps1');
+    const argsStr = args.map((arg) => `"${arg}"`).join(' ');
+    return execAsync(`powershell -ExecutionPolicy Bypass -File "${psScriptPath}" ${argsStr}`);
+  } else {
+    // On Unix-like systems, use the system shell
+    const argsStr = args.map((arg) => `"${arg}"`).join(' ');
+    const shell = process.env.SHELL || '/bin/sh';
+    return execAsync(`"${shell}" "${scriptPath}" ${argsStr}`);
+  }
+}
 
 export function registerUpdateCommand(program: Command): void {
   program
@@ -34,7 +59,7 @@ export function registerUpdateCommand(program: Command): void {
           const spinner = createSpinner('Checking for updates...');
 
           try {
-            const { stdout } = await execAsync(`bash "${scriptPath}" --check`);
+            const { stdout } = await executeScript(scriptPath, ['--check']);
             spinner.succeed('Update check complete');
             console.log();
             console.log(stdout.trim());
@@ -48,7 +73,7 @@ export function registerUpdateCommand(program: Command): void {
 
           try {
             // Check if update is available
-            const { stdout: checkOutput } = await execAsync(`bash "${scriptPath}" --check`);
+            const { stdout: checkOutput } = await executeScript(scriptPath, ['--check']);
             spinner.succeed('Update check complete');
 
             if (checkOutput.includes('already running the latest version')) {
@@ -71,11 +96,9 @@ export function registerUpdateCommand(program: Command): void {
             console.log();
             const updateSpinner = createSpinner('Updating RecursiveManager...');
 
-            const updateCommand = options.version
-              ? `bash "${scriptPath}" "${options.version}"`
-              : `bash "${scriptPath}"`;
+            const updateArgs = options.version ? [options.version] : [];
 
-            const { stdout: updateOutput } = await execAsync(updateCommand);
+            const { stdout: updateOutput } = await executeScript(scriptPath, updateArgs);
             updateSpinner.succeed('Update complete');
 
             console.log();

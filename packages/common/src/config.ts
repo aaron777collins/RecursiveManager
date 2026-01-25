@@ -67,7 +67,7 @@ export interface RecursiveManagerConfig {
   /** AICEO Gateway API key for authentication */
   aiceoGatewayApiKey?: string;
 
-  /** Provider for AICEO Gateway to use (glm, anthropic, openai) */
+  /** Provider for AICEO Gateway to use (glm, anthropic, openai, custom) */
   aiceoGatewayProvider?: string;
 
   /** Model for AICEO Gateway to use */
@@ -75,6 +75,12 @@ export interface RecursiveManagerConfig {
 
   /** Request priority for AICEO Gateway (high, normal, low) */
   aiceoGatewayPriority?: string;
+
+  /** Custom endpoint URL (when using provider=custom) */
+  aiceoGatewayCustomEndpoint?: string;
+
+  /** Custom endpoint API key (when using provider=custom) */
+  aiceoGatewayCustomApiKey?: string;
 
   // Direct Anthropic Configuration
   /** Anthropic API key */
@@ -169,6 +175,8 @@ export function loadConfig(): RecursiveManagerConfig {
     aiceoGatewayProvider: process.env.AICEO_GATEWAY_PROVIDER || 'glm',
     aiceoGatewayModel: process.env.AICEO_GATEWAY_MODEL || 'glm-4.7',
     aiceoGatewayPriority: process.env.AICEO_GATEWAY_PRIORITY || 'high',
+    aiceoGatewayCustomEndpoint: process.env.AICEO_GATEWAY_CUSTOM_ENDPOINT,
+    aiceoGatewayCustomApiKey: process.env.AICEO_GATEWAY_CUSTOM_API_KEY,
 
     // Direct Anthropic Configuration
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,

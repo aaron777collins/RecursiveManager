@@ -14,7 +14,7 @@ import {
   DatabasePool,
 } from '@recursivemanager/common';
 import { ExecutionOrchestrator } from '@recursivemanager/core';
-import { AdapterRegistry } from '@recursivemanager/adapters';
+import { AdapterRegistry, ClaudeCodeAdapter } from '@recursivemanager/adapters';
 
 interface RunOptions {
   dataDir?: string;
@@ -209,8 +209,17 @@ export function registerRunCommand(program: Command): void {
           const dbPool = DatabasePool.getInstance();
           dbPool.initialize({ path: dbPath });
 
-          // Create adapter registry
+          // Create adapter registry and register adapters
           const adapterRegistry = new AdapterRegistry();
+
+          // Register Claude Code adapter
+          const claudeCodeAdapter = new ClaudeCodeAdapter({
+            cliPath: process.env.CLAUDE_CLI_PATH || 'claude',
+            timeout: parseInt(process.env.CLAUDE_TIMEOUT || '3600000', 10), // 60 minutes
+            debug: process.env.CLAUDE_DEBUG === 'true',
+            maxRetries: parseInt(process.env.CLAUDE_MAX_RETRIES || '3', 10),
+          });
+          adapterRegistry.register(claudeCodeAdapter);
 
           // Create execution orchestrator
           const orchestrator = new ExecutionOrchestrator({

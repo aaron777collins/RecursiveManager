@@ -93,6 +93,7 @@ export function registerConfigCommand(program: Command): void {
           console.log();
 
           const action = await select('What would you like to configure?', [
+            { name: 'AI Provider (AICEO Gateway)', value: 'ai-provider' },
             { name: 'Execution Settings', value: 'execution' },
             { name: 'View All Settings', value: 'view' },
           ]);
@@ -100,6 +101,17 @@ export function registerConfigCommand(program: Command): void {
           console.log();
 
           switch (action) {
+            case 'ai-provider':
+              console.log();
+              console.log(info('AI Provider is configured globally via AICEO Gateway.'));
+              console.log();
+              console.log('To configure AI Provider settings, run:');
+              console.log('  ' + code('recursivemanager setup'));
+              console.log();
+              console.log('This will launch the AICEO Gateway setup wizard.');
+              console.log();
+              break;
+
             case 'execution':
               const workerPoolSize = await number(
                 'Worker pool size (1-100):',

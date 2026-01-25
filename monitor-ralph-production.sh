@@ -1,10 +1,13 @@
 #!/bin/bash
 
 # Monitor Ralph Production Readiness Implementation
+# Usage: REPO_DIR=/path ./monitor-ralph-production.sh
+# Environment:
+#   REPO_DIR    Path to RecursiveManager repository (default: /home/ubuntu/repos/RecursiveManager)
 
 PLAN_FILE="RALPH_PRODUCTION_READY_PLAN.md"
 PROGRESS_FILE="RALPH_PRODUCTION_READY_PLAN_PROGRESS.md"
-REPO_DIR="/home/ubuntu/repos/RecursiveManager"
+REPO_DIR="${REPO_DIR:-/home/ubuntu/repos/RecursiveManager}"
 
 cd "$REPO_DIR" || exit 1
 

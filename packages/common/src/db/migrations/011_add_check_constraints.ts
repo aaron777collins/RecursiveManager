@@ -29,21 +29,23 @@ export const migration011: Migration = {
       id TEXT PRIMARY KEY,
       role TEXT NOT NULL,
       display_name TEXT NOT NULL,
-      created_by TEXT NOT NULL,
+      created_at TIMESTAMP NOT NULL,
+      created_by TEXT,
       reporting_to TEXT REFERENCES agents(id),
-      status TEXT NOT NULL DEFAULT 'idle' CHECK (status IN ('idle', 'running', 'paused', 'fired')),
+      status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'idle', 'running', 'paused', 'fired')),
       main_goal TEXT NOT NULL,
       config_path TEXT NOT NULL,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      last_active_at TIMESTAMP
+      last_execution_at TIMESTAMP,
+      total_executions INTEGER DEFAULT 0 CHECK (total_executions >= 0),
+      total_runtime_minutes INTEGER DEFAULT 0 CHECK (total_runtime_minutes >= 0)
     )
     `,
     `INSERT INTO agents_new SELECT * FROM agents`,
     `DROP TABLE agents`,
     `ALTER TABLE agents_new RENAME TO agents`,
-    `CREATE INDEX idx_agents_status ON agents(status)`,
-    `CREATE INDEX idx_agents_reporting_to ON agents(reporting_to)`,
-    `CREATE INDEX idx_agents_last_active ON agents(last_active_at)`,
+    `CREATE INDEX idx_status ON agents(status)`,
+    `CREATE INDEX idx_reporting_to ON agents(reporting_to)`,
+    `CREATE INDEX idx_created_at ON agents(created_at)`,
 
     // Tasks table constraints
     `
@@ -110,7 +112,7 @@ export const migration011: Migration = {
     `CREATE INDEX idx_messages_channel ON messages(channel)`,
     `CREATE INDEX idx_messages_from_agent ON messages(from_agent_id)`,
 
-    // Schedules table constraints
+    // Schedules table constraints (15 columns: 13 from migration 004 + 2 from migration 009)
     `
     CREATE TABLE schedules_new (
       id TEXT PRIMARY KEY,
@@ -125,7 +127,9 @@ export const migration011: Migration = {
       enabled INTEGER DEFAULT 1 CHECK (enabled IN (0, 1)),
       last_triggered_at TIMESTAMP,
       created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      dependencies TEXT DEFAULT '[]',
+      execution_id TEXT
     )
     `,
     `INSERT INTO schedules_new SELECT * FROM schedules`,
@@ -134,6 +138,7 @@ export const migration011: Migration = {
     `CREATE INDEX idx_schedules_agent ON schedules(agent_id)`,
     `CREATE INDEX idx_schedules_next_execution ON schedules(next_execution_at)`,
     `CREATE INDEX idx_schedules_enabled ON schedules(enabled)`,
+    `CREATE INDEX idx_schedules_execution_id ON schedules(execution_id)`,
   ],
 
   down: [
@@ -145,21 +150,23 @@ export const migration011: Migration = {
       id TEXT PRIMARY KEY,
       role TEXT NOT NULL,
       display_name TEXT NOT NULL,
-      created_by TEXT NOT NULL,
+      created_at TIMESTAMP NOT NULL,
+      created_by TEXT,
       reporting_to TEXT REFERENCES agents(id),
-      status TEXT NOT NULL DEFAULT 'idle',
+      status TEXT NOT NULL DEFAULT 'active',
       main_goal TEXT NOT NULL,
       config_path TEXT NOT NULL,
-      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-      last_active_at TIMESTAMP
+      last_execution_at TIMESTAMP,
+      total_executions INTEGER DEFAULT 0,
+      total_runtime_minutes INTEGER DEFAULT 0
     )
     `,
     `INSERT INTO agents_old SELECT * FROM agents`,
     `DROP TABLE agents`,
     `ALTER TABLE agents_old RENAME TO agents`,
-    `CREATE INDEX idx_agents_status ON agents(status)`,
-    `CREATE INDEX idx_agents_reporting_to ON agents(reporting_to)`,
-    `CREATE INDEX idx_agents_last_active ON agents(last_active_at)`,
+    `CREATE INDEX idx_status ON agents(status)`,
+    `CREATE INDEX idx_reporting_to ON agents(reporting_to)`,
+    `CREATE INDEX idx_created_at ON agents(created_at)`,
     // Similarly for other tables (omitted for brevity)
   ],
 };

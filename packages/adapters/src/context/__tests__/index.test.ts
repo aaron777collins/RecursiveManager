@@ -432,7 +432,7 @@ describe('Execution Context Preparation', () => {
         messages: expect.any(Array),
         workspaceFiles: expect.any(Array),
         workspaceDir: '/test/workspace',
-        workingDir: '/test/agent',
+        workingDir: '/test/workspace', // workingDir now equals workspaceDir
       });
     });
 
@@ -487,7 +487,7 @@ describe('Execution Context Preparation', () => {
 
       expect(loadAgentConfig).toHaveBeenCalledWith('test-agent', options);
       expect(getWorkspacePath).toHaveBeenCalledWith('test-agent', options);
-      expect(getAgentDirectory).toHaveBeenCalledWith('test-agent', options);
+      // Note: getAgentDirectory is no longer called since workingDir = workspaceDir
     });
   });
 

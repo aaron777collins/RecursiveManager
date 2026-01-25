@@ -11,6 +11,7 @@ import { VERSION } from './index';
 import { registerInitCommand } from './commands/init';
 import { registerStatusCommand } from './commands/status';
 import { registerUpdateCommand } from './commands/update';
+import { registerSetupCommand } from './commands/setup';
 import { registerConfigCommand } from './commands/config';
 import { registerDebugCommand } from './commands/debug';
 import { registerRollbackCommand } from './commands/rollback';
@@ -37,6 +38,7 @@ program
 registerInitCommand(program);
 registerStatusCommand(program);
 registerUpdateCommand(program);
+registerSetupCommand(program);
 registerConfigCommand(program);
 registerDebugCommand(program);
 registerRollbackCommand(program);
