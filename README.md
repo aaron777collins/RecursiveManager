@@ -1,14 +1,19 @@
 # RecursiveManager
 
+> ⚠️ **NOT UNDER ACTIVE DEVELOPMENT**
+>
+> This project is no longer being actively maintained. CI/CD pipelines have been disabled.
+> The code remains available for reference and archival purposes.
+>
+> *Last active: January 2026*
+
+---
+
 > Hierarchical AI agent system that mimics organizational structures for autonomous task management
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-purple.svg)](https://github.com/aaron777collins/RecursiveManager/releases/tag/v1.0.0)
-[![Status: Production Ready](https://img.shields.io/badge/Status-Production%20Ready-green.svg)](https://github.com/aaron777collins/RecursiveManager)
-[![CI Status](https://github.com/aaron777collins/RecursiveManager/actions/workflows/ci.yml/badge.svg)](https://github.com/aaron777collins/RecursiveManager/actions/workflows/ci.yml)
-[![Jenkins](https://img.shields.io/badge/Jenkins-CI%2FCD-red.svg)](./docs/JENKINS.md)
-[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue.svg)](https://aaron777collins.github.io/RecursiveManager/)
-[![Docs Build](https://github.com/aaron777collins/RecursiveManager/actions/workflows/docs.yml/badge.svg)](https://github.com/aaron777collins/RecursiveManager/actions/workflows/docs.yml)
+[![Version: 1.2.4](https://img.shields.io/badge/Version-1.2.4-purple.svg)](https://github.com/aaron777collins/RecursiveManager/releases/tag/v1.2.4)
+[![Status: Archived](https://img.shields.io/badge/Status-Archived-lightgrey.svg)](https://github.com/aaron777collins/RecursiveManager)
 
 ## Overview
 

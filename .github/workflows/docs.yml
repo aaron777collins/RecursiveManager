@@ -1,54 +1,15 @@
+# ⚠️ DOCS DEPLOYMENT DISABLED - This project is no longer under active development
+# See README.md for details
+
 name: Deploy Documentation
 
 on:
-  push:
-    branches:
-      - master
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
-  build:
+  disabled:
+    name: Docs Deployment Disabled
     runs-on: ubuntu-latest
+    if: false  # Never run
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install root dependencies
-        run: npm install
-
-      - name: Install docs dependencies
-        run: cd docs && npm install
-
-      - name: Build documentation
-        run: cd docs && npm run build
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/.vitepress/dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - run: echo "Documentation deployment is disabled for this repository"
